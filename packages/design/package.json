@@ -1,0 +1,23 @@
+{
+  "name": "@better-government/design",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css",
+    "./shadow.css": "./src/shadow.css",
+    "./tailwind-preset": {
+      "types": "./tailwind-preset.d.ts",
+      "default": "./tailwind-preset.js"
+    },
+    "./postcss": {
+      "types": "./postcss.d.ts",
+      "default": "./postcss.js"
+    },
+    "./themes/*": "./themes/*"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8"
+  }
+}

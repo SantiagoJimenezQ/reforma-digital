@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@better-government/design": "*",
     "@better-government/registry": "*",
     "@better-government/runtime": "*"
   }

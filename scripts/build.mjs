@@ -1,22 +1,36 @@
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwind from '@tailwindcss/vite';
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { readSites, adapterPlugin } from './sites.mjs';
+import { designPostcss } from '@better-government/design/postcss';
+import { readSites, adapterPlugin, testMatches } from './sites.mjs';
 
 const test = process.argv.includes('--test');
 const outDir = path.resolve(test ? 'dist-test' : 'dist');
 const sites = await readSites();
 const pkg = JSON.parse(await readFile('package.json', 'utf8'));
-const matches = sites.flatMap((site) =>
-  site.origins.map((origin) => `${origin}${site.pathPrefix}*`),
+const shared = ['packages/design/src', 'packages/react/src', 'packages/runtime/src'].map(
+  (dir) => `${path.resolve(dir)}/**/*.{ts,tsx}`,
 );
-if (test) matches.push('http://127.0.0.1:4173/citaPreviaDni/*');
+
+// Popup (React + design system). Knows the included sites for its "Portales incluidos" list.
 await build({
   configFile: false,
+  logLevel: 'warn',
   root: path.resolve('apps/extension'),
   plugins: [react()],
+  css: {
+    postcss: {
+      plugins: designPostcss({
+        content: [...shared, `${path.resolve('apps/extension')}/**/*.{ts,tsx,html}`],
+      }),
+    },
+  },
+  define: {
+    __BG_SITES__: JSON.stringify(
+      sites.map(({ id, name, homepage, status }) => ({ id, name, homepage, status })),
+    ),
+  },
   build: {
     outDir,
     emptyOutDir: true,
@@ -25,22 +39,35 @@ await build({
     rollupOptions: { input: path.resolve('apps/extension/popup.html') },
   },
 });
-await build({
-  configFile: false,
-  plugins: [react(), tailwind(), adapterPlugin(sites)],
-  define: { __BG_TEST__: JSON.stringify(test), 'process.env.NODE_ENV': '"production"' },
-  build: {
-    outDir,
-    emptyOutDir: false,
-    sourcemap: false,
-    lib: {
-      entry: path.resolve('apps/extension/src/content.ts'),
-      name: 'BetterGovernment',
-      formats: ['iife'],
-      fileName: () => 'content.js',
+
+// One content script per site: each official page loads only its own adapter.
+for (const site of sites) {
+  await build({
+    configFile: false,
+    logLevel: 'warn',
+    plugins: [react(), adapterPlugin(site)],
+    css: {
+      postcss: {
+        plugins: designPostcss({
+          content: [...shared, `${path.resolve('sites', site.id, 'src')}/**/*.{ts,tsx}`],
+        }),
+      },
     },
-  },
-});
+    define: { __BG_TEST__: JSON.stringify(test), 'process.env.NODE_ENV': '"production"' },
+    build: {
+      outDir,
+      emptyOutDir: false,
+      sourcemap: false,
+      lib: {
+        entry: path.resolve('apps/extension/src/content.ts'),
+        name: 'BetterGovernment',
+        formats: ['iife'],
+        fileName: () => `content/${site.id}.js`,
+      },
+    },
+  });
+}
+
 await mkdir(outDir, { recursive: true });
 await writeFile(
   path.join(outDir, 'manifest.json'),
@@ -54,15 +81,13 @@ await writeFile(
       minimum_chrome_version: '120',
       permissions: ['storage'],
       action: { default_popup: 'popup.html', default_title: 'Better Government' },
-      content_scripts: [
-        {
-          matches,
-          js: ['content.js'],
-          run_at: 'document_idle',
-          all_frames: false,
-          world: 'ISOLATED',
-        },
-      ],
+      content_scripts: sites.map((site) => ({
+        matches: test ? [...site.matches, ...testMatches(site)] : site.matches,
+        js: [`content/${site.id}.js`],
+        run_at: 'document_idle',
+        all_frames: false,
+        world: 'ISOLATED',
+      })),
       content_security_policy: {
         extension_pages:
           "script-src 'self'; object-src 'none'; connect-src 'none'; base-uri 'none'",
@@ -72,4 +97,6 @@ await writeFile(
     2,
   ) + '\n',
 );
-console.log(`Extension built in ${outDir}. ${sites.length} site adapter(s).`);
+console.log(
+  `Extension built in ${outDir}. ${sites.length} site adapter(s): ${sites.map((s) => s.id).join(', ')}.`,
+);

@@ -14,6 +14,9 @@ Esto no hace inocua cualquier modificación del DOM. Una extensión tiene acceso
 - Los controles de seguridad se conservan originales. No se falsifica `isTrusted`.
 - Restauración manual, ante cambios de identidad o desaparición de controles, navegación y validación nativa.
 - Mensajes del popup aceptados solo desde la URL empaquetada del popup. No existe un puente de órdenes mediante `window.postMessage`.
+- Un content script por portal, inyectado solo en sus rutas exactas. Una ruta no puede cubrir un dominio entero.
+- Las acciones sobre elementos no nativos (`custom` en `DomBridge`) se declaran una a una tras revisarlas.
+- Las herramientas de la web real (`site:live`, `site:record`) recorren una vez páginas públicas, sin datos personales, y no eluden comprobaciones anti‑bot. Los fixtures se guardan sin scripts, tokens anti‑CSRF ni `jsessionid`; las grabaciones quedan en `.cache/`, fuera de git.
 
 El Shadow DOM aísla estilos; no es una barrera de seguridad frente a la página. El aislamiento de JavaScript tampoco oculta el DOM a los scripts del portal.
 

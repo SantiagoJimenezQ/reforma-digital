@@ -1,6 +1,6 @@
 /** DOM-only bridge. Never owns a network request, a session or a saved field value. */
 export type FieldElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-export type ActionElement = HTMLButtonElement | HTMLInputElement | HTMLAnchorElement;
+export type ActionElement = HTMLButtonElement | HTMLInputElement | HTMLAnchorElement | HTMLElement;
 export interface FieldSpec {
   element: FieldElement;
   label: string;
@@ -9,6 +9,11 @@ export interface FieldSpec {
 export interface ActionSpec {
   element: ActionElement;
   label: string;
+  /**
+   * The official page uses a non-native clickable element (e.g. a div with an onclick handler).
+   * Only declare it after reviewing that element: activation is a plain click() on it.
+   */
+  custom?: boolean;
 }
 export interface FieldSnapshot {
   value: string;
@@ -31,7 +36,7 @@ export interface FieldSnapshot {
   invalid: boolean;
   validationMessage: string;
   connected: boolean;
-  options: readonly { value: string; label: string; disabled: boolean }[];
+  options: readonly { value: string; label: string; disabled: boolean; group: string | null }[];
 }
 export type BridgeIssue =
   'disconnected' | 'unsupported-control' | 'changed-control' | 'missing-binding';
@@ -82,6 +87,7 @@ function snapshot(element: FieldElement): FieldSnapshot {
           disabled:
             o.disabled ||
             (o.parentElement instanceof HTMLOptGroupElement && o.parentElement.disabled),
+          group: o.parentElement instanceof HTMLOptGroupElement ? o.parentElement.label : null,
         }))
       : [],
   };
@@ -124,13 +130,9 @@ export class DomBridge {
       });
     }
     for (const [id, spec] of Object.entries(actions)) {
-      if (!(
-        spec.element instanceof HTMLButtonElement ||
-        spec.element instanceof HTMLAnchorElement ||
-        (spec.element instanceof HTMLInputElement &&
-          ['button', 'submit', 'reset'].includes(spec.element.type))
-      ))
+      if (!isBindableAction(spec.element, spec.custom === true))
         throw new Error('Unsupported action binding');
+      if (!spec.element.isConnected) throw new Error('Cannot bind a detached control');
       this.actions.set(id, spec);
       this.actionShapes.set(id, this.actionShape(spec.element));
     }
@@ -164,6 +166,7 @@ export class DomBridge {
       element.getAttribute('name'),
       element.getAttribute('value'),
       element.getAttribute('formaction'),
+      element.getAttribute('onclick'),
     ]);
   }
   private valid(id: string, element: FieldElement): boolean {
@@ -357,6 +360,17 @@ export class DomBridge {
   }
 }
 
+/** Native actions are always bindable; any other element only when explicitly declared `custom`. */
+export function isBindableAction(element: Element, custom = false): element is ActionElement {
+  if (
+    element instanceof HTMLButtonElement ||
+    element instanceof HTMLAnchorElement ||
+    (element instanceof HTMLInputElement && ['button', 'submit', 'reset'].includes(element.type))
+  )
+    return true;
+  return custom && element instanceof HTMLElement;
+}
+
 export function uniqueElement<T extends Element>(
   root: ParentNode,
   selector: string,
@@ -394,4 +408,52 @@ export function fieldByLabel(root: ParentNode, label: string): FieldElement | nu
       return names.some((name) => normalizedLabel(name) === normalizedLabel(label));
     });
   return matches.length === 1 ? matches[0]! : null;
+}
+
+/** Visible text with collapsed whitespace. */
+export function textOf(element: Element | null | undefined): string {
+  return (element?.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Resolves every required selector exactly once. Returns null if any is missing or ambiguous,
+ * so `prepare` can keep the original page (same rule as `uniqueElement`).
+ */
+export function requireElements<K extends string>(
+  root: ParentNode,
+  selectors: Record<K, string>,
+): Record<K, HTMLElement> | null {
+  const found = {} as Record<K, HTMLElement>;
+  for (const key of Object.keys(selectors) as K[]) {
+    const matches = root.querySelectorAll(selectors[key]);
+    const match = matches.item(0);
+    if (matches.length !== 1 || !(match instanceof HTMLElement)) return null;
+    found[key] = match;
+  }
+  return found;
+}
+
+/** Brings an official section into view and highlights it briefly. Never changes its content. */
+export function scrollToOfficial(element: Element | null): void {
+  if (!(element instanceof HTMLElement)) return;
+  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const hadTabIndex = element.hasAttribute('tabindex');
+  if (!hadTabIndex) element.setAttribute('tabindex', '-1');
+  element.focus({ preventScroll: true });
+  const { outline, outlineOffset } = element.style;
+  element.style.outline = '3px solid #1f57bf';
+  element.style.outlineOffset = '4px';
+  setTimeout(() => {
+    element.style.outline = outline;
+    element.style.outlineOffset = outlineOffset;
+    if (!hadTabIndex) element.removeAttribute('tabindex');
+  }, 2500);
+}
+
+/** Whether an official element is rendered (not display:none / visibility:hidden). */
+export function isVisible(element: Element | null): boolean {
+  if (!(element instanceof HTMLElement) || !element.isConnected) return false;
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+  if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+  return element.offsetParent !== null || style?.position === 'fixed';
 }

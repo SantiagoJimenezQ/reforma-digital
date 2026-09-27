@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.tsx",
-    "./styles.css": "./src/ui.css"
+    ".": "./src/index.tsx"
   },
   "dependencies": {
-    "@better-government/registry": "*",
-    "@better-government/react": "*"
+    "@better-government/design": "*",
+    "@better-government/react": "*",
+    "@better-government/registry": "*"
   },
   "peerDependencies": {
     "react": "^19.2.8",

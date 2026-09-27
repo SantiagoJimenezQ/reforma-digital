@@ -10,7 +10,7 @@
     "sites/*"
   ],
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.18"
   },
   "scripts": {
     "dev": "vite --config apps/playground/vite.config.ts",
@@ -23,6 +23,9 @@
     "audit:bundle": "node scripts/audit-bundle.mjs",
     "package": "npm run check && node scripts/package.mjs",
     "site:new": "node scripts/new-site.mjs",
+    "site:live": "node scripts/site-live.mjs",
+    "site:record": "node scripts/site-record.mjs",
+    "site:preview": "node scripts/site-preview.mjs",
     "check:workspaces": "node scripts/check-workspaces.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -33,15 +36,15 @@
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
-    "@tailwindcss/vite": "4.3.3",
     "@types/chrome": "0.2.9",
     "@types/node": "26.5.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
     "jsdom": "30.0.1",
+    "postcss": "8.5.28",
     "prettier": "3.9.6",
-    "tailwindcss": "4.3.3",
+    "tailwindcss": "3.4.19",
     "typescript": "7.0.2",
     "vite": "8.2.2",
     "vitest": "5.0.0"

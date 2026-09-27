@@ -1,0 +1,44 @@
+/*
+ * Tema del portal de Extranjería = tema Morfos + controles duplicados.
+ *
+ * DESIGN.md §4.2: mientras la interfaz está activa y sincronizada, se ocultan SOLO
+ * los controles oficiales que el panel replica. Nunca los errores (.error,
+ * .error_list), los avisos, #divSubTramites ni ningún texto informativo.
+ * Al pulsar «Ver original» o desactivar el portal vuelve todo.
+ */
+@import '@better-government/design/themes/morfos.css';
+
+/* Página informativa: el panel pulsa el botón oficial «Acceder al Procedimiento». */
+html[data-bg-page='landing'] .mf-main--content .align_center:has(> form#formulario) {
+  display: none !important;
+}
+
+/* Provincia: desplegable y botones oficiales (el error #formError sigue visible). */
+html[data-bg-page='provincias'] #divProvincias > label,
+html[data-bg-page='provincias'] #divProvincias > select#form,
+html[data-bg-page='provincias'] .mf-main--content form .layout--abajo {
+  display: none !important;
+}
+
+/* Oficina y trámite: campos y botones replicados en el panel. */
+html[data-bg-page='tramites'] #portadaForm .fld:has(> #prov_selecc),
+html[data-bg-page='tramites'] #divSedes > label,
+html[data-bg-page='tramites'] #divSedes > select#sede,
+html[data-bg-page='tramites'] #divGrupoTramites legend,
+html[data-bg-page='tramites'] #divGrupoTramites .fld:has(> select[id^='tramiteGrupo[']),
+html[data-bg-page='tramites'] #portadaForm .layout--abajo {
+  display: none !important;
+}
+/* Los fieldset oficiales vacíos de controles no deben dibujar caja. */
+html[data-bg-page='tramites'] #portadaForm fieldset {
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0;
+}
+
+/* Información del trámite: las dos opciones y «Volver» están en el panel con el texto oficial. */
+html[data-bg-page='info'] form[name='info'] :is(#btnAccesoClave, #btnEntrar),
+html[data-bg-page='info'] form[name='info'] #btnVolver {
+  display: none !important;
+}

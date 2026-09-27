@@ -1,0 +1,5 @@
+{
+  "/citaPreviaDni/Inicio.action": "landing.html",
+  "/citaPreviaDni/InicioDNINIE.action": "login.html",
+  "*": "/citaPreviaDni/"
+}

@@ -1,0 +1,465 @@
+/*
+ * Better Government · tema para webs con el framework «Morfos» de la AGE
+ * (sede.administracionespublicas.gob.es, icp.administracionelectronica.gob.es…).
+ *
+ * Aplica DESIGN.md §4 a la web oficial. Reglas:
+ *  - Todo va bajo html[data-bg-site] → desaparece al desactivar la mejora.
+ *  - Solo tokens (var(--bg-*)) y componentes del preset (@apply bg-*).
+ *  - Se re-maqueta, NUNCA se oculta contenido informativo (DESIGN.md §4.3).
+ *  - !important solo donde la web oficial usa estilos inline o selectores muy específicos.
+ */
+@import '../src/tokens.css';
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+html[data-bg-site] {
+  font-size: 16px; /* la web oficial usa 14px: sus rem crecen en proporción */
+  background: rgb(var(--bg-canvas));
+}
+html[data-bg-site] body,
+html[data-bg-site] .mf-container {
+  @apply bg-text;
+  background: rgb(var(--bg-canvas)) !important;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-bg-site]
+  body
+  :is(p, li, dd, dt, td, th, label, legend, span, div, a, strong, em, u, b, i, small) {
+  font-family: var(--bg-font);
+}
+html[data-bg-site] ::selection {
+  background: rgb(var(--bg-brand-100));
+}
+
+/* ── Cabecera: logotipos oficiales intactos, barra blanca ───────────── */
+html[data-bg-site] .mf-header,
+html[data-bg-site] .mf-header.mf-header__compact,
+html[data-bg-site] .mf-header.mf-header__menu-hide,
+html[data-bg-site] .mf-header.mf-header__fixed {
+  background: rgb(var(--bg-surface)) !important;
+  box-shadow: 0 1px 0 rgb(var(--bg-line)) !important;
+}
+html[data-bg-site] .mf-header--content,
+html[data-bg-site] .mf-appmenu,
+html[data-bg-site] .mf-header__compact .mf-appmenu {
+  background: rgb(var(--bg-surface)) !important;
+  border-color: rgb(var(--bg-line)) !important;
+  box-shadow: none !important;
+}
+html[data-bg-site] .mf-appmenu {
+  border-top: 1px solid rgb(var(--bg-line)) !important;
+  border-bottom: 0 !important;
+}
+html[data-bg-site] .mf-app-title,
+html[data-bg-site] .mf-header__compact .mf-app-title,
+html[data-bg-site] .mf-header__menu-hide .mf-app-title {
+  color: rgb(var(--bg-ink)) !important;
+  font-family: var(--bg-font) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+html[data-bg-site] .mf-app-subtitle {
+  color: rgb(var(--bg-ink-muted)) !important;
+  font-family: var(--bg-font) !important;
+}
+html[data-bg-site] .mf-appmenu--menu a,
+html[data-bg-site] .mf-appmenu--menu button,
+html[data-bg-site] .mf-appmenu--item > a,
+html[data-bg-site] .mf-appmenu--item > span {
+  color: rgb(var(--bg-ink)) !important;
+  background: transparent !important;
+  font-family: var(--bg-font) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+/* El HTML oficial mezcla textos en mayúsculas y en minúsculas: un único estilo de rótulo. */
+html[data-bg-site] .mf-appmenu--item__L1 > a,
+html[data-bg-site] .mf-appmenu--item__L1 > a * {
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  font-size: 13px !important;
+}
+html[data-bg-site] .mf-appmenu--submenu * {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+/* Número de versión de la aplicación oficial */
+html[data-bg-site] .mf-media--ext {
+  @apply bg-small;
+  padding-top: 8px;
+}
+html[data-bg-site] .mf-appmenu--item > a:hover,
+html[data-bg-site] .mf-appmenu--item > a:focus-visible {
+  color: rgb(var(--bg-brand-700)) !important;
+  box-shadow: inset 0 -3px 0 rgb(var(--bg-brand-600));
+}
+/* Cabecera compacta (al hacer scroll la web oficial la fija arriba): título a escala de la barra. */
+html[data-bg-site] .mf-header__compact .mf-app-title,
+html[data-bg-site] .mf-header__menu-hide .mf-app-title {
+  font-size: 18px !important;
+  line-height: 40px !important;
+  padding: 0 12px !important;
+}
+html[data-bg-site] .mf-header__compact .mf-logo--img {
+  height: 40px !important;
+  width: auto !important;
+}
+/* Menú lateral en móvil */
+html[data-bg-site] .mf-appmenu--menu {
+  background: rgb(var(--bg-surface)) !important;
+}
+html[data-bg-site] .mf-appmenu--button,
+html[data-bg-site] .mf-topbar-button {
+  color: rgb(var(--bg-ink)) !important;
+  background-color: transparent !important;
+}
+html[data-bg-site] .mf-appmenu--button span,
+html[data-bg-site] .mf-appmenu--button::before,
+html[data-bg-site] .mf-topbar-button::before {
+  color: rgb(var(--bg-ink)) !important;
+}
+html[data-bg-site] .mf-appmenu--submenu,
+html[data-bg-site] .ac-appmenu--submenu-wrap {
+  background: rgb(var(--bg-surface)) !important;
+  color: rgb(var(--bg-ink)) !important;
+  border: 1px solid rgb(var(--bg-line)) !important;
+  border-radius: var(--bg-radius-control);
+  box-shadow: var(--bg-shadow-raised) !important;
+}
+/* Barra superior (Ir al contenido, Accesibilidad, fecha, Acceso) */
+html[data-bg-site] .mf-topbar,
+html[data-bg-site] .mf-topbar--container,
+html[data-bg-site] .mf-usermenu {
+  background: rgb(var(--bg-surface)) !important;
+}
+html[data-bg-site] .mf-topbar a,
+html[data-bg-site] .mf-topbar span,
+html[data-bg-site] .mf-usermenu a,
+html[data-bg-site] .mf-accesibility-item a {
+  color: rgb(var(--bg-ink-muted)) !important;
+  font-family: var(--bg-font) !important;
+  font-size: 14px !important;
+}
+
+/* ── Estructura ───────────────────────────────────────────────────── */
+html[data-bg-site] .mf-wrapper {
+  max-width: var(--bg-content-max) !important;
+  margin: 0 auto !important;
+  padding: 0 16px !important;
+  box-sizing: border-box;
+  overflow-x: visible !important;
+}
+html[data-bg-site] .mf-main {
+  padding: 24px 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+/*
+ * La columna principal no es una tarjeta: dentro van el rótulo oficial, el panel
+ * (tarjeta propia) y el contenido oficial (otra tarjeta). Así no hay tarjetas anidadas.
+ */
+html[data-bg-site] .mf-layout--main-content {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+html[data-bg-site] .mf-layout--main-content > .mf-main--content {
+  @apply bg-card;
+  padding: 24px !important;
+  box-sizing: border-box;
+}
+@media (max-width: 639px) {
+  html[data-bg-site] .mf-layout--main-content > .mf-main--content {
+    padding: 16px !important;
+  }
+}
+html[data-bg-site] .mf-layout--module-sidebar {
+  background: transparent !important;
+}
+html[data-bg-site] .mf-layout--module-sidebar > section {
+  @apply bg-card;
+  padding: 20px !important;
+  margin-bottom: 16px !important;
+  box-sizing: border-box;
+}
+html[data-bg-site] .ac-topnav,
+html[data-bg-site] .mf-breadcrumb {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html[data-bg-site] .mf-breadcrumb--menu {
+  @apply bg-small;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 12px !important;
+}
+html[data-bg-site] .mf-breadcrumb--item a {
+  @apply bg-link;
+  font-weight: 400;
+}
+
+/* Título oficial de la página → rótulo sobre el panel */
+html[data-bg-site] .mf-window-header {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+html[data-bg-site] .mf-window-header--title {
+  @apply bg-eyebrow;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: var(--bg-font) !important;
+}
+html[data-bg-site] .mf-window-header--subtitle,
+html[data-bg-site] .mf-window-header .mf-app-subtitle {
+  @apply bg-small;
+  font-style: normal !important;
+  margin: 2px 0 0 !important;
+}
+
+/* ── Contenido oficial ────────────────────────────────────────────── */
+html[data-bg-site] .mf-main--content {
+  @apply bg-text;
+  font-size: 16px !important;
+}
+html[data-bg-site] .mf-main--content :is(p, li) {
+  max-width: 70ch;
+  line-height: 1.6 !important;
+  color: rgb(var(--bg-ink));
+}
+html[data-bg-site] .mf-main--content :is(ul, ol) {
+  padding-left: 1.4em !important;
+  margin: 8px 0 12px !important;
+}
+html[data-bg-site] .mf-main--content ul > li {
+  list-style: disc outside !important;
+  margin: 4px 0 !important;
+  padding: 0 !important;
+  background: none !important;
+}
+html[data-bg-site] .mf-main--content ol > li {
+  list-style: decimal outside !important;
+  margin: 4px 0 !important;
+}
+html[data-bg-site] .mf-main--content h2 {
+  @apply bg-h2;
+  font-family: var(--bg-font) !important;
+  margin: 8px 0 12px !important;
+}
+html[data-bg-site] .mf-main--content :is(h3, h4, .mf-paragraph-header) {
+  @apply bg-h3;
+  font-family: var(--bg-font) !important;
+  margin: 24px 0 6px !important;
+  text-transform: none;
+}
+html[data-bg-site] .mf-main--content a,
+html[data-bg-site] .mf-layout--module-sidebar a,
+html[data-bg-site] .mf-footer a {
+  @apply bg-link;
+}
+/* Aviso accesible de la web oficial para enlaces externos: se conserva, discreto */
+html[data-bg-site] .ac-blank-lnk {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+/* Énfasis en rojo de la web oficial: se mantiene con el color de peligro */
+html[data-bg-site]
+  .mf-main--content
+  :is(
+    [style*='color: red'],
+    [style*='color:red'],
+    [style*='color: #ff0000'],
+    [style*='color:#ff0000'],
+    font[color='red']
+  ) {
+  color: rgb(var(--bg-danger-fg)) !important;
+}
+
+/* Notas y avisos oficiales */
+html[data-bg-site] .mf-note {
+  @apply bg-callout bg-callout-warning;
+  margin: 0 0 16px !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+html[data-bg-site] .mf-note :is(p, li, span, strong, u, em) {
+  color: inherit !important;
+}
+html[data-bg-site] .mf-note :is(h2, h3) {
+  @apply bg-h3;
+  color: inherit !important;
+  margin: 4px 0 8px !important;
+}
+html[data-bg-site] .mf-note + br {
+  display: none; /* salto de línea vacío de maquetación; no contiene información */
+}
+
+/* Aviso de protección de datos (fieldset con estilo inline) */
+html[data-bg-site] .mf-main--content fieldset[style] {
+  @apply bg-callout bg-callout-neutral;
+  border-style: solid !important;
+  border-width: 1px 1px 1px 4px !important;
+  border-color: rgb(var(--bg-line)) rgb(var(--bg-line)) rgb(var(--bg-line))
+    rgb(var(--bg-line-control)) !important;
+  background: rgb(var(--bg-surface-muted)) !important;
+  margin: 24px 0 !important;
+}
+html[data-bg-site] .mf-main--content fieldset[style] strong {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--bg-ink-muted));
+}
+
+/* Errores oficiales */
+html[data-bg-site] :is(.error_list, .mf-msg__error, .error_list li) {
+  color: rgb(var(--bg-danger-fg)) !important;
+  font-weight: 600;
+  font-family: var(--bg-font) !important;
+}
+
+/* ── Controles oficiales ──────────────────────────────────────────── */
+html[data-bg-site]
+  .mf-main--content
+  :is(input[type='submit'], input[type='button'], button, .mf-button) {
+  @apply bg-btn bg-btn-primary;
+  background-image: none !important;
+  box-shadow: none !important;
+  height: auto !important;
+  width: auto;
+}
+html[data-bg-site] .mf-main--content :is(.mf-button.secondary, #btnVolver) {
+  @apply bg-btn-secondary;
+}
+html[data-bg-site]
+  .mf-main--content
+  :is(select, input[type='text'], input[type='email'], input[type='tel'], textarea) {
+  @apply bg-field;
+  max-width: 560px;
+  height: auto !important;
+  box-shadow: none;
+  background-image: none;
+}
+html[data-bg-site] .mf-main--content .fld label,
+html[data-bg-site] .mf-main--content legend {
+  @apply bg-label;
+  float: none !important;
+  width: auto !important;
+  text-transform: none;
+}
+
+/* ── Barra lateral (Utilidades, ayuda) ────────────────────────────── */
+html[data-bg-site] .mf-layout--module-sidebar :is(h2, .ac-module__title, .ac-custom-mod--title) {
+  @apply bg-h3;
+  font-family: var(--bg-font) !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 8px !important;
+  margin: 0 !important;
+}
+html[data-bg-site] .mf-layout--module-sidebar .mf-simple-list {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+html[data-bg-site] .mf-layout--module-sidebar .mf-simple-list > li {
+  border-top: 1px solid rgb(var(--bg-line)) !important;
+  padding: 0 !important;
+  list-style: none;
+}
+html[data-bg-site] .mf-layout--module-sidebar .mf-simple-list--item {
+  display: block;
+  padding: 10px 0 !important;
+  background: transparent !important;
+  font-size: 15px !important;
+  border: 0 !important;
+}
+html[data-bg-site] .mf-layout--module-sidebar .mf-simple-list--item::before,
+html[data-bg-site] .mf-layout--module-sidebar .mf-simple-list--item::after {
+  content: none !important;
+}
+html[data-bg-site] .ac-custom-mod__help,
+html[data-bg-site] .ac-module__utils {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+html[data-bg-site] .ac-custom-mod--text {
+  @apply bg-small;
+}
+
+/* ── Banners, mapa del sitio y pie ────────────────────────────────── */
+html[data-bg-site] .ac-banners,
+html[data-bg-site] .mf-sitemap {
+  background: transparent !important;
+  border: 0 !important;
+  max-width: var(--bg-content-max);
+  margin: 0 auto !important;
+  padding: 16px !important;
+  box-sizing: border-box;
+}
+html[data-bg-site] .ac-banners-list--item,
+html[data-bg-site] .mf-sitemap a {
+  color: rgb(var(--bg-ink-muted)) !important;
+  background: transparent !important;
+}
+html[data-bg-site] :is(.mf-simple-list--title, .mf-sitemap--title) {
+  color: rgb(var(--bg-ink)) !important;
+  font-weight: 600 !important;
+}
+html[data-bg-site] .mf-simple-list--description {
+  @apply bg-small;
+}
+html[data-bg-site] .mf-footer {
+  @apply bg-small;
+  background: rgb(var(--bg-surface)) !important;
+  border-top: 1px solid rgb(var(--bg-line)) !important;
+}
+html[data-bg-site] .mf-footer :is(p, span) {
+  color: rgb(var(--bg-ink-muted)) !important;
+}
+html[data-bg-site] .mf-footer--menu-item > a {
+  background: transparent !important;
+  font-weight: 500 !important;
+}
+
+/* ── Barra de cookies: se re-maqueta como tarjeta; NO se acepta ni se oculta ── */
+html[data-bg-site] #cookie-law-info-bar {
+  @apply bg-card bg-small;
+  left: 16px !important;
+  right: 16px !important;
+  bottom: 16px !important;
+  width: auto !important;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 16px !important;
+  box-sizing: border-box;
+  box-shadow: var(--bg-shadow-raised) !important;
+  color: rgb(var(--bg-ink)) !important;
+  background: rgb(var(--bg-surface)) !important;
+  font-family: var(--bg-font) !important;
+  text-align: left !important;
+}
+html[data-bg-site] #cookie-law-info-bar .cli-plugin-button {
+  @apply bg-btn bg-btn-secondary;
+  min-height: 36px;
+  padding: 6px 12px;
+  margin: 8px 8px 0 0;
+  font-size: 14px;
+  color: rgb(var(--bg-ink)) !important;
+  background-color: rgb(var(--bg-surface)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-bg-site] * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "extranjeria",
+  "name": "Cita previa de Extranjería",
+  "enabled": true,
+  "routes": [
+    {
+      "origin": "https://sede.administracionespublicas.gob.es",
+      "path": "/pagina/index/directorio/icpplus"
+    },
+    { "origin": "https://icp.administracionelectronica.gob.es", "pathPrefix": "/icpplus/" },
+    { "origin": "https://icp.administracionelectronica.gob.es", "pathPrefix": "/icpco/" },
+    { "origin": "https://icp.administracionelectronica.gob.es", "pathPrefix": "/icpplustie/" },
+    { "origin": "https://icp.administracionelectronica.gob.es", "pathPrefix": "/icpplustieb/" },
+    { "origin": "https://icp.administracionelectronica.gob.es", "pathPrefix": "/icpplustiem/" }
+  ],
+  "homepage": "https://sede.administracionespublicas.gob.es/pagina/index/directorio/icpplus",
+  "status": "experimental",
+  "verifiedAt": "2026-09-27"
+}

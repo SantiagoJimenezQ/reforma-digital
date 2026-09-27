@@ -48,37 +48,84 @@ function Popup() {
       setBusy(false);
     }
   }
+  async function showOriginal() {
+    setBusy(true);
+    try {
+      await send('restore');
+      setStatus((await send('status')) as Status);
+    } catch {
+      setError('No se pudo cambiar la vista. Recarga esta página e inténtalo de nuevo.');
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
-    <main>
-      <h1>Better Government</h1>
-      <section>
-        {!ready
-          ? 'Comprobando esta página…'
-          : status
-            ? stateText[status.state]
-            : 'No hay una integración disponible en esta pestaña.'}
-        {status ? <small>{status.name}</small> : null}
+    <main className="bg-text space-y-3 p-4 text-[14px]">
+      <header>
+        <h1 className="bg-h3 leading-tight">Better Government</h1>
+        <p className="bg-eyebrow">Interfaz comunitaria · sitio oficial</p>
+      </header>
+      <section className="rounded-control bg-surface-muted p-3" aria-live="polite">
+        <h2 className="bg-eyebrow">Esta pestaña</h2>
+        <p className="mt-1">
+          {!ready
+            ? 'Comprobando esta página…'
+            : status
+              ? stateText[status.state]
+              : 'No hay una integración disponible en esta pestaña.'}
+        </p>
+        {status ? <p className="bg-hint">{status.name}</p> : null}
       </section>
       {status ? (
-        <button disabled={busy} onClick={() => void toggle()}>
-          {busy
-            ? 'Aplicando…'
-            : status.state === 'disabled'
-              ? 'Activar en este portal'
-              : 'Desactivar en este portal'}
-        </button>
+        <div className="space-y-2">
+          {status.state === 'active' ? (
+            <button
+              type="button"
+              className="bg-btn bg-btn-secondary w-full"
+              disabled={busy}
+              onClick={() => void showOriginal()}
+            >
+              Ver original en esta pestaña
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="bg-btn bg-btn-primary w-full"
+            disabled={busy}
+            onClick={() => void toggle()}
+          >
+            {busy
+              ? 'Aplicando…'
+              : status.state === 'disabled'
+                ? 'Activar en este portal'
+                : 'Desactivar en este portal'}
+          </button>
+        </div>
       ) : (
-        <a
-          className="visit"
-          href="https://www.citapreviadnie.es/citaPreviaDni/Inicio.action"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Abrir cita previa del DNI ↗
-        </a>
+        <section>
+          <h2 className="bg-eyebrow">Portales incluidos</h2>
+          <ul className="mt-1 space-y-1.5">
+            {__BG_SITES__.map((site) => (
+              <li key={site.id}>
+                <a className="bg-link" href={site.homepage} target="_blank" rel="noreferrer">
+                  {site.name} ↗
+                </a>
+                <span className="bg-hint block">
+                  {site.status === 'verified' ? 'Verificado' : 'Experimental'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-      {error ? <p role="alert">{error}</p> : null}
-      <footer>DNI: adaptación experimental. No es un servicio oficial.</footer>
+      {error ? (
+        <p role="alert" className="bg-callout bg-callout-danger">
+          {error}
+        </p>
+      ) : null}
+      <footer className="bg-hint border-t border-line pt-3">
+        Adaptaciones comunitarias. No es un servicio oficial. Sin servidores propios ni telemetría.
+      </footer>
     </main>
   );
 }

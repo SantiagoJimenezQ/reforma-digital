@@ -9,13 +9,18 @@ assert.equal(manifest.background, undefined);
 assert.equal(manifest.externally_connectable, undefined);
 assert.equal(manifest.web_accessible_resources, undefined);
 assert.equal(manifest.host_permissions, undefined);
-assert.equal(manifest.content_scripts[0].world, 'ISOLATED');
-assert.equal(manifest.content_scripts[0].all_frames, false);
 const sites = await readSites();
+// One isolated content script per enabled site, injected only on that site's exact routes.
 assert.deepEqual(
-  manifest.content_scripts[0].matches,
-  sites.flatMap((site) => site.origins.map((origin) => `${origin}${site.pathPrefix}*`)),
+  manifest.content_scripts.map((entry) => entry.js),
+  sites.map((site) => [`content/${site.id}.js`]),
 );
+for (const [index, site] of sites.entries()) {
+  const entry = manifest.content_scripts[index];
+  assert.equal(entry.world, 'ISOLATED');
+  assert.equal(entry.all_frames, false);
+  assert.deepEqual(entry.matches, site.matches);
+}
 assert.ok(!JSON.stringify(manifest).includes('127.0.0.1'));
 const forbidden = [
   /\beval\s*\(/,

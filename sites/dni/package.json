@@ -6,6 +6,7 @@
   "exports": "./src/index.ts",
   "dependencies": {
     "@better-government/bridge": "*",
+    "@better-government/design": "*",
     "@better-government/react": "*",
     "@better-government/registry": "*"
   }

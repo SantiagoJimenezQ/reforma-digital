@@ -100,7 +100,7 @@ function Demo() {
 }
 flushSync(() => createRoot(document.getElementById('demo-root')!).render(<Demo />));
 let runtime = mountAdapter(dniAdapter, {
-  url: new URL(dniAdapter.origins[0]! + '/citaPreviaDni/InicioDNINIE.action'),
+  url: new URL(dniAdapter.routes[0]!.origin + '/citaPreviaDni/InicioDNINIE.action'),
   demo: true,
   onState: (state) => {
     document.getElementById('toggle')!.textContent =
@@ -111,7 +111,7 @@ document.getElementById('toggle')!.addEventListener('click', () => {
   if (runtime.state() === 'active') runtime.restore();
   else
     runtime = mountAdapter(dniAdapter, {
-      url: new URL(dniAdapter.origins[0]! + '/citaPreviaDni/InicioDNINIE.action'),
+      url: new URL(dniAdapter.routes[0]!.origin + '/citaPreviaDni/InicioDNINIE.action'),
       demo: true,
       onState: (state) => {
         document.getElementById('toggle')!.textContent =

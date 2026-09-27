@@ -1,0 +1,7 @@
+{
+  "/pagina/index/directorio/icpplus": "landing.html",
+  "/icpplus/index.html": "provincias.html",
+  "/icpplustiem/citar": "tramites.html",
+  "/icpplustiem/acInfo": "info.html",
+  "*": "/icpplustiem/"
+}

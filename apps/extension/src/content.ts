@@ -1,11 +1,23 @@
 import { adapters } from 'virtual:site-adapters';
-import { matchesSite } from '@better-government/registry';
-import { mountAdapter, type RuntimeController } from '@better-government/runtime';
+import { matchesSite, type SiteAdapter } from '@better-government/registry';
+import { startAdapter, type RuntimeController } from '@better-government/runtime';
+
+/** Test builds only: the local playground serves each site's fixtures under their official paths. */
+function officialURL(local: URL, sites: readonly SiteAdapter[]): URL {
+  for (const site of sites)
+    for (const route of site.routes)
+      if (
+        'path' in route
+          ? local.pathname === route.path
+          : local.pathname.startsWith(route.pathPrefix)
+      )
+        return new URL(local.pathname + local.search, route.origin);
+  return local;
+}
 
 async function start() {
   let url = new URL(location.href);
-  if (__BG_TEST__ && url.origin === 'http://127.0.0.1:4173')
-    url = new URL(url.pathname, 'https://www.citapreviadnie.es');
+  if (__BG_TEST__ && url.origin === 'http://127.0.0.1:4173') url = officialURL(url, adapters);
   const adapter = adapters.find((item) => matchesSite(item, url));
   if (!adapter) return;
   let controller: RuntimeController | undefined;
@@ -13,7 +25,7 @@ async function start() {
   try {
     const saved = await chrome.storage.local.get('disabledSites');
     disabled = Array.isArray(saved.disabledSites) && saved.disabledSites.includes(adapter.id);
-    if (!disabled) controller = mountAdapter(adapter, { url, demo: __BG_TEST__ });
+    if (!disabled) controller = startAdapter(adapter, { url, demo: __BG_TEST__ });
   } catch {
     return;
   }
@@ -41,7 +53,7 @@ async function start() {
     }
     if (message.type === 'enable' && !disabled) {
       controller?.dispose();
-      controller = mountAdapter(adapter, { url, demo: __BG_TEST__ });
+      controller = startAdapter(adapter, { url, demo: __BG_TEST__ });
       sendResponse({ state: controller.state() });
     }
   });

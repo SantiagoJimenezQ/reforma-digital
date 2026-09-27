@@ -1,14 +1,18 @@
+/* Estilos del portal DNI con los tokens del sistema de diseño (DESIGN.md). */
+@import '@better-government/design/tokens.css';
+
 body[data-bg-site='dni'] {
-  background: #f6f5f0;
-  color: #182e2a;
+  background: rgb(var(--bg-canvas));
+  color: rgb(var(--bg-ink));
+  font-family: var(--bg-font);
 }
 body[data-bg-site='dni'] :is(input:not([type='hidden']), select, textarea, button) {
   font-size: max(1em, 16px);
 }
 body[data-bg-site='dni'] :is(input:not([type='hidden']), select, textarea) {
-  border-radius: 5px;
+  border-radius: var(--bg-radius-control);
 }
 body[data-bg-site='dni'] :is(a, button, input, select, textarea):focus-visible {
-  outline: 3px solid #217a69;
-  outline-offset: 3px;
+  outline: 3px solid rgb(var(--bg-brand-600));
+  outline-offset: 2px;
 }

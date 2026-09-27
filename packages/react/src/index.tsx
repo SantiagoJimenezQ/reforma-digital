@@ -1,7 +1,10 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useId,
+  useRef,
+  useState,
   useSyncExternalStore,
   type ButtonHTMLAttributes,
 } from 'react';
@@ -40,10 +43,10 @@ export function BoundField({
     required: state.required,
     'aria-describedby': spec.help ? `${id}-help` : undefined,
     'aria-invalid': spec.element.getAttribute('aria-invalid') === 'true' ? true : undefined,
-    className: 'bg-control',
+    className: 'bg-field',
   };
   return (
-    <div className={`bg-field ${className}`} data-binding={binding}>
+    <div className={`bg-bound ${className}`.trim()} data-binding={binding}>
       {!checkable ? (
         <label className="bg-label" htmlFor={id}>
           {spec.label}
@@ -84,9 +87,10 @@ export function BoundField({
           onChange={(event) => bridge.setValue(binding, event.currentTarget.value)}
         />
       ) : checkable ? (
-        <label className="bg-check" htmlFor={id}>
+        <label className={`bg-choice${state.checked ? ' bg-choice-checked' : ''}`} htmlFor={id}>
           <input
             {...common}
+            className=""
             type={state.type}
             checked={state.checked}
             onChange={(event) => bridge.setChecked(binding, event.currentTarget.checked)}
@@ -116,7 +120,7 @@ export function BoundField({
         />
       )}
       {spec.help ? (
-        <p id={`${id}-help`} className="bg-help">
+        <p id={`${id}-help`} className="bg-hint mt-1.5">
           {spec.help}
         </p>
       ) : null}
@@ -146,4 +150,36 @@ export function BoundButton({
       {children ?? spec.label}
     </button>
   );
+}
+
+/**
+ * Reads a value derived from official content that is not a bound control (messages loaded by
+ * AJAX, validation text…) and keeps it up to date when that content changes.
+ */
+export function useDomValue<T>(root: Node | null, read: () => T): T {
+  const readRef = useRef(read);
+  readRef.current = read;
+  const [value, setValue] = useState<T>(() => read());
+  useEffect(() => {
+    if (!root) return;
+    let last = JSON.stringify(readRef.current());
+    const update = () => {
+      const next = readRef.current();
+      const key = JSON.stringify(next);
+      if (key !== last) {
+        last = key;
+        setValue(next);
+      }
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true,
+    });
+    return () => observer.disconnect();
+  }, [root]);
+  return value;
 }

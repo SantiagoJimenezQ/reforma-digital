@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es-ES" class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers no-applicationcache svg inlinesvg smil svgclippaths"><head>
+
+
+
+
+</head><body class="sede" scroll="yes"><apm_do_not_touch>
+
+
+</apm_do_not_touch>
+
+
+
+<title>Informacion de la provincia y trámite</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="cache-control" content="no-store, no-cache, must-revalidate,max-age=0">
+<meta http-equiv="expires" content="-1">
+<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT">
+<meta name="robots" content="noodp">
+<meta http-equiv="pragma" content="no-cache">
+<meta name="description" content="Portal web para que el ciudadano solicite por internet cita en las Oficinas Unicas de Extranjería">
+<meta name="keywords" content="Cita previa, Cita extranjeria, extranjeria españa">
+
+<!--
+<title th:text="#{tit_cabecera}">Proceso autom&aacute;tico para la solicitud de cita previa</title>
+<meta name="description" content="Portal web para que el ciudadano solicite por internet cita en las Oficinas Unicas de Extranjer&iacute;a" />
+-->
+
+
+<link rel="shortcut icon" href="/icpplustiem/personalizacion/favicon-icp.png">
+<link rel="stylesheet" href="/icpplustiem/resources/css/font-awesome-4.7.0/css/font-awesome.min.css?v=V%207.52">
+<link rel="stylesheet" href="/icpplustiem/resources/css/eu-captcha/eu-captcha-style.css?v=V%207.52">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+<link href="/icpplustiem/resources/css/jquery-confirm.css" type="text/css" rel="stylesheet">
+<link href="/icpplustiem/resources/css/morfos/grid-min.css?v=V%207.52" type="text/css" rel="stylesheet">
+<link href="/icpplustiem/resources/css/morfos/styles-sede.css" type="text/css" rel="stylesheet">
+
+<link href="/icpplustiem/resources/css/eSedeMPT/cssEsede_icp-6.50.1.css?v=7.52" type="text/css" rel="stylesheet">
+<link href="/icpplustiem/resources/css/jquery-ui-6.50.1.css" type="text/css" rel="stylesheet">
+<link href="/icpplustiem/resources/css/icp-7.29.css?v=V%207.52" type="text/css" rel="stylesheet">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<div id="container" class="mf-container">
+	
+    
+
+
+
+
+
+	<header id="header" class="mf-header noprint" role="banner">
+		<div class="mf-header--container">
+        <div class="mf-header--logo">
+            <p class="mf-logo">
+                <span class="mf-logo--link">
+                	<img class="mf-logo--img" src="data:image/png;base64,R0lGODlhlQFLAPcAAOIyANfX2MJHAcQwDvF0Tcfb6/3UyMNomwAAe8nLyvbGAP/cAG5WBImJiABDm7q6u//dAORABsBzAEWLwPmulv/UAOW5APWJaOrq6gBrr5mWlyV7tqelqF6Yx2tra3l5eP/vi/Pz86Z3IXxjAKmslNi1ItXk8JuKJ9GsAP/75qclE8wNEZ5JAf79/eaQAOHr9PzHuP/lAOpUF8CoH7i6xTY2Nz5AQP/cALfQ5f/7ANUAJFlGDv/iAABXpL/ExP/vAMgBI/+/AP/tbfu6qP/EAF1dXauWJv/r5ta4RI221zpon+6+ALEDIZuDAOZVp7Cao/zMAMGcAOHh4QBMbv/ypcSvUP/VANMlI26izfj4+P/TAJ+KRbwoR//RAO9lOW9lKLOOoKB6AOBxBLMRGcyjAKOFAPjMADIpEycnJ5J1AJJiAP/YAP/49v/nN0w8EbOdRZuNYq6DAIg1BgBQoP/08f/SAKyLAP/51tRKFj5tdtcOC//eAMEHHaxOWbfAv3BcHcgFEv/2xJi82qLD3raUANWsANnKAH0STtC3a6dmgop9NO70+W1oQHwGO84ZGP7f1//VALocFv/cMr9ReJdwAOidAJyepbdxcerWANizAP/JAP/TALWzrDkzXe3v8vighqezuodtAfzcbv/+9iQtbAA3kLinZFZbL7WBnABfqP/QALZJJ7FdAP/6+Wh5hZp8AIwVFNcAF+G3APn6/LOip12SgqJKdffQAJWtqwkSeqmrs/J/W6vH4a+VesOYAPX3+URCVQBLngYOLeDNdFtZSY0pMauuq8QQNspfMkI3JffLAPaUdqpzT36r0uTAJMaIA0tKSz8yEv/aAFRfPmReRk53gYWx1P/VANbAT0RaUv7QAAECFrQ+UrWztv/SAM8EIz5lDiQcFBYZK/z8/Lm+z6alk/fjAP/+AKh9hKGcgL+/mb61nPvPAP/aAMAFOrWUALNjDeGHAO6tANvPlDpSRVJQUCUoPzAwMNrQodUHCv/WAExjNrG2wgADdf/SAP///yH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjEgNjQuMTQwOTQ5LCAyMDEwLzEyLzA3LTEwOjU3OjAxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjQ2NzM4QkI1M0NBN0U2MTE5NDhCQ0ZDMUY4QkU2NzBCIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjYzNjEyOUNEQzZBMzExRTY5MEU3OTMzMEIyREUxMjVEIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjYzNjEyOUNDQzZBMzExRTY5MEU3OTMzMEIyREUxMjVEIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIElsbHVzdHJhdG9yIENTNS4xIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NDY3MzhCQjUzQ0E3RTYxMTk0OEJDRkMxRjhCRTY3MEIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NDY3MzhCQjUzQ0E3RTYxMTk0OEJDRkMxRjhCRTY3MEIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4B//79/Pv6+fj39vX08/Lx8O/u7ezr6uno5+bl5OPi4eDf3t3c29rZ2NfW1dTT0tHQz87NzMvKycjHxsXEw8LBwL++vby7urm4t7a1tLOysbCvrq2sq6qpqKempaSjoqGgn56dnJuamZiXlpWUk5KRkI+OjYyLiomIh4aFhIOCgYB/fn18e3p5eHd2dXRzcnFwb25tbGtqaWhnZmVkY2JhYF9eXVxbWllYV1ZVVFNSUVBPTk1MS0pJSEdGRURDQkFAPz49PDs6OTg3NjU0MzIxMC8uLSwrKikoJyYlJCMiISAfHh0cGxoZGBcWFRQTEhEQDw4NDAsKCQgHBgUEAwIBAAAh+QQAAAAAACwAAAAAlQFLAAAI/wBzCRxIkOChKwgTKkwo49omfxAjSpxIsaLFixgzatzIseNFVZL+iRxJsqTJkyhTqlzJsqXLlzBjypxJsybLfjhz6syJoJGefIBWBB0qVGiELg89Kl3KtKlTpSBtSp1KtarVq1izptzJNafPFWDDijXq8KnZs2jTfgypta3bt3DjyiXZtevXsWMBRSirtq/fvxyjzh1MuLBhw3W53sUbVi9fwJAjAxZ8uLLly5hhJt65mDHZpJJDi35KObPp06gRb/aqx3PjvaBHy56tsXTq27hzU13N2jVYx7FpCx8O0bbu48iTo+SNszNj4JKvXSNOnaJxqkco7Fpm4BGdFsrDi/+vybyfc7zQIV9bomB69ffXpz4iAABABBkEPsE4wma8//9bMXdeXrCpB0UccUDh3nvExSeVAV7UJ6F9MiyzH3gAZuhfeQOKlR5g1xAShT4MVuegTTDIMOGKAHhBwSOtaChjchy25tuHaV1TQQU3WDDNNEvouGOJtJ1YkwERsMiiDJ88MuOTuNXo22dnCVnBNWY4g4QzJWSTTQnYlOCMGTvuGByRfhlJEwxJKrkkBUdAKWdmUt5YoFMVbKKNGXyWcMIJdthxwhdfABroFiXwaYY2eaI5GVtYsemmmwQYMOelh9XpGo5KVWBGCUZsscUbipChCkRkhBJKIZtsAoUvIsD/ccIWRiRagaNpQnoVDJNOKsMQGGIqLFyaesapR2a8UYYvhRSiyDsQtAMBBBaIEMoSMUCwBgSCNutLGW+Qiataas4EYa9uRkDBsOy6xSFQgMQr77x6dbGgR3q+8QoUEMQQQ6k3yBNPBANsocgAeMSzBAS+nMBDtgqk8Uar46JVrkxsPDLEJ8t40Sa69lEQbLskT1UXNTsdkuQAALDscsstN3TmRhU4E4osECzhghjMpDGADkCPAccWYwD9jQBpMCOGC9gWkoYzt1Zs1sU0tcDGEQYM0THIEQxR8tdScYUAKZjkwpMImgSh9tpsq00EniWk8UwEQOvwDQt81A3ECGoA/1E3H3J8Y7QMvqRRwr1SM0X1VFcbsIyKvsIA9uQy6YTA5dTkQM3ll6Pd9udBvN3UNc6UIUfdOgChhgpAAxGJGmpEUrcKlPjdOgsnQJ04abrO1QodQ9Dn5gX9UW78Tf0gkAsjxNSDQg6ZQEMMI7l4DjrbojPVqhGBz84CC6zwoUITKoyvAh+sfD+A7UDIMfHuvFfWAh0wCL+iusfnHyBOJ+SQww8/8F8OFNEP613PbU9ZQybiwAIBnI8S5VMBF7gxhvLBghtciKAaxhCJ78UhE4iDn0cWpxU2UAByEyKAk/THwpFYDhqYAOAPMAGNzqXtgAjsyCYQtwYFsEANsOgDE/9gwQImyEEOsDhiEuXABBbAggl9UIEaWKCANUxkZiK0CAnbMp+PAUAGkmthC3eCgP757wQISJ4BD5g9jUgHCmu41yYswApYMEAODNgB7BhACQbwkQFqoAQelciKJVgxItKx12OyqMXe0WQUKYjkKGhCh2V48RNiHONODAG9HBgCJwhY4/XaiJF2KKASdpCHdCQSx3fAjhKUAEcoygBB2pVhBOCgRBooMYJ3XINEEdHTLaJggVuEkJES2SJJRnEHKgihDdAUAhUCkQKZtOITH7tAJllouU6Yox4IIIY5OmFDHOYwI9cQQwRVMID2SEQfUGAFJWgJjkDC7pVqyOUrKMH/Cm3caz0SWMX34PEMf2CRkcr8RwqcyYM93OChD90DD9ogzTuMbCXXlJA2t5k/yxGDnMnrxOZCeUMcktIia4CHHe8IiyD54xpriCkEUDCCHUQDFrBoBBOYkDogfGMFkZCDGsgAAZheyR9rWAJOlwqPdhwUkdOKI0SuMS0IbAIpVb1GF+JI1ah29ZAxRSRYo/pUfyiTCm2AqFrX+lAeSLOaLaHDLuqzUY4aT2w8AaUoQXfSikhHDdGQww7IYMVrKMACiLWAPOIwxcAulYPlkwML4EGITCxhCYhVwEMgQAY3yMENI/CnRnL2ilAQogv+IK1pYaoAO7zCDtpYAxkyoYAy/7wiDZmwwCtekYk4zhYCSM0EGaiaiTSEIgpSXUtMRgECCLD1uWttAwjgupJHRKiudp0cc0hqztBt5Bq+CMM942CBbcWDCUBILx++wV4gAIIP8NUAKIxBX05wwhj31YUxODCDOC4hDpSAXRh8gRSMrCEKZ2BAKHZQhhggWMFu2AEUlhCOBTMAAgwoAwrCkYYRZKIMZwhFNFAQAwaEwwLTKgMDYmCHM4xgBG5ggEGV+5JRCMGh0M1xRKVL3ZR8AgC7yO5decNdc/aVItd4ByXCwGRKlBcC8UCdDvgwhrzpjRY+yLKWP9CAB/iABvyYAUyXAMsmx2HGKF3CGQiRLQhoQ/8BZ4hCm3cwAgVEIwYWOIM/GGAHMuzgHP7q8DkUHIMRRMMNCojBLRUQDhID1w2vAG4jX9ICEOBYx5jeg3RXYgD8CJly293r5448kfXckwFhcAiUbZc686EOCLR4AAeeQAswoGISLGiArcNsxTWU4Z5qsMAxIwKBKLjBv5mAQhSiIWnOukHNIwhxie2AghCPwAIghrEFSkyINOxgDXYYASF20GxCHJvGLaECptetVk0HIiVsWAZ2P00yy5lNbKJuG6klYlhRGSwK01l10FggVMnyNHW06IYtUMGJPtjCCU4ohxPAQA4xv3QG/laEOy9S7GhsixAJRoHHVT3uJUQjCp3/RQGfRR6FKNR2ByLWBobtUGI+j8DYRfWHosmN7pWkgAfsDvpDIQCCSZqkBRujN9g8Cow0Wi7f2NuIq9ZBDj9YogoBj4ftvgFBgrOCfbQwRiImTguIH0AXB3gAr1+KBHKQQxflKOs1oBCNUKTWDt92Qyi2aoFovMLO2ojBDl4xgj7vIFsx6HAMQrHiDGvLxCO4xhnKANNMrPmQFSlXpW9waaFnug13MAkbPjFvpQ/LcplQhNPPVlI2cgQK66ABDa6edduxIAyswH0YWIdwH/jhAE6YBMQToYEn+CDM06kAEmQPdyiUdQ0WcMOhQ5wz6bvhDGnI2Rl24AZEFz4T4eC+/x1uGQO6R6HwRYUCaGOQCetPXtKTZskdgO55z/OACiWxLgFMX7LkXS4X5mAInON0RWZSUgd7NPAAtJdaWpc6rIAgEMgCrYNlGsABwDcJk/AE/IAKfrB217B8NNB8ZYVUmyBcLrUGJUgGC3MN2mABKJAJscUeUGABmYAC7LEEL6UA7KFZ26INQbIG2oACKFBFT1UuIJBje7AHEMADPDAtSbhu/hAFshBRRfcPo9ACFABkKDEOITAOLtECIZAFmMGFXogarfAI64Ia/UANJ6AIJwBAbXgC4KRGrTdKr6cOPkAOV6eEMeACtqMCEBgHTVA0vZcIk3AAqABxWHYA3UADM/+QLXuADeTgA6BQDtowgi8VUyg4VZoIEZugidOxSqAIU1MlHdJBBpV1iZmYXBihJimQVmulhEIAAoFwBykASXcQCCDwTA31XMrAAMJQBj8AUUIwCqPABnNVeiLRAPdgCS3RAt2ABh8ghioRAiHgFpaABhqQGlkYAakxNpngPwDkP1FwbwXoehmxCRBwC72ACpfQB6sgBksjBrbjCKcQCnHwBadgZbDmA0+ACmCWiE6ACqjQDfzwBjsjBqswCZeQCOhwCzl3EepYVWM1LVA1LTDlVRRpLxG5LeEWCp84VVZVG45kEoHQeTfgVqG3Enewi70IUcrwB8E4jMR4B0OQJMr/+A81gAb10BIh0ABoAA0BkBItEAAe0ABuAQ1oYAPcaB+pkTz9oAgyZA6bw3rdtW8G1Q4ugAeOsAJ6MAArMACCc3A6EAmhEAZxEAojwI8ckGV+4AdgAHED2Q1vyQWx0JUD4Ah5OQBXEA+r5FcKwHgKhgJFpWIMMAIKsgYq50e5lUcqOAKHaUiB2R5rQAhlUFWZYAcxtQShoIqtWJIlcYRqBXox0ZJtEAMAxA4yKYxrJQoRAgA56QMekAAuYZTGoBJZ4AFogJRtkQAe4ANzcVEo0Y1PGVIBlANls3rnaIcSeQ14AAQCoJeAMADHkJc6QJZjEIhhgF7pdQx9YAw+gA5j/zd2qOADD+AHXACdenkFkSAAA5APkYAHBUYR0BcOdkAIoRBnELADaSAilwgBZXByhLAEMFcGhEAGcVZTEEAI23CZEBAK20AI00IIFwYBrxCh8Bd/KgGLDwV6KXAHuRgIIjoK4yAFCZBlAUCNI5ECw4AChUAGwCiM7CAL7MAOhfAMLAMAl3CiCYAhWRAAUoABnvAPsyAFUpAFUoCi1FiiAYABGFCGGHCiPhAAnlCUuukBAZAA14gBQBqlPqClLWCiKHqNJSGmUxqGXYoBJOEJUhoAZRimQ5mkXxoj1QUDdvoITTISrWAAdmoAcSIS3fgIfVo8K3EEdgoDjzAygnqndP9QOcmjCDkwA+FYlXpVh3yFEXPnCDowANxwCf/4BgogMD9TlpSQllOAlmqwU4dwCExwDBqQCAdwAE8wdnTpB30gBvKgAFWgC09wCaswAAPABxs3EdAXDTIXA+a2n5mgLRABoBcWU26QBv5ibDEgcv4Ac27QBQ/KACeHrBfWBXr3bUUImiRBf5w3UUzYhJx3A4HgCUWABvB6Dw0wpCIRAK5gD8IgDmdwDzNZCHQ2AuIgDGjgBiqQDPGqAdcYADZQAzaAlBjgAdDQAEqJBjXQANforvdQAx5wjQnwrvBqA8bgCfUAr2hwD2jQDf+gATZQBB5bA06qm/HaAGoqEiFgCSP/G6+WEADQwLAfMBK+SbINO6TjALEaMLHySq8nYUIopCKY9A9HYEkSUimAWh9tEgEXsEIpETwSEgHL0Kj/cEISIgOWEhM5YQiq1w9GMAPKCXVrg5UQIAZMwAflkABW9waqsAZ96DeR0ARx8AcO8AVxMABMUAoOEAylwARcwA/gqQsL5wdqNwNKqApVQAOUqAGRwARikKH81nftcQ234AZQYFMxhlV2EH5uQFvdpwAbZlMo5wab4AY0N0vgJ1x/sHPXcHKaOxFq4lzrRgUYUARc9gE7qQFe+Lsly2UewK9lkAOFkAzCYA9w0AA28LENALPGEKYfYLI9+7DwWgQN8AHw/+qMPzm9RZAF7hqUDdAA9fAAIfAB02sDHvCb/wCUFPu92ygFHsBlzKiNZUi/Rym9DSAF7osGHiASCTC99fC98NoA4zAOHuu92auNKloSQ1AfXvA49eE1dCA8F3ABSSIDTpKFAEAAy7ALSeIFf3oSkkLCcwWb//AIFlzCXjC2mtEPudB0OQENT2epo5YR+rAEfAAEYGCeuNAHfIAtDfgN8OUOcTsGQNAJ0zAHDjANpAAExnee6FCeHTgDN6AAjsANvmcMYJBe8oB5pdZ3cFSt0bAJDBAF7NGsZbADOsgv29pZ7FFi4XcGbrB40koI0UB+O7B94XBhn8kSQUcFLTCzs/8AlEWgpkB5Dyj7DxiQDeJgBz/QvOKAD+ChAWiQDJzwD7kpjdcYArq5vVc6s+BrA7PwDyHAyUUwDgq7myJxpJIMvh8wDp7ghfT7ADRLpDM7v/cADdfoAyVrsQasprMAvgXcvjw5lOOwv1LgwARMr0AJDVJwEnL1RXFykwAwBK1QwRHQtJLyCVhoHxhCAUmShiZxBCpyAXQKtVmTwSLhHY6KV1ZpZG4kD2JAC29ZxExQCTHQgFKWOkxACmowBVMwAlPABInge37g0FsMAfLABNxworqgAbg6bEiVZxawBAjWYDsQBVCgANqQWnH8ZgrwChZgB26AcxDQfjvoBigQCtn/xy3b4GGIpoPR0Fs9hxIoCV0g8A8JUL1FQAxLec1KWcAi4QkeIA6IQAWykAziAFcPEJTXPL/TLBKlLMm66Ywi8QAmS40cgAZFMAsh8K7QoAFX/Q+/AL68uYzBXIYjEQBEXQQmW6XVTKYlocz/IAUmu431Or2WkAXvCtj/UNU1MJTrHCG7AB5HkCTLwAb04QXF0wKTTQfEKRIbPMIpTBK8Es6PYABZkySfcAQWTAFeW8+bsZyXOlrtgIe00Ad+4wIxQAYsMAZjcNu5PQY7VQpT4NtT4ACtygXEXdzE/QwxUAk+NQm0AAok0A5mjGQKsAM7kEeEEEcWxgCUGQXVPViv/xBhsxV5ABppVBUFr6WZ6pgGtiWhVDV+0Z1M5DoSP81WewAC/DC9S/mxTTq9hv2wwjAPozAMUh16LcAJPDmzQPkB9LrV3GvYD7CTYtgC2VgEHHuzaT2kzNyzI8HIE9wNE7uT8OoJs/CuRYASfB0AJcsBI4EBStkAhC3LX02xil0SyPhFIZzOdBAhXkAScyUD2eGUIlHjKGwS4yDCEXDkR14fy4B0EuIidFrDq8HaPZyO69gLk/ANsbCpcEQGTRAJeys+TeAITkwKwUAMX+AApeAOkaAHjvCVreEIQCABEAAFeKADsfAN3PCQIymRcfSJkrZKC7JKO2RFn7hDnoh5of/oHp/oEJj33rob3yIx37EoCjtZBAkgBdloA0Y6vSouEtxbDkJdA+LwbqNg4NCA4Fn9Dwyumw4O4f8wDhNOplLAATfbs8z81lhdviMhBeR76Rywk56QBUZd4idx4iV7m57e4i/+1lVtAzNeEpIiAx5jH3RAByqy4yPR4z/ujSLRChfQIp3d7T8WAV6wCwRg7ruwC2FkANgUMqqdGFKub+noD5XwnLEQC+6ADNIhW2HAQU0A5uITCYfgAPRQDw5wCEDACgKg8AovAQIQ50XVDshwDPe+qZUwnxbRKrGh8aDB8Z6YFCC/8RQTTMExriwh6e2GCBTLy/9AzImdBdOr1Fz/rY1CbQOjLhIGXg+oruBaLY0z3+poEOETjrSJDL73EAC3ThIc7rMl+8k1jwa5DL6nXuwE3NfT+9Y+ML3GsOwjgdgzfgSp/Q/fHrWW4u3arNkRQgAmBOROe110SgcpDM5DUO10/x0jwQbngu1Qvtpse04WIXA6cAyToAFVcANIRQb9/uXjwwcDoAY6cAilQAoIHwnsxQp6sKms8DNy/lLYAAqTcAx+AwSZi0zWAen/gPJqVQXHvoxLOZRGj+xSUNg1Lw530AqlHpSo7gEL7vMN3vWuDutkPcyKnY1Hz8wbC8q5rqLEjAadTr9DmgALPBI+cNV8zcxCCcrJew9P+q7M/976gHofYyspQ3AEQ0DDn920Igwsmf0PPwYAafgIMhDO83ztf4o14NEK+/EPQv7uOQEQufoN7IdAhKYgCRUuTEjE30OIEf1BEANkALoHfixVueZvTaEwYyI14aOC5IAmsHQAAfJNhQBWV1gNEFBTgA4JEPxdQ0IuAa5LA4CI0SnR6FGkSZUuXapK0j+oUaVC3XPD6lWsVveIqoGmhgdi99CgSfAvgA0096B5QIvG0r8ENsSlGJWCExpoGKA2QOPBE1QPaD78wxBYQ9RuXbP8G2UJTZEQ/z7cK+Kha71xLTiMLVLvMN8ii6FKqefVQz2xZP+F+DDWhoci9z5Ebu0Bav+Arl9Lo9EwblwRNA2iPvAaAGoEAAAuQB2SPMLzCDIM/KNDILkXL8i9HPlHIbkMAjKSX2gFdZnzqN4ByPBC4Dl3OjIiEPCSfNlU/PkJ7kfAqBOCgQxCiCECHVIKgkqYqEQdHx7YqAKPyAhppJJOaoKJSNTAUIBvWIlggAFY0eMKAYDIaSckaKBBFxLkYSKeopiScUYamXIqv6l4uGEPHnfksaobIIgBBB9suKcGaCyxrIHIArDsyHrqqYEDuKTU658HaijiSg1qmA2qD2oQzpMw34LKDxtqmOWfcTj4KosQGqjhHjo9kAKqOOm857AuPRANKh+godMGJe9pYM0QNDD/ks4aNPjlHzkHu80DPW0wZpx/ZrHsMKiyhMa4f3YBIIIhoDpil+jou648Oi54btRduOsuAlSh+4SNqIZAbhepYJBv1Pm4e8Q9YJehA0dk/9lvP0MUAbCggwgscKlroMBDDHVo4GejjtaQUCSSTKqQCZS+cYRDmr4QYABHQMRJJ55o8IPFePCAoqMa89W3xhuT/YcKEIQQeGAhQDAYBCruYDOAABbLIoDIosIggSv9tfhiHEMIIIGIpZq44WTHYXixWSCWqgUpEpCiBX8nXhljqFqhAAap2CgPKlEBYBkqNgww4NiojpjuHxgewXUqGCgAWqpHfD46aAMeWRpmqPhD/wCBTnKY4eqro5V2IQOVWkMBC9ahwUGOIpyQJApRIjcMi1gRQAIBphhB7pq+OTHeFcuxQAF89xV88KP6pfpwxBNXfHHGG0f2CAIueERo8WTY2XHMYd6PESMUmeEHc04QnRSvv25IxmtUMXvbtD9au0I+RnobCBJ1oEnuCL6h6V1/KkjxAV3K0SZwwosn3PDMk1d+eeYdhyG59b6juXnqoyIIa0NyyOGHH7RXpJ/STQ9bqU2gWIcccrhVG1zY3R4AbpgckQDEASQ4t8S9sSHHh+C12cR4AA4OedXz1wvWxDhPPKp5nijAXwjIODYMYRdeYM8uhvbA5vGnH0bgHuig0f+1AZkuCONLSrW2AAc4bMEI3SoEJRxBIXG5TQVhYIIe1iUAR7CiXTURigvgNQMUphBwASRivgaIwam8oAMdeMHiFoGFCZggcZdD1gQy4EBkeWIC1kAislpxBEx1MYP8oYb2cmCIghjEH5pgYxvd2Mb/USsTlKCjGsLgv2sooAnsg+GFBnACbuhAbjrokCNsJ4EVfGMJ+tiENuKghjqigHhFpGRSjijGfxQgGBloouJMkIoeFOBwOOiAKJM1CAckwWIFcEAPMPnKLi4LATPIwQkykYP/IEAOMuBlL33ZSzFcI45I2cQa4hCGMMQhDpQohE7W8A72xfBCKkgHGHRwPx3/4EF3MwECHtrhEQsk85jK3EklzYmUS4rxk5xc3AsykApTwqwDDsBBAePpr0HcE5b7ZB5/cmEIYiAgFzMwwkAakY98AEKhC2UoIACwhqVsAgVf+MIfLPoFRShgE3mMRB/54DZu9KIX3IjFFSTACrnN75oWWEMeT2DRi35hBv4Y5jltms7EFWCJglgEVBZhjQ5goZNQMQEWljiHDTTxp0GVYn5+kQSmQsWd8JRqMzrQDCz+gxc7bQEvUuGADWChAIvoQBJIycR/eCIJWMBCUwuABRw0YwJJwJQSOzCIqLx1i395AVTvyk/AUm1ZuSDFs/oBjII0Qg8rYGxjHbsCQERA/5glhIIrlHBZzCrhDTfwyBJYQInYNQEQKqBEH9axC2SoYxJAiEU+BqCHb+ggEvJwphEyi9lqDNGmu8XpKHvggFbWEwcZAG5woYKD3xZ3A4soAHGBmwpe4McEznVAKvA6VSkO4qvAzYAoX7CBORRXp8V1gCBe0INgBMMBnJxuca37D1SG1wHBmABz5zuBf/wCC8l1QDP+gQP50jewA/bXsgz8LMU+VsGRnSxSqmXZy0JYs5z1iDaiMIBipIELfUhHLWrBDGZ4GB3cOIY73BEJMSjgm/64gW0vuwEIu0K3uz1nb6mGBQcIFQeLmMUEUvkCawQjFWlNRTCaAeRgbMATG//4cRLWq8CoMDkJLxBEdWeB3V9kIBiDeAGOM/CPZoDVBEA2wSKYzOVfmOC3HRjzLJhsDSqvV6vVLcAn6TmOKuMXB9XFAZBFuQguNzcY0SVwoadiYET3I8EKdiyDayqRCkChGnnIw2UpPWGIXKMdt0CBKUgAivRRmtLVAAUNSGCKGdyiHYFbg20vrYRRz5jGlbQxzHghZBxgCsAZ4AUOcPDVAux5A5gqQA82wIse8BoHg8jAHAgNlWJnYBA44IWWeeGJd77g1semdg96MNxQQmVnPq7nP0ywyU5Gu6e/2EAwCsCLHEMFx6rcM359LAhxixsHE9jAV7FgaIBXLdHLWjT/oxnr6KRsogsouJcFZgA4C1hgksWMdCaQUAVEmMIUiEAEEkoAhQq0VCLXsEAmqjUDSUJhBlB49KyJWGuMjcMa6E3qrYMxB5zjvABV/ncmjT3zm+cculJBdnqFjgNsp6Kv8835HFKx655KhdxE3aQCeTGHCTxqFh0Ihq8d0AF5p/K/DpiAm789lXnmPN4BN/TACb5Ygx9csi2XiMivYfdJRuQaFdh76lKnimvsPSn6gOhOIBpyurscgDCHGVm/Luw6m6AAoswztI2dBKRGvs5hPO4cumsCyUtxqnGegObH3INUNDUqUze356OOgyQ/ahzt9nrP592Ces9+0FJZRA/m/yBFJ/ec7QR2+34KbnCEK175y2/KUzD3CxyYQNjTDYYgQN+MNb3g5tYXBFLbywvJWwPKUJkFcQcR/ke5swen//YLCuDfX8yTzSYw7z983FbQe16B5XfA+eH9ZXgDu3+Yt7HDryrbgDo7vxdwOsljMuEbvsAqPoI4PkZLPua7QAz0B8azmD0Lr2DgIkHYrvlqolloBvVSrydLgq9Sr/XDjxCcr1byLikbwN9iQWKjLnqCLw9kovWKOq1awerCqyoTwHniInjbgLRiMhj0Lx8DLvXaACqCwH2SQIOCu7izwAzMQpfbQH8RNPpqol8Auh7ogDB6gQmYg01CKk+YBTHEAv/Oi4pZSAL0GsMDMkFVeiI0TAX/+gfc07JNEqVfmICbOzJj88FxUMFg6AFrwJRb6zkTFATcEzBzA69NwqvhErIOSIUMOCAp5CcqVDQrRL6500JSnDUu7ERUTEW2+0QKXLBRLEVYNKdTVEVarMUppMJWfCwsjEVeNJ5ZtEVgDMbqYcVQrMBX7EVkPB7nE0ZmbEZMIsa4k7sGS0Zq1JdfdEZszEaMgcZo3MVq/Mbm00ZxHEfH4cYrPEZwTEdLWkZybEd3tBgqRIBcbDTJUkd7XMd3zEd9xA+ByIV+/Md+8Md+OARHKEiDPMiCXAE8YKRNaEiHfEiIjEiJnEiKrEiLvEgPjMxIjaRIf2DHffzIdgwIADs=" alt="Extranjería">                	
+					
+                </span>
+                
+            </p>
+        </div>
+        
+        <div id="topBar" class="mf-topbar">
+        	<button class="mf-topbar-button"><span>Opciones</span></button>          
+            <div class="mf-topbar-veil"></div>
+            <div class="mf-topbar--container">
+                <ul id="accMenu" class="mf-accesibility-menu">
+                    <li class="mf-accesibility-item"><a id="accGotoContent" class="mf-topbar--item" href="#wrap">Ir al contenido</a></li>
+                    <li class="mf-accesibility-item"><a class="mf-topbar--item" href="accesibilidad" target="_blank">Accesibilidad</a>
+                    </li>                    
+                </ul>                
+                	
+            </div>
+        </div>
+        <div class="mf-header--content">
+
+            <div class="mf-app-title--container">
+                <h1 class="mf-app-title">Sede electrónica</h1>
+				<p class="mf-app-subtitle">Administraciones Públicas</p>
+            </div>
+
+            <div id="mainMenu" class="mf-appmenu">
+                <nav id="nav" role="menubar">
+                    <div class="mf-appmenu--title">
+                        <button class="mf-appmenu--button"><span>Men&amp;uacute; principal</span></button>
+                        <div class="mf-appmenu--veil"></div>
+                    </div>
+
+                    <input type="hidden" id="urlSede" value="">
+                    <ul class="mf-appmenu--menu" role="navigation">
+                        <li class="mf-appmenu--item mf-appmenu--item__L1"><a href="https://sede.administracionespublicas.gob.es/" onclick="goSalir($('#urlSede').val())">INICIO</a></li>
+                        
+                        <li class="mf-appmenu--item mf-appmenu--item__L1">
+                        	<a href="https://sede.administracionespublicas.gob.es/procedimientos/" onclick="goSalir($('#urlSede').val()+'procedimientos//')"><span>PROCEDIMIENTOS</span></a>
+                        </li>
+                        <li class="mf-appmenu--item mf-appmenu--item__L1">
+                        	<a href="https://sede.administracionespublicas.gob.es/expedientes/" onclick="goSalir($('#urlSede').val()+'expedientes/')">MIS EXPEDIENTES</a></li>
+                        <li class="mf-appmenu--item mf-appmenu--item__L1"><a href="https://sede.administracionespublicas.gob.es/mis-notificaciones/index" onclick="goSalir($('#urlSede').val()+'mis-notificaciones/index')">MIS NOTIFICACIONES</a></li>
+                         <li class="mf-appmenu--item mf-appmenu--item__L1">
+                         	<a href="https://sede.administracionespublicas.gob.es/pagina/index/directorio/ayuda_de_navegacion" onclick="goSalir($('#urlSede').val()+'pagina/index/directorio/ayuda_de_navegacion')">Ayuda</a></li>
+
+
+                    </ul>
+
+                    
+                </nav>
+            </div>
+        </div>
+        
+		<input type="hidden" value="" id="litSalirSeguro">
+	    <input type="hidden" value="" id="litICP">	    
+    </div>
+	</header>
+	<div id="wrap" class="mf-wrapper">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	<div class="mf-media"><div class="mf-media--ext">7.52</div></div>
+
+	<input type="hidden" name="alert_captcha" id="alert_captcha" value="">
+    <input type="hidden" name="lit_no_olvide_dato" id="lit_no_olvide_dato" value="">
+    <input type="hidden" name="lit_es_dato_obligatorio" id="lit_es_dato_obligatorio" value="">        
+    <input type="hidden" name="alert_demasiado_corto" id="alert_demasiado_corto" value="">
+    <input type="hidden" name="lit_DebeComenzarPorLaLetra" id="lit_DebeComenzarPorLaLetra" value="">
+    <input type="hidden" name="lit_DebeAcabarPorUnaLetra" id="lit_DebeAcabarPorUnaLetra" value="">
+    <input type="hidden" name="lit_Incorrecto" id="lit_Incorrecto" value="">
+    <input type="hidden" name="lit_EsIncorrecto" id="lit_EsIncorrecto" value="">
+    <input type="hidden" name="lit_ElNIEIntroducidoEsIncorrectoPorFavorReviseloAntesDeContinuar" id="lit_ElNIEIntroducidoEsIncorrectoPorFavorReviseloAntesDeContinuar" value="">
+    <input type="hidden" name="lit_ElFormatoDeLa0EsIncorrectoReviselo_formato" id="lit_ElFormatoDeLa0EsIncorrectoReviselo_formato" value="">
+    <input type="hidden" name="lit_AVISO_CITA_PREVIA" id="lit_AVISO_CITA_PREVIA" value="">
+    <input type="hidden" name="lit_PorFavorIntroduzcaLaFechaRequerida" id="lit_PorFavorIntroduzcaLaFechaRequerida" value="">    
+    <input type="hidden" name="lit_LaFechaIntroducidaEnElCampoDeFechaEsErronea" id="lit_LaFechaIntroducidaEnElCampoDeFechaEsErronea" value="">
+    
+	 
+      
+	<main id="mainWindow" class="ac-section mf-main">	
+    <div class="mf-layout--row">
+    
+    <div class="mf-layout--main">
+    <section class="mf-layout--main-content">
+	<div class="mf-window-header">
+         
+        <div>
+            <h2 class="mf-window-header--title">CITA PREVIA EXTRANJERÍA</h2>
+        </div> 	  	
+   		<p class="mf-app-subtitle">POLICÍA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) INICIAL, RENOVACIÓN, DUPLICADO Y LEY 14/2013</p>
+	</div>
+	<div class="mf-main--content ac-custom-content">
+	<form action="acEntrada" name="info" method="post"><input type="hidden" name="275f2d28-1611-4fbe-a76c-c4419ecd8389" value=""><input type="hidden" name="a47ff34c-e425-49c7-916d-fd91608cd68f" value="">
+	
+	
+		
+	<div>
+		<div class="mf-main--content show_code">
+                <p></p><p><span style="color: red;">IMPORTANTE:</span></p>
+<p><span style="color: red;">Si va solicitar cita para la expedición de la TIE correspondiente a la Disposición Adicional 20ª de la <strong>Regularización Extraordinaria</strong> (RD 316/2026, de 14 de abril), recuerde que, como parte de la documentación requerida, debe aportar en la Unidad de Documentación de Policía Nacional el <strong>justificante de desistimiento</strong> de la solicitud a la Protección Internacional, o del posible recurso a su denegación, en el caso de haberlo interpuesto.</span></p>
+<p>Puede obtener más información al respecto a través de la página oficial de la <a href="https://proteccion-asilo.interior.gob.es/es/presentacion-de-documentacion-por-sede-o-registro/pi-solicitud-de-desistimiento-o-renuncia/" target="_blank">Oficina de Asilo y Refugio</a>, desde donde también podrá descargar los formularios específicos de desistimiento o la posibilidad de realizar el trámite directamente a través de su sede electrónica.</p>
+<p><strong>LA EXPEDICIÓN DE TARJETA DE IDENTIDAD DE EXTRANJERO (T.I.E.) SÓLO PODRÁ SER REALIZADA EN LA PROVINCIA DE RESIDENCIA.</strong></p>
+<p>Antes de solicitar la cita para la expedición de la TIE, verifique si el expediente se encuentra en estado "<strong>Resuelto favorable" </strong>(<a href="https://sede.administracionespublicas.gob.es/procedimientos/index/categoria/34" target="_blank">enlace</a>), y que la concesión de su residencia o estancia lleva asociada la expedición de una TIE.&nbsp;En el caso de las tarjetas asociadas a la Ley 14/2013 de Apoyo a los Emprendedores, consultar en la Sede Electrónica de la Unidad de Grandes Empresas (<a href="https://expinterweb.inclusion.gob.es/iley11/inicio/showTramites.action?procedimientoSel=200&amp;proc=1)" target="_blank">enlace</a>).</p><p></p>
+                
+                  
+                <p></p><p>La&nbsp;<strong>cita&nbsp;</strong>es&nbsp;<strong>personal</strong>, por lo que no se aceptará una sola cita para diferentes miembros de la unidad familiar.</p>
+<p><strong><em>Se recuerda que la autorización concedida mediante resolución de la Oficina de Extranjería o la Dirección General de Gestión Migratoria, una vez producida el alta en la Seguridad Social o la concesión de visado, en los casos que corresponda, produce plenos efectos frente a la administración y frente a terceros y su eficacia no se encuentra condicionada a la obtención de la Tarjeta de Identidad de Extranjero, sin perjuicio de que, de conformidad con el artículo 4.2 de la Ley Orgánica 4/2000, de 11 de enero, deba ser solicitada en el plazo de un mes desde su concesión.</em></strong></p>
+<p>En el caso de estancias de Familiares de Estudiantes (<strong><em>visado SLF</em></strong>), se debe pasar, con antelación a la cita de expedición de la TIE, por la Oficina de extranjería correspondiente para que sea grabada la autorización de estancia.</p>
+<p>No se expedirá TIE cuando vigencia de la autorización de extranjería a la que esté asociada sea inferior o igual a&nbsp;<strong>6 meses</strong>, ni en el caso de que la validez de la tarjeta que vaya a ser expedida sea inferior a&nbsp;<strong>30 días</strong>.</p>
+<p><strong>DOCUMENTACIÓN / INFORMACIÓN ADICIONAL PARA LA EXPEDICIÓN DE LA TARJETA DE IDENTIDAD DE EXTRANJERO:</strong></p>
+<ul>
+<li><strong>Justificante&nbsp;</strong>de la&nbsp;cita&nbsp;previa reservada.</li>
+<li><strong>Formulario de solicitud&nbsp;</strong>modelo&nbsp;<strong><a href="https://www.inclusion.gob.es/documents/d/migraciones/ex17-formulario-solicitud-tarjeta-de-identidad-de-extranjero-editable" target="_blank">EX-17(pdf)</a></strong>, debidamente cumplimentado y firmado por el interesado o su representante legal.</li>
+<li><strong>Formulario de solicitud&nbsp;</strong>específico en el caso que la TIE que se va a expedir esté asociada a la&nbsp;<strong>Ley 14/2013 de Apoyo a los Emprendedores</strong>, debidamente cumplimentado y firmado por el interesado o su representante legal, (<a href="https://www.inclusion.gob.es/documents/410169/2156463/MI_TIE_NOV_2018.pdf" target="_blank">enlace</a>).</li>
+<li><strong>Documento acreditativo de identidad</strong>, original y en vigor.&nbsp;<strong><em>(Original</em></strong>). Siendo únicamente válidos los siguientes:
+<ol>
+<li>Pasaporte de su país.</li>
+<li>Cédula de inscripción de extranjeros indocumentados expedida por las autoridades españolas.</li>
+<li>Título de viaje, válidamente expedido y reconocido por España.</li>
+</ol>
+</li>
+</ul>
+<p style="padding-left: 60px;">Acorde al derecho de la Unión Europea, tanto los pasaportes como los títulos de viaje deberán haberse expedido dentro de los diez años anteriores a la fecha de presentación ante la Autoridad que lo requiera.</p>
+<ul>
+<li>Justificante del abono de la tasa&nbsp;<a href="https://sede.policia.gob.es:38089/Tasa790_012/" target="_blank"><strong>Modelo 790</strong></a><strong>&nbsp;Código 012&nbsp;</strong>del Ministerio del Interior. El ejemplar debe estar correctamente impreso en su totalidad, no admitiéndose en ningún caso impresiones en las que no aparezca la parte inferior del documento, en la que consta la&nbsp;<em>anotación&nbsp;<strong>“Ejemplar para la Administración”</strong></em>. El impreso se descarga desde la página web de la Policía.</li>
+</ul><p></p>
+                
+				<p></p><p><strong>NO SE PUEDE FOTOCOPIAR EL IMPRESO DE LA TASA&nbsp;</strong>ya que cada documento está reconocido con un identificador único.</p>
+<p>En el caso de que haya sido abonado el&nbsp;<strong>Módelo 790, cód. 012&nbsp;</strong>de manera indebida, tendrá que ser tramitada la devolución de dicha tasa&nbsp;<strong>presencialmente&nbsp;</strong>en la Unidad de Documentación donde fue expedida la Tarjeta de Identidad de Extranjero, o en su defecto, donde obtuvo la cita con tal propósito. En ningún caso debe ser solicitada la devolución a través de registro.</p>
+<ul>
+<li>Una&nbsp;<strong>fotografía reciente en color&nbsp;</strong>del rostro del solicitante, tamaño 32x26 milímetros, con fondo uniforme blanco y liso, tomada de frente con la cabeza totalmente descubierta y sin gafas de cristales oscuros o cualquier otra prenda que pueda impedir o dificultar la identificación de la persona. (La fotografía deberá mostrar claramente el óvalo de la cara, que incluye cejas, ojos, nariz, boca y mentón, y deberá ser de alta resolución y en papel fotográfico de buena calidad).</li>
+<li><strong>Certificado o Volante de empadronamiento&nbsp;</strong>actual (expedido en los tres últimos meses), en caso de que haya cambiado de domicilio. Para los titulares de autorizaciones de residencia como&nbsp;<strong>inversores&nbsp;</strong>o&nbsp;<strong>movilidad intraempresarial</strong>&nbsp;de la Ley 14/2013,&nbsp;<strong>y sus respectivos familiares</strong>, no es un requisito imprescindible.&nbsp;<strong><em>Original y copia</em></strong>.</li>
+<li><strong>Resolución de concesión&nbsp;</strong>del permiso de residencia o estancia emitida por la oficina de la Delegación del Gobierno o de la Dirección General de Gestión Migratoria, en los casos en los que se la hayan facilitado.</li>
+<li>En caso de que no sea la primera vez que se les expide una Tarjeta de Identidad de Extranjero (TIE), traer la anterior. En su defecto&nbsp;<strong>denuncia&nbsp;</strong>de extravío o sustracción.</li>
+<li>Los&nbsp;<strong>menores&nbsp;</strong>deberán ir acompañados de su representante legal debidamente acreditado y con documentación de identidad original y en vigor, o por la persona apoderada por estos.</li>
+</ul>
+<p>Los documentos que deberán ser presentados para acreditar la relación con el menor son:</p>
+<ol>
+<li>Documentos de identidad, originales y en vigor, en todo caso.</li>
+<li>Menor nacido en España. Libro de Familia o certificado de nacimiento del Registro Civil, o sentencia judicial de la tutela.</li>
+<li>Menor nacido en el extranjero. Partida de nacimiento o documentos de la tutela del menor traducidos (según necesidad) y legalizados, bien con Apostilla de la Haya o vía diplomática.</li>
+<li>Para acreditar el apoderamiento: Poder notarial expedido en España. Poder notarial realizado fuera de España, traducido (según necesidad) y legalizado, bien con Apostilla de la Haya o a través de la vía diplomática.</li>
+</ol>
+<ul>
+<li>Si los menores son estudiantes con visado&nbsp;<strong>SME</strong>, deberán aportar el informe favorable de la Delegación del Gobierno y venir acompañados únicamente por la persona autorizada en dicho informe.</li>
+<li>En el caso de la expedición de la TIE asociada a los&nbsp;<strong>trabajadores transfronterizos&nbsp;</strong>deberá ser aportada por estos la resolución de concesión de la Subdelegación del Gobierno.&nbsp;<strong><em>Original y copia</em></strong>.</li>
+</ul><p></p>
+                
+				<p></p><p><strong>INFORMACIÓN ADICIONAL PARA LA EXPEDICIÓN DE DUPLICADO DE TARJETA DE IDENTIDAD DE EXTRANJERO (T.I.E.)</strong></p>
+<p>Casos en los que procede la solicitud del duplicado:</p>
+<ol>
+<li>Sustracción, pérdida o deterioro de la tarjeta.</li>
+<li>Modificación de datos de filiación o domicilio.</li>
+<li>Subsanación de algún error en la impresión / soporte de la tarjeta.</li>
+</ol>
+<ul>
+<li>En caso de pérdida o sustracción de la tarjeta:&nbsp;<strong>Denuncia&nbsp;</strong>original en Castellano o lengua cooficial de la CCAA donde se presente, en la que consten los datos del titular de la tarjeta y se haga mención expresa a la pérdida o sustracción de la TIE.</li>
+<li>En caso de que exista una modificación de los datos de filiación:&nbsp;<strong>Certificado consular de concordancia&nbsp;</strong>(<a href="https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Legalizacion-y-apostilla.aspx" target="_blank">legalizado en el Servicio del Ministerio de Asuntos Exteriores, Unión Europea y Cooperación de España</a>)<strong>&nbsp;y pasaporte anterior&nbsp;</strong>(anulado o caducado). (<strong><em>Original&nbsp;</em></strong>y&nbsp;<strong><em>copia</em></strong><em>)</em></li>
+<li>En caso de adquisición de una nueva nacionalidad diferente a la que se ha utilizado para obtener el permiso de residencia o tarjeta de identidad previos:&nbsp;<strong>Certificado de inscripción consular&nbsp;</strong>actualizado de la nueva nacionalidad (<a href="https://www.exteriores.gob.es/es/ServiciosAlCiudadano/Paginas/Legalizacion-y-apostilla.aspx" target="_blank">legalizado en el Servicio del Ministerio de Asuntos Exteriores, Unión Europea y Cooperación de España</a>) junto con el pasaporte acreditativo de la misma. (<strong><em>Original&nbsp;</em></strong>y&nbsp;<strong><em>copia</em></strong>). En el caso de que usted sea titular de un&nbsp;<strong>permiso de residencia temporal&nbsp;</strong>esta comunicación de cambio de nacionalidad debe hacerla a la Oficina de Extranjería correspondiente.</li>
+</ul>
+<p>&nbsp;</p>
+<p><strong>INFORMACIÓN ADICIONAL PARA LA EXPEDICIÓN DE LA TARJETA ASOCIADA AL ACUERDO DE RETIRADA DE CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (<em>BREXIT</em>)</strong></p>
+<p>Para acceder a este trámite tiene que ser titular de uno de los siguientes documentos:</p>
+<ol>
+<li>Certificado de Registro de Ciudadano de la Unión.</li>
+<li>Tarjeta de Familiar de Ciudadano de la Unión (Británico o de Irlanda del Norte).</li>
+<li>Resolución favorable emitida por las Oficinas de Extranjería. Para verificar si el expediente se encuentra en estado "<strong><em>Resuelto favorable</em>"&nbsp;</strong><a href="https://sede.administracionespublicas.gob.es/procedimientos/index/categoria/34" target="_blank">(enlace siguiente).</a></li>
+</ol>
+<ul>
+<li><strong>Formulario de solicitud&nbsp;</strong>modelo&nbsp;<a href="https://www.inclusion.gob.es/documents/410169/2156469/23-Formulario_TIE_RU.pdf" target="_blank"><strong>EX-23</strong></a>, debidamente cumplimentado y firmado por el interesado o su representante legal&nbsp;<a href="https://www.inclusion.gob.es/documents/410169/2156469/23-Formulario_TIE_RU.pdf" target="_blank">(enlace siguiente).</a></li>
+<li><strong>Pasaporte válido y en vigor del solicitante.&nbsp;</strong>En el supuesto de que el pasaporte esté caducado deberá aportar copia de este y de la solicitud de renovación. En el momento de la recogida de la tarjeta el Pasaporte tiene que estar en vigor.&nbsp;<strong><em>(Original).</em></strong></li>
+</ul>
+<p>&nbsp;<strong>PREGUNTAS FRECUENTES (FAQ)&nbsp;</strong><a href="https://www.policia.es/_es/extranjeria_extranjeros.php#Nueve" target="_blank"><strong>(enlace siguiente)</strong></a></p><p></p>			
+		</div>	
+        
+
+	<div>	
+		<div class="mf-note">
+				<strong>LEE ATENTAMENTE</strong>
+			     <span><p>&nbsp;</p>
+<p>Las personas solicitantes de Tarjeta de Identidad de Extranjero, beneficiarias del trámite de protección temporal para personas desplazadas por el <strong>CONFLICTO DE UCRANIA</strong>, deben seleccionar la cita específica <strong style="color: red;">POLICÍA-TARJETA CONFLICTO UCRANIA - ПОЛІЦІЯ - КАРТКА ДЛЯ ПЕРЕМІЩЕНИХ ОСІБ ВНАСЛІДОК КОНФЛІКТУ В УКРАЇНІ</strong>, por lo que “<strong>NO”</strong> serán atendidas, si reservan la cita genérica POLICÍA-TOMA DE HUELLA (EXPEDICIÓN DE TARJETA) INICIAL, RENOVACIÓN, DUPLICADO Y LEY 14/2013.</p>
+<p><span style="color: red;">La utilización de certificado electrónico (Cl@ve, certificado digital de la FNMT o DNIe), en la reserva de cita previa, garantiza mayor accesibilidad en el proceso de reserva.</span></p>
+<p><span style="color: red;">Si todavía no disponen de acceso al certificado electrónico, pueden solicitar la cita a través de cualquier entidad o persona que disponga de él, y podrán reservar la cita en su nombre.</span></p></span>
+		</div>  
+		<br>
+			
+			
+	 
+			<div>
+				<div class="mf-header__compact mf-layout--row">
+		            <div id="btnAccesoClave" class="mf-layout--module__s mf-header--container mf-flexgrid--box mf-button__primary">
+		            	<p class="mf-paragraph-header pint">Presentación con Cl@ve</p>
+		              	<p class="tjus">
+		              		<span>A continuación puedes acceder a la reserva de la cita, para el trámite y la provincia seleccionados, mediante el uso de cl@ve.</span> <span>En caso de utilizar certificado digital, por favor, asegúrate de que lo tienes correctamente instalado y funcionando.</span>
+		              	</p>
+								
+	
+								<input id="acceso" name="acceso" type="hidden" value="">
+			        </div>
+		            <div id="btnEntrar" class="mf-layout--module__s mf-header--container mf-flexgrid--box mf-button__secondary" onclick="document.forms[0].submit()">
+		            	<p class="mf-paragraph-header pint">Presentación sin Cl@ve</p>
+		              	<p class="tjus">
+		              		<span>A continuación puedes acceder a la reserva de la cita, para el trámite y la provincia seleccionados, sin el uso de cl@ve.</span>
+		              	</p>			
+	
+			                
+			        </div>
+			    </div>
+						<p class="tjus" style="margin-left: 30px">
+							<a target="_blank" href="https://clave.gob.es/clave_Home/clave.html" class="iconOut">
+								<span class="ma-icons__icon mf-icon mf-icon-info"></span>
+								<span>Más información sobre cl@ve</span>	
+							</a>
+						</p>
+	
+				<input id="btnVolver" type="button" class="mf-button secondary" value="Volver" onclick="goVolverPortada();">
+			</div>
+		</div>
+	  </div>
+
+	</form>
+	</div>
+	</section>
+	</div>
+	</div>
+	 
+	</main>
+	</div>
+	</div>
+	<footer id="footerNew" class="mf-footer noprint"><div class="mf-footer--container">   	  
+      <ul id="footermenu" class="mf-footer--menu">
+            <li class="mf-footer--menu-item"><a href="accesibilidad" target="_blank">Accesibilidad</a></li>
+            <li class="mf-footer--menu-item"><a href="avisolegal" target="_blank">Aviso legal</a></li>
+            <li class="mf-footer--menu-item"><a href="contacto" target="_blank">Contacto</a></li>
+    </ul><p id="copyright" class="mf-footer--copy">© <span>Agencia Estatal de Administración Digital</span>
+ 			
+	</p>		
+    </div></footer>
+	<div id="cookie-law-info-bar" class="noprint" style="background-color: rgb(255, 255, 255); color: rgb(82, 19, 10); font-family: inherit; bottom: 0px; position: fixed;">
+		<span>Utilizamos cookies propias y de terceros para mejorar nuestros servicios Si continúa navegando, consideramos que acepta su uso. Puede obtener más información, o bien conocer cómo cambiar la configuración, en nuestra <strong>política de uso de cookies</strong>. &nbsp;&nbsp;<a href="#" id="cookie_action_close_header" class="small cli-plugin-button cli-plugin-main-button" style="color: rgb(255, 255, 255); background-color: rgb(82, 19, 10);">Acepto</a> - <a href="#" onclick="goPoliticaCookies()" class="small cli-plugin-button cli-plugin-main-button" style="color: rgb(255, 255, 255); background-color: rgb(82, 19, 10);">Política de uso de cookies</a></span>  
+	</div>
+	
+	<form name="politicaCookiesForm" id="politicaCookiesForm" method="post" action="/icpplustiem/politicaCookies" target="_blank"><input type="hidden" name="275f2d28-1611-4fbe-a76c-c4419ecd8389" value=""><input type="hidden" name="328d19e7-684e-4c7e-8071-903aeba9772d" value="">
+		<input type="hidden" name="method" value="">
+	</form>
+	 
+    
+	
+
+
+
+	
+    
+    
+    <div class="mf-veil" style="display: none;"></div></body></html>

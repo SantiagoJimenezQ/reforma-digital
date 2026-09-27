@@ -1,0 +1,26 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Dentro del Shadow DOM, :host es la raíz: tipografía y color base del sistema
+ * (DESIGN.md §2.2) sin heredar nada de la web oficial.
+ */
+:host {
+  all: initial;
+  display: block;
+  font-family: var(--bg-font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgb(var(--bg-ink));
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

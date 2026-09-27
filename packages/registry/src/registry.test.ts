@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { createSiteAdapter } from './index';
+import { createSiteAdapter, matchesSite, routePatterns, validateSiteConfig } from './index';
 
 const config = {
   id: 'example',
@@ -31,4 +31,55 @@ it('dispatches to the one matching page', () => {
   const adapter = createSiteAdapter(config, [{ id: 'page', matches: () => true, prepare }]);
   adapter.prepare(document, new URL(config.homepage), () => {});
   expect(prepare).toHaveBeenCalledOnce();
+});
+it('matches multi-path routes and exact paths only on their own origin', () => {
+  const adapter = createSiteAdapter(
+    {
+      ...config,
+      origins: undefined,
+      pathPrefix: undefined,
+      routes: [
+        { origin: 'https://info.example.test', path: '/servicio' },
+        { origin: 'https://app.example.test', pathPrefix: '/app/' },
+      ],
+    } as unknown as Parameters<typeof createSiteAdapter>[0],
+    [],
+  );
+  expect(matchesSite(adapter, new URL('https://info.example.test/servicio'))).toBe(true);
+  expect(matchesSite(adapter, new URL('https://info.example.test/servicio/otra'))).toBe(false);
+  expect(matchesSite(adapter, new URL('https://app.example.test/app/paso'))).toBe(true);
+  expect(matchesSite(adapter, new URL('https://app.example.test/servicio'))).toBe(false);
+  expect(routePatterns(adapter.routes)).toEqual([
+    'https://info.example.test/servicio*',
+    'https://app.example.test/app/*',
+  ]);
+});
+it('expects() is true only when exactly one page claims the URL', () => {
+  const page = {
+    id: 'page',
+    matches: (url: URL) => url.pathname === '/form/a',
+    prepare: () => null,
+  };
+  const adapter = createSiteAdapter(config, [page]);
+  expect(adapter.expects(new URL('https://example.test/form/a'))).toBe(true);
+  expect(adapter.expects(new URL('https://example.test/form/b'))).toBe(false);
+  expect(adapter.expects(new URL('https://evil.test/form/a'))).toBe(false);
+});
+it('validates site.config.json', () => {
+  expect(validateSiteConfig(config, 'example')).toEqual([]);
+  expect(validateSiteConfig(config, 'other').join()).toMatch(/folder/);
+  expect(validateSiteConfig({ ...config, pathPrefix: '/' }).join()).toMatch(/whole origin/);
+  expect(validateSiteConfig({ ...config, pathPrefix: '/form' }).join()).toMatch(/ending in "\/"/);
+  expect(validateSiteConfig({ ...config, origins: ['http://example.test'] }).join()).toMatch(
+    /HTTPS/,
+  );
+  expect(validateSiteConfig({ ...config, origins: ['https://*.example.test'] }).join()).toMatch(
+    /HTTPS/,
+  );
+  expect(validateSiteConfig({ ...config, routes: [] }).join()).toMatch(/either routes/);
+  expect(validateSiteConfig({ ...config, verifiedAt: '27/09/2026' }).join()).toMatch(/verifiedAt/);
+  // Disabled placeholders may keep an empty configuration.
+  expect(validateSiteConfig({ ...config, enabled: false, origins: [], pathPrefix: '/' })).toEqual(
+    [],
+  );
 });

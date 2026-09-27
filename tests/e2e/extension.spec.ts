@@ -1,26 +1,6 @@
-import { test as base, expect, chromium, type BrowserContext } from '@playwright/test';
-import path from 'node:path';
-import { mkdtemp, rm } from 'node:fs/promises';
-import os from 'node:os';
+import { expect } from '@playwright/test';
+import { test } from './extension-fixture';
 
-const test = base.extend<{ extension: BrowserContext }>({
-  extension: async ({}, use) => {
-    const profile = await mkdtemp(path.join(os.tmpdir(), 'better-government-test-'));
-    const extension = path.resolve('dist-test');
-    const context = await chromium.launchPersistentContext(profile, {
-      channel: 'chromium',
-      headless: true,
-      ...(process.env.BG_CHROMIUM_PATH ? { executablePath: process.env.BG_CHROMIUM_PATH } : {}),
-      args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
-    });
-    try {
-      await use(context);
-    } finally {
-      await context.close();
-      await rm(profile, { recursive: true, force: true });
-    }
-  },
-});
 const login = 'http://127.0.0.1:4173/citaPreviaDni/InicioDNINIE.action';
 
 test('real MV3 content script synchronizes input in the isolated world and preserves submission', async ({

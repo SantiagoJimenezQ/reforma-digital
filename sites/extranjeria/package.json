@@ -1,0 +1,16 @@
+{
+  "name": "@better-government/site-extranjeria",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@better-government/bridge": "*",
+    "@better-government/design": "*",
+    "@better-government/react": "*",
+    "@better-government/registry": "*"
+  },
+  "devDependencies": {
+    "@better-government/runtime": "*"
+  }
+}

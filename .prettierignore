@@ -5,3 +5,6 @@ artifacts
 test-results
 playwright-report
 package-lock.json
+# HTML capturado de webs oficiales (npm run site:live): se conserva tal cual
+sites/extranjeria/fixtures/*.html
+.cache

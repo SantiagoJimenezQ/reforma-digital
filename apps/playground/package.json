@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@better-government/site-dni": "*",
-    "@better-government/react": "*",
     "@better-government/bridge": "*",
-    "@better-government/runtime": "*"
+    "@better-government/design": "*",
+    "@better-government/react": "*",
+    "@better-government/runtime": "*",
+    "@better-government/site-dni": "*"
   }
 }

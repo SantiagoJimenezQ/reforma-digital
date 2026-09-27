@@ -1,8 +1,14 @@
 import { Component, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { matchesSite, type Enhancement, type SiteAdapter } from '@better-government/registry';
-import uiStyles from './ui.css?inline';
+import {
+  matchesSite,
+  type Enhancement,
+  type PanelPosition,
+  type SiteAdapter,
+} from '@better-government/registry';
+import { CommunityBadge, FallbackNotice } from '@better-government/design';
+import uiStyles from '@better-government/design/shadow.css?inline';
 
 export type RuntimeState = 'active' | 'original' | 'unsupported' | 'disabled';
 export interface RuntimeController {
@@ -27,32 +33,55 @@ class RenderBoundary extends Component<
   }
 }
 
+/** Top bar shown on every enhanced page (DESIGN.md §3). Pages without panels also get an intro. */
 function Shell({
   enhancement,
   restore,
   demo,
+  host,
+  inline,
 }: {
   enhancement: Enhancement;
   restore: () => void;
   demo: boolean;
+  host: string;
+  /** Placed inside the page flow (Enhancement.shell) instead of at the top of <body>. */
+  inline: boolean;
 }) {
   return (
-    <section className="bg-shell" aria-label="Better Government">
-      <div className="bg-topbar">
-        <span className="bg-brand">Better Government</span>
-        <button type="button" className="bg-restore" onClick={restore}>
+    <section
+      className={inline ? 'bg-card bg-text my-3' : 'bg-text border-b border-line bg-surface'}
+      aria-label="Better Government"
+    >
+      <div
+        className={
+          inline
+            ? 'flex flex-wrap items-center justify-between gap-3 px-4 py-2.5'
+            : 'mx-auto flex max-w-content flex-wrap items-center justify-between gap-3 px-4 py-2.5'
+        }
+      >
+        <div className="min-w-0 flex-1">
+          <CommunityBadge host={host} />
+        </div>
+        <button
+          type="button"
+          className="bg-btn bg-btn-secondary min-h-[36px] px-3 py-1.5 text-[14px] print:hidden"
+          onClick={restore}
+        >
           Ver original
         </button>
       </div>
-      <div className="bg-intro">
-        <h1>{enhancement.title}</h1>
-        <p>{enhancement.description}</p>
-      </div>
-      <p className="bg-notice">
-        {demo
-          ? 'Prueba local con datos ficticios. No reserva citas.'
-          : 'Interfaz independiente del portal oficial.'}
-      </p>
+      {enhancement.panels?.length ? null : (
+        <div className="mx-auto max-w-content px-4 pb-4">
+          <h1 className="bg-h1">{enhancement.title}</h1>
+          <p className="bg-lead mt-1">{enhancement.description}</p>
+        </div>
+      )}
+      {demo ? (
+        <p className="bg-small mx-auto max-w-content px-4 pb-3">
+          Prueba local con datos ficticios. No reserva citas.
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -75,6 +104,9 @@ export function mountAdapter(
   let pageStyle: HTMLStyleElement | undefined;
   const initialURL = location.href;
   const oldSite = document.body.getAttribute('data-bg-site');
+  const root = document.documentElement;
+  const oldRootSite = root.getAttribute('data-bg-site');
+  const oldRootPage = root.getAttribute('data-bg-page');
   const notify = (next: RuntimeState) => {
     state = next;
     options.onState?.(next);
@@ -100,6 +132,10 @@ export function mountAdapter(
     pageStyle?.remove();
     if (oldSite === null) document.body.removeAttribute('data-bg-site');
     else document.body.setAttribute('data-bg-site', oldSite);
+    if (oldRootSite === null) root.removeAttribute('data-bg-site');
+    else root.setAttribute('data-bg-site', oldRootSite);
+    if (oldRootPage === null) root.removeAttribute('data-bg-page');
+    else root.setAttribute('data-bg-page', oldRootPage);
   };
   const restore = () => {
     if (state !== 'active') return;
@@ -132,7 +168,10 @@ export function mountAdapter(
     return controller;
   }
   notify('active');
-  function makeHost(before: HTMLElement | null, content: ReactNode) {
+  function makeHost(
+    place: HTMLElement | { anchor: Element; position: PanelPosition } | null,
+    content: ReactNode,
+  ) {
     const host = document.createElement('div');
     host.setAttribute('data-bg-host', '');
     host.style.setProperty('display', 'block', 'important');
@@ -144,7 +183,8 @@ export function mountAdapter(
     shadow.append(style);
     const mount = document.createElement('div');
     shadow.append(mount);
-    if (before) before.before(host);
+    if (place instanceof HTMLElement) place.before(host);
+    else if (place) place.anchor.insertAdjacentElement(place.position, host);
     else document.body.prepend(host);
     hosts.push(host);
     const root = createRoot(mount);
@@ -152,7 +192,17 @@ export function mountAdapter(
     flushSync(() => root.render(<RenderBoundary restore={restore}>{content}</RenderBoundary>));
   }
   try {
-    makeHost(null, <Shell enhancement={captured} restore={restore} demo={options.demo ?? false} />);
+    makeHost(
+      captured.shell ?? null,
+      <Shell
+        enhancement={captured}
+        restore={restore}
+        demo={options.demo ?? false}
+        host={url.hostname}
+        inline={!!captured.shell}
+      />,
+    );
+    for (const panel of captured.panels ?? []) makeHost(panel, panel.render());
     for (const slot of captured.slots) {
       makeHost(slot.source, slot.render());
       sources.push({ source: slot.source, previous: slot.source.getAttribute('data-bg-source') });
@@ -182,6 +232,8 @@ export function mountAdapter(
     pageStyle.textContent = `[data-bg-source], [data-bg-label] { display: none !important; }\n${captured.pageStyles ?? ''}`;
     document.head.append(pageStyle);
     document.body.setAttribute('data-bg-site', adapter.id);
+    root.setAttribute('data-bg-site', adapter.id);
+    if (captured.page) root.setAttribute('data-bg-page', captured.page);
     document.addEventListener('invalid', invalid, true);
     document.addEventListener('focusin', originalFocus, true);
     window.addEventListener('pagehide', restore);
@@ -216,4 +268,81 @@ export function mountAdapter(
     restore();
   }
   return controller;
+}
+
+/** How long to wait for official content that renders late (e.g. after an anti-bot check). */
+export const LATE_CONTENT_MS = 12_000;
+
+/**
+ * Content-script entry point. Mounts immediately when possible. If a registered screen claims the
+ * URL but its DOM is not ready yet, keeps observing until LATE_CONTENT_MS; if it never matches,
+ * the official page stays untouched and a small dismissible notice explains why.
+ */
+export function startAdapter(
+  adapter: SiteAdapter,
+  options: { url?: URL; demo?: boolean; onState?: (state: RuntimeState) => void } = {},
+): RuntimeController {
+  const url = options.url ?? new URL(location.href);
+  let current = mountAdapter(adapter, options);
+  let observer: MutationObserver | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let notice: (() => void) | undefined;
+  const stop = () => {
+    observer?.disconnect();
+    clearTimeout(timer);
+    observer = undefined;
+  };
+  if (current.state() === 'unsupported' && adapter.expects(url)) {
+    observer = new MutationObserver(() => {
+      const next = mountAdapter(adapter, options);
+      if (next.state() === 'active') {
+        stop();
+        current = next;
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    timer = setTimeout(() => {
+      stop();
+      notice = showOriginalNotice(adapter.name);
+    }, LATE_CONTENT_MS);
+  }
+  return {
+    restore: () => {
+      stop();
+      notice?.();
+      current.restore();
+    },
+    dispose: () => {
+      stop();
+      notice?.();
+      current.dispose();
+    },
+    state: () => current.state(),
+  };
+}
+
+function showOriginalNotice(siteName: string): () => void {
+  const host = document.createElement('div');
+  host.setAttribute('data-bg-notice', '');
+  const shadow = host.attachShadow({ mode: 'open' });
+  const style = document.createElement('style');
+  style.textContent = uiStyles;
+  const mount = document.createElement('div');
+  shadow.append(style, mount);
+  document.body.append(host);
+  const root = createRoot(mount);
+  const close = () => {
+    root.unmount();
+    host.remove();
+  };
+  flushSync(() =>
+    root.render(
+      <FallbackNotice
+        adapterName={siteName}
+        reason="La pantalla no coincide con la estructura revisada."
+        onClose={close}
+      />,
+    ),
+  );
+  return close;
 }
