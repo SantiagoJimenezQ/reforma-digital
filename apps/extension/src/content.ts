@@ -1,0 +1,49 @@
+import { adapters } from 'virtual:site-adapters';
+import { matchesSite } from '@better-government/registry';
+import { mountAdapter, type RuntimeController } from '@better-government/runtime';
+
+async function start() {
+  let url = new URL(location.href);
+  if (__BG_TEST__ && url.origin === 'http://127.0.0.1:4173')
+    url = new URL(url.pathname, 'https://www.citapreviadnie.es');
+  const adapter = adapters.find((item) => matchesSite(item, url));
+  if (!adapter) return;
+  let controller: RuntimeController | undefined;
+  let disabled = false;
+  try {
+    const saved = await chrome.storage.local.get('disabledSites');
+    disabled = Array.isArray(saved.disabledSites) && saved.disabledSites.includes(adapter.id);
+    if (!disabled) controller = mountAdapter(adapter, { url, demo: __BG_TEST__ });
+  } catch {
+    return;
+  }
+  const changes = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+    if (area !== 'local' || !changes.disabledSites) return;
+    const value: unknown = changes.disabledSites.newValue;
+    disabled = Array.isArray(value) && value.includes(adapter.id);
+    if (disabled) controller?.restore();
+  };
+  chrome.storage.onChanged.addListener(changes);
+  chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
+    // Only the extension's packaged popup may control this content script.
+    if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('popup.html'))
+      return;
+    if (!message || typeof message !== 'object' || !('type' in message)) return;
+    if (message.type === 'status')
+      sendResponse({
+        site: adapter.id,
+        name: adapter.name,
+        state: disabled ? 'disabled' : (controller?.state() ?? 'unsupported'),
+      });
+    if (message.type === 'restore') {
+      controller?.restore();
+      sendResponse({ ok: true });
+    }
+    if (message.type === 'enable' && !disabled) {
+      controller?.dispose();
+      controller = mountAdapter(adapter, { url, demo: __BG_TEST__ });
+      sendResponse({ state: controller.state() });
+    }
+  });
+}
+void start();

@@ -1,0 +1,9 @@
+{
+  "id": "dni",
+  "enabled": true,
+  "name": "Cita previa DNI y pasaporte",
+  "origins": ["https://www.citapreviadnie.es", "https://citapreviadnie.es"],
+  "pathPrefix": "/citaPreviaDni/",
+  "homepage": "https://www.citapreviadnie.es/citaPreviaDni/Inicio.action",
+  "status": "experimental"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "registro-asociaciones",
+  "name": "Registro de Asociaciones",
+  "enabled": false,
+  "origins": [],
+  "pathPrefix": "/",
+  "homepage": "",
+  "status": "experimental"
+}

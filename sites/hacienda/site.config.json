@@ -1,0 +1,9 @@
+{
+  "id": "hacienda",
+  "name": "Hacienda",
+  "enabled": false,
+  "origins": [],
+  "pathPrefix": "/",
+  "homepage": "",
+  "status": "experimental"
+}

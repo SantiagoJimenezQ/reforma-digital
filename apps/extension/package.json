@@ -1,0 +1,10 @@
+{
+  "name": "@better-government/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@better-government/registry": "*",
+    "@better-government/runtime": "*"
+  }
+}

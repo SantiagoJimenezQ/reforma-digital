@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Inicio · Fixture DNI</title>
+  </head>
+  <body>
+    <p>Fixture sintética. Los enlaces representan las rutas públicas consultadas.</p>
+    <main>
+      <h1>Solicitud, Consulta o Anulación de Cita Previa para DNI o Pasaporte</h1>
+      <a href="https://www.citapreviadnie.es/citaPreviaDni/InicioDNINIE.action"
+        >Acceso con datos DNI/NIE</a
+      >
+      <button id="certificate" type="button">Acceso con DNI Electrónico</button>
+      <a href="https://www.citapreviadnie.es/citaPreviaDni/InicioPerdida.action"
+        >Pérdida o sustracción del DNI</a
+      >
+      <p id="cookie-notice">
+        Aviso de cookies de la web original. <button id="cookies" type="button">Aceptar</button>
+      </p>
+    </main>
+    <script>
+      document.getElementById('certificate').addEventListener('click', (e) => {
+        document.body.dataset.certificateTrusted = String(e.isTrusted);
+      });
+      document.getElementById('cookies').addEventListener('click', () => {
+        document.getElementById('cookie-notice').remove();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "@better-government/site-hacienda",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/adapter.ts",
+  "dependencies": {
+    "@better-government/bridge": "*",
+    "@better-government/react": "*",
+    "@better-government/registry": "*"
+  }
+}

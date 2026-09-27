@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "types": ["vite/client", "chrome", "node"],
+    "paths": {
+      "@better-government/bridge": ["./packages/bridge/src/index.ts"],
+      "@better-government/react": ["./packages/react/src/index.tsx"],
+      "@better-government/registry": ["./packages/registry/src/index.ts"],
+      "@better-government/runtime": ["./packages/runtime/src/index.tsx"],
+      "@better-government/site-dni": ["./sites/dni/src/index.ts"]
+    }
+  },
+  "include": ["apps", "packages", "sites", "tests", "vitest.config.ts", "playwright.config.ts"]
+}

@@ -1,0 +1,397 @@
+/** DOM-only bridge. Never owns a network request, a session or a saved field value. */
+export type FieldElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+export type ActionElement = HTMLButtonElement | HTMLInputElement | HTMLAnchorElement;
+export interface FieldSpec {
+  element: FieldElement;
+  label: string;
+  help?: string;
+}
+export interface ActionSpec {
+  element: ActionElement;
+  label: string;
+}
+export interface FieldSnapshot {
+  value: string;
+  checked: boolean;
+  values: readonly string[];
+  type: string;
+  disabled: boolean;
+  readOnly: boolean;
+  required: boolean;
+  multiple: boolean;
+  maxLength: number;
+  minLength: number;
+  pattern: string;
+  min: string;
+  max: string;
+  step: string;
+  inputMode: string;
+  autocomplete: string;
+  placeholder: string;
+  invalid: boolean;
+  validationMessage: string;
+  connected: boolean;
+  options: readonly { value: string; label: string; disabled: boolean }[];
+}
+export type BridgeIssue =
+  'disconnected' | 'unsupported-control' | 'changed-control' | 'missing-binding';
+export interface BridgeOptions {
+  onIssue?: (issue: BridgeIssue) => void;
+  pollMs?: number;
+}
+
+const textTypes = new Set(['text', 'email', 'tel', 'url', 'search']);
+export function isBindableField(element: Element): element is FieldElement {
+  if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) return true;
+  return (
+    element instanceof HTMLInputElement &&
+    (textTypes.has(element.type) || ['checkbox', 'radio'].includes(element.type))
+  );
+}
+
+function snapshot(element: FieldElement): FieldSnapshot {
+  const input = element instanceof HTMLInputElement ? element : null;
+  const text =
+    element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? element : null;
+  const select = element instanceof HTMLSelectElement ? element : null;
+  return {
+    value: element.value,
+    checked: input?.checked ?? false,
+    values: select ? Array.from(select.selectedOptions, (o) => o.value) : [],
+    type: input?.type ?? (select ? 'select' : 'textarea'),
+    disabled: element.matches(':disabled'),
+    readOnly: text?.readOnly ?? false,
+    required: element.required,
+    multiple: select?.multiple ?? false,
+    maxLength: text?.maxLength ?? -1,
+    minLength: text?.minLength ?? -1,
+    pattern: input?.pattern ?? '',
+    min: input?.min ?? '',
+    max: input?.max ?? '',
+    step: input?.step ?? '',
+    inputMode: element.inputMode,
+    autocomplete: element.autocomplete,
+    placeholder: text?.placeholder ?? '',
+    invalid: !element.validity.valid,
+    validationMessage: element.validationMessage,
+    connected: element.isConnected,
+    options: select
+      ? Array.from(select.options, (o) => ({
+          value: o.value,
+          label: o.label,
+          disabled:
+            o.disabled ||
+            (o.parentElement instanceof HTMLOptGroupElement && o.parentElement.disabled),
+        }))
+      : [],
+  };
+}
+
+export class DomBridge {
+  private fields = new Map<string, FieldSpec>();
+  private actions = new Map<string, ActionSpec>();
+  private snapshots = new Map<string, FieldSnapshot>();
+  private signatures = new Map<string, string>();
+  private shapes = new Map<string, { type: string; name: string; form: HTMLFormElement | null }>();
+  private actionShapes = new Map<string, string>();
+  private listeners = new Set<() => void>();
+  private observer: MutationObserver;
+  private timer: ReturnType<typeof setInterval>;
+  private disposed = false;
+  private revision = 0;
+  private doc: Document;
+
+  constructor(
+    fields: Record<string, FieldSpec>,
+    actions: Record<string, ActionSpec> = {},
+    private options: BridgeOptions = {},
+  ) {
+    this.doc =
+      Object.values(fields)[0]?.element.ownerDocument ??
+      Object.values(actions)[0]?.element.ownerDocument ??
+      document;
+    const elements = new Set<Element>();
+    for (const [id, spec] of Object.entries(fields)) {
+      if (!isBindableField(spec.element) || elements.has(spec.element))
+        throw new Error('Unsupported or duplicate field binding');
+      if (!spec.element.isConnected) throw new Error('Cannot bind a detached control');
+      this.fields.set(id, spec);
+      elements.add(spec.element);
+      this.shapes.set(id, {
+        type: spec.element.type,
+        name: spec.element.name,
+        form: spec.element.form,
+      });
+    }
+    for (const [id, spec] of Object.entries(actions)) {
+      if (!(
+        spec.element instanceof HTMLButtonElement ||
+        spec.element instanceof HTMLAnchorElement ||
+        (spec.element instanceof HTMLInputElement &&
+          ['button', 'submit', 'reset'].includes(spec.element.type))
+      ))
+        throw new Error('Unsupported action binding');
+      this.actions.set(id, spec);
+      this.actionShapes.set(id, this.actionShape(spec.element));
+    }
+    this.refresh();
+    for (const name of ['input', 'change', 'reset', 'focusin', 'focusout'])
+      this.doc.addEventListener(name, this.onEvent, true);
+    this.observer = new MutationObserver(this.refresh);
+    this.observer.observe(this.doc.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+    });
+    // Property assignments and autofill need sampling; they do not always emit events or mutations.
+    this.timer = setInterval(this.refresh, options.pollMs ?? 150);
+  }
+
+  private onEvent = () => {
+    this.refresh();
+    queueMicrotask(this.refresh);
+  };
+  private issue(issue: BridgeIssue): false {
+    this.options.onIssue?.(issue);
+    return false;
+  }
+  private actionShape(element: ActionElement): string {
+    return JSON.stringify([
+      element.tagName,
+      element.getAttribute('type'),
+      element.getAttribute('href'),
+      element.getAttribute('name'),
+      element.getAttribute('value'),
+      element.getAttribute('formaction'),
+    ]);
+  }
+  private valid(id: string, element: FieldElement): boolean {
+    const shape = this.shapes.get(id);
+    if (!element.isConnected) return this.issue('disconnected');
+    if (!isBindableField(element)) return this.issue('unsupported-control');
+    if (
+      !shape ||
+      shape.type !== element.type ||
+      shape.name !== element.name ||
+      shape.form !== element.form
+    )
+      return this.issue('changed-control');
+    return true;
+  }
+  refresh = (): void => {
+    if (this.disposed) return;
+    let changed = false;
+    for (const [id, { element }] of this.fields) {
+      if (!this.valid(id, element)) return;
+      const next = snapshot(element);
+      const signature = JSON.stringify(next);
+      if (signature !== this.signatures.get(id)) {
+        this.snapshots.set(id, next);
+        this.signatures.set(id, signature);
+        changed = true;
+      }
+    }
+    for (const [id, { element }] of this.actions) {
+      if (!element.isConnected) {
+        this.issue('disconnected');
+        return;
+      }
+      if (this.actionShapes.get(id) !== this.actionShape(element)) {
+        this.issue('changed-control');
+        return;
+      }
+      const signature = JSON.stringify([
+        element.matches(':disabled'),
+        element.getAttribute('aria-disabled'),
+      ]);
+      if (this.signatures.get(`action:${id}`) !== signature) {
+        this.signatures.set(`action:${id}`, signature);
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.revision++;
+      this.listeners.forEach((listener) => listener());
+    }
+  };
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+  getRevision = (): number => this.revision;
+  getField(id: string): FieldSnapshot {
+    const result = this.snapshots.get(id);
+    if (!result) throw new Error('Unknown field binding');
+    return result;
+  }
+  fieldSpec(id: string): FieldSpec {
+    const spec = this.fields.get(id);
+    if (!spec) throw new Error('Unknown field binding');
+    return spec;
+  }
+  actionSpec(id: string): ActionSpec {
+    const spec = this.actions.get(id);
+    if (!spec) throw new Error('Unknown action binding');
+    return spec;
+  }
+
+  setValue(id: string, value: string | readonly string[]): boolean {
+    if (this.disposed) return false;
+    const element = this.fields.get(id)?.element;
+    if (!element) return this.issue('missing-binding');
+    if (
+      !this.valid(id, element) ||
+      element.matches(':disabled') ||
+      ('readOnly' in element && element.readOnly)
+    )
+      return false;
+    if (element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(element.type))
+      return false;
+    if (element instanceof HTMLSelectElement) {
+      const values = typeof value === 'string' ? [value] : [...value];
+      if (!element.multiple && values.length !== 1) return false;
+      const options = snapshot(element).options;
+      if (values.some((v) => !options.some((o) => o.value === v && !o.disabled))) return false;
+      for (const option of element.options) option.selected = values.includes(option.value);
+    } else {
+      if (typeof value !== 'string') return false;
+      const prototype =
+        element instanceof HTMLTextAreaElement
+          ? HTMLTextAreaElement.prototype
+          : HTMLInputElement.prototype;
+      // Bypass framework-owned instance setters so the original input listener sees the change.
+      Object.getOwnPropertyDescriptor(prototype, 'value')?.set?.call(element, value);
+    }
+    element.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    this.refresh();
+    return true;
+  }
+  setChecked(id: string, checked: boolean): boolean {
+    if (this.disposed) return false;
+    const element = this.fields.get(id)?.element;
+    if (
+      !(element instanceof HTMLInputElement) ||
+      !this.valid(id, element) ||
+      !['checkbox', 'radio'].includes(element.type) ||
+      element.matches(':disabled')
+    )
+      return false;
+    if (element.type === 'radio' && !checked) return false;
+    if (element.checked !== checked) element.click(); // Preserves radio grouping and click cancellation.
+    this.refresh();
+    return element.checked === checked;
+  }
+  activate(id: string): boolean {
+    if (this.disposed) return false;
+    const element = this.actions.get(id)?.element;
+    if (!element) return this.issue('missing-binding');
+    if (!element.isConnected) return this.issue('disconnected');
+    if (this.actionShapes.get(id) !== this.actionShape(element))
+      return this.issue('changed-control');
+    if (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true')
+      return false;
+    element.click(); // Original listeners, submitter name/value, validation and navigation stay in charge.
+    this.refresh();
+    return true;
+  }
+  /** Browser-like implicit submission from a text field. Uses the original default submitter. */
+  submitFromField(id: string): boolean {
+    if (this.disposed) return false;
+    const source = this.fields.get(id)?.element;
+    if (!source || !this.valid(id, source) || source.matches(':disabled')) return false;
+    const form = source.form;
+    if (!form) return false;
+    const controls = Array.from(this.doc.querySelectorAll('button,input')).filter(
+      (element): element is HTMLButtonElement | HTMLInputElement =>
+        (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) &&
+        element.form === form,
+    );
+    const submitter = controls.find(
+      (element) => element.type === 'submit' || element.type === 'image',
+    );
+    if (submitter) {
+      if (submitter.matches(':disabled')) return false;
+      submitter.click();
+      return true;
+    }
+    const blocking = controls.filter(
+      (element) =>
+        element instanceof HTMLInputElement &&
+        [
+          'text',
+          'search',
+          'url',
+          'tel',
+          'email',
+          'password',
+          'date',
+          'month',
+          'week',
+          'time',
+          'datetime-local',
+          'number',
+        ].includes(element.type),
+    );
+    if (blocking.length > 1) return false;
+    form.requestSubmit();
+    return true;
+  }
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    clearInterval(this.timer);
+    this.observer.disconnect();
+    for (const name of ['input', 'change', 'reset', 'focusin', 'focusout'])
+      this.doc.removeEventListener(name, this.onEvent, true);
+    this.listeners.clear();
+    this.snapshots.clear();
+    this.signatures.clear();
+    this.fields.clear();
+    this.actions.clear();
+    this.shapes.clear();
+    this.actionShapes.clear();
+  }
+}
+
+export function uniqueElement<T extends Element>(
+  root: ParentNode,
+  selector: string,
+  guard: (element: Element) => element is T,
+): T | null {
+  const matches = root.querySelectorAll(selector);
+  const match = matches.item(0);
+  return matches.length === 1 && match && guard(match) ? match : null;
+}
+
+export function normalizedLabel(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('es')
+    .replace(/[\s:*]+/g, ' ')
+    .trim();
+}
+
+/** Exact accessible-label matching. Never guesses by field order, current values or fuzzy text. */
+export function fieldByLabel(root: ParentNode, label: string): FieldElement | null {
+  const matches = Array.from(root.querySelectorAll('input, select, textarea'))
+    .filter(isBindableField)
+    .filter((element) => {
+      const names = [
+        element.getAttribute('aria-label') ?? '',
+        ...Array.from(element.labels ?? [], (l) => l.textContent ?? ''),
+      ];
+      const labelledBy = element
+        .getAttribute('aria-labelledby')
+        ?.split(/\s+/)
+        .map((id) => element.ownerDocument.getElementById(id)?.textContent ?? '')
+        .join(' ');
+      if (labelledBy) names.push(labelledBy);
+      return names.some((name) => normalizedLabel(name) === normalizedLabel(label));
+    });
+  return matches.length === 1 ? matches[0]! : null;
+}

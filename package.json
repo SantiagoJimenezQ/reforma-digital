@@ -1,0 +1,49 @@
+{
+  "name": "better-government",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "sites/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite --config apps/playground/vite.config.ts",
+    "build": "node scripts/build.mjs",
+    "build:test": "node scripts/build.mjs --test",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "npm run build:test && playwright test",
+    "check": "npm run check:workspaces && npm run typecheck && npm test && npm run build && npm run audit:bundle",
+    "audit:bundle": "node scripts/audit-bundle.mjs",
+    "package": "npm run check && node scripts/package.mjs",
+    "site:new": "node scripts/new-site.mjs",
+    "check:workspaces": "node scripts/check-workspaces.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/chrome": "0.2.9",
+    "@types/node": "26.5.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "jsdom": "30.0.1",
+    "prettier": "3.9.6",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vite": "8.2.2",
+    "vitest": "5.0.0"
+  }
+}

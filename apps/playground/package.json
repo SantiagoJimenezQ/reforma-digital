@@ -1,0 +1,12 @@
+{
+  "name": "@better-government/playground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@better-government/site-dni": "*",
+    "@better-government/react": "*",
+    "@better-government/bridge": "*",
+    "@better-government/runtime": "*"
+  }
+}

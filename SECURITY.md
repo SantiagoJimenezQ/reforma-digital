@@ -1,0 +1,33 @@
+# Seguridad y privacidad
+
+La extensión modifica la interfaz dentro de la página. No termina TLS, no actúa como proxy y no reproduce las solicitudes del portal. El navegador y el portal siguen gestionando las conexiones HTTPS, la sesión y los envíos originales.
+
+Esto no hace inocua cualquier modificación del DOM. Una extensión tiene acceso a los valores que conecta. Un error en una interfaz puede cambiar qué se envía, impedir una validación o mostrar información equivocada. No afirmamos una equivalencia de seguridad auditada con el portal original.
+
+## Medidas implementadas
+
+- Scripts empaquetados en Manifest V3, en el mundo aislado de Chrome.
+- Coincidencia de dominios HTTPS exactos y prefijos de ruta por portal.
+- Un único permiso de API, `storage`, utilizado para preferencias de activación. Los datos de los formularios no se guardan.
+- Sin servidor propio, código remoto, analítica, lectura de cookies ni APIs de peticiones en el código de la extensión.
+- Los controles originales conservan sus formularios, campos ocultos y listeners. Las acciones se delegan al elemento original.
+- Los controles de seguridad se conservan originales. No se falsifica `isTrusted`.
+- Restauración manual, ante cambios de identidad o desaparición de controles, navegación y validación nativa.
+- Mensajes del popup aceptados solo desde la URL empaquetada del popup. No existe un puente de órdenes mediante `window.postMessage`.
+
+El Shadow DOM aísla estilos; no es una barrera de seguridad frente a la página. El aislamiento de JavaScript tampoco oculta el DOM a los scripts del portal.
+
+## Qué se comprueba
+
+Las pruebas automatizadas usan datos ficticios. El chequeo del bundle detecta APIs de red y persistencia prohibidas y revisa el manifest. Es un control estático limitado, no una auditoría de seguridad.
+
+La compatibilidad con validaciones personalizadas, restricciones del navegador, certificados, firmas, iframes y estados autenticados requiere pruebas del portal concreto. Los cambios programáticos no tienen idéntico comportamiento a la escritura física para todas las restricciones nativas o frameworks. Mantén el control original cuando no puedas demostrar equivalencia.
+
+No incluyas sesiones, documentos personales, tokens reales o datos identificativos en issues, fixtures, logs ni capturas. Para un fallo de seguridad, utiliza el canal privado de reporte del repositorio cuando esté habilitado; evita publicar detalles que expongan datos de usuarios.
+
+Referencias técnicas consultadas:
+
+- [Content scripts y aislamiento de Chrome](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
+- [Permisos de extensiones](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
+- [Restricciones de código remoto](https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code)
+- [Eventos e isTrusted](https://developer.mozilla.org/en-US/docs/Web/API/Event/isTrusted)

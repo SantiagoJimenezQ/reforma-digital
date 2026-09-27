@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Prueba local · DNI</title>
+    <style>
+      body {
+        font-family: Georgia, serif;
+        margin: 24px;
+      }
+      form {
+        max-width: 640px;
+        margin: auto;
+      }
+      label {
+        display: block;
+        margin: 14px 0 4px;
+      }
+      input {
+        padding: 8px;
+      }
+      fieldset {
+        margin: 22px 0;
+        padding: 20px;
+      }
+      .native {
+        padding: 18px;
+        background: #eef0e8;
+      }
+      #result {
+        white-space: pre-wrap;
+      }
+      button {
+        padding: 10px;
+        margin: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Fixture sintética. No es una captura ni una réplica validada del HTML oficial.</p>
+    <form id="official-form" method="post" action="/mock-submit">
+      <input type="hidden" name="csrf" value="fixture-csrf-not-a-secret" />
+      <input type="hidden" name="documentType" value="DNI" />
+      <label for="dni">Número de Documento:</label
+      ><input id="dni" name="numero" type="text" maxlength="8" required pattern="[0-9]{8}" />
+      <label for="letter">Letra:</label
+      ><input id="letter" name="letra" type="text" maxlength="1" required />
+      <label for="team">Equipo de Expedición:</label
+      ><input id="team" name="equipo" type="text" required />
+      <label for="expiry">Fecha de Validez:</label
+      ><input id="expiry" name="validez" type="text" required />
+      <label for="support">Número de Soporte:</label
+      ><input id="support" name="soporte" type="text" required />
+      <fieldset class="native" id="security">
+        <legend>Verificación original</legend>
+        <p id="captcha-image">Código de prueba: ABCD</p>
+        <label for="captcha">Introduce el código</label
+        ><input id="captcha" name="captcha" required /><button type="button" id="refresh-captcha">
+          Cambiar código</button
+        ><button type="button" id="audio">Escuchar código</button>
+      </fieldset>
+      <button id="submit" type="submit" name="operation" value="continue">Continuar</button
+      ><button type="reset">Borrar</button>
+    </form>
+    <output id="result" aria-live="polite"></output>
+    <script>
+      document.getElementById('official-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const data = new FormData(this, event.submitter);
+        document.getElementById('result').textContent = JSON.stringify(Object.fromEntries(data));
+        document.body.dataset.submitted = 'true';
+      });
+      document.getElementById('refresh-captcha').addEventListener('click', () => {
+        document.getElementById('captcha-image').textContent = 'Código de prueba: EFGH';
+      });
+      document.getElementById('audio').addEventListener('click', (event) => {
+        document.body.dataset.audioTrusted = String(event.isTrusted);
+      });
+    </script>
+  </body>
+</html>
