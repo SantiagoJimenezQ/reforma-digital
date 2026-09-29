@@ -1,0 +1,350 @@
+---
+import { Image } from 'astro:assets';
+import original1 from '../assets/screens/original-1-landing.png';
+import mejorada1 from '../assets/screens/mejorada-1-landing.png';
+import original2 from '../assets/screens/original-2-provincias.png';
+import mejorada2 from '../assets/screens/mejorada-2-provincias.png';
+import original3 from '../assets/screens/original-3-tramites.png';
+import mejorada3 from '../assets/screens/mejorada-3-tramites.png';
+import original4 from '../assets/screens/original-4-info.png';
+import mejorada4 from '../assets/screens/mejorada-4-info.png';
+
+const steps = [
+  {
+    id: 'informacion',
+    tab: 'Información',
+    title: 'Información del trámite',
+    text: 'La página informativa se resume en qué es el trámite y quién debe pedirlo. Un solo botón para empezar pulsa "Acceder al Procedimiento" en la web oficial.',
+    before: original1,
+    after: mejorada1,
+  },
+  {
+    id: 'provincia',
+    tab: 'Provincia',
+    title: 'Provincia',
+    text: 'Un buscador sin tildes recorre la lista oficial de 52 provincias. Continuar pulsa el botón Aceptar de la web, y los avisos oficiales siguen a la vista.',
+    before: original2,
+    after: mejorada2,
+  },
+  {
+    id: 'tramite',
+    tab: 'Oficina y trámite',
+    title: 'Oficina y trámite',
+    text: 'Los trámites aparecen agrupados por organismo y con buscador. Si la web oficial muestra un error, el panel lo repite junto al campo.',
+    before: original3,
+    after: mejorada3,
+  },
+  {
+    id: 'requisitos',
+    tab: 'Requisitos',
+    title: 'Requisitos y forma de acceso',
+    text: 'El panel te pide leer primero la información oficial del trámite. Después muestra las dos vías de acceso, con Cl@ve y sin Cl@ve, sin destacar ninguna.',
+    before: original4,
+    after: mejorada4,
+  },
+];
+---
+
+<div class="compare" data-compare>
+  <div class="tabs" role="tablist" aria-label="Pasos del trámite">
+    {
+      steps.map((step, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`tab-${step.id}`}
+          aria-controls={`panel-${step.id}`}
+          aria-selected={index === 0 ? 'true' : 'false'}
+          tabindex={index === 0 ? 0 : -1}
+        >
+          <span class="n">{index + 1}</span>
+          {step.tab}
+        </button>
+      ))
+    }
+  </div>
+  <div class="stage">
+    {
+      steps.map((step, index) => (
+        <div
+          class="viewer"
+          id={`panel-${step.id}`}
+          role="tabpanel"
+          aria-labelledby={`tab-${step.id}`}
+          hidden={index !== 0}
+          style="--pos: 50%"
+        >
+          <Image
+            src={step.after}
+            alt={`${step.tab} con Reforma Digital: panel guiado sobre la web oficial`}
+            class="img after"
+            widths={[640, 1280]}
+            sizes="(max-width: 900px) 100vw, 62vw"
+            loading={index === 0 ? 'eager' : 'lazy'}
+          />
+          <div class="before">
+            <Image
+              src={step.before}
+              alt={`${step.tab} en la web oficial original`}
+              class="img"
+              widths={[640, 1280]}
+              sizes="(max-width: 900px) 100vw, 62vw"
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+          </div>
+          <span class="chip mono left">Original</span>
+          <span class="chip mono right">Con Reforma Digital</span>
+          <span class="handle" aria-hidden="true">
+            <span class="knob">
+              <svg width="18" height="18" viewBox="0 0 18 18">
+                <path
+                  d="M6.5 4.5 2 9l4.5 4.5M11.5 4.5 16 9l-4.5 4.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </span>
+          <input
+            class="range"
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            aria-label={`Comparar ${step.tab.toLowerCase()}: original a la izquierda, con Reforma Digital a la derecha`}
+          />
+        </div>
+      ))
+    }
+  </div>
+  <div class="texts">
+    {
+      steps.map((step, index) => (
+        <div class="text" data-text={step.id} hidden={index !== 0}>
+          <h3>{step.title}</h3>
+          <p>{step.text}</p>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-compare]')!;
+  const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+  const select = (tab: HTMLButtonElement) => {
+    for (const other of tabs) {
+      const active = other === tab;
+      other.setAttribute('aria-selected', String(active));
+      other.tabIndex = active ? 0 : -1;
+      const id = other.getAttribute('aria-controls')!;
+      root.querySelector<HTMLElement>(`#${id}`)!.hidden = !active;
+      root.querySelector<HTMLElement>(`[data-text="${id.replace('panel-', '')}"]`)!.hidden =
+        !active;
+    }
+  };
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => select(tab));
+    tab.addEventListener('keydown', (event) => {
+      const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+      if (!delta) return;
+      event.preventDefault();
+      const next = tabs[(index + delta + tabs.length) % tabs.length]!;
+      next.focus();
+      select(next);
+    });
+  });
+  root.querySelectorAll<HTMLInputElement>('.range').forEach((range) => {
+    range.addEventListener('input', () => {
+      range.parentElement!.style.setProperty('--pos', `${range.value}%`);
+    });
+  });
+</script>
+
+<style>
+  .compare {
+    display: grid;
+    gap: 16px;
+  }
+
+  .stage {
+    background: #fafafa;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: clamp(8px, 1.6vw, 16px);
+    display: grid;
+    gap: 16px;
+  }
+
+  .viewer {
+    position: relative;
+    aspect-ratio: 1280 / 700;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+    isolation: isolate;
+  }
+
+  .viewer :global(.img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  .before {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+
+  .chip {
+    position: absolute;
+    top: 12px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.92);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 11px;
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .chip.left {
+    left: 12px;
+  }
+
+  .chip.right {
+    right: 12px;
+  }
+
+  .handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--ink);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  }
+
+  .range {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+
+  .viewer:has(.range:focus-visible) .knob {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 3px;
+  }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  [role='tab'] {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px 0 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-muted);
+    font: 500 14px/1 var(--font-sans);
+    cursor: pointer;
+    transition:
+      background-color 160ms var(--ease),
+      color 160ms var(--ease),
+      border-color 160ms var(--ease);
+  }
+
+  [role='tab']:hover {
+    border-color: #94a3b8;
+  }
+
+  [role='tab'] .n {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #f5f5f5;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  [role='tab'][aria-selected='true'] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  [role='tab'][aria-selected='true'] .n {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .text {
+    padding: 0 4px;
+    color: var(--ink-muted);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .text h3 {
+    margin-bottom: 4px;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 600px) {
+    .chip {
+      top: 8px;
+      font-size: 10px;
+    }
+
+    .chip.left {
+      left: 8px;
+    }
+
+    .chip.right {
+      right: 8px;
+    }
+  }
+</style>

@@ -9,6 +9,7 @@ La extensión funciona localmente. Los formularios, las sesiones y las solicitud
 ```text
 apps/
   extension/                Extensión Chrome Manifest V3 y popup
+  landing/                  Web pública del proyecto (Astro)
   playground/               Laboratorio local con datos ficticios
 packages/
   bridge/                   Conexiones con controles originales
@@ -62,6 +63,13 @@ npm run check         # Tipos, estructura, pruebas y compilación
 npx playwright install chromium
 npm run test:e2e      # Pruebas de la extensión en Chromium
 npm run package      # ZIP instalable en artifacts/
+```
+
+La web pública del proyecto está en `apps/landing` (Astro, sin JavaScript de terceros ni fuentes remotas):
+
+```sh
+npm run landing:dev     # http://127.0.0.1:4321
+npm run landing:build   # HTML estático en apps/landing/dist/
 ```
 
 Para trabajar con la web oficial real (ventana visible, un solo recorrido, nunca datos personales ni CAPTCHA):

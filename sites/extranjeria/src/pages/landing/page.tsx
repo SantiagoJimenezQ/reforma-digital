@@ -130,8 +130,8 @@ function Landing({ bindings, restore }: { bindings: LandingBindings; restore: ()
       <Callout tone="info" title="Antes de empezar">
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            Reforma Digital no busca, reserva ni garantiza citas. La disponibilidad depende solo
-            de la web oficial.
+            Reforma Digital no busca, reserva ni garantiza citas. La disponibilidad depende solo de
+            la web oficial.
           </li>
           <li>
             Debajo sigue el texto oficial completo, con el aviso de protección de datos.{' '}
