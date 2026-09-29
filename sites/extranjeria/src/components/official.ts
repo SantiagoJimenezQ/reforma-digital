@@ -1,4 +1,4 @@
-import { textOf } from '@better-government/bridge';
+import { textOf } from '@reforma-digital/bridge';
 
 export interface OfficialLink {
   text: string;

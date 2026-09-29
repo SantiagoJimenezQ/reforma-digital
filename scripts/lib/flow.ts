@@ -11,7 +11,7 @@ export interface FlowContext {
   page: Page;
   /** Waits until `selector` exists in the official page and the page has loaded. */
   waitOfficial(selector: string): Promise<void>;
-  /** Waits until the Better Government interface is mounted. */
+  /** Waits until the Reforma Digital interface is mounted. */
   waitInterface(): Promise<void>;
   /** Screenshot in sites/<id>/docs/screenshots/<original|mejorada>-<name>.png (or panel-<name> with a target). */
   capture(name: string, target?: Locator): Promise<void>;

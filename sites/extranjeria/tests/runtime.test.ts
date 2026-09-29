@@ -4,7 +4,7 @@ import {
   mountAdapter,
   startAdapter,
   type RuntimeController,
-} from '@better-government/runtime';
+} from '@reforma-digital/runtime';
 import { extranjeriaAdapter as adapter } from '../src';
 import { fixture, URLS, type Fixture } from './helpers';
 

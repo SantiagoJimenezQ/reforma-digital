@@ -1,4 +1,4 @@
-import type { Step } from '@better-government/design';
+import type { Step } from '@reforma-digital/design';
 
 /** Pasos del flujo oficial tal y como se observaron en la web (sept. 2026). */
 export const STEPS: Step[] = [

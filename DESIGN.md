@@ -1,8 +1,8 @@
-# Better Government · Sistema de diseño
+# Reforma Digital · Sistema de diseño
 
 Versión 1.0 · 2026‑09‑27
 
-Este documento es la referencia visual de **todo** lo que Better Government pinta: los paneles, el popup y la capa de estilo que viste la web oficial. Ningún portal (`sites/<id>`) define colores, tamaños ni componentes propios: usa los de aquí.
+Este documento es la referencia visual de **todo** lo que Reforma Digital pinta: los paneles, el popup y la capa de estilo que viste la web oficial. Ningún portal (`sites/<id>`) define colores, tamaños ni componentes propios: usa los de aquí.
 
 | Qué                                                    | Dónde vive en el código                                                                                                                                  |
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -89,13 +89,13 @@ Fuente: la del sistema (`system-ui, -apple-system, Segoe UI, Roboto…`). No se 
 
 ## 3. Componentes
 
-Los nombres de clase son los del preset. En React se usan los componentes que exporta `@better-government/design`.
+Los nombres de clase son los del preset. En React se usan los componentes que exporta `@reforma-digital/design`.
 
 | Componente               | Clases                                                                             | React                                     | Reglas                                                                                                                                                                                                                                        |
 | ------------------------ | ---------------------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Barra superior**       | `bg-badge` + `bg-btn-secondary`                                                    | `Shell` (runtime) + `CommunityBadge`      | La pinta el runtime en toda página mejorada: «Interfaz comunitaria · sitio oficial», el dominio actual y el botón «Ver original». Ningún portal la repite.                                                                                    |
 | **Panel**                | `bg-card`                                                                          | `Panel`                                   | Uno por página, justo después del título oficial. Contiene: `bg-h1` → `bg-lead` → progreso → contenido.                                                                                                                                       |
-| **Campo conectado**      | `bg-bound` + `bg-label` + `bg-field` + `bg-hint`                                   | `BoundField` (`@better-government/react`) | Sustituye un control oficial en su sitio (slot) y lo sincroniza mediante `DomBridge`.                                                                                                                                                         |
+| **Campo conectado**      | `bg-bound` + `bg-label` + `bg-field` + `bg-hint`                                   | `BoundField` (`@reforma-digital/react`) | Sustituye un control oficial en su sitio (slot) y lo sincroniza mediante `DomBridge`.                                                                                                                                                         |
 | **Progreso**             | —                                                                                  | `ProgressSteps`                           | Lista de pasos con `aria-current="step"` desde 640 px; en móvil, una barra segmentada más «Paso N de M: nombre». Los pasos fuera del alcance llevan «solo en la web oficial».                                                                 |
 | **Botón principal**      | `bg-btn bg-btn-primary` (+`bg-btn-lg`)                                             | `PrimaryAction`                           | Uno por pantalla. Verbo más destino («Continuar con Madrid»). Deshabilitado solo con una ayuda que diga por qué. Si la web oficial ofrece opciones equivalentes (p. ej. con o sin Cl@ve), **ninguna** se destaca: todas van como secundarias. |
 | **Botón secundario**     | `bg-btn bg-btn-secondary`                                                          | `SecondaryAction`                         | «Volver» y acciones alternativas.                                                                                                                                                                                                             |

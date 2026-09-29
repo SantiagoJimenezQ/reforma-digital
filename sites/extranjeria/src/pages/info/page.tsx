@@ -1,6 +1,6 @@
-import { DomBridge, scrollToOfficial } from '@better-government/bridge';
-import { useBridge } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
+import { useBridge } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
 import {
   Callout,
   ExternalLink,
@@ -8,7 +8,7 @@ import {
   Panel,
   ProgressSteps,
   SecondaryAction,
-} from '@better-government/design';
+} from '@reforma-digital/design';
 import pageStyles from '../../styles/theme.css?inline';
 import { icpScreen } from '../../components/official';
 import { communityBar, screenPanels } from '../../components/panels';
@@ -124,7 +124,7 @@ function Info({ bindings, restore }: { bindings: InfoBindings; restore: () => vo
         )}
       </div>
 
-      <Callout tone="neutral" title="Aquí termina la ayuda de Better Government">
+      <Callout tone="neutral" title="Aquí termina la ayuda de Reforma Digital">
         A partir de aquí (tus datos, la disponibilidad y la reserva) todo ocurre en la web oficial
         sin cambios. La extensión no rellena formularios, no busca citas ni entra en páginas con
         identificación.

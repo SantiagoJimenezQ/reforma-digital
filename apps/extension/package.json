@@ -1,11 +1,11 @@
 {
-  "name": "@better-government/extension",
+  "name": "@reforma-digital/extension",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@better-government/design": "*",
-    "@better-government/registry": "*",
-    "@better-government/runtime": "*"
+    "@reforma-digital/design": "*",
+    "@reforma-digital/registry": "*",
+    "@reforma-digital/runtime": "*"
   }
 }

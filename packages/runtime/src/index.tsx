@@ -6,9 +6,9 @@ import {
   type Enhancement,
   type PanelPosition,
   type SiteAdapter,
-} from '@better-government/registry';
-import { CommunityBadge, FallbackNotice } from '@better-government/design';
-import uiStyles from '@better-government/design/shadow.css?inline';
+} from '@reforma-digital/registry';
+import { CommunityBadge, FallbackNotice } from '@reforma-digital/design';
+import uiStyles from '@reforma-digital/design/shadow.css?inline';
 
 export type RuntimeState = 'active' | 'original' | 'unsupported' | 'disabled';
 export interface RuntimeController {
@@ -51,7 +51,7 @@ function Shell({
   return (
     <section
       className={inline ? 'bg-card bg-text my-3' : 'bg-text border-b border-line bg-surface'}
-      aria-label="Better Government"
+      aria-label="Reforma Digital"
     >
       <div
         className={

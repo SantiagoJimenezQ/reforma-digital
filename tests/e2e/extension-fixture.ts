@@ -6,7 +6,7 @@ import os from 'node:os';
 /** Chromium with the test build (dist-test) loaded; shared by every e2e spec. */
 export const test = base.extend<{ extension: BrowserContext }>({
   extension: async ({}, use) => {
-    const profile = await mkdtemp(path.join(os.tmpdir(), 'better-government-test-'));
+    const profile = await mkdtemp(path.join(os.tmpdir(), 'reforma-digital-test-'));
     const extension = path.resolve('dist-test');
     const context = await chromium.launchPersistentContext(profile, {
       channel: 'chromium',

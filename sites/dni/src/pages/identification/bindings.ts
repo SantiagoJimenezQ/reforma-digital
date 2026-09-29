@@ -1,4 +1,4 @@
-import { fieldByLabel, type FieldSpec } from '@better-government/bridge';
+import { fieldByLabel, type FieldSpec } from '@reforma-digital/bridge';
 
 export const knownLabels = [
   ['document', 'Número de Documento', ''],

@@ -1,5 +1,5 @@
 {
-  "name": "@better-government/runtime",
+  "name": "@reforma-digital/runtime",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,9 +7,9 @@
     ".": "./src/index.tsx"
   },
   "dependencies": {
-    "@better-government/design": "*",
-    "@better-government/react": "*",
-    "@better-government/registry": "*"
+    "@reforma-digital/design": "*",
+    "@reforma-digital/react": "*",
+    "@reforma-digital/registry": "*"
   },
   "peerDependencies": {
     "react": "^19.2.8",

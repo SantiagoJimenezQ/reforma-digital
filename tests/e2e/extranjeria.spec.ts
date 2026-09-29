@@ -118,6 +118,6 @@ test('an expected screen with an unexpected DOM stays original and shows a notic
     }),
   );
   await page.goto(provincias);
-  await expect(page.getByText('Better Government · web original')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText('Reforma Digital · web original')).toBeVisible({ timeout: 20_000 });
   await expect(panel(page)).toHaveCount(0);
 });

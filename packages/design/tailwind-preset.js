@@ -1,5 +1,5 @@
 /**
- * Better Government · preset de Tailwind (ver DESIGN.md).
+ * Reforma Digital · preset de Tailwind (ver DESIGN.md).
  *
  * 1. Mapea los tokens de tokens.css a nombres semánticos (ink, surface, brand…).
  * 2. Define los COMPONENTES del sistema (bg-btn, bg-field, bg-callout…) una sola vez.
@@ -123,7 +123,7 @@ const components = plugin(({ addComponents }) => {
     },
 
     // ── Formularios ───────────────────────────────────────────────
-    // Contenedor de un campo conectado con el original (@better-government/react · BoundField).
+    // Contenedor de un campo conectado con el original (@reforma-digital/react · BoundField).
     '.bg-bound': { display: 'block', minWidth: '0', padding: '6px 0 12px' },
     '.bg-label': {
       display: 'block',

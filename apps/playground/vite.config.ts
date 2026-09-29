@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { designPostcss } from '@better-government/design/postcss';
+import { designPostcss } from '@reforma-digital/design/postcss';
 
 /**
  * Each site maps official paths to its fixtures in sites/<id>/fixtures/routes.json:

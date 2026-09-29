@@ -1,6 +1,6 @@
-import { DomBridge, fieldByLabel } from '@better-government/bridge';
-import { BoundField, BridgeProvider } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge, fieldByLabel } from '@reforma-digital/bridge';
+import { BoundField, BridgeProvider } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
 import { identificationBindings, knownLabels } from './bindings';
 import pageStyles from '../../styles/page.css?inline';
 
