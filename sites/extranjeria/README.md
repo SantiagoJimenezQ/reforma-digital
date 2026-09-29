@@ -31,7 +31,7 @@ Pendiente: probar otras provincias y trámites completos; ver con contenido real
 
 «Original» y los paneles (`docs/screenshots/panel-*.png`) proceden de `npm run site:live -- extranjeria` sobre la web real. «Con Reforma Digital» procede de `npm run site:preview -- extranjeria`, que reproduce sin conexión una visita real grabada ese mismo día. Móvil: `docs/screenshots/movil-2-provincias.png`.
 
-| Paso                | Original                                        | Con Reforma Digital                           |
+| Paso                | Original                                        | Con Reforma Digital                             |
 | ------------------- | ----------------------------------------------- | ----------------------------------------------- |
 | Información         | ![](docs/screenshots/original-1-landing.png)    | ![](docs/screenshots/mejorada-1-landing.png)    |
 | Provincia           | ![](docs/screenshots/original-2-provincias.png) | ![](docs/screenshots/mejorada-2-provincias.png) |
