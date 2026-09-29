@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, it } from 'vitest';
 import { dniAdapter } from '../src';
-import { matchesSite } from '@better-government/registry';
-import type { Enhancement } from '@better-government/registry';
+import { matchesSite } from '@reforma-digital/registry';
+import type { Enhancement } from '@reforma-digital/registry';
 let enhancement: Enhancement | null;
 afterEach(() => {
   enhancement?.bridge.dispose();

@@ -33,7 +33,7 @@ for (const project of projects) {
     ...project.pkg.devDependencies,
   };
   for (const dependency of Object.keys(deps)) {
-    if (!dependency.startsWith('@better-government/')) continue;
+    if (!dependency.startsWith('@reforma-digital/')) continue;
     const target = byName.get(dependency);
     assert.ok(target, `${project.pkg.name}: unknown workspace ${dependency}`);
     assert.ok(allowed(project, target), `${project.pkg.name} cannot depend on ${dependency}`);
@@ -44,7 +44,7 @@ for (const project of projects) {
     const source = await readFile(absolute, 'utf8');
     for (const match of source.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)['"]([^'"]+)['"]/g)) {
       const specifier = match[1];
-      if (specifier.startsWith('@better-government/')) {
+      if (specifier.startsWith('@reforma-digital/')) {
         const name = specifier.split('/').slice(0, 2).join('/');
         assert.ok(deps[name], `${project.pkg.name}/${file}: declare dependency ${name}`);
       } else if (specifier.startsWith('.')) {

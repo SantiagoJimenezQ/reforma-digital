@@ -1,5 +1,5 @@
 /* Estilos del portal DNI con los tokens del sistema de diseño (DESIGN.md). */
-@import '@better-government/design/tokens.css';
+@import '@reforma-digital/design/tokens.css';
 
 body[data-bg-site='dni'] {
   background: rgb(var(--bg-canvas));

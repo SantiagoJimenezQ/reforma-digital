@@ -1,4 +1,4 @@
-import { requireElements, textOf } from '@better-government/bridge';
+import { requireElements, textOf } from '@reforma-digital/bridge';
 import config from '../../../site.config.json';
 import { linkText, type OfficialLink } from '../../components/official';
 

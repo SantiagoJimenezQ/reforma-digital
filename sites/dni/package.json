@@ -1,13 +1,13 @@
 {
-  "name": "@better-government/site-dni",
+  "name": "@reforma-digital/site-dni",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "exports": "./src/index.ts",
   "dependencies": {
-    "@better-government/bridge": "*",
-    "@better-government/design": "*",
-    "@better-government/react": "*",
-    "@better-government/registry": "*"
+    "@reforma-digital/bridge": "*",
+    "@reforma-digital/design": "*",
+    "@reforma-digital/react": "*",
+    "@reforma-digital/registry": "*"
   }
 }

@@ -1,11 +1,11 @@
 {
-  "name": "@better-government/react",
+  "name": "@reforma-digital/react",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "exports": "./src/index.tsx",
   "dependencies": {
-    "@better-government/bridge": "*"
+    "@reforma-digital/bridge": "*"
   },
   "peerDependencies": {
     "react": "^19.2.8",

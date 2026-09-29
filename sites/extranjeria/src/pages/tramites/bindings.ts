@@ -1,4 +1,4 @@
-import { requireElements, textOf } from '@better-government/bridge';
+import { requireElements, textOf } from '@reforma-digital/bridge';
 
 /** Selectores de oficina y trámite (<app>/citar?p=NN y <app>/selectSede), verificados el 2026-09-27. */
 export const TRAMITES = {

@@ -16,7 +16,7 @@ export function FallbackNotice({
       role="status"
       className="bg-card bg-text fixed bottom-3 left-3 right-3 z-[2147483646] max-w-sm p-4 text-[14px] shadow-raised sm:right-auto"
     >
-      <p className="bg-eyebrow">Better Government · web original</p>
+      <p className="bg-eyebrow">Reforma Digital · web original</p>
       <p className="mt-1.5">
         La mejora «{adapterName}» no es compatible con esta versión de la página, así que se muestra
         la web oficial sin cambios.

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import type { DomBridge } from '@better-government/bridge';
-import { BridgeProvider } from '@better-government/react';
-import { OfficialDivider } from '@better-government/design';
-import type { Enhancement } from '@better-government/registry';
+import type { DomBridge } from '@reforma-digital/bridge';
+import { BridgeProvider } from '@reforma-digital/react';
+import { OfficialDivider } from '@reforma-digital/design';
+import type { Enhancement } from '@reforma-digital/registry';
 
 /**
  * La barra comunitaria va justo antes del título oficial: la cabecera Morfos es fixed en móvil

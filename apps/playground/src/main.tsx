@@ -1,9 +1,9 @@
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { mountAdapter } from '@better-government/runtime';
-import { dniAdapter } from '@better-government/site-dni';
-import { DomBridge } from '@better-government/bridge';
-import { BridgeProvider, BoundField, BoundButton } from '@better-government/react';
+import { mountAdapter } from '@reforma-digital/runtime';
+import { dniAdapter } from '@reforma-digital/site-dni';
+import { DomBridge } from '@reforma-digital/bridge';
+import { BridgeProvider, BoundField, BoundButton } from '@reforma-digital/react';
 import './style.css';
 
 function Demo() {

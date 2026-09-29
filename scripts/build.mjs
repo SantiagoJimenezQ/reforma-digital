@@ -2,7 +2,7 @@ import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { designPostcss } from '@better-government/design/postcss';
+import { designPostcss } from '@reforma-digital/design/postcss';
 import { readSites, adapterPlugin, testMatches } from './sites.mjs';
 
 const test = process.argv.includes('--test');
@@ -74,13 +74,13 @@ await writeFile(
   JSON.stringify(
     {
       manifest_version: 3,
-      name: test ? 'Better Government · Test' : 'Better Government',
+      name: test ? 'Reforma Digital · Test' : 'Reforma Digital',
       version: pkg.version,
       description:
         'Interfaces comunitarias para trámites públicos. Procesamiento local, sin telemetría.',
       minimum_chrome_version: '120',
       permissions: ['storage'],
-      action: { default_popup: 'popup.html', default_title: 'Better Government' },
+      action: { default_popup: 'popup.html', default_title: 'Reforma Digital' },
       content_scripts: sites.map((site) => ({
         matches: test ? [...site.matches, ...testMatches(site)] : site.matches,
         js: [`content/${site.id}.js`],

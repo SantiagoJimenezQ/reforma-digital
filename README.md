@@ -1,4 +1,4 @@
-# Better Government
+# Reforma Digital
 
 Monorepo de interfaces comunitarias para páginas de la Administración. Una extensión de Chrome aplica los subproyectos incluidos en cada versión. Las interfaces se desarrollan con React, TypeScript y Tailwind, y siguen un único sistema de diseño ([DESIGN.md](DESIGN.md)).
 

@@ -1,5 +1,5 @@
 /*
- * Better Government · tokens de diseño (fuente única, ver DESIGN.md).
+ * Reforma Digital · tokens de diseño (fuente única, ver DESIGN.md).
  *
  * Los colores se guardan como canales RGB ("R G B") para que Tailwind pueda
  * aplicar opacidad: rgb(var(--bg-brand-600) / 0.5).

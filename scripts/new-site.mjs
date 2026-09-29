@@ -39,27 +39,27 @@ const files = {
   ),
   'package.json': JSON.stringify(
     {
-      name: `@better-government/site-${id}`,
+      name: `@reforma-digital/site-${id}`,
       version: '0.1.0',
       private: true,
       type: 'module',
       exports: './src/adapter.ts',
       dependencies: {
-        '@better-government/bridge': '*',
-        '@better-government/design': '*',
-        '@better-government/react': '*',
-        '@better-government/registry': '*',
+        '@reforma-digital/bridge': '*',
+        '@reforma-digital/design': '*',
+        '@reforma-digital/react': '*',
+        '@reforma-digital/registry': '*',
       },
     },
     null,
     2,
   ),
-  'src/adapter.ts': `import { createSiteAdapter } from '@better-government/registry';\nimport config from '../site.config.json';\nimport { pages } from './pages';\n\nexport const adapter = createSiteAdapter(config, pages);`,
-  'src/pages/index.ts': `import type { SitePage } from '@better-government/registry';\n\n// Add each reviewed page here. Each folder contains page.tsx and bindings.ts.\nexport const pages: SitePage[] = [];`,
+  'src/adapter.ts': `import { createSiteAdapter } from '@reforma-digital/registry';\nimport config from '../site.config.json';\nimport { pages } from './pages';\n\nexport const adapter = createSiteAdapter(config, pages);`,
+  'src/pages/index.ts': `import type { SitePage } from '@reforma-digital/registry';\n\n// Add each reviewed page here. Each folder contains page.tsx and bindings.ts.\nexport const pages: SitePage[] = [];`,
   'src/components/README.md':
     '# Componentes del portal\n\nComponentes React compartidos entre las pantallas de este portal. Los componentes comunes a varios portales pertenecen a packages/react (conectados) o packages/design (visuales).',
   'src/styles/README.md':
-    '# Estilos del portal\n\nUsa solo los tokens y componentes del sistema de diseño (DESIGN.md, @better-government/design). Acota cualquier estilo sobre la página original a su atributo data-bg-site (y data-bg-page para una pantalla). Si el portal usa el framework Morfos de la AGE, importa @better-government/design/themes/morfos.css.',
+    '# Estilos del portal\n\nUsa solo los tokens y componentes del sistema de diseño (DESIGN.md, @reforma-digital/design). Acota cualquier estilo sobre la página original a su atributo data-bg-site (y data-bg-page para una pantalla). Si el portal usa el framework Morfos de la AGE, importa @reforma-digital/design/themes/morfos.css.',
   'fixtures/README.md':
     '# Páginas de prueba\n\nHTML sintético o anonimizado para probar las conexiones. Documenta su origen. Nunca incluyas documentos personales, cookies, tokens reales ni capturas de sesiones autenticadas.',
   'tests/README.md':

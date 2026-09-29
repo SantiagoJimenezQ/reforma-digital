@@ -62,7 +62,7 @@ function Popup() {
   return (
     <main className="bg-text space-y-3 p-4 text-[14px]">
       <header>
-        <h1 className="bg-h3 leading-tight">Better Government</h1>
+        <h1 className="bg-h3 leading-tight">Reforma Digital</h1>
         <p className="bg-eyebrow">Interfaz comunitaria · sitio oficial</p>
       </header>
       <section className="rounded-control bg-surface-muted p-3" aria-live="polite">

@@ -1,4 +1,4 @@
-import { createSiteAdapter } from '@better-government/registry';
+import { createSiteAdapter } from '@reforma-digital/registry';
 import config from '../site.config.json';
 import { pages } from './pages';
 

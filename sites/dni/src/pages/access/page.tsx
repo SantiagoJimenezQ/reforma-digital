@@ -1,5 +1,5 @@
-import { DomBridge } from '@better-government/bridge';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge } from '@reforma-digital/bridge';
+import type { SitePage } from '@reforma-digital/registry';
 import { officialAccessLink } from './bindings';
 import { AccessCard } from '../../components/AccessCard';
 import pageStyles from '../../styles/page.css?inline';
