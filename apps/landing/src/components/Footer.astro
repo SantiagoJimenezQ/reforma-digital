@@ -1,0 +1,42 @@
+---
+import Logo from './Logo.astro';
+import { links } from '../site';
+---
+
+<footer class="footer">
+  <div class="container bottom">
+    <Logo size={26} />
+    <p class="note">
+      Proyecto independiente y comunitario, sin vinculación con la Administración. Los trámites se
+      completan siempre en la web oficial.
+    </p>
+    <p class="note">
+      <a href={links.license}>Licencia MIT</a> · 2026
+    </p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    padding-block: 40px;
+  }
+
+  .bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    flex-wrap: wrap;
+  }
+
+  .note {
+    color: var(--ink-subtle);
+    font-size: 14px;
+    max-width: 60ch;
+  }
+
+  .note a {
+    color: inherit;
+  }
+</style>

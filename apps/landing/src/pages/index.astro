@@ -1,0 +1,1071 @@
+---
+import Base from '../layouts/Base.astro';
+import Banner from '../components/Banner.astro';
+import Hero from '../components/Hero.astro';
+import Footer from '../components/Footer.astro';
+import Figure from '../components/Figure.astro';
+import HeroFigure from '../components/HeroFigure.astro';
+import Annotated from '../components/Annotated.astro';
+import Actors from '../components/Actors.astro';
+import DemoTransform from '../components/DemoTransform.astro';
+import Compare from '../components/Compare.astro';
+import Bridge from '../components/Bridge.astro';
+import { links } from '../site';
+
+const sources = [
+  {
+    id: 1,
+    text: 'Ley 11/2007, de 22 de junio, de acceso electrónico de los ciudadanos a los Servicios Públicos, artículo 1. Boletín Oficial del Estado.',
+    href: 'https://www.boe.es/buscar/act.php?id=BOE-A-2007-12352',
+  },
+  {
+    id: 2,
+    text: 'Ley 39/2015, de 1 de octubre, del Procedimiento Administrativo Común de las Administraciones Públicas, artículo 14.2. Boletín Oficial del Estado.',
+    href: 'https://www.boe.es/buscar/act.php?id=BOE-A-2015-10565',
+  },
+  {
+    id: 3,
+    text: 'Comisión Europea, eGovernment Benchmark 2024, dentro del Informe sobre el estado de la Década Digital.',
+    href: 'https://digital-strategy.ec.europa.eu/en/library/digital-decade-2024-egovernment-benchmark',
+  },
+  {
+    id: 4,
+    text: 'Ministerio del Interior, "La Policía Nacional desarticula un grupo criminal dedicado a la venta fraudulenta de citas de extranjería mediante bots", 27 de noviembre de 2024.',
+    href: 'https://www.interior.gob.es/opencms/es/detalle/articulo/La-Policia-Nacional-desarticula-un-grupo-criminal-dedicado-a-la-venta-fraudulenta-de-citas-de-extranjeria-mediante-bots/',
+  },
+];
+
+const ref = (n: number) => `#fuente-${n}`;
+
+const stats = [
+  { value: '15 a 30 €', label: 'Precio de cada cita revendida' },
+  { value: '21', label: 'Personas detenidas' },
+  { value: '9.000 €', label: 'Ingresos estimados al mes por miembro' },
+];
+
+const layers = [
+  {
+    name: 'Ley y procedimiento',
+    text: 'Qué se pide, a quién y en qué plazo. La escriben las Cortes y la aplica cada organismo.',
+    tag: 'No cambia',
+  },
+  {
+    name: 'Sede electrónica',
+    text: 'Servidores, sesión, validación de los datos y envío oficial.',
+    tag: 'No cambia',
+  },
+  {
+    name: 'Interfaz',
+    text: 'Textos, orden de los pasos, buscadores y lugar de cada aviso.',
+    tag: 'Se mejora en abierto',
+    ours: true,
+  },
+];
+
+const gains: { icon: 'person' | 'company' | 'state'; title: string; text: string }[] = [
+  {
+    icon: 'person',
+    title: 'Ciudadanía',
+    text: 'Sabe en qué paso está y cuántos quedan. Encuentra su provincia escribiendo "avila" sin tilde, y lee los avisos oficiales en el sitio donde tiene que leerlos. No necesita pagar a nadie para entender la página.',
+  },
+  {
+    icon: 'company',
+    title: 'Empresas',
+    text: 'Todas las pantallas adaptadas siguen el mismo sistema de diseño, con pasos numerados y buscadores. Lo que aprenden en un trámite les sirve en el siguiente.',
+  },
+  {
+    icon: 'state',
+    title: 'Administración',
+    text: 'Recibe un estudio de usabilidad abierto y gratuito. Cada pantalla adaptada queda documentada en el repositorio con lo que hemos cambiado y por qué, y cualquier equipo público puede llevarlo a su web.',
+  },
+];
+
+const horizon = [
+  {
+    when: 'Corto plazo',
+    title: 'La extensión adapta los trámites portal a portal.',
+    text: 'Ya cubre la cita previa de Extranjería y la del DNI, en fase experimental.',
+    tag: 'Hoy',
+  },
+  {
+    when: 'Medio plazo',
+    title: 'Un sistema de diseño público y abierto.',
+    text: 'Componentes probados en trámites reales que cualquier sede electrónica puede usar en su propio código.',
+  },
+  {
+    when: 'Largo plazo',
+    title: 'Las mejoras llegan a las webs oficiales.',
+    text: 'Cuando eso ocurra, la extensión dejará de hacer falta.',
+    tag: 'Objetivo',
+  },
+];
+
+const costs: { icon: 'person' | 'company' | 'state'; title: string; text: string }[] = [
+  {
+    icon: 'person',
+    title: 'Quien hace el trámite',
+    text: 'Pierde horas y a veces necesita que un familiar o un gestor le ayude.',
+  },
+  {
+    icon: 'company',
+    title: 'Quien emprende',
+    text: 'Dedica a los formularios un tiempo que no dedica a su negocio.',
+  },
+  {
+    icon: 'state',
+    title: 'La Administración',
+    text: 'Recibe solicitudes con errores y tiene que pedir que se subsanen.',
+  },
+];
+
+const timeline = [
+  { when: 'Hasta 2007', text: 'Tratar con la Administración significa ir a una ventanilla.' },
+  { when: '2007', text: 'La Ley 11/2007 reconoce el derecho a relacionarse por medios electrónicos.', ref: 1 },
+  { when: '2015', text: 'La Ley 39/2015 lo convierte en obligación para empresas y asociaciones.', ref: 2 },
+  { when: '2024', text: 'España ocupa el puesto 12 de la UE en el eGovernment Benchmark, con 79 puntos sobre 100.', ref: 3 },
+];
+
+const faqs = [
+  {
+    q: '¿Es un proyecto oficial?',
+    a: 'No. Reforma Digital es un proyecto independiente y comunitario, sin vinculación con la Administración. Por eso el panel dice siempre "Interfaz comunitaria" y muestra el dominio oficial en el que estás.',
+  },
+  {
+    q: '¿La extensión ve mis datos?',
+    a: 'Funciona dentro de la página, así que puede leer los campos que conecta, igual que cualquier extensión con acceso a esa web. No los guarda ni los envía a ningún sitio. No tiene servidor ni analítica, y cada versión pasa una auditoría automática que prohíbe APIs de red en su código.',
+  },
+  {
+    q: '¿Me consigue una cita?',
+    a: 'No. No reserva, no consulta disponibilidad y no se salta ninguna comprobación. Si la web oficial no tiene citas, con la extensión tampoco las habrá.',
+  },
+  {
+    q: '¿Puede estropear mi trámite?',
+    a: 'Puede fallar, como cualquier programa. Para reducir el riesgo, se retira sola cuando algo no encaja y deja la web original a un clic. Si dudas, pulsa "Ver original" y termina el trámite en la página de siempre.',
+  },
+  {
+    q: '¿Por qué no hacéis una web aparte?',
+    a: 'Porque el trámite tiene que pasar por la sede electrónica. Allí están tu sesión, tu certificado y el envío oficial. Una web aparte tendría que pedirte los datos y enviarlos en tu nombre.',
+  },
+  {
+    q: '¿En qué navegadores funciona?',
+    a: 'En Chrome 120 o posterior. Todavía no está publicada en la Chrome Web Store, así que hoy se instala en modo desarrollador siguiendo las instrucciones del repositorio.',
+  },
+  {
+    q: '¿Cuánto cuesta?',
+    a: 'Nada. El código es abierto y tiene licencia MIT.',
+  },
+];
+---
+
+<Base
+  title="Reforma Digital · La próxima reforma de la Administración"
+  description="Una propuesta para que hacer un trámite con la Administración sea sencillo. La interfaz de los trámites se trata como una capa pública que cualquiera puede mejorar en abierto."
+>
+  <div class="progress" aria-hidden="true" data-progress></div>
+  <Banner />
+  <div class="frame">
+    <Hero />
+    <main id="contenido" class="article">
+      <div class="wide hero-figure">
+        <HeroFigure />
+      </div>
+      <div class="intro">
+        <p>
+          La misma web oficial de siempre. Lo único que cambia es cómo se presenta, con pasos numerados,
+          un buscador y los avisos donde hay que leerlos. Sin ley nueva y sin tocar sus servidores.
+        </p>
+        <div class="links">
+          <a class="button" href="#texto">Leer el texto completo</a>
+          <a class="plain" href="#resumen"><span aria-hidden="true">↓</span> Qué proponemos, en resumen</a>
+        </div>
+      </div>
+
+    <section id="resumen" class="summary" aria-labelledby="resumen-title">
+      <h2 id="resumen-title">Resumen</h2>
+      <p>
+        España ha llevado a internet casi todos sus trámites, y la relación entre el Estado y la gente ya
+        ocurre sobre todo en una pantalla. Esa pantalla sigue pensada para quien conoce el procedimiento.
+        La persona que la usa casi nunca lo conoce, y la diferencia cuesta horas, errores y, en algunos
+        casos, dinero pagado a intermediarios.
+      </p>
+      <p>
+        Proponemos tratar la interfaz de los trámites como una capa pública, separada de la ley y de los
+        servidores, que cualquiera puede mejorar en abierto. La primera pieza ya funciona. Es una
+        extensión de Chrome, comunitaria y de código abierto, que reorganiza las pantallas oficiales en
+        pasos claros mientras la web oficial sigue validando y enviando. El objetivo a largo plazo es que
+        esas mejoras lleguen a las propias webs oficiales.
+      </p>
+    </section>
+
+    <p class="section-label" id="texto">01 · Situación</p>
+    <h2>El Estado ya se visita desde una pantalla</h2>
+    <p>
+      España ha reformado su Administración muchas veces. Lo hicieron las reformas borbónicas del siglo
+      XVIII, el reformismo ilustrado de Carlos III y las reformas liberales del XIX. Todas tuvieron
+      detractores, y todas dejaron un Estado que funcionaba mejor que el anterior.
+    </p>
+    <blockquote class="pull">
+      Cada época ha tenido su reforma de la Administración. La nuestra es la digital.
+    </blockquote>
+    <p>
+      Durante décadas, tratar con la Administración significaba ir a una ventanilla. Hoy casi todo pasa
+      por una pantalla, y España lo ha hecho bien.
+    </p>
+
+    <Figure n={1}>
+      <ol class="timeline">
+        {
+          timeline.map((t) => (
+            <li>
+              <span class="t-when">{t.when}</span>
+              <span class="t-text">
+                {t.text}
+                {t.ref && (
+                  <sup>
+                    <a href={ref(t.ref)}>{t.ref}</a>
+                  </sup>
+                )}
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+      <Fragment slot="caption">De la ventanilla a la pantalla, en cuatro fechas.</Fragment>
+    </Figure>
+
+    <p>
+      Cuando la mayor parte de la relación con el Estado ocurre en una pantalla, el diseño de esa pantalla
+      se convierte en política pública. Una persona se forma buena parte de su opinión sobre la Administración en los minutos que pasa
+      frente a un formulario. Si lo entiende a la primera, termina el trámite y sigue con su día. Si
+      necesita que alguien se lo explique, se queda con la idea de que el Estado no está pensado para
+      ella.
+    </p>
+
+    <p class="section-label">02 · Problema</p>
+    <h2>Digitalizar un trámite no lo hace sencillo</h2>
+    <p>
+      Llevar un trámite a internet y hacerlo fácil de usar son dos trabajos distintos. El primero está
+      casi terminado. El segundo queda en manos de cada sede electrónica, y el resultado es desigual.
+    </p>
+    <p>
+      Lo comprobamos en la cita previa de Extranjería, la web que usa una persona extranjera para pedir
+      cita en una oficina de extranjería o de la Policía. En la pantalla de provincias encontramos cuatro
+      problemas.
+    </p>
+
+    <Figure n={2} wide>
+      <Annotated />
+      <Fragment slot="caption">
+        La pantalla de provincias el 27 de septiembre de 2026, sin Reforma Digital.
+      </Fragment>
+    </Figure>
+
+    <p>
+      Los datos de la web son correctos y el servidor responde. Los cuatro problemas están en la
+      interfaz.
+    </p>
+
+    <h3>Quién paga la diferencia</h3>
+    <p>Esa distancia tiene un coste para los tres.</p>
+    <div class="actors-wrap">
+      <Actors items={costs} />
+    </div>
+
+    <p>
+      Cuando entender una web pública es difícil, aparece quien cobra por hacerlo. El 27 de noviembre de
+      2024 la Policía Nacional desarticuló en Alicante, Murcia y Valencia un grupo que usaba bots para
+      bloquear las citas de extranjería y revenderlas. Las citas son gratuitas.<sup
+        ><a href={ref(4)}>4</a></sup
+      >
+    </p>
+
+    <Figure n={3}>
+      <dl class="stats">
+        {
+          stats.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <Fragment slot="caption">
+        La reventa de citas de extranjería desarticulada en noviembre de 2024, con las cifras que publicó
+        el Ministerio del Interior.
+      </Fragment>
+    </Figure>
+
+    <p>
+      Una interfaz mejor no crea citas. Reduce el número de personas que necesitan pagar a alguien para
+      entender una página pública.
+    </p>
+
+    <p class="section-label">03 · Solución</p>
+    <h2>Una capa pública para la interfaz</h2>
+    <p>
+      Un trámite digital tiene tres capas. La ley define qué se pide y a quién. La sede electrónica guarda
+      los datos y hace el envío. La interfaz decide cómo se presenta todo eso a una persona.
+    </p>
+
+    <Figure n={4}>
+      <ol class="layers">
+        {
+          layers.map((l, i) => (
+            <li class:list={{ ours: l.ours }}>
+              <span class="layer-n">{i + 1}</span>
+              <span class="layer-body">
+                <strong>{l.name}</strong>
+                <span>{l.text}</span>
+              </span>
+              <span class="layer-tag">{l.tag}</span>
+            </li>
+          ))
+        }
+      </ol>
+      <Fragment slot="caption">
+        Las tres capas de un trámite digital. Reforma Digital trabaja solo en la tercera.
+      </Fragment>
+    </Figure>
+
+    <p>
+      Proponemos tratar esa tercera capa como un bien común. Igual que el software libre, cualquiera que
+      la use puede mejorarla, en abierto y con cada cambio documentado. Para que una lista de 52
+      provincias tenga buscador no hace falta modificar una ley ni licitar un contrato.
+    </p>
+    <blockquote class="pull">
+      Queremos que Reforma Digital sea la primera reforma administrativa que se instala con un clic.
+    </blockquote>
+
+    <h3>La primera pieza, una extensión de Chrome</h3>
+    <p>
+      Hoy esa capa llega a tu navegador a través de una extensión. Es la forma más rápida de ponerla en
+      manos de la gente. Se instala en un clic, funciona sobre las webs oficiales que ya existen y se
+      desactiva con otro clic.
+    </p>
+
+    <Figure n={5} wide>
+      <DemoTransform />
+      <Fragment slot="caption">
+        Recreación de la pantalla de provincias de la cita previa de Extranjería. El interruptor alterna
+        entre la web original y la misma página con Reforma Digital. El buscador funciona, y los dos
+        formularios comparten la provincia que elijas.
+      </Fragment>
+    </Figure>
+
+    <p>
+      El panel no sustituye a la web oficial. Cada control del panel está conectado a su control
+      original. Cuando eliges una provincia, la extensión escribe ese valor en el desplegable oficial.
+      Cuando pulsas Continuar, pulsa el botón Aceptar de la web. La sede electrónica sigue validando los
+      datos y haciendo el envío.
+    </p>
+
+    <Figure n={6} wide>
+      <Bridge />
+      <Fragment slot="caption">
+        Elige una provincia en el panel y mira qué cambia en el HTML de la web oficial. Los valores son los
+        reales del desplegable de Extranjería.
+      </Fragment>
+    </Figure>
+
+    <p>
+      La extensión tiene límites claros. No rellena datos, no resuelve el CAPTCHA, no entra en Cl@ve, no
+      envía formularios y no guarda lo que escribes. No tiene servidores propios. Solo actúa en pantallas
+      revisadas una a una, y si algo no encaja se retira y deja la web original.
+    </p>
+
+    <Figure n={7} wide>
+      <Compare />
+      <Fragment slot="caption">
+        Capturas reales de la cita previa de Extranjería tomadas el 27 de septiembre de 2026, sin y con
+        Reforma Digital. Arrastra el control para comparar y cambia de paso con las pestañas.
+      </Fragment>
+    </Figure>
+
+    <p class="section-label">04 · Beneficio</p>
+    <h2>Qué gana cada uno</h2>
+    <p>
+      La interfaz es el único punto que comparten la ciudadanía, las empresas y la Administración. Por eso
+      una mejora en ella llega a los tres a la vez.
+    </p>
+    <div class="actors-wrap">
+      <Actors items={gains} />
+    </div>
+    <p>
+      Para el Estado en conjunto, cada trámite que se entiende a la primera es una persona menos que sale
+      convencida de que la Administración no está pensada para ella.
+    </p>
+
+    <p class="section-label" id="horizonte">05 · Horizonte</p>
+    <h2>De la extensión a la web oficial</h2>
+    <p>La extensión es el comienzo. La propuesta se escalona en tres plazos.</p>
+
+    <Figure n={8}>
+      <ol class="horizon">
+        {
+          horizon.map((h) => (
+            <li>
+              <span class="h-when">{h.when}</span>
+              <span class="h-body">
+                <strong>{h.title}</strong>
+                <span>{h.text}</span>
+                {h.tag && <span class="h-tag">{h.tag}</span>}
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+      <Fragment slot="caption">Recomendación escalonada. Cada plazo se apoya en el anterior.</Fragment>
+    </Figure>
+
+    <p>
+      Hoy estamos al principio del primer plazo. Reforma Digital está en la versión 0.1. Cubre la cita
+      previa de Extranjería, que recorrimos en la web oficial el 27 de septiembre de 2026, y la del DNI y
+      el pasaporte, verificada el 10 de septiembre. Todavía no hemos validado ningún trámite completo de
+      principio a fin, y la interfaz solo está en castellano.
+    </p>
+
+    <p class="section-label">06 · Participar</p>
+    <h2>Cómo sumarte</h2>
+    <p>
+      Si tienes que hacer uno de estos trámites, instala la extensión y cuéntanos dónde te atascas. Si
+      programas, cada portal es una carpeta del repositorio con sus pantallas, sus pruebas y HTML real de
+      la web oficial. Si trabajas en una sede electrónica, escríbenos. Nos gustaría trabajar contigo.
+    </p>
+    <div class="actions">
+      <a class="button" href={links.install}>Instalar la extensión</a>
+      <a class="button ghost" href={links.contributing}>Guía para contribuir</a>
+    </div>
+
+    <h2 id="preguntas">Preguntas frecuentes</h2>
+    <div class="faq">
+      {
+        faqs.map((item) => (
+          <details>
+            <summary>{item.q}</summary>
+            <p>{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+
+    <h2 id="fuentes">Fuentes</h2>
+    <ol class="sources">
+      {
+        sources.map((s) => (
+          <li id={`fuente-${s.id}`}>
+            {s.text} <a href={s.href}>{new URL(s.href).hostname}</a>
+          </li>
+        ))
+      }
+    </ol>
+  </main>
+    <Footer />
+  </div>
+</Base>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-progress]')!;
+  const update = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    bar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+  };
+  update();
+  addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update);
+</script>
+
+<style>
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    height: 2px;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .article {
+    --content: min(680px, 100% - 2 * var(--gutter));
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(var(--gutter), 1fr)
+      [wide-start] minmax(0, 120px)
+      [content-start] var(--content)
+      [content-end] minmax(0, 120px)
+      [wide-end] minmax(var(--gutter), 1fr)
+      [full-end];
+    padding-bottom: 96px;
+    color: var(--ink-muted);
+  }
+
+  .article > :global(*) {
+    grid-column: content;
+  }
+
+  .article > :global(.wide) {
+    grid-column: wide;
+  }
+
+
+
+
+
+
+  .article > p,
+  .summary p,
+  .list li {
+    font-size: clamp(17px, 1.5vw, 19px);
+    line-height: 1.75;
+  }
+
+  .article > p + p {
+    margin-top: 18px;
+  }
+
+  .article a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 3px;
+  }
+
+  .article a:hover {
+    text-decoration-color: var(--ink);
+  }
+
+
+  .frame {
+    margin: 0 clamp(8px, 1.6vw, 20px) clamp(8px, 1.6vw, 20px);
+    border: 1px solid var(--line);
+    border-radius: clamp(24px, 3vw, 40px);
+    background: linear-gradient(180deg, #eef1f5 0, #f7f8fa 520px, #fff 900px);
+    overflow: clip;
+  }
+
+  .intro p {
+    font-size: clamp(17px, 1.5vw, 19px);
+    line-height: 1.75;
+  }
+
+  .intro p + p {
+    margin-top: 16px;
+  }
+
+  .links {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .article .links a {
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .article .links a:hover {
+    color: var(--ink);
+  }
+
+  .summary {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+    scroll-margin-top: 80px;
+  }
+
+  .summary h2 {
+    margin: 0 0 16px;
+  }
+
+  .summary p + p {
+    margin-top: 16px;
+  }
+
+  .article > p.section-label {
+    margin-top: 0;
+    padding-top: 96px;
+    font-family: var(--font-mono);
+    font-size: 12px !important;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-subtle);
+    scroll-margin-top: 80px;
+  }
+
+  h2 {
+    margin: 12px 0 20px;
+    font-family: var(--font-serif);
+    font-size: clamp(34px, 4vw, 46px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--ink);
+    scroll-margin-top: 80px;
+  }
+
+  #preguntas,
+  #fuentes {
+    margin-top: 96px;
+  }
+
+  h3 {
+    margin: 40px 0 12px;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  sup {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 0;
+    margin-left: 2px;
+  }
+
+  .article sup a {
+    color: var(--ink-subtle);
+    text-decoration: none;
+  }
+
+  .list {
+    margin: 20px 0 24px;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+  }
+
+  .list li {
+    position: relative;
+    padding-left: 24px;
+  }
+
+  .list li::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 0.85em;
+    width: 8px;
+    height: 1px;
+    background: var(--ink-subtle);
+  }
+
+  .pull {
+    margin: 40px 0;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(28px, 3.2vw, 36px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* Fig. 2 */
+  .stats {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .stats div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px 20px;
+  }
+
+  .stats dd {
+    order: -1;
+  }
+
+  .stats div + div {
+    border-left: 1px solid var(--line);
+  }
+
+  .stats dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(34px, 4vw, 44px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .stats dt {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ink-subtle);
+  }
+
+  .hero-figure {
+    margin-top: 8px;
+  }
+
+  .intro {
+    margin-top: 32px;
+    text-align: center;
+  }
+
+  .intro .links {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .article .links a.button {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: #fff;
+  }
+
+  .article .links a.button:hover {
+    color: #fff;
+  }
+
+  .article a.plain {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .article a.plain:hover {
+    color: var(--ink);
+  }
+
+  .actors-wrap {
+    margin: 24px 0 32px;
+  }
+
+
+
+
+
+
+
+
+
+
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed var(--line-strong);
+  }
+
+  .timeline li {
+    position: relative;
+    padding: 28px 16px 0 0;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1.5px solid var(--navy);
+  }
+
+  .timeline li:last-child::before {
+    background: var(--navy);
+  }
+
+  .t-when {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .t-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+
+  /* Fig. 3 */
+  .layers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .layers li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 12px;
+  }
+
+  .layers li.ours {
+    border: 1px solid var(--ink);
+  }
+
+  .layer-n {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .layer-body {
+    display: grid;
+    gap: 2px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .layer-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .layer-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    text-align: right;
+  }
+
+  .ours .layer-tag {
+    color: var(--ink);
+  }
+
+
+  /* Fig. 7 */
+  .horizon {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .horizon li {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .horizon li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  .h-when {
+    padding-top: 2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+
+  .h-body {
+    display: grid;
+    gap: 4px;
+    justify-items: start;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .h-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .h-tag {
+    margin-top: 8px;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+
+  /* Acciones */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .article a.button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: var(--navy);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .article a.button:hover {
+    background: var(--navy-hover);
+  }
+
+  .article a.button.ghost {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .article a.button.ghost:hover {
+    border-color: #94a3b8;
+  }
+
+  /* Preguntas */
+  .faq {
+    border-top: 1px solid var(--line);
+  }
+
+  details {
+    border-bottom: 1px solid var(--line);
+  }
+
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 0;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: '+';
+    flex: none;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 18px;
+    color: #94a3b8;
+  }
+
+  details[open] summary::after {
+    content: '−';
+  }
+
+  details p {
+    padding-bottom: 20px;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .sources {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-subtle);
+  }
+
+  .sources li {
+    scroll-margin-top: 80px;
+  }
+
+  .sources li:target {
+    color: var(--ink);
+  }
+
+
+  @media (max-width: 640px) {
+
+    .timeline {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding-left: 28px;
+    }
+
+    .timeline::before {
+      top: 0;
+      bottom: 0;
+      left: 6px;
+      right: auto;
+      border-top: 0;
+      border-left: 1px dashed var(--line-strong);
+    }
+
+    .timeline li {
+      padding: 0;
+    }
+
+    .timeline li::before {
+      left: -28px;
+      top: 4px;
+    }
+
+    .stats {
+      grid-template-columns: 1fr;
+    }
+
+    .stats div + div {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+
+
+    .horizon li {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .layers li {
+      grid-template-columns: auto 1fr;
+    }
+
+    .layer-tag {
+      grid-column: 2;
+      text-align: left;
+    }
+  }
+</style>

@@ -1,0 +1,35 @@
+---
+interface Props {
+  n: number;
+  wide?: boolean;
+}
+
+const { n, wide = false } = Astro.props;
+---
+
+<figure class:list={['fig', { wide }]} id={`fig-${n}`}>
+  <slot />
+  <figcaption class="mono">
+    <span class="num">Fig. {n}.</span>{' '}
+    <slot name="caption" />
+  </figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 40px 0 48px;
+  }
+
+  figcaption {
+    margin-top: 14px;
+    color: var(--ink-subtle);
+    font-size: 12px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    max-width: 72ch;
+  }
+
+  .num {
+    color: var(--ink);
+  }
+</style>

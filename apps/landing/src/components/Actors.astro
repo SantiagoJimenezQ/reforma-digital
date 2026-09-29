@@ -1,0 +1,88 @@
+---
+interface Item {
+  icon: 'person' | 'company' | 'state';
+  title: string;
+  text: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+
+const icons = {
+  person:
+    '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  company:
+    '<svg viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5M3.5 12.5h17" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  state:
+    '<svg viewBox="0 0 24 24"><path d="M3.5 9 12 4.5 20.5 9M5 9.5v8M9.5 9.5v8M14.5 9.5v8M19 9.5v8M3.5 19.5h17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+---
+
+<ul class="actors">
+  {
+    items.map((item) => (
+      <li>
+        <span class="icon" aria-hidden="true" set:html={icons[item.icon]} />
+        <p class="title">{item.title}</p>
+        <p class="text">{item.text}</p>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .actors {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  li {
+    padding: 22px 20px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: var(--canvas);
+    color: var(--navy);
+  }
+
+  .icon :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+
+  .title {
+    margin-top: 16px;
+    font-family: var(--font-serif);
+    font-size: 24px;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  .text {
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 720px) {
+    .actors {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
