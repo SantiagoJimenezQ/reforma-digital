@@ -19,20 +19,19 @@ export default {
         soft: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
       keyframes: {
-        travel: {
-          '0%': { opacity: '1', left: '0' },
-          '100%': { opacity: '0.2', left: 'calc(100% - 10px)' },
-        },
         pop: {
           from: { opacity: '0', transform: 'translate(-6px, -50%)' },
+        },
+        rise: {
+          from: { opacity: '0', transform: 'translateY(24px) scale(0.97)' },
         },
         rev: {
           from: { opacity: '0', transform: 'translateY(6px)' },
         },
       },
       animation: {
-        travel: 'travel 700ms cubic-bezier(0.22, 1, 0.36, 1)',
         pop: 'pop 600ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        rise: 'rise 900ms cubic-bezier(0.22, 1, 0.36, 1) both',
         rev: 'rev 700ms cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },

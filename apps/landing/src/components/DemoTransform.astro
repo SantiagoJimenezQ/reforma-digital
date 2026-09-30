@@ -1,236 +1,257 @@
 ---
-import { LockKeyhole, Layers, ShieldCheck } from '@lucide/astro';
-import { pasos, provincias } from '../site';
+import { LockKeyhole } from '@lucide/astro';
+import { categorias, servicios } from '../data/aeat';
+import { pasos } from '../site';
 
-const domain = 'icp.administracionelectronica.gob.es';
+const domain = 'www2.agenciatributaria.gob.es';
 
 const choice =
-  'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] transition-[border-color,background-color] duration-150 hover:border-line-control focus-within:border-brand-600 focus-within:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] data-[checked]:border-brand-600 data-[checked]:bg-brand-50 data-[checked]:font-semibold data-[checked]:text-brand-900 data-[checked]:shadow-[inset_0_0_0_1px_rgb(var(--bg-brand-600))] [&[hidden]]:!hidden [&_input]:m-0 [&_input]:size-[18px] [&_input]:accent-brand-600';
+  'grid cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 rounded-control border border-line-strong bg-surface px-3.5 py-3 transition-[border-color,background-color] duration-150 hover:border-line-control focus-within:border-brand-600 focus-within:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] data-[checked]:border-brand-600 data-[checked]:bg-brand-50 data-[checked]:shadow-[inset_0_0_0_1px_rgb(var(--bg-brand-600))] [&[hidden]]:!hidden [&_input]:m-0 [&_input]:mt-0.5 [&_input]:size-[18px] [&_input]:accent-brand-600';
 ---
 
-<div class="group m-0" data-demo data-on="false">
-  <div class="overflow-hidden rounded-[18px] border border-line bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
-    <div class="flex items-center gap-4 border-b border-line bg-surface-muted py-2.5 pl-4 pr-3">
-      <span class="flex gap-1.5 max-[900px]:hidden" aria-hidden="true">
-        <i class="size-[11px] rounded-full bg-line-strong"></i>
-        <i class="size-[11px] rounded-full bg-line-strong"></i>
-        <i class="size-[11px] rounded-full bg-line-strong"></i>
+<div class="m-0 flex flex-col gap-4 min-[861px]:flex-row" data-demo>
+  <div class="flex min-w-0 flex-1 flex-col gap-3">
+    <p class="text-center font-mono text-sm font-medium uppercase tracking-[0.12em] text-danger-fg">Sin Reforma Digital</p>
+    <div class="overflow-hidden rounded-[18px] border border-line bg-surface text-ink" data-browser>
+    <div class="flex items-center gap-3 border-b border-line bg-surface-muted py-2.5 pl-4 pr-3">
+      <span class="flex gap-1.5 max-[1100px]:hidden" aria-hidden="true">
+        <i class="size-[10px] rounded-full bg-line-strong"></i>
+        <i class="size-[10px] rounded-full bg-line-strong"></i>
+        <i class="size-[10px] rounded-full bg-line-strong"></i>
       </span>
       <span
-        class="flex h-[34px] min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap rounded-lg border border-line bg-surface px-3 font-mono text-xs text-ink-subtle"
+        class="flex h-[32px] min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap rounded-lg border border-line bg-surface px-3 font-mono text-[11px] text-ink-subtle"
       >
-        <LockKeyhole size={14} strokeWidth={1.7} aria-hidden="true" />
-        <span class="text-ink">{domain}</span><span class="truncate max-[560px]:hidden">/icpplus/index.html</span>
+        <LockKeyhole size={13} strokeWidth={1.7} aria-hidden="true" />
+        <span class="truncate text-ink">{domain}</span>
       </span>
-      <button
-        type="button"
-        class="inline-flex min-h-10 cursor-pointer items-center gap-2.5 rounded-[10px] border border-line bg-surface py-0 pl-3 pr-2 text-sm font-semibold text-ink-subtle transition-[color,border-color,background-color] duration-200 hover:border-line-strong group-data-[on=true]:border-brand-200 group-data-[on=true]:bg-brand-50 group-data-[on=true]:text-brand-700"
-        role="switch"
-        aria-checked="false"
-        data-switch
-      >
-        <Layers size={18} strokeWidth={1.7} style="transform: rotate(-90deg)" aria-hidden="true" />
-        <span class="max-[900px]:hidden">Reforma Digital</span>
-        <span
-          class="relative h-[22px] w-9 rounded-full bg-line-strong transition-colors duration-[250ms] ease-soft group-data-[on=true]:bg-brand-600"
-          aria-hidden="true"
-        >
-          <span
-            class="absolute left-[3px] top-[3px] size-4 rounded-full bg-white shadow-[0_1px_2px_rgb(15_23_42/0.3)] transition-transform duration-[250ms] ease-soft group-data-[on=true]:translate-x-[14px]"
-          ></span>
-        </span>
-      </button>
     </div>
-
-    <div class="relative h-[clamp(520px,62vw,660px)] overflow-hidden">
+    <div class="relative h-[clamp(500px,52vw,620px)] overflow-hidden">
       <div
-        class="absolute inset-0 overflow-auto overscroll-contain bg-[#f4f4f4] px-[clamp(16px,3vw,32px)] pb-8 pt-5 font-[Verdana,Tahoma,sans-serif] text-[#333] transition-[opacity,transform,filter] duration-200 ease-soft group-data-[on=true]:scale-[0.98] group-data-[on=true]:opacity-0 group-data-[on=true]:blur-sm"
+        class="absolute inset-0 overflow-auto overscroll-contain bg-white px-5 pb-8 pt-5 font-[Arial,sans-serif] text-[#222]"
         data-view="legacy"
       >
         <div class="flex items-center gap-2.5">
-          <span class="h-11 w-[120px] bg-[repeating-linear-gradient(-45deg,#dedede_0_6px,#e8e8e8_6px_12px)]" aria-hidden="true"></span>
-          <span
-            class="h-11 w-[90px] bg-[repeating-linear-gradient(-45deg,#dedede_0_6px,#e8e8e8_6px_12px)] max-[560px]:hidden"
-            aria-hidden="true"></span>
-          <span class="ml-3 text-[22px] font-bold leading-tight text-[#3a3a3a]"
-            >Sede electrónica<small class="block text-[13px] font-normal max-[560px]:hidden">Administraciones Públicas</small></span
+          <span class="h-10 w-[90px] shrink-0 bg-[repeating-linear-gradient(-45deg,#dedede_0_6px,#e8e8e8_6px_12px)]" aria-hidden="true"></span>
+          <span class="ml-1 text-[18px] leading-tight text-[#555]"
+            >Agencia Tributaria<small class="block text-[12px] font-bold">Sede electrónica</small></span
           >
+          <span class="ml-auto bg-[#666] px-4 py-2.5 text-xs font-bold text-white max-[560px]:hidden" aria-hidden="true">ÁREA PERSONAL</span>
         </div>
-        <div class="mt-4 flex gap-[22px] overflow-hidden whitespace-nowrap bg-[#6b6b6b] px-3.5 py-[9px] text-xs text-white" aria-hidden="true">
-          <span>INICIO</span><span>PROCEDIMIENTOS</span><span>MIS EXPEDIENTES</span><span>MIS NOTIFICACIONES</span><span>AYUDA</span>
+        <div class="mt-3 h-1.5 bg-[#666]" aria-hidden="true"></div>
+        <h3 class="mt-6 text-[22px] font-bold leading-tight">Catálogo de servicios de asistencia</h3>
+        <p class="mt-2 max-w-[640px] text-[15px]">
+          Conoce los diferentes servicios de asistencia que presta la Agencia Tributaria y los diferentes
+          canales por los que puede acceder
+        </p>
+        <div class="mt-3 flex gap-10 text-[15px] text-[#555]">
+          <span>Índice:</span>
+          <ol class="m-0 list-none p-0 leading-[1.8]">
+            {categorias.slice(0, 5).map((c, i) => <li class={i >= 4 ? 'opacity-40' : undefined}>{i + 1}. {c}</li>)}
+          </ol>
         </div>
-        <div class="mt-7 border border-[#ddd] bg-white px-[26px] py-[22px]">
-          <p class="text-[22px] text-[#5a5a5a]">CITA PREVIA EXTRANJERÍA</p>
-          <label class="mt-[18px] flex items-center gap-[22px] text-xs max-[560px]:flex-col max-[560px]:items-start max-[560px]:gap-2">
-            <span>PROVINCIAS DISPONIBLES</span>
-            <select class="w-[140px] border border-[#aab] bg-[#eef6f9] p-1 font-[Arial,sans-serif] text-xs" data-official>
-              <option value="">Selecciona Provincia ...</option>
-              {provincias.map((p) => <option value={p}>{p}</option>)}
-            </select>
-          </label>
-          <div class="mt-5 flex gap-1.5">
-            <button type="button" class="border border-[#555] bg-[#777] px-[22px] py-[9px] font-[Arial,sans-serif] text-xs text-white" tabindex="-1">Aceptar</button>
-            <button type="button" class="border border-[#555] bg-[#777] px-[22px] py-[9px] font-[Arial,sans-serif] text-xs text-white" tabindex="-1">Volver</button>
-          </div>
-          <p class="mt-[26px] text-sm font-bold text-[#555]">ATENCIÓN, LEA ATENTAMENTE ANTES DE ACEPTAR UNA CITA:</p>
-          <ul class="m-0 mt-2.5 list-disc pl-[18px] text-[11px] leading-[1.8]">
-            <li>
-              Si usted es Residente temporal o tiene una estancia por estudios, y tiene certificado
-              digital se recomienda el uso de la plataforma MERCURIO para renovar.
-            </li>
-            <li>Puede descargar el Modelo oficial de solicitud.</li>
-            <li>Puede descargar la Información sobre trámites y procedimientos.</li>
-            <li>Si desea obtener el certificado digital, puede hacerlo en FNMT‑RCM.</li>
-          </ul>
-        </div>
+        <p class="mb-6 border-b border-[#ddd] pb-2 text-center text-[#666]" aria-hidden="true">⌄</p>
+        {
+          categorias.map((c) => (
+            <section>
+              <h4 class="mb-3 mt-6 text-[21px] font-bold">{c}</h4>
+              {servicios
+                .filter((s) => s.category === c)
+                .map((s) => (
+                  <div
+                    class="mb-3 border border-[#ddd] px-5 py-4 shadow-[0_1px_3px_rgb(0_0_0/0.15)] transition-[outline-color] data-[picked]:outline data-[picked]:outline-2 data-[picked]:outline-[#777]"
+                    data-legacy={s.id}
+                  >
+                    <p class="flex flex-wrap justify-between gap-2 border-b border-[#eee] pb-2 text-[15px]">
+                      <span>
+                        Servicio: <b>{s.name}</b>
+                      </span>
+                      <span class="text-[#777]">
+                        Canales: <span class="tracking-[3px]" aria-hidden="true">{s.channels.map(() => '▣').join('')}</span>
+                      </span>
+                    </p>
+                    {s.description && <p class="mt-2 text-sm">{s.description}</p>}
+                    <button
+                      type="button"
+                      class="mx-auto mt-3 block w-full max-w-[500px] bg-[#666] py-2.5 text-sm font-bold text-white"
+                      title={`Solicitar asistencia y cita para ${s.name}`}
+                      data-legacy-request={s.id}
+                    >
+                      Solicita asistencia y cita
+                    </button>
+                  </div>
+                ))}
+            </section>
+          ))
+        }
       </div>
+    </div>
+    </div>
+  </div>
 
+  <div class="flex min-w-0 flex-1 flex-col gap-3">
+    <p class="text-center font-mono text-sm font-medium uppercase tracking-[0.12em] text-success-fg">Con Reforma Digital</p>
+    <div class="overflow-hidden rounded-[18px] border border-line bg-surface text-ink" data-browser>
+    <div class="flex items-center gap-3 border-b border-line bg-surface-muted py-2.5 pl-4 pr-3">
+      <span class="flex gap-1.5 max-[1100px]:hidden" aria-hidden="true">
+        <i class="size-[10px] rounded-full bg-line-strong"></i>
+        <i class="size-[10px] rounded-full bg-line-strong"></i>
+        <i class="size-[10px] rounded-full bg-line-strong"></i>
+      </span>
+      <span
+        class="flex h-[32px] min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap rounded-lg border border-line bg-surface px-3 font-mono text-[11px] text-ink-subtle"
+      >
+        <LockKeyhole size={13} strokeWidth={1.7} aria-hidden="true" />
+        <span class="truncate text-ink">{domain}</span>
+      </span>
+    </div>
+    <div class="relative h-[clamp(500px,52vw,620px)] overflow-hidden">
       <div
-        class="absolute inset-0 translate-y-[18px] scale-[0.985] overflow-auto overscroll-contain bg-canvas px-[clamp(12px,3vw,40px)] pb-8 pt-5 opacity-0 transition-[opacity,transform,filter] duration-200 ease-soft group-data-[on=true]:translate-y-0 group-data-[on=true]:scale-100 group-data-[on=true]:opacity-100"
+        class="absolute inset-0 overflow-auto overscroll-contain bg-canvas px-4 pb-8 pt-4"
         data-view="enhanced"
       >
-        <div class="flex flex-col items-start justify-between gap-4 bg-card px-4 py-3 min-[561px]:flex-row min-[561px]:items-center">
-          <div>
-            <span class="bg-badge">
-              <ShieldCheck size={14} strokeWidth={1.7} aria-hidden="true" />
-              Interfaz comunitaria · sitio oficial
-            </span>
-            <p class="mt-1.5 text-sm text-ink-muted">
-              Estás en <strong class="text-ink">{domain}</strong>, la web oficial del trámite. Los datos y envíos los
-              gestiona esa web.
-            </p>
-          </div>
-          <button type="button" class="bg-btn bg-btn-secondary" data-original>Ver original</button>
-        </div>
-
-        <p class="mb-2 mt-4 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Cita previa extranjería</p>
+        <p class="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Catálogo de servicios de asistencia</p>
 
         <div class="bg-card p-[clamp(16px,2.4vw,28px)]">
-          <p class="text-[clamp(22px,2.2vw,28px)] font-bold leading-[1.2] tracking-[-0.01em]">Elige la provincia</p>
+          <p class="text-[22px] font-bold leading-[1.2] tracking-[-0.01em]">Encuentra tu servicio de asistencia</p>
           <p class="mt-1.5 text-base text-ink-muted">
-            Selecciona la provincia en la que quieres pedir la cita. La lista es la que ofrece la web
-            oficial.
+            Busca entre los {servicios.length} servicios que publica la Agencia Tributaria. Al solicitar uno, la web
+            oficial te pedirá tu NIF y tu nombre.
           </p>
-          <p class="mt-5 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Paso 2 de 5</p>
+          <p class="mt-5 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Paso 1 de 5 · {pasos[0]}</p>
           <ol class="m-0 mb-5 mt-2 grid list-none grid-cols-5 gap-2 p-0 max-[900px]:gap-1">
             {
               pasos.map((paso, i) => (
                 <li
                   class:list={[
-                    'grid content-start gap-1.5 rounded-control border border-line p-2.5 text-[13px] leading-snug text-ink-muted max-[900px]:justify-items-center max-[900px]:p-1.5',
-                    {
-                      'border-brand-600 bg-brand-50 font-semibold text-brand-900': i === 1,
-                      'border-dashed': i === 4,
-                    },
+                    'grid content-start gap-1.5 rounded-control border justify-items-center p-1.5 text-[13px] leading-snug text-ink-muted',
+                    i === 0 ? 'border-brand-600 bg-brand-50 font-semibold text-brand-900' : 'border-dashed border-line',
                   ]}
                 >
                   <span
                     class:list={[
-                      'grid size-[22px] place-items-center rounded-full bg-surface-muted text-xs font-bold',
-                      { 'bg-success-bg text-success-fg': i === 0, 'bg-brand-600 text-white': i === 1 },
+                      'grid size-[22px] place-items-center rounded-full text-xs font-bold',
+                      i === 0 ? 'bg-brand-600 text-white' : 'bg-surface-muted',
                     ]}
                   >
-                    {i === 0 ? '✓' : i + 1}
+                    {i + 1}
                   </span>
-                  <span class="max-[900px]:hidden">{paso}</span>
+                  <span class="hidden">
+                    {paso}
+                    {i > 0 && <span class="block text-xs font-normal text-ink-subtle">solo en la web oficial</span>}
+                  </span>
                 </li>
               ))
             }
           </ol>
-          <label class="mb-1.5 block text-[15px] font-semibold" for="demo-search">
-            Buscar provincia <span class="font-normal text-ink-subtle">({provincias.length})</span>
-          </label>
-          <input
-            id="demo-search"
-            class="block min-h-11 w-full rounded-control border border-line-control bg-surface px-3.5 py-2.5 text-base focus:border-brand-600 focus:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] focus:outline-none"
-            type="search"
-            placeholder="Ej.: avila, malaga, illes…"
-            autocomplete="off"
-            data-search
-          />
-          <div class="mt-3 grid grid-cols-2 gap-2 min-[901px]:grid-cols-4" role="radiogroup" aria-label="Provincias disponibles" data-choices>
+          <div class="grid gap-3">
+            <div>
+              <label class="mb-1.5 block text-[15px] font-semibold" for="demo-search">Buscar servicio</label>
+              <input
+                id="demo-search"
+                class="block min-h-11 w-full rounded-control border border-line-control bg-surface px-3.5 py-2.5 text-base focus:border-brand-600 focus:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] focus:outline-none"
+                type="search"
+                placeholder="Ej.: clave, renta, embargo…"
+                autocomplete="off"
+                data-search
+              />
+            </div>
+            <div>
+              <label class="mb-1.5 block text-[15px] font-semibold" for="demo-category">Categoría</label>
+              <select
+                id="demo-category"
+                class="block min-h-11 w-full rounded-control border border-line-control bg-surface px-3 py-2.5 text-base focus:border-brand-600 focus:outline-none"
+                data-category
+              >
+                <option value="">Todas</option>
+                {categorias.map((c) => <option value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <p class="mb-2 mt-4 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle" aria-live="polite" data-count>
+            {servicios.length} servicios
+          </p>
+          <div class="grid max-h-[340px] gap-2 overflow-auto overscroll-contain rounded-control border border-line bg-surface-muted p-2" role="radiogroup" aria-label="Servicios de asistencia" data-choices>
             {
-              provincias.map((p) => (
-                <label class={choice} data-name={p} data-choice>
-                  <input type="radio" name="demo-provincia" value={p} />
-                  {p}
+              servicios.map((s) => (
+                <label class={choice} data-name={s.name} data-cat={s.category} data-choice>
+                  <input type="radio" name="demo-servicio" value={s.id} />
+                  <span class="grid gap-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.05em] text-ink-subtle">{s.category}</span>
+                    <span class="text-[15px] font-semibold leading-snug">{s.name}</span>
+                    <span class="flex flex-wrap gap-1.5">
+                      {s.channels.map((ch) => (
+                        <span class="rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted">{ch}</span>
+                      ))}
+                    </span>
+                  </span>
                 </label>
               ))
             }
-            <p class="col-span-full text-[15px] text-ink-muted" hidden data-empty>Ninguna provincia coincide.</p>
+            <p class="text-[15px] text-ink-muted" hidden data-empty>Ningún servicio coincide.</p>
           </div>
-          <div class="mt-5">
+          <div class="mt-4">
             <button type="button" class="bg-btn bg-btn-primary" disabled data-continue>
-              Elige una provincia para continuar
+              Elige un servicio para continuar
             </button>
           </div>
         </div>
       </div>
     </div>
+    </div>
   </div>
 </div>
 
 <script>
-  const normalize = (s: string) =>
-    s
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase();
+  import { normalize } from '../site';
 
   for (const demo of document.querySelectorAll<HTMLElement>('[data-demo]')) {
-    const toggle = demo.querySelector<HTMLButtonElement>('[data-switch]')!;
-    const original = demo.querySelector<HTMLButtonElement>('[data-original]')!;
     const search = demo.querySelector<HTMLInputElement>('[data-search]')!;
-    const official = demo.querySelector<HTMLSelectElement>('[data-official]')!;
+    const category = demo.querySelector<HTMLSelectElement>('[data-category]')!;
+    const count = demo.querySelector<HTMLElement>('[data-count]')!;
     const choices = [...demo.querySelectorAll<HTMLLabelElement>('[data-choice]')];
     const empty = demo.querySelector<HTMLElement>('[data-empty]')!;
     const cont = demo.querySelector<HTMLButtonElement>('[data-continue]')!;
-    const views = demo.querySelectorAll<HTMLElement>('[data-view]');
+    const legacy = demo.querySelector<HTMLElement>('[data-view="legacy"]')!;
 
-
-    const setOn = (on: boolean) => {
-      demo.dataset.on = String(on);
-      toggle.setAttribute('aria-checked', String(on));
-      views.forEach((view) => {
-        const visible = (view.dataset.view === 'enhanced') === on;
-        view.inert = !visible;
-        view.setAttribute('aria-hidden', String(!visible));
-      });
-    };
-
-    const select = (name: string) => {
-      official.value = name;
+    const select = (id: string) => {
+      let name = '';
       for (const choice of choices) {
         const input = choice.querySelector('input')!;
-        input.checked = choice.dataset.name === name;
+        input.checked = input.value === id;
         choice.toggleAttribute('data-checked', input.checked);
+        if (input.checked) name = choice.dataset.name!;
       }
-      cont.disabled = !name;
-      cont.textContent = name ? `Continuar con ${name}` : 'Elige una provincia para continuar';
+      legacy.querySelectorAll<HTMLElement>('[data-legacy]').forEach((card) => {
+        card.toggleAttribute('data-picked', card.dataset.legacy === id);
+      });
+      cont.disabled = !id;
+      cont.textContent = id ? `Solicitar asistencia y cita: ${name}` : 'Elige un servicio para continuar';
     };
 
-    toggle.addEventListener('click', () => {
-      setOn(demo.dataset.on !== 'true');
-    });
-    original.addEventListener('click', () => {
-      setOn(false);
-      toggle.focus();
-    });
-    search.addEventListener('input', () => {
+    const filter = () => {
       const q = normalize(search.value.trim());
+      const cat = category.value;
       let shown = 0;
       for (const choice of choices) {
-        const match = !q || normalize(choice.dataset.name!).includes(q);
+        const match = (!q || normalize(choice.dataset.name!).includes(q)) && (!cat || choice.dataset.cat === cat);
         choice.hidden = !match;
         if (match) shown++;
       }
       empty.hidden = shown > 0;
-    });
+      count.textContent = `${shown} ${shown === 1 ? 'servicio' : 'servicios'}`;
+    };
+
+    search.addEventListener('input', filter);
+    category.addEventListener('change', filter);
     demo.addEventListener('change', (event) => {
-      const target = event.target as HTMLInputElement | HTMLSelectElement;
-      if (target === official || target.name === 'demo-provincia') select(target.value);
+      const target = event.target as HTMLInputElement;
+      if (target.name === 'demo-servicio') select(target.value);
+    });
+    legacy.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLElement>('[data-legacy-request]');
+      if (button) select(button.dataset.legacyRequest!);
     });
 
-    setOn(true);
   }
 </script>

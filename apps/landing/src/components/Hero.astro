@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import GithubIcon from './GithubIcon.astro';
 import { links, nav } from '../site';
 ---
 
@@ -18,9 +19,12 @@ import { links, nav } from '../site';
           ))
         }
         <a
-          class="inline-flex h-[38px] items-center rounded-full bg-brand-900 px-4 text-sm font-medium text-white no-underline hover:bg-[#333] hover:text-white"
-          href={links.install}>Instalar</a
+          class="inline-flex h-[38px] items-center gap-2 rounded-full bg-brand-900 px-4 text-sm font-medium text-white no-underline hover:bg-[#333] hover:text-white"
+          href={links.repo}
         >
+          <GithubIcon size={16} />
+          Código fuente
+        </a>
       </nav>
     </div>
 
