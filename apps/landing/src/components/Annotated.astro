@@ -38,9 +38,10 @@ const marks = [
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
 ---
 
-<div class="annotated">
-  <div class="shot">
+<div>
+  <div class="relative overflow-hidden rounded-xl border border-line bg-[#f6f6f6]">
     <Image
+      class="block h-auto w-full"
       src={shot}
       alt="Captura de la pantalla de provincias de la cita previa de Extranjería, sin Reforma Digital."
       widths={[640, 1280]}
@@ -50,21 +51,21 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
       marks.map((m, i) => (
         <>
           <span
-            class="box"
+            class="absolute rounded-md border-2 border-brand-900 bg-brand-900/10"
             aria-hidden="true"
             style={`left:${pct(m.box[0]!, W)};top:${pct(m.box[1]!, H)};width:${pct(m.box[2]! - m.box[0]!, W)};height:${pct(m.box[3]! - m.box[1]!, H)}`}
           />
           <span
-            class="pin"
+            class="absolute z-[2] grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand-900 font-mono text-[10px] font-medium text-white shadow-[0_0_0_3px_#fff] min-[721px]:size-[26px] min-[721px]:text-xs"
             aria-hidden="true"
             style={`left:${pct(m.at[0]!, W)};top:${pct(m.at[1]!, H)}`}
           >
             {m.n}
           </span>
           <span
-            class="bubble"
+            class="absolute z-[1] ml-[22px] hidden -translate-y-1/2 animate-pop whitespace-nowrap rounded-[10px] bg-brand-900 px-3 py-1.5 text-[13px] leading-snug text-white shadow-[0_10px_24px_-12px_rgb(21_44_92/0.6)] before:absolute before:left-[-5px] before:top-1/2 before:mt-[-5px] before:size-2.5 before:rotate-45 before:rounded-sm before:bg-brand-900 min-[721px]:block"
             aria-hidden="true"
-            style={`left:${pct(m.at[0]!, W)};top:calc(${pct(m.at[1]!, H)} + ${m.dy}px);--d:${i}`}
+            style={`left:${pct(m.at[0]!, W)};top:calc(${pct(m.at[1]!, H)} + ${m.dy}px);animation-delay:calc(200ms + ${i} * 120ms)`}
           >
             {m.text}
           </span>
@@ -72,11 +73,14 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
       ))
     }
   </div>
-  <ol class="notes">
+  <ol class="m-0 mt-4 grid list-none gap-3 p-0 min-[721px]:sr-only">
     {
       marks.map((m) => (
-        <li>
-          <span class="n" aria-hidden="true">
+        <li class="flex gap-3 text-[15px] leading-normal text-ink-muted">
+          <span
+            class="grid size-[22px] shrink-0 place-items-center rounded-full border border-brand-900 font-mono text-[11px] text-brand-900"
+            aria-hidden="true"
+          >
             {m.n}
           </span>
           {m.text}
@@ -85,137 +89,3 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
     }
   </ol>
 </div>
-
-<style>
-  .shot {
-    position: relative;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f6f6f6;
-  }
-
-  .shot :global(img) {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .box {
-    position: absolute;
-    border: 2px solid var(--navy);
-    border-radius: 6px;
-    background: rgb(21 44 92 / 0.06);
-  }
-
-  .pin {
-    position: absolute;
-    z-index: 2;
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    margin: -13px 0 0 -13px;
-    border-radius: 999px;
-    background: var(--navy);
-    color: #fff;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 500;
-    box-shadow: 0 0 0 3px #fff;
-  }
-
-  .bubble {
-    position: absolute;
-    z-index: 1;
-    white-space: nowrap;
-    margin-left: 22px;
-    padding: 6px 12px;
-    border-radius: 10px;
-    background: var(--navy);
-    color: #fff;
-    font-size: 13px;
-    line-height: 1.35;
-    transform: translateY(-50%);
-    box-shadow: 0 10px 24px -12px rgb(21 44 92 / 0.6);
-    animation: pop 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(200ms + var(--d) * 120ms);
-  }
-
-  .bubble::before {
-    content: '';
-    position: absolute;
-    left: -5px;
-    top: 50%;
-    width: 10px;
-    height: 10px;
-    margin-top: -5px;
-    background: var(--navy);
-    transform: rotate(45deg);
-    border-radius: 2px;
-  }
-
-  @keyframes pop {
-    from {
-      opacity: 0;
-      transform: translate(-6px, -50%);
-    }
-  }
-
-  .notes {
-    list-style: none;
-    margin: 16px 0 0;
-    padding: 0;
-    gap: 12px;
-  }
-
-  @media (min-width: 721px) {
-    .notes {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-    }
-  }
-
-  .notes li {
-    display: flex;
-    gap: 12px;
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--ink-muted);
-  }
-
-  .n {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    border: 1px solid var(--navy);
-    color: var(--navy);
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
-
-  @media (max-width: 720px) {
-    .bubble {
-      display: none;
-    }
-
-    .pin {
-      width: 20px;
-      height: 20px;
-      margin: -10px 0 0 -10px;
-      font-size: 10px;
-    }
-
-    .notes {
-      display: grid;
-    }
-  }
-</style>

@@ -2,13 +2,22 @@
 import { pasos, provincias } from '../site';
 
 const domain = 'icp.administracionelectronica.gob.es';
+
+const choice =
+  'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] transition-[border-color,background-color] duration-150 hover:border-line-control focus-within:border-brand-600 focus-within:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] data-[checked]:border-brand-600 data-[checked]:bg-brand-50 data-[checked]:font-semibold data-[checked]:text-brand-900 data-[checked]:shadow-[inset_0_0_0_1px_rgb(var(--bg-brand-600))] [&[hidden]]:!hidden [&_input]:m-0 [&_input]:size-[18px] [&_input]:accent-brand-600';
 ---
 
-<div class="demo" data-demo data-on="false">
-  <div class="browser">
-    <div class="chrome">
-      <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="address mono">
+<div class="group m-0" data-demo data-on="false">
+  <div class="overflow-hidden rounded-[18px] border border-line bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <div class="flex items-center gap-4 border-b border-line bg-surface-muted py-2.5 pl-4 pr-3">
+      <span class="flex gap-1.5 max-[900px]:hidden" aria-hidden="true">
+        <i class="size-[11px] rounded-full bg-line-strong"></i>
+        <i class="size-[11px] rounded-full bg-line-strong"></i>
+        <i class="size-[11px] rounded-full bg-line-strong"></i>
+      </span>
+      <span
+        class="flex h-[34px] min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap rounded-lg border border-line bg-surface px-3 font-mono text-xs text-ink-subtle"
+      >
         <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
           <path
             d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2M3.5 7h9v7h-9z"
@@ -17,9 +26,15 @@ const domain = 'icp.administracionelectronica.gob.es';
             stroke-width="1.5"
             stroke-linejoin="round"></path>
         </svg>
-        <span class="domain">{domain}</span><span class="path">/icpplus/index.html</span>
+        <span class="text-ink">{domain}</span><span class="truncate max-[560px]:hidden">/icpplus/index.html</span>
       </span>
-      <button type="button" class="ext" role="switch" aria-checked="false" data-switch>
+      <button
+        type="button"
+        class="inline-flex min-h-10 cursor-pointer items-center gap-2.5 rounded-[10px] border border-line bg-surface py-0 pl-3 pr-2 text-sm font-semibold text-ink-subtle transition-[color,border-color,background-color] duration-200 hover:border-line-strong group-data-[on=true]:border-brand-200 group-data-[on=true]:bg-brand-50 group-data-[on=true]:text-brand-700"
+        role="switch"
+        aria-checked="false"
+        data-switch
+      >
         <svg width="18" height="18" viewBox="0 0 32 32" aria-hidden="true">
           <path d="M16 3.5 28 10l-12 6.5L4 10z" fill="currentColor"></path>
           <path
@@ -30,39 +45,50 @@ const domain = 'icp.administracionelectronica.gob.es';
             stroke-linejoin="round"
             stroke-linecap="round"></path>
         </svg>
-        <span class="ext-label">Reforma Digital</span>
-        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+        <span class="max-[900px]:hidden">Reforma Digital</span>
+        <span
+          class="relative h-[22px] w-9 rounded-full bg-line-strong transition-colors duration-[250ms] ease-soft group-data-[on=true]:bg-brand-600"
+          aria-hidden="true"
+        >
+          <span
+            class="absolute left-[3px] top-[3px] size-4 rounded-full bg-white shadow-[0_1px_2px_rgb(15_23_42/0.3)] transition-transform duration-[250ms] ease-soft group-data-[on=true]:translate-x-[14px]"
+          ></span>
+        </span>
       </button>
     </div>
 
-    <div class="viewport">
-      <!-- Web original (recreación neutra, sin identidad institucional) -->
-      <div class="view legacy" data-view="legacy">
-        <div class="lg-top">
-          <span class="lg-logo" aria-hidden="true"></span>
-          <span class="lg-logo small" aria-hidden="true"></span>
-          <span class="lg-site">Sede electrónica<small>Administraciones Públicas</small></span>
+    <div class="relative h-[clamp(520px,62vw,660px)] overflow-hidden">
+      <div
+        class="absolute inset-0 overflow-auto overscroll-contain bg-[#f4f4f4] px-[clamp(16px,3vw,32px)] pb-8 pt-5 font-[Verdana,Tahoma,sans-serif] text-[#333] transition-[opacity,transform,filter] duration-500 ease-soft group-data-[on=true]:scale-[0.98] group-data-[on=true]:opacity-0 group-data-[on=true]:blur-sm"
+        data-view="legacy"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="h-11 w-[120px] bg-[repeating-linear-gradient(-45deg,#dedede_0_6px,#e8e8e8_6px_12px)]" aria-hidden="true"></span>
+          <span
+            class="h-11 w-[90px] bg-[repeating-linear-gradient(-45deg,#dedede_0_6px,#e8e8e8_6px_12px)] max-[560px]:hidden"
+            aria-hidden="true"></span>
+          <span class="ml-3 text-[22px] font-bold leading-tight text-[#3a3a3a]"
+            >Sede electrónica<small class="block text-[13px] font-normal max-[560px]:hidden">Administraciones Públicas</small></span
+          >
         </div>
-        <div class="lg-menu" aria-hidden="true">
-          <span>INICIO</span><span>PROCEDIMIENTOS</span><span>MIS EXPEDIENTES</span><span
-            >MIS NOTIFICACIONES</span
-          ><span>AYUDA</span>
+        <div class="mt-4 flex gap-[22px] overflow-hidden whitespace-nowrap bg-[#6b6b6b] px-3.5 py-[9px] text-xs text-white" aria-hidden="true">
+          <span>INICIO</span><span>PROCEDIMIENTOS</span><span>MIS EXPEDIENTES</span><span>MIS NOTIFICACIONES</span><span>AYUDA</span>
         </div>
-        <div class="lg-box">
-          <p class="lg-title">CITA PREVIA EXTRANJERÍA</p>
-          <label class="lg-row">
+        <div class="mt-7 border border-[#ddd] bg-white px-[26px] py-[22px]">
+          <p class="text-[22px] text-[#5a5a5a]">CITA PREVIA EXTRANJERÍA</p>
+          <label class="mt-[18px] flex items-center gap-[22px] text-xs max-[560px]:flex-col max-[560px]:items-start max-[560px]:gap-2">
             <span>PROVINCIAS DISPONIBLES</span>
-            <select data-official>
+            <select class="w-[140px] border border-[#aab] bg-[#eef6f9] p-1 font-[Arial,sans-serif] text-xs" data-official>
               <option value="">Selecciona Provincia ...</option>
               {provincias.map((p) => <option value={p}>{p}</option>)}
             </select>
           </label>
-          <div class="lg-buttons">
-            <button type="button" tabindex="-1">Aceptar</button>
-            <button type="button" tabindex="-1">Volver</button>
+          <div class="mt-5 flex gap-1.5">
+            <button type="button" class="border border-[#555] bg-[#777] px-[22px] py-[9px] font-[Arial,sans-serif] text-xs text-white" tabindex="-1">Aceptar</button>
+            <button type="button" class="border border-[#555] bg-[#777] px-[22px] py-[9px] font-[Arial,sans-serif] text-xs text-white" tabindex="-1">Volver</button>
           </div>
-          <p class="lg-warn">ATENCIÓN, LEA ATENTAMENTE ANTES DE ACEPTAR UNA CITA:</p>
-          <ul class="lg-list">
+          <p class="mt-[26px] text-sm font-bold text-[#555]">ATENCIÓN, LEA ATENTAMENTE ANTES DE ACEPTAR UNA CITA:</p>
+          <ul class="m-0 mt-2.5 list-disc pl-[18px] text-[11px] leading-[1.8]">
             <li>
               Si usted es Residente temporal o tiene una estancia por estudios, y tiene certificado
               digital se recomienda el uso de la plataforma MERCURIO para renovar.
@@ -74,11 +100,13 @@ const domain = 'icp.administracionelectronica.gob.es';
         </div>
       </div>
 
-      <!-- La misma pantalla con Reforma Digital -->
-      <div class="view enhanced" data-view="enhanced">
-        <div class="bar card">
+      <div
+        class="absolute inset-0 translate-y-[18px] scale-[0.985] overflow-auto overscroll-contain bg-canvas px-[clamp(12px,3vw,40px)] pb-8 pt-5 opacity-0 transition-[opacity,transform,filter] duration-500 ease-soft group-data-[on=true]:translate-y-0 group-data-[on=true]:scale-100 group-data-[on=true]:opacity-100"
+        data-view="enhanced"
+      >
+        <div class="flex flex-col items-start justify-between gap-4 bg-card px-4 py-3 min-[561px]:flex-row min-[561px]:items-center">
           <div>
-            <span class="badge">
+            <span class="bg-badge">
               <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
                 <path
                   d="M8 1.5 13.5 4v4c0 3.2-2.3 5.6-5.5 6.5C4.8 13.6 2.5 11.2 2.5 8V4z"
@@ -88,57 +116,72 @@ const domain = 'icp.administracionelectronica.gob.es';
               </svg>
               Interfaz comunitaria · sitio oficial
             </span>
-            <p class="bar-text">
-              Estás en <strong>{domain}</strong>, la web oficial del trámite. Los datos y envíos los
+            <p class="mt-1.5 text-sm text-ink-muted">
+              Estás en <strong class="text-ink">{domain}</strong>, la web oficial del trámite. Los datos y envíos los
               gestiona esa web.
             </p>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm" data-original>Ver original</button>
+          <button type="button" class="bg-btn bg-btn-secondary" data-original>Ver original</button>
         </div>
 
-        <p class="official-label">Cita previa extranjería</p>
+        <p class="mb-2 mt-4 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Cita previa extranjería</p>
 
-        <div class="panel card">
-          <p class="p-title">Elige la provincia</p>
-          <p class="p-lead">
+        <div class="bg-card p-[clamp(16px,2.4vw,28px)]">
+          <p class="text-[clamp(22px,2.2vw,28px)] font-bold leading-[1.2] tracking-[-0.01em]">Elige la provincia</p>
+          <p class="mt-1.5 text-base text-ink-muted">
             Selecciona la provincia en la que quieres pedir la cita. La lista es la que ofrece la web
             oficial.
           </p>
-          <p class="p-step">Paso 2 de 5</p>
-          <ol class="steps">
+          <p class="mt-5 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Paso 2 de 5</p>
+          <ol class="m-0 mb-5 mt-2 grid list-none grid-cols-5 gap-2 p-0 max-[900px]:gap-1">
             {
               pasos.map((paso, i) => (
-                <li class:list={{ done: i === 0, current: i === 1, out: i === 4 }}>
-                  <span class="n">{i === 0 ? '✓' : i + 1}</span>
-                  <span class="t">{paso}</span>
+                <li
+                  class:list={[
+                    'grid content-start gap-1.5 rounded-control border border-line p-2.5 text-[13px] leading-snug text-ink-muted max-[900px]:justify-items-center max-[900px]:p-1.5',
+                    {
+                      'border-brand-600 bg-brand-50 font-semibold text-brand-900': i === 1,
+                      'border-dashed': i === 4,
+                    },
+                  ]}
+                >
+                  <span
+                    class:list={[
+                      'grid size-[22px] place-items-center rounded-full bg-surface-muted text-xs font-bold',
+                      { 'bg-success-bg text-success-fg': i === 0, 'bg-brand-600 text-white': i === 1 },
+                    ]}
+                  >
+                    {i === 0 ? '✓' : i + 1}
+                  </span>
+                  <span class="max-[900px]:hidden">{paso}</span>
                 </li>
               ))
             }
           </ol>
-          <label class="f-label" for="demo-search">
-            Buscar provincia <span class="count">({provincias.length})</span>
+          <label class="mb-1.5 block text-[15px] font-semibold" for="demo-search">
+            Buscar provincia <span class="font-normal text-ink-subtle">({provincias.length})</span>
           </label>
           <input
             id="demo-search"
-            class="field"
+            class="block min-h-11 w-full rounded-control border border-line-control bg-surface px-3.5 py-2.5 text-base focus:border-brand-600 focus:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] focus:outline-none"
             type="search"
             placeholder="Ej.: avila, malaga, illes…"
             autocomplete="off"
             data-search
           />
-          <div class="choices" role="radiogroup" aria-label="Provincias disponibles" data-choices>
+          <div class="mt-3 grid grid-cols-2 gap-2 min-[901px]:grid-cols-4" role="radiogroup" aria-label="Provincias disponibles" data-choices>
             {
               provincias.map((p) => (
-                <label class="choice" data-name={p}>
+                <label class={choice} data-name={p} data-choice>
                   <input type="radio" name="demo-provincia" value={p} />
                   {p}
                 </label>
               ))
             }
-            <p class="empty" hidden data-empty>Ninguna provincia coincide.</p>
+            <p class="col-span-full text-[15px] text-ink-muted" hidden data-empty>Ninguna provincia coincide.</p>
           </div>
-          <div class="p-actions">
-            <button type="button" class="btn btn-primary" disabled data-continue>
+          <div class="mt-5">
+            <button type="button" class="bg-btn bg-btn-primary" disabled data-continue>
               Elige una provincia para continuar
             </button>
           </div>
@@ -160,7 +203,7 @@ const domain = 'icp.administracionelectronica.gob.es';
     const original = demo.querySelector<HTMLButtonElement>('[data-original]')!;
     const search = demo.querySelector<HTMLInputElement>('[data-search]')!;
     const official = demo.querySelector<HTMLSelectElement>('[data-official]')!;
-    const choices = [...demo.querySelectorAll<HTMLLabelElement>('[data-choices] .choice')];
+    const choices = [...demo.querySelectorAll<HTMLLabelElement>('[data-choice]')];
     const empty = demo.querySelector<HTMLElement>('[data-empty]')!;
     const cont = demo.querySelector<HTMLButtonElement>('[data-continue]')!;
     const views = demo.querySelectorAll<HTMLElement>('[data-view]');
@@ -181,7 +224,7 @@ const domain = 'icp.administracionelectronica.gob.es';
       for (const choice of choices) {
         const input = choice.querySelector('input')!;
         input.checked = choice.dataset.name === name;
-        choice.classList.toggle('checked', input.checked);
+        choice.toggleAttribute('data-checked', input.checked);
       }
       cont.disabled = !name;
       cont.textContent = name ? `Continuar con ${name}` : 'Elige una provincia para continuar';
@@ -217,515 +260,3 @@ const domain = 'icp.administracionelectronica.gob.es';
     setTimeout(() => !touched && setOn(true), motionOk ? 1600 : 0);
   }
 </script>
-
-<style>
-  .demo {
-    margin: 0;
-  }
-
-  .browser {
-    color: var(--ink);
-    border-radius: 18px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
-    overflow: hidden;
-  }
-
-  .chrome {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 12px 10px 16px;
-    background: var(--surface-muted);
-    border-bottom: 1px solid var(--line);
-  }
-
-  .lights {
-    display: flex;
-    gap: 6px;
-  }
-
-  .lights i {
-    width: 11px;
-    height: 11px;
-    border-radius: 999px;
-    background: var(--line-strong);
-  }
-
-  .address {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: 34px;
-    padding: 0 12px;
-    border-radius: 8px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    color: var(--ink-subtle);
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-
-  .domain {
-    color: var(--ink);
-  }
-
-  .path {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .ext {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 40px;
-    padding: 0 8px 0 12px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--ink-subtle);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-      color 200ms,
-      border-color 200ms,
-      background-color 200ms;
-  }
-
-  .ext:hover {
-    border-color: var(--line-strong);
-  }
-
-  .track {
-    position: relative;
-    width: 36px;
-    height: 22px;
-    border-radius: 999px;
-    background: var(--line-strong);
-    transition: background-color 250ms var(--ease);
-  }
-
-  .thumb {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 16px;
-    height: 16px;
-    border-radius: 999px;
-    background: #fff;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 0.3);
-    transition: transform 250ms var(--ease);
-  }
-
-  [data-on='true'] .ext {
-    color: var(--brand-700);
-    border-color: var(--brand-200);
-    background: var(--brand-50);
-  }
-
-  [data-on='true'] .track {
-    background: var(--brand-600);
-  }
-
-  [data-on='true'] .thumb {
-    transform: translateX(14px);
-  }
-
-  .viewport {
-    position: relative;
-    height: clamp(520px, 62vw, 660px);
-    overflow: hidden;
-  }
-
-  .view {
-    position: absolute;
-    inset: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-    transition:
-      opacity 500ms var(--ease),
-      transform 600ms var(--ease),
-      filter 500ms var(--ease);
-  }
-
-  .legacy {
-    background: #f4f4f4;
-    font-family: Verdana, Tahoma, sans-serif;
-    color: #333;
-    padding: 20px clamp(16px, 3vw, 32px) 32px;
-  }
-
-  .enhanced {
-    background: var(--canvas);
-    padding: 20px clamp(12px, 3vw, 40px) 32px;
-    opacity: 0;
-    transform: translateY(18px) scale(0.985);
-  }
-
-  [data-on='true'] .legacy {
-    opacity: 0;
-    filter: blur(4px);
-    transform: scale(0.98);
-  }
-
-  [data-on='true'] .enhanced {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* Web original */
-  .lg-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .lg-logo {
-    width: 120px;
-    height: 44px;
-    background: repeating-linear-gradient(-45deg, #dedede 0 6px, #e8e8e8 6px 12px);
-  }
-
-  .lg-logo.small {
-    width: 90px;
-  }
-
-  .lg-site {
-    margin-left: 12px;
-    font-size: 22px;
-    font-weight: 700;
-    color: #3a3a3a;
-    line-height: 1.1;
-  }
-
-  .lg-site small {
-    display: block;
-    font-size: 13px;
-    font-weight: 400;
-  }
-
-  .lg-menu {
-    margin-top: 16px;
-    display: flex;
-    gap: 22px;
-    padding: 9px 14px;
-    background: #6b6b6b;
-    color: #fff;
-    font-size: 12px;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-
-  .lg-box {
-    margin-top: 28px;
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 22px 26px;
-  }
-
-  .lg-title {
-    font-size: 22px;
-    color: #5a5a5a;
-  }
-
-  .lg-row {
-    margin-top: 18px;
-    display: flex;
-    align-items: center;
-    gap: 22px;
-    font-size: 12px;
-  }
-
-  .lg-row select {
-    width: 140px;
-    font: 12px Arial, sans-serif;
-    padding: 4px;
-    border: 1px solid #aab;
-    background: #eef6f9;
-  }
-
-  .lg-buttons {
-    margin-top: 20px;
-    display: flex;
-    gap: 6px;
-  }
-
-  .lg-buttons button {
-    font: 12px Arial, sans-serif;
-    color: #fff;
-    background: #777;
-    border: 1px solid #555;
-    padding: 9px 22px;
-  }
-
-  .lg-warn {
-    margin-top: 26px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #555;
-  }
-
-  .lg-list {
-    margin: 10px 0 0;
-    padding-left: 18px;
-    font-size: 11px;
-    line-height: 1.8;
-  }
-
-  /* Con Reforma Digital */
-  .bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-  }
-
-  .bar-text {
-    margin-top: 6px;
-    font-size: 14px;
-    color: var(--ink-muted);
-  }
-
-  .bar-text strong {
-    color: var(--ink);
-  }
-
-  .official-label {
-    margin: 16px 0 8px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-subtle);
-  }
-
-  .panel {
-    padding: clamp(16px, 2.4vw, 28px);
-  }
-
-  .p-title {
-    font-size: clamp(22px, 2.2vw, 28px);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .p-lead {
-    margin-top: 6px;
-    color: var(--ink-muted);
-    font-size: 16px;
-  }
-
-  .p-step {
-    margin-top: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-subtle);
-  }
-
-  .steps {
-    list-style: none;
-    margin: 8px 0 20px;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .steps li {
-    display: grid;
-    gap: 6px;
-    align-content: start;
-    padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-control);
-    font-size: 13px;
-    line-height: 1.3;
-    color: var(--ink-muted);
-  }
-
-  .steps .n {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    background: var(--surface-muted);
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .steps .done .n {
-    background: var(--success-bg);
-    color: var(--success-fg);
-  }
-
-  .steps .current {
-    border-color: var(--brand-600);
-    background: var(--brand-50);
-    color: var(--brand-900);
-    font-weight: 600;
-  }
-
-  .steps .current .n {
-    background: var(--brand-600);
-    color: #fff;
-  }
-
-  .steps .out {
-    border-style: dashed;
-  }
-
-  .f-label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 15px;
-    font-weight: 600;
-  }
-
-  .count {
-    color: var(--ink-subtle);
-    font-weight: 400;
-  }
-
-  .field {
-    display: block;
-    width: 100%;
-    min-height: 44px;
-    padding: 10px 14px;
-    border: 1px solid var(--line-control);
-    border-radius: var(--radius-control);
-    background: var(--surface);
-    font-size: 16px;
-  }
-
-  .field:focus {
-    outline: none;
-    border-color: var(--brand-600);
-    box-shadow: 0 0 0 3px var(--brand-200);
-  }
-
-  .choices {
-    margin-top: 12px;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .choice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 44px;
-    padding: 8px 12px;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-control);
-    background: var(--surface);
-    font-size: 15px;
-    cursor: pointer;
-    transition:
-      border-color 150ms,
-      background-color 150ms;
-  }
-
-  .choice[hidden] {
-    display: none;
-  }
-
-  .choice:hover {
-    border-color: var(--line-control);
-  }
-
-  .choice:focus-within {
-    border-color: var(--brand-600);
-    box-shadow: 0 0 0 3px var(--brand-200);
-  }
-
-  .choice input {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: var(--brand-600);
-  }
-
-  .choice.checked {
-    border-color: var(--brand-600);
-    background: var(--brand-50);
-    color: var(--brand-900);
-    font-weight: 600;
-    box-shadow: inset 0 0 0 1px var(--brand-600);
-  }
-
-  .empty {
-    grid-column: 1 / -1;
-    color: var(--ink-muted);
-    font-size: 15px;
-  }
-
-  .p-actions {
-    margin-top: 20px;
-  }
-
-  .p-actions .btn:disabled {
-    background: var(--line-strong);
-    color: var(--ink-muted);
-    cursor: not-allowed;
-  }
-
-
-  @media (max-width: 900px) {
-    .choices {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .steps {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 4px;
-    }
-
-    .steps .t {
-      display: none;
-    }
-
-    .steps li {
-      padding: 6px;
-      justify-items: center;
-    }
-
-    .ext-label,
-    .lights {
-      display: none;
-    }
-  }
-
-  @media (max-width: 560px) {
-    .bar {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .path {
-      display: none;
-    }
-
-    .lg-logo.small,
-    .lg-site small {
-      display: none;
-    }
-
-    .lg-row {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-  }
-</style>

@@ -2,26 +2,42 @@
 const choices = ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga', 'Alicante'];
 ---
 
-<figure class="hf" aria-labelledby="hf-caption" data-hf>
-  <div class="stage">
-    <div class="side">
-      <div class="legacy" aria-hidden="true">
-        <div class="lg-head"><span></span><span></span><b>Sede electrónica</b></div>
-        <div class="lg-bar"></div>
-        <p class="lg-title">CITA PREVIA EXTRANJERÍA</p>
-        <div class="lg-row">
-          <span>PROVINCIAS DISPONIBLES</span>
-          <span class="lg-select">Selecciona Provi… ▾</span>
+<figure class="m-0" aria-labelledby="hf-caption" data-hf>
+  <div class="mx-auto grid max-w-[880px] grid-cols-1 items-stretch gap-3 sm:grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)] sm:gap-0">
+    <div class="grid h-full grid-rows-[1fr_auto] justify-items-center gap-3.5">
+      <div
+        class="h-full w-full max-w-[360px] select-none overflow-hidden rounded-[10px] border border-[#ddd] bg-[#f2f2f2] p-3 font-[Verdana,Tahoma,sans-serif] text-[#555] grayscale"
+        aria-hidden="true"
+      >
+        <div class="flex items-center gap-[5px]">
+          <span class="h-5 w-10 bg-[repeating-linear-gradient(-45deg,#d9d9d9_0_3px,#e6e6e6_3px_6px)]"></span>
+          <span class="h-5 w-10 bg-[repeating-linear-gradient(-45deg,#d9d9d9_0_3px,#e6e6e6_3px_6px)]"></span>
+          <b class="ml-1.5 text-xs">Sede electrónica</b>
         </div>
-        <div class="lg-buttons"><span>Aceptar</span><span>Volver</span></div>
-        <p class="lg-warn">ATENCIÓN, LEA ATENTAMENTE ANTES DE ACEPTAR UNA CITA:</p>
-        <div class="lg-lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="mt-2 h-2.5 bg-[#7a7a7a]"></div>
+        <p class="mt-3.5 text-sm text-[#666]">CITA PREVIA EXTRANJERÍA</p>
+        <div class="mt-2.5 flex items-center gap-2 text-[8px]">
+          <span>PROVINCIAS DISPONIBLES</span>
+          <span class="border border-[#a9b1bb] bg-white px-1 py-0.5 font-[Arial,sans-serif] text-[9px]">Selecciona Provi… ▾</span>
+        </div>
+        <div class="mt-2 flex gap-[3px]">
+          <span class="bg-[#7a7a7a] px-3 py-[5px] font-[Arial,sans-serif] text-[9px] text-white">Aceptar</span>
+          <span class="bg-[#7a7a7a] px-3 py-[5px] font-[Arial,sans-serif] text-[9px] text-white">Volver</span>
+        </div>
+        <p class="mt-3.5 text-[8px] font-bold">ATENCIÓN, LEA ATENTAMENTE ANTES DE ACEPTAR UNA CITA:</p>
+        <div class="mt-2.5 grid gap-[7px]">
+          <i class="h-1 bg-[#d4d4d4]"></i><i class="h-1 w-4/5 bg-[#d4d4d4]"></i><i class="h-1 bg-[#d4d4d4]"></i><i
+            class="h-1 w-4/5 bg-[#d4d4d4]"></i
+          ><i class="h-1 bg-[#d4d4d4]"></i><i class="h-1 w-4/5 bg-[#d4d4d4]"></i><i class="h-1 bg-[#d4d4d4]"></i><i
+            class="h-1 w-4/5 bg-[#d4d4d4]"></i
+          >
+        </div>
       </div>
-      <p class="label">La web de siempre</p>
+      <p class="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-subtle">La web de siempre</p>
     </div>
 
-    <div class="arrow" aria-hidden="true">
-      <span class="circle">
+    <div class="grid place-items-center">
+      <span class="grid size-10 place-items-center rounded-full bg-brand-900 text-white max-sm:rotate-90" aria-hidden="true">
         <svg width="18" height="18" viewBox="0 0 16 16">
           <path
             d="M3 8h10M9 4l4 4-4 4"
@@ -34,32 +50,60 @@ const choices = ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga', 'Alica
       </span>
     </div>
 
-    <div class="side">
-      <div class="clear" aria-hidden="true">
-        <span class="badge-mini rev" style="--d: 0">Interfaz comunitaria · sitio oficial</span>
-        <p class="cl-title rev" style="--d: 1">Elige la provincia</p>
-        <p class="cl-step rev" style="--d: 2">Paso 2 de 5</p>
-        <ol class="cl-steps rev" style="--d: 2">
-          <li class="done">✓</li>
-          <li class="current">2</li>
-          <li>3</li>
-          <li>4</li>
-          <li class="out">5</li>
+    <div class="grid h-full grid-rows-[1fr_auto] justify-items-center gap-3.5">
+      <div
+        class="grid h-full w-full max-w-[360px] content-start gap-[9px] overflow-hidden rounded-[10px] border border-line bg-surface p-4 text-ink shadow-[0_12px_30px_-18px_rgb(21_44_92/0.35)] select-none"
+        aria-hidden="true"
+      >
+        <span
+          class="justify-self-start animate-rev rounded-full border border-brand-200 bg-brand-50 px-[7px] py-0.5 text-[9.5px] font-semibold text-brand-700 [animation-delay:500ms]"
+          >Interfaz comunitaria · sitio oficial</span
+        >
+        <p class="animate-rev text-[19px] font-bold tracking-[-0.01em] [animation-delay:620ms]">Elige la provincia</p>
+        <p class="animate-rev text-[8.5px] font-semibold uppercase tracking-[0.06em] text-ink-subtle [animation-delay:740ms]">
+          Paso 2 de 5
+        </p>
+        <ol class="m-0 mt-[-2px] grid list-none grid-cols-5 gap-1 p-0 animate-rev [animation-delay:740ms]">
+          <li class="grid h-5 place-items-center rounded-[5px] border border-line text-[9px] font-bold text-success-fg">✓</li>
+          <li class="grid h-5 place-items-center rounded-[5px] border border-brand-600 bg-brand-50 text-[9px] font-bold text-brand-700">2</li>
+          <li class="grid h-5 place-items-center rounded-[5px] border border-line text-[9px] font-bold text-ink-subtle">3</li>
+          <li class="grid h-5 place-items-center rounded-[5px] border border-line text-[9px] font-bold text-ink-subtle">4</li>
+          <li class="grid h-5 place-items-center rounded-[5px] border border-dashed border-line text-[9px] font-bold text-ink-subtle">5</li>
         </ol>
-        <span class="cl-search rev" style="--d: 3">Buscar provincia</span>
-        <div class="cl-grid rev" style="--d: 4">
+        <span
+          class="animate-rev rounded-md border border-line-control px-2.5 py-[7px] text-[10px] text-ink-subtle [animation-delay:860ms]"
+          >Buscar provincia</span
+        >
+        <div class="grid animate-rev grid-cols-3 gap-1 [animation-delay:980ms]">
           {
             choices.map((c, i) => (
-              <span class:list={['cl-choice', { on: i === 0 }]} data-choice>
-                <i />
+              <span
+                class:list={[
+                  'flex items-center gap-1 rounded-md border px-2 py-[7px] text-[10px] transition-[background-color,border-color,color] duration-300',
+                  i === 0
+                    ? 'border-brand-600 bg-brand-50 font-semibold text-brand-900'
+                    : 'border-line-strong',
+                ]}
+                data-choice
+                data-selected={i === 0 ? '' : undefined}
+              >
+                <i
+                  class:list={[
+                    'size-[7px] shrink-0 rounded-full',
+                    i === 0 ? 'border-[2.5px] border-brand-600' : 'border border-line-control',
+                  ]}
+                />
                 {c}
               </span>
             ))
           }
         </div>
-        <span class="cl-button rev" style="--d: 5" data-button>Continuar con Madrid</span>
+        <span
+          class="mt-0.5 justify-self-start animate-rev rounded-md bg-brand-600 px-3 py-[7px] text-[10px] font-semibold text-white [animation-delay:1100ms]"
+          data-button>Continuar con Madrid</span
+        >
       </div>
-      <p class="label">La misma web, paso a paso</p>
+      <p class="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-subtle">La misma web, paso a paso</p>
     </div>
   </div>
   <figcaption id="hf-caption" class="sr-only">
@@ -74,312 +118,20 @@ const choices = ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga', 'Alica
   if (root && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const choices = [...root.querySelectorAll<HTMLElement>('[data-choice]')];
     const button = root.querySelector<HTMLElement>('[data-button]')!;
+    const on = ['border-brand-600', 'bg-brand-50', 'font-semibold', 'text-brand-900'];
+    const off = ['border-line-strong'];
     let i = 0;
     setInterval(() => {
-      choices[i]!.classList.remove('on');
+      const previous = choices[i]!;
+      previous.classList.remove(...on);
+      previous.classList.add(...off);
+      previous.querySelector('i')!.className = 'size-[7px] shrink-0 rounded-full border border-line-control';
       i = (i + 1) % choices.length;
-      choices[i]!.classList.add('on');
-      button.textContent = `Continuar con ${choices[i]!.textContent!.trim()}`;
+      const next = choices[i]!;
+      next.classList.remove(...off);
+      next.classList.add(...on);
+      next.querySelector('i')!.className = 'size-[7px] shrink-0 rounded-full border-[2.5px] border-brand-600';
+      button.textContent = `Continuar con ${next.textContent!.trim()}`;
     }, 2200);
   }
 </script>
-
-<style>
-  .hf {
-    margin: 0;
-  }
-
-
-
-
-
-
-  .stage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
-    align-items: stretch;
-    max-width: 880px;
-    margin-inline: auto;
-  }
-
-  .side {
-    display: grid;
-    grid-template-rows: 1fr auto;
-    gap: 14px;
-    justify-items: center;
-    height: 100%;
-  }
-
-  .label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-subtle);
-  }
-
-  .legacy,
-  .clear {
-    width: 100%;
-    max-width: 360px;
-    height: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-    user-select: none;
-  }
-
-  /* La web de siempre */
-  .legacy {
-    background: #f2f2f2;
-    border: 1px solid #dddddd;
-    padding: 12px;
-    font-family: Verdana, Tahoma, sans-serif;
-    color: #555;
-    filter: grayscale(1);
-  }
-
-  .lg-head {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .lg-head span {
-    width: 40px;
-    height: 20px;
-    background: repeating-linear-gradient(-45deg, #d9d9d9 0 3px, #e6e6e6 3px 6px);
-  }
-
-  .lg-head b {
-    margin-left: 6px;
-    font-size: 12px;
-  }
-
-  .lg-bar {
-    height: 10px;
-    margin-top: 8px;
-    background: #7a7a7a;
-  }
-
-  .lg-title {
-    margin-top: 14px;
-    font-size: 14px;
-    color: #666;
-  }
-
-  .lg-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    font-size: 8px;
-  }
-
-  .lg-select {
-    padding: 2px 4px;
-    border: 1px solid #a9b1bb;
-    background: #fff;
-    font: 9px Arial, sans-serif;
-  }
-
-  .lg-buttons {
-    display: flex;
-    gap: 3px;
-    margin-top: 8px;
-  }
-
-  .lg-buttons span {
-    padding: 5px 12px;
-    background: #7a7a7a;
-    color: #fff;
-    font: 9px Arial, sans-serif;
-  }
-
-  .lg-warn {
-    margin-top: 14px;
-    font-size: 8px;
-    font-weight: 700;
-  }
-
-  .lg-lines {
-    display: grid;
-    gap: 7px;
-    margin-top: 10px;
-  }
-
-  .lg-lines i {
-    height: 4px;
-    background: #d4d4d4;
-  }
-
-  .lg-lines i:nth-child(2n) {
-    width: 80%;
-  }
-
-  /* La misma web, paso a paso */
-  .clear {
-    display: grid;
-    align-content: start;
-    gap: 9px;
-    padding: 16px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    box-shadow: 0 12px 30px -18px rgb(21 44 92 / 0.35);
-    color: var(--ink);
-  }
-
-  .badge-mini {
-    justify-self: start;
-    padding: 2px 7px;
-    border-radius: 999px;
-    border: 1px solid var(--brand-200);
-    background: var(--brand-50);
-    color: var(--brand-700);
-    font-size: 9.5px;
-    font-weight: 600;
-  }
-
-  .cl-title {
-    font-size: 19px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-
-  .cl-step {
-    font-size: 8.5px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-subtle);
-  }
-
-  .cl-steps {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-    margin: -2px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .cl-steps li {
-    display: grid;
-    place-items: center;
-    height: 20px;
-    border: 1px solid var(--line);
-    border-radius: 5px;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--ink-subtle);
-  }
-
-  .cl-steps .done {
-    color: var(--success-fg);
-  }
-
-  .cl-steps .current {
-    border-color: var(--brand-600);
-    background: var(--brand-50);
-    color: var(--brand-700);
-  }
-
-  .cl-steps .out {
-    border-style: dashed;
-  }
-
-  .cl-search {
-    padding: 7px 10px;
-    border: 1px solid var(--line-control);
-    border-radius: 6px;
-    font-size: 10px;
-    color: var(--ink-subtle);
-  }
-
-  .cl-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-  }
-
-  .cl-choice {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 7px 8px;
-    border: 1px solid var(--line-strong);
-    border-radius: 6px;
-    font-size: 10px;
-    transition:
-      background-color 300ms,
-      border-color 300ms,
-      color 300ms;
-  }
-
-  .cl-choice i {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    border: 1px solid var(--line-control);
-    flex: none;
-  }
-
-  .cl-choice.on {
-    border-color: var(--brand-600);
-    background: var(--brand-50);
-    color: var(--brand-900);
-    font-weight: 600;
-  }
-
-  .cl-choice.on i {
-    border: 2.5px solid var(--brand-600);
-  }
-
-  .cl-button {
-    justify-self: start;
-    margin-top: 2px;
-    padding: 7px 12px;
-    border-radius: 6px;
-    background: var(--brand-600);
-    color: #fff;
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  .rev {
-    animation: rev 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(500ms + var(--d) * 120ms);
-  }
-
-  @keyframes rev {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-  }
-
-  .arrow {
-    display: grid;
-    place-items: center;
-  }
-
-  .circle {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    background: var(--navy);
-    color: #fff;
-  }
-
-  @media (max-width: 640px) {
-    .stage {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
-    .arrow .circle {
-      transform: rotate(90deg);
-    }
-  }
-</style>

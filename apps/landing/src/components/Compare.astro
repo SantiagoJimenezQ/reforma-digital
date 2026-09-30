@@ -43,10 +43,12 @@ const steps = [
     after: mejorada4,
   },
 ];
+
+const shot = 'absolute inset-0 h-full w-full object-cover object-left-top';
 ---
 
-<div class="compare" data-compare>
-  <div class="tabs" role="tablist" aria-label="Pasos del trámite">
+<div class="grid gap-4" data-compare>
+  <div class="flex flex-wrap gap-2" role="tablist" aria-label="Pasos del trámite">
     {
       steps.map((step, index) => (
         <button
@@ -56,18 +58,21 @@ const steps = [
           aria-controls={`panel-${step.id}`}
           aria-selected={index === 0 ? 'true' : 'false'}
           tabindex={index === 0 ? 0 : -1}
+          class="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-white py-0 pl-2 pr-3.5 font-sans text-sm font-medium leading-none text-ink-muted transition-[background-color,color,border-color] duration-150 ease-soft hover:border-[#94a3b8] aria-[selected=true]:border-ink aria-[selected=true]:text-ink"
         >
-          <span class="n">{index + 1}</span>
+          <span class="grid size-6 place-items-center rounded-full bg-[#f5f5f5] font-mono text-[11px] [[aria-selected=true]_&]:bg-ink [[aria-selected=true]_&]:text-white">
+            {index + 1}
+          </span>
           {step.tab}
         </button>
       ))
     }
   </div>
-  <div class="stage">
+  <div class="grid gap-4 rounded-[14px] border border-line bg-[#fafafa] p-[clamp(8px,1.6vw,16px)]">
     {
       steps.map((step, index) => (
         <div
-          class="viewer"
+          class="relative isolate aspect-[1280/700] overflow-hidden rounded-lg border border-line bg-white has-[input:focus-visible]:[&_.knob]:outline has-[input:focus-visible]:[&_.knob]:outline-2 has-[input:focus-visible]:[&_.knob]:outline-offset-[3px] has-[input:focus-visible]:[&_.knob]:outline-brand-600"
           id={`panel-${step.id}`}
           role="tabpanel"
           aria-labelledby={`tab-${step.id}`}
@@ -77,25 +82,29 @@ const steps = [
           <Image
             src={step.after}
             alt={`${step.tab} con Reforma Digital: panel guiado sobre la web oficial`}
-            class="img after"
+            class={shot}
             widths={[640, 1280]}
             sizes="(max-width: 900px) 100vw, 62vw"
             loading={index === 0 ? 'eager' : 'lazy'}
           />
-          <div class="before">
+          <div class="absolute inset-0 [clip-path:inset(0_calc(100%-var(--pos))_0_0)]">
             <Image
               src={step.before}
               alt={`${step.tab} en la web oficial original`}
-              class="img"
+              class={shot}
               widths={[640, 1280]}
               sizes="(max-width: 900px) 100vw, 62vw"
               loading={index === 0 ? 'eager' : 'lazy'}
             />
           </div>
-          <span class="chip mono left">Original</span>
-          <span class="chip mono right">Con Reforma Digital</span>
-          <span class="handle" aria-hidden="true">
-            <span class="knob">
+          <span class="pointer-events-none absolute left-3 top-3 z-[2] rounded-full border border-line bg-white/90 px-2.5 py-1.5 font-mono text-[11px] text-ink backdrop-blur-sm max-[600px]:left-2 max-[600px]:top-2 max-[600px]:text-[10px]">
+            Original
+          </span>
+          <span class="pointer-events-none absolute right-3 top-3 z-[2] rounded-full border border-line bg-white/90 px-2.5 py-1.5 font-mono text-[11px] text-ink backdrop-blur-sm max-[600px]:right-2 max-[600px]:top-2 max-[600px]:text-[10px]">
+            Con Reforma Digital
+          </span>
+          <span class="pointer-events-none absolute bottom-0 top-0 z-[2] -ml-px w-0.5 bg-ink [left:var(--pos)]" aria-hidden="true">
+            <span class="knob absolute left-1/2 top-1/2 grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-line-strong bg-white text-ink shadow-[0_2px_8px_rgb(0_0_0/0.08)]">
               <svg width="18" height="18" viewBox="0 0 18 18">
                 <path
                   d="M6.5 4.5 2 9l4.5 4.5M11.5 4.5 16 9l-4.5 4.5"
@@ -109,22 +118,23 @@ const steps = [
             </span>
           </span>
           <input
-            class="range"
+            class="absolute inset-0 z-[3] m-0 h-full w-full cursor-ew-resize opacity-0"
             type="range"
             min="0"
             max="100"
             value="50"
+            data-range
             aria-label={`Comparar ${step.tab.toLowerCase()}: original a la izquierda, con Reforma Digital a la derecha`}
           />
         </div>
       ))
     }
   </div>
-  <div class="texts">
+  <div>
     {
       steps.map((step, index) => (
-        <div class="text" data-text={step.id} hidden={index !== 0}>
-          <h3>{step.title}</h3>
+        <div class="px-1 text-[15px] leading-[1.55] text-ink-muted" data-text={step.id} hidden={index !== 0}>
+          <h3 class="mb-1 text-base font-semibold text-ink">{step.title}</h3>
           <p>{step.text}</p>
         </div>
       ))
@@ -142,8 +152,7 @@ const steps = [
       other.tabIndex = active ? 0 : -1;
       const id = other.getAttribute('aria-controls')!;
       root.querySelector<HTMLElement>(`#${id}`)!.hidden = !active;
-      root.querySelector<HTMLElement>(`[data-text="${id.replace('panel-', '')}"]`)!.hidden =
-        !active;
+      root.querySelector<HTMLElement>(`[data-text="${id.replace('panel-', '')}"]`)!.hidden = !active;
     }
   };
   tabs.forEach((tab, index) => {
@@ -157,194 +166,9 @@ const steps = [
       select(next);
     });
   });
-  root.querySelectorAll<HTMLInputElement>('.range').forEach((range) => {
+  root.querySelectorAll<HTMLInputElement>('[data-range]').forEach((range) => {
     range.addEventListener('input', () => {
       range.parentElement!.style.setProperty('--pos', `${range.value}%`);
     });
   });
 </script>
-
-<style>
-  .compare {
-    display: grid;
-    gap: 16px;
-  }
-
-  .stage {
-    background: #fafafa;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: clamp(8px, 1.6vw, 16px);
-    display: grid;
-    gap: 16px;
-  }
-
-  .viewer {
-    position: relative;
-    aspect-ratio: 1280 / 700;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #fff;
-    border: 1px solid var(--line);
-    isolation: isolate;
-  }
-
-  .viewer :global(.img) {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top left;
-  }
-
-  .before {
-    position: absolute;
-    inset: 0;
-    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
-  }
-
-  .chip {
-    position: absolute;
-    top: 12px;
-    z-index: 2;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.92);
-    border: 1px solid var(--line);
-    color: var(--ink);
-    font-size: 11px;
-    backdrop-filter: blur(6px);
-    pointer-events: none;
-  }
-
-  .chip.left {
-    left: 12px;
-  }
-
-  .chip.right {
-    right: 12px;
-  }
-
-  .handle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--pos);
-    width: 2px;
-    margin-left: -1px;
-    background: var(--ink);
-    z-index: 2;
-    pointer-events: none;
-  }
-
-  .knob {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 40px;
-    height: 40px;
-    margin: -20px 0 0 -20px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    background: #fff;
-    color: var(--ink);
-    border: 1px solid var(--line-strong);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
-  }
-
-  .range {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    opacity: 0;
-    cursor: ew-resize;
-  }
-
-  .viewer:has(.range:focus-visible) .knob {
-    outline: 2px solid var(--brand-600);
-    outline-offset: 3px;
-  }
-
-  .tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  [role='tab'] {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 40px;
-    padding: 0 14px 0 8px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--ink-muted);
-    font: 500 14px/1 var(--font-sans);
-    cursor: pointer;
-    transition:
-      background-color 160ms var(--ease),
-      color 160ms var(--ease),
-      border-color 160ms var(--ease);
-  }
-
-  [role='tab']:hover {
-    border-color: #94a3b8;
-  }
-
-  [role='tab'] .n {
-    display: grid;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 999px;
-    background: #f5f5f5;
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
-
-  [role='tab'][aria-selected='true'] {
-    border-color: var(--ink);
-    color: var(--ink);
-  }
-
-  [role='tab'][aria-selected='true'] .n {
-    background: var(--ink);
-    color: #fff;
-  }
-
-  .text {
-    padding: 0 4px;
-    color: var(--ink-muted);
-    font-size: 15px;
-    line-height: 1.55;
-  }
-
-  .text h3 {
-    margin-bottom: 4px;
-    color: var(--ink);
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  @media (max-width: 600px) {
-    .chip {
-      top: 8px;
-      font-size: 10px;
-    }
-
-    .chip.left {
-      left: 8px;
-    }
-
-    .chip.right {
-      right: 8px;
-    }
-  }
-</style>
