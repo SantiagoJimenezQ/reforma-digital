@@ -5,13 +5,15 @@
  * aplicar opacidad: rgb(var(--bg-brand-600) / 0.5).
  *
  * Se definen en:
- *   :host                → interfaces dentro de Shadow DOM (runtime)
- *   :root[data-bg-site]  → la web oficial mientras la interfaz está activa
- *   :root[data-bg-popup] → el popup de la extensión
+ *   :host                  → interfaces dentro de Shadow DOM (runtime)
+ *   :root[data-bg-site]    → la web oficial mientras la interfaz está activa
+ *   :root[data-bg-popup]   → el popup de la extensión
+ *   :root[data-bg-landing] → la web pública (apps/landing)
  */
 :host,
 :root[data-bg-site],
-:root[data-bg-popup] {
+:root[data-bg-popup],
+:root[data-bg-landing] {
   /* Texto */
   --bg-ink: 15 23 42; /* #0F172A  17.9:1 sobre blanco */
   --bg-ink-muted: 71 85 105; /* #475569   7.6:1 */

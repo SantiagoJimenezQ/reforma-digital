@@ -3,99 +3,37 @@ import Logo from './Logo.astro';
 import { links, nav } from '../site';
 ---
 
-<section class="hero" aria-labelledby="hero-title">
-  <div class="inner">
-    <div class="top">
-      <a href="#" class="home" aria-label="Reforma Digital, inicio"><Logo size={22} /></a>
-      <nav aria-label="Principal">
-        {nav.map((item) => <a href={item.href}>{item.label}</a>)}
-        <a class="install" href={links.install}>Instalar</a>
+<section aria-labelledby="hero-title">
+  <div class="px-[clamp(16px,3vw,40px)]">
+    <div class="flex h-[76px] items-center justify-between gap-6">
+      <a href="#" class="no-underline [&_span:last-child]:!text-base" aria-label="Reforma Digital, inicio">
+        <Logo size={22} />
+      </a>
+      <nav class="flex items-center gap-[22px]" aria-label="Principal">
+        {
+          nav.map((item) => (
+            <a class="text-sm text-ink-muted no-underline hover:text-ink max-sm:hidden" href={item.href}>
+              {item.label}
+            </a>
+          ))
+        }
+        <a
+          class="inline-flex h-[38px] items-center rounded-full bg-brand-900 px-4 text-sm font-medium text-white no-underline hover:bg-[#1b3a78] hover:text-white"
+          href={links.install}>Instalar</a
+        >
       </nav>
     </div>
 
-    <div class="center">
-      <h1 id="hero-title">Reforma Digital</h1>
-      <p class="sub">La próxima reforma de la Administración, hecha en comunidad.</p>
+    <div class="pt-[clamp(40px,8vw,104px)] text-center">
+      <h1
+        id="hero-title"
+        class="font-serif text-[clamp(56px,9vw,112px)] font-normal leading-[0.95] tracking-[-0.035em] text-ink"
+      >
+        Reforma Digital
+      </h1>
+      <p class="mx-0 mb-[clamp(40px,5vw,64px)] mt-[18px] text-[clamp(17px,1.6vw,20px)] text-ink-muted">
+        La próxima reforma de la Administración, hecha en comunidad.
+      </p>
     </div>
   </div>
 </section>
-
-<style>
-  .inner {
-    padding: 0 clamp(16px, 3vw, 40px);
-  }
-
-  .top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-    height: 76px;
-  }
-
-  .home {
-    text-decoration: none;
-  }
-
-  .home :global(.word) {
-    font-size: 16px;
-  }
-
-  nav {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-  }
-
-  nav a {
-    font-size: 14px;
-    color: var(--ink-muted);
-    text-decoration: none;
-  }
-
-  nav a:hover {
-    color: var(--ink);
-  }
-
-  nav a.install {
-    display: inline-flex;
-    align-items: center;
-    height: 38px;
-    padding: 0 16px;
-    border-radius: 999px;
-    background: var(--navy);
-    color: #fff;
-    font-weight: 500;
-  }
-
-  nav a.install:hover {
-    background: var(--navy-hover);
-    color: #fff;
-  }
-
-  .center {
-    padding-top: clamp(40px, 8vw, 104px);
-    text-align: center;
-  }
-
-  h1 {
-    font-family: var(--font-serif);
-    font-weight: 400;
-    font-size: clamp(56px, 9vw, 112px);
-    line-height: 0.95;
-    letter-spacing: -0.035em;
-    color: var(--ink);
-  }
-
-  .sub {
-    margin: 18px 0 clamp(40px, 5vw, 64px);
-    font-size: clamp(17px, 1.6vw, 20px);
-    color: var(--ink-muted);
-  }
-
-  @media (max-width: 640px) {
-    nav a:not(.install) {
-      display: none;
-    }
-  }
-</style>

@@ -3,40 +3,17 @@ import Logo from './Logo.astro';
 import { links } from '../site';
 ---
 
-<footer class="footer">
-  <div class="container bottom">
+<footer class="border-t border-line py-10">
+  <div
+    class="mx-auto flex w-full max-w-page flex-wrap items-center justify-between gap-x-8 gap-y-4 px-[var(--gutter)]"
+  >
     <Logo size={26} />
-    <p class="note">
+    <p class="max-w-[60ch] text-sm text-ink-subtle">
       Proyecto independiente y comunitario, sin vinculación con la Administración. Los trámites se
       completan siempre en la web oficial.
     </p>
-    <p class="note">
-      <a href={links.license}>Licencia MIT</a> · 2026
+    <p class="max-w-[60ch] text-sm text-ink-subtle">
+      <a class="text-inherit" href={links.license}>Licencia MIT</a> · 2026
     </p>
   </div>
 </footer>
-
-<style>
-  .footer {
-    border-top: 1px solid var(--line);
-    padding-block: 40px;
-  }
-
-  .bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px 32px;
-    flex-wrap: wrap;
-  }
-
-  .note {
-    color: var(--ink-subtle);
-    font-size: 14px;
-    max-width: 60ch;
-  }
-
-  .note a {
-    color: inherit;
-  }
-</style>

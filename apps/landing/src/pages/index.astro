@@ -161,27 +161,50 @@ const faqs = [
   title="Reforma Digital · La próxima reforma de la Administración"
   description="Una propuesta para que hacer un trámite con la Administración sea sencillo. La interfaz de los trámites se trata como una capa pública que cualquiera puede mejorar en abierto."
 >
-  <div class="progress" aria-hidden="true" data-progress></div>
+  <div
+    class="fixed inset-x-0 top-0 z-[60] h-0.5 origin-left scale-x-0 bg-ink"
+    aria-hidden="true"
+    data-progress
+  >
+  </div>
   <Banner />
-  <div class="frame">
+  <div
+    class="mx-[clamp(8px,1.6vw,20px)] mb-[clamp(8px,1.6vw,20px)] overflow-clip rounded-[clamp(24px,3vw,40px)] border border-line bg-[linear-gradient(180deg,#eef1f5_0,#f7f8fa_520px,#fff_900px)]"
+  >
     <Hero />
-    <main id="contenido" class="article">
-      <div class="wide hero-figure">
+    <main
+      id="contenido"
+      class="grid pb-24 text-ink-muted [--content:min(680px,calc(100%-2*var(--gutter)))] [grid-template-columns:minmax(var(--gutter),1fr)_minmax(0,120px)_var(--content)_minmax(0,120px)_minmax(var(--gutter),1fr)] [&>*]:col-start-3 [&>*]:col-end-4 [&>.wide]:col-start-2 [&>.wide]:col-end-5 [&>p]:text-[clamp(17px,1.5vw,19px)] [&>p]:leading-[1.75] [&>p+p]:mt-[18px] [&_a]:text-ink [&_a]:underline [&_a]:decoration-line-strong [&_a]:underline-offset-[3px] hover:[&_a]:decoration-ink [&>h2]:mb-5 [&>h2]:mt-3 [&>h2]:scroll-mt-20 [&>h2]:font-serif [&>h2]:text-[clamp(34px,4vw,46px)] [&>h2]:font-normal [&>h2]:leading-[1.05] [&>h2]:tracking-[-0.02em] [&>h2]:text-ink [&>h3]:mb-3 [&>h3]:mt-10 [&>h3]:text-[19px] [&>h3]:font-semibold [&>h3]:tracking-[-0.015em] [&>h3]:text-ink [&_sup]:ml-0.5 [&_sup]:font-mono [&_sup]:text-[11px] [&_sup]:leading-none [&_sup_a]:!text-ink-subtle [&_sup_a]:!no-underline [&>.section-label]:mt-0 [&>.section-label]:scroll-mt-20 [&>.section-label]:pt-24 [&>.section-label]:font-mono [&>.section-label]:text-xs [&>.section-label]:uppercase [&>.section-label]:tracking-[0.12em] [&>.section-label]:text-ink-subtle"
+    >
+      <div class="wide mt-2">
         <HeroFigure />
       </div>
-      <div class="intro">
-        <p>
+      <div class="mt-8 text-center">
+        <p class="text-[clamp(17px,1.5vw,19px)] leading-[1.75]">
           La misma web oficial de siempre. Lo único que cambia es cómo se presenta, con pasos numerados,
           un buscador y los avisos donde hay que leerlos. Sin ley nueva y sin tocar sus servidores.
         </p>
-        <div class="links">
-          <a class="button" href="#texto">Leer el texto completo</a>
-          <a class="plain" href="#resumen"><span aria-hidden="true">↓</span> Qué proponemos, en resumen</a>
+        <div class="mt-7 flex items-center justify-center gap-6 font-mono text-[13px]">
+          <a
+            class="inline-flex h-11 items-center rounded-full bg-brand-900 px-[18px] font-sans text-[15px] font-medium !text-white !no-underline hover:bg-[#1b3a78] hover:!text-white"
+            href="#texto">Leer el texto completo</a
+          >
+          <a class="!font-mono !text-[13px] !text-ink-muted !no-underline hover:!text-ink" href="#resumen"
+            ><span aria-hidden="true">↓</span> Qué proponemos, en resumen</a
+          >
         </div>
       </div>
 
-    <section id="resumen" class="summary" aria-labelledby="resumen-title">
-      <h2 id="resumen-title">Resumen</h2>
+    <section
+      id="resumen"
+      class="mt-20 scroll-mt-20 border-t border-line pt-8 [&_p]:text-[clamp(17px,1.5vw,19px)] [&_p]:leading-[1.75] [&_p+p]:mt-4"
+      aria-labelledby="resumen-title"
+    >
+      <h2
+        id="resumen-title"
+        class="mb-4 mt-0 scroll-mt-20 font-serif text-[clamp(34px,4vw,46px)] font-normal leading-[1.05] tracking-[-0.02em] text-ink"
+        >Resumen</h2
+      >
       <p>
         España ha llevado a internet casi todos sus trámites, y la relación entre el Estado y la gente ya
         ocurre sobre todo en una pantalla. Esa pantalla sigue pensada para quien conoce el procedimiento.
@@ -204,7 +227,7 @@ const faqs = [
       XVIII, el reformismo ilustrado de Carlos III y las reformas liberales del XIX. Todas tuvieron
       detractores, y todas dejaron un Estado que funcionaba mejor que el anterior.
     </p>
-    <blockquote class="pull">
+    <blockquote class="my-10 text-balance font-serif text-[clamp(28px,3.2vw,36px)] font-normal italic leading-[1.2] tracking-[-0.01em] text-ink">
       Cada época ha tenido su reforma de la Administración. La nuestra es la digital.
     </blockquote>
     <p>
@@ -213,12 +236,14 @@ const faqs = [
     </p>
 
     <Figure n={1}>
-      <ol class="timeline">
+      <ol
+        class="relative m-0 grid list-none grid-cols-4 p-0 before:absolute before:left-0 before:right-0 before:top-[7px] before:border-t before:border-dashed before:border-line-strong max-sm:grid-cols-1 max-sm:gap-5 max-sm:pl-7 max-sm:before:bottom-0 max-sm:before:left-1.5 max-sm:before:right-auto max-sm:before:top-0 max-sm:before:border-l max-sm:before:border-t-0"
+      >
         {
           timeline.map((t) => (
-            <li>
-              <span class="t-when">{t.when}</span>
-              <span class="t-text">
+            <li class="relative grid content-start gap-1.5 pb-0 pr-4 pt-7 before:absolute before:left-0 before:top-0 before:size-3.5 before:rounded-full before:border-[1.5px] before:border-brand-900 before:bg-surface last:before:bg-brand-900 max-sm:p-0 max-sm:before:left-[-28px] max-sm:before:top-1">
+              <span class="font-serif text-[26px] leading-none text-ink">{t.when}</span>
+              <span class="text-sm leading-normal text-ink-muted">
                 {t.text}
                 {t.ref && (
                   <sup>
@@ -267,7 +292,7 @@ const faqs = [
 
     <h3>Quién paga la diferencia</h3>
     <p>Esa distancia tiene un coste para los tres.</p>
-    <div class="actors-wrap">
+    <div class="my-6 mb-8">
       <Actors items={costs} />
     </div>
 
@@ -280,12 +305,14 @@ const faqs = [
     </p>
 
     <Figure n={3}>
-      <dl class="stats">
+      <dl class="m-0 grid grid-cols-1 overflow-hidden rounded-xl border border-line sm:grid-cols-3">
         {
           stats.map((s) => (
-            <div>
-              <dt>{s.label}</dt>
-              <dd>{s.value}</dd>
+            <div class="flex flex-col gap-1.5 border-t border-line px-5 py-6 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0">
+              <dt class="order-1 text-[13px] leading-snug text-ink-subtle">{s.label}</dt>
+              <dd class="m-0 font-serif text-[clamp(34px,4vw,44px)] font-normal leading-none tracking-[-0.02em] text-ink">
+                {s.value}
+              </dd>
             </div>
           ))
         }
@@ -309,16 +336,28 @@ const faqs = [
     </p>
 
     <Figure n={4}>
-      <ol class="layers">
+      <ol class="m-0 grid list-none gap-2.5 p-0">
         {
           layers.map((l, i) => (
-            <li class:list={{ ours: l.ours }}>
-              <span class="layer-n">{i + 1}</span>
-              <span class="layer-body">
-                <strong>{l.name}</strong>
+            <li
+              class:list={[
+                'grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-1.5 rounded-xl px-5 py-4 sm:grid-cols-[auto_1fr_auto]',
+                l.ours ? 'border border-ink' : 'border border-dashed border-line-strong',
+              ]}
+            >
+              <span class="font-mono text-xs text-[#94a3b8]">{i + 1}</span>
+              <span class="grid gap-0.5 text-[15px] leading-normal">
+                <strong class="font-semibold text-ink">{l.name}</strong>
                 <span>{l.text}</span>
               </span>
-              <span class="layer-tag">{l.tag}</span>
+              <span
+                class:list={[
+                  'col-start-2 text-left font-mono text-[11px] uppercase tracking-[0.06em] sm:col-start-auto sm:text-right',
+                  l.ours ? 'text-ink' : 'text-[#94a3b8]',
+                ]}
+              >
+                {l.tag}
+              </span>
             </li>
           ))
         }
@@ -333,7 +372,7 @@ const faqs = [
       la use puede mejorarla, en abierto y con cada cambio documentado. Para que una lista de 52
       provincias tenga buscador no hace falta modificar una ley ni licitar un contrato.
     </p>
-    <blockquote class="pull">
+    <blockquote class="my-10 text-balance font-serif text-[clamp(28px,3.2vw,36px)] font-normal italic leading-[1.2] tracking-[-0.01em] text-ink">
       Queremos que Reforma Digital sea la primera reforma administrativa que se instala con un clic.
     </blockquote>
 
@@ -388,7 +427,7 @@ const faqs = [
       La interfaz es el único punto que comparten la ciudadanía, las empresas y la Administración. Por eso
       una mejora en ella llega a los tres a la vez.
     </p>
-    <div class="actors-wrap">
+    <div class="my-6 mb-8">
       <Actors items={gains} />
     </div>
     <p>
@@ -401,15 +440,19 @@ const faqs = [
     <p>La extensión es el comienzo. La propuesta se escalona en tres plazos.</p>
 
     <Figure n={8}>
-      <ol class="horizon">
+      <ol class="m-0 list-none rounded-xl border border-line p-0">
         {
           horizon.map((h) => (
-            <li>
-              <span class="h-when">{h.when}</span>
-              <span class="h-body">
-                <strong>{h.title}</strong>
+            <li class="grid grid-cols-1 gap-1.5 border-t border-line p-5 first:border-t-0 sm:grid-cols-[130px_1fr] sm:gap-4">
+              <span class="pt-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-[#94a3b8]">{h.when}</span>
+              <span class="grid justify-items-start gap-1 text-[15px] leading-[1.55]">
+                <strong class="font-semibold text-ink">{h.title}</strong>
                 <span>{h.text}</span>
-                {h.tag && <span class="h-tag">{h.tag}</span>}
+                {h.tag && (
+                  <span class="mt-2 rounded-full border border-line px-2 py-0.5 font-mono text-[11px] text-ink-muted">
+                    {h.tag}
+                  </span>
+                )}
               </span>
             </li>
           ))
@@ -432,13 +475,21 @@ const faqs = [
       programas, cada portal es una carpeta del repositorio con sus pantallas, sus pruebas y HTML real de
       la web oficial. Si trabajas en una sede electrónica, escríbenos. Nos gustaría trabajar contigo.
     </p>
-    <div class="actions">
-      <a class="button" href={links.install}>Instalar la extensión</a>
-      <a class="button ghost" href={links.contributing}>Guía para contribuir</a>
+    <div class="mt-7 flex flex-wrap gap-3">
+      <a
+        class="inline-flex h-11 items-center rounded-full bg-brand-900 px-[18px] text-[15px] font-medium !text-white !no-underline hover:bg-[#1b3a78]"
+        href={links.install}>Instalar la extensión</a
+      >
+      <a
+        class="inline-flex h-11 items-center rounded-full border border-line bg-white px-[18px] text-[15px] font-medium !text-ink !no-underline hover:border-[#94a3b8]"
+        href={links.contributing}>Guía para contribuir</a
+      >
     </div>
 
-    <h2 id="preguntas">Preguntas frecuentes</h2>
-    <div class="faq">
+    <h2 id="preguntas" class="!mt-24">Preguntas frecuentes</h2>
+    <div
+      class="border-t border-line [&_details]:border-b [&_details]:border-line [&_summary]:flex [&_summary]:cursor-pointer [&_summary]:list-none [&_summary]:items-center [&_summary]:justify-between [&_summary]:gap-4 [&_summary]:py-[18px] [&_summary]:text-[17px] [&_summary]:font-medium [&_summary]:text-ink [&_summary::-webkit-details-marker]:hidden [&_summary]:after:shrink-0 [&_summary]:after:font-mono [&_summary]:after:text-lg [&_summary]:after:font-normal [&_summary]:after:text-[#94a3b8] [&_summary]:after:content-['+'] [&_details[open]_summary]:after:content-['−'] [&_details_p]:pb-5 [&_details_p]:text-base [&_details_p]:leading-[1.7]"
+    >
       {
         faqs.map((item) => (
           <details>
@@ -449,8 +500,8 @@ const faqs = [
       }
     </div>
 
-    <h2 id="fuentes">Fuentes</h2>
-    <ol class="sources">
+    <h2 id="fuentes" class="!mt-24">Fuentes</h2>
+    <ol class="m-0 grid list-decimal gap-2.5 pl-5 text-sm leading-normal text-ink-subtle [&_li]:scroll-mt-20 [&_li:target]:text-ink">
       {
         sources.map((s) => (
           <li id={`fuente-${s.id}`}>
@@ -474,598 +525,3 @@ const faqs = [
   addEventListener('scroll', update, { passive: true });
   addEventListener('resize', update);
 </script>
-
-<style>
-  .progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 60;
-    height: 2px;
-    background: var(--ink);
-    transform: scaleX(0);
-    transform-origin: left;
-  }
-
-  .article {
-    --content: min(680px, 100% - 2 * var(--gutter));
-    display: grid;
-    grid-template-columns:
-      [full-start] minmax(var(--gutter), 1fr)
-      [wide-start] minmax(0, 120px)
-      [content-start] var(--content)
-      [content-end] minmax(0, 120px)
-      [wide-end] minmax(var(--gutter), 1fr)
-      [full-end];
-    padding-bottom: 96px;
-    color: var(--ink-muted);
-  }
-
-  .article > :global(*) {
-    grid-column: content;
-  }
-
-  .article > :global(.wide) {
-    grid-column: wide;
-  }
-
-
-
-
-
-
-  .article > p,
-  .summary p,
-  .list li {
-    font-size: clamp(17px, 1.5vw, 19px);
-    line-height: 1.75;
-  }
-
-  .article > p + p {
-    margin-top: 18px;
-  }
-
-  .article a {
-    color: var(--ink);
-    text-decoration: underline;
-    text-decoration-color: var(--line-strong);
-    text-underline-offset: 3px;
-  }
-
-  .article a:hover {
-    text-decoration-color: var(--ink);
-  }
-
-
-  .frame {
-    margin: 0 clamp(8px, 1.6vw, 20px) clamp(8px, 1.6vw, 20px);
-    border: 1px solid var(--line);
-    border-radius: clamp(24px, 3vw, 40px);
-    background: linear-gradient(180deg, #eef1f5 0, #f7f8fa 520px, #fff 900px);
-    overflow: clip;
-  }
-
-  .intro p {
-    font-size: clamp(17px, 1.5vw, 19px);
-    line-height: 1.75;
-  }
-
-  .intro p + p {
-    margin-top: 16px;
-  }
-
-  .links {
-    display: flex;
-    gap: 24px;
-    margin-top: 28px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-  }
-
-  .article .links a {
-    color: var(--ink-muted);
-    text-decoration: none;
-  }
-
-  .article .links a:hover {
-    color: var(--ink);
-  }
-
-  .summary {
-    margin-top: 80px;
-    padding-top: 32px;
-    border-top: 1px solid var(--line);
-    scroll-margin-top: 80px;
-  }
-
-  .summary h2 {
-    margin: 0 0 16px;
-  }
-
-  .summary p + p {
-    margin-top: 16px;
-  }
-
-  .article > p.section-label {
-    margin-top: 0;
-    padding-top: 96px;
-    font-family: var(--font-mono);
-    font-size: 12px !important;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-subtle);
-    scroll-margin-top: 80px;
-  }
-
-  h2 {
-    margin: 12px 0 20px;
-    font-family: var(--font-serif);
-    font-size: clamp(34px, 4vw, 46px);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
-    color: var(--ink);
-    scroll-margin-top: 80px;
-  }
-
-  #preguntas,
-  #fuentes {
-    margin-top: 96px;
-  }
-
-  h3 {
-    margin: 40px 0 12px;
-    font-size: 19px;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    color: var(--ink);
-  }
-
-  sup {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 0;
-    margin-left: 2px;
-  }
-
-  .article sup a {
-    color: var(--ink-subtle);
-    text-decoration: none;
-  }
-
-  .list {
-    margin: 20px 0 24px;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 8px;
-  }
-
-  .list li {
-    position: relative;
-    padding-left: 24px;
-  }
-
-  .list li::before {
-    content: '';
-    position: absolute;
-    left: 4px;
-    top: 0.85em;
-    width: 8px;
-    height: 1px;
-    background: var(--ink-subtle);
-  }
-
-  .pull {
-    margin: 40px 0;
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: clamp(28px, 3.2vw, 36px);
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    color: var(--ink);
-    text-wrap: balance;
-  }
-
-  /* Fig. 2 */
-  .stats {
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border: 1px solid var(--line);
-    border-radius: 12px;
-  }
-
-  .stats div {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 24px 20px;
-  }
-
-  .stats dd {
-    order: -1;
-  }
-
-  .stats div + div {
-    border-left: 1px solid var(--line);
-  }
-
-  .stats dd {
-    margin: 0;
-    font-family: var(--font-serif);
-    font-size: clamp(34px, 4vw, 44px);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    color: var(--ink);
-  }
-
-  .stats dt {
-    font-size: 13px;
-    line-height: 1.4;
-    color: var(--ink-subtle);
-  }
-
-  .hero-figure {
-    margin-top: 8px;
-  }
-
-  .intro {
-    margin-top: 32px;
-    text-align: center;
-  }
-
-  .intro .links {
-    justify-content: center;
-    align-items: center;
-  }
-
-  .article .links a.button {
-    font-family: var(--font-sans);
-    font-size: 15px;
-    color: #fff;
-  }
-
-  .article .links a.button:hover {
-    color: #fff;
-  }
-
-  .article a.plain {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--ink-muted);
-    text-decoration: none;
-  }
-
-  .article a.plain:hover {
-    color: var(--ink);
-  }
-
-  .actors-wrap {
-    margin: 24px 0 32px;
-  }
-
-
-
-
-
-
-
-
-
-
-  .timeline {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    position: relative;
-  }
-
-  .timeline::before {
-    content: '';
-    position: absolute;
-    top: 7px;
-    left: 0;
-    right: 0;
-    border-top: 1px dashed var(--line-strong);
-  }
-
-  .timeline li {
-    position: relative;
-    padding: 28px 16px 0 0;
-    display: grid;
-    gap: 6px;
-    align-content: start;
-  }
-
-  .timeline li::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 14px;
-    height: 14px;
-    border-radius: 999px;
-    background: var(--surface);
-    border: 1.5px solid var(--navy);
-  }
-
-  .timeline li:last-child::before {
-    background: var(--navy);
-  }
-
-  .t-when {
-    font-family: var(--font-serif);
-    font-size: 26px;
-    line-height: 1;
-    color: var(--ink);
-  }
-
-  .t-text {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--ink-muted);
-  }
-
-  /* Fig. 3 */
-  .layers {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 10px;
-  }
-
-  .layers li {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
-    border: 1px dashed var(--line-strong);
-    border-radius: 12px;
-  }
-
-  .layers li.ours {
-    border: 1px solid var(--ink);
-  }
-
-  .layer-n {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: #94a3b8;
-  }
-
-  .layer-body {
-    display: grid;
-    gap: 2px;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-
-  .layer-body strong {
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .layer-tag {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #94a3b8;
-    text-align: right;
-  }
-
-  .ours .layer-tag {
-    color: var(--ink);
-  }
-
-
-  /* Fig. 7 */
-  .horizon {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-  }
-
-  .horizon li {
-    display: grid;
-    grid-template-columns: 130px 1fr;
-    gap: 16px;
-    padding: 20px;
-  }
-
-  .horizon li + li {
-    border-top: 1px solid var(--line);
-  }
-
-  .h-when {
-    padding-top: 2px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #94a3b8;
-  }
-
-  .h-body {
-    display: grid;
-    gap: 4px;
-    justify-items: start;
-    font-size: 15px;
-    line-height: 1.55;
-  }
-
-  .h-body strong {
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  .h-tag {
-    margin-top: 8px;
-    padding: 3px 8px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--ink-muted);
-  }
-
-  /* Acciones */
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 28px;
-  }
-
-  .article a.button {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 18px;
-    border-radius: 999px;
-    background: var(--navy);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 500;
-    text-decoration: none;
-  }
-
-  .article a.button:hover {
-    background: var(--navy-hover);
-  }
-
-  .article a.button.ghost {
-    background: #fff;
-    color: var(--ink);
-    border: 1px solid var(--line);
-  }
-
-  .article a.button.ghost:hover {
-    border-color: #94a3b8;
-  }
-
-  /* Preguntas */
-  .faq {
-    border-top: 1px solid var(--line);
-  }
-
-  details {
-    border-bottom: 1px solid var(--line);
-  }
-
-  summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 0;
-    font-size: 17px;
-    font-weight: 500;
-    color: var(--ink);
-    cursor: pointer;
-    list-style: none;
-  }
-
-  summary::-webkit-details-marker {
-    display: none;
-  }
-
-  summary::after {
-    content: '+';
-    flex: none;
-    font-family: var(--font-mono);
-    font-weight: 400;
-    font-size: 18px;
-    color: #94a3b8;
-  }
-
-  details[open] summary::after {
-    content: '−';
-  }
-
-  details p {
-    padding-bottom: 20px;
-    font-size: 16px;
-    line-height: 1.7;
-  }
-
-  .sources {
-    margin: 0;
-    padding-left: 20px;
-    display: grid;
-    gap: 10px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--ink-subtle);
-  }
-
-  .sources li {
-    scroll-margin-top: 80px;
-  }
-
-  .sources li:target {
-    color: var(--ink);
-  }
-
-
-  @media (max-width: 640px) {
-
-    .timeline {
-      grid-template-columns: 1fr;
-      gap: 20px;
-      padding-left: 28px;
-    }
-
-    .timeline::before {
-      top: 0;
-      bottom: 0;
-      left: 6px;
-      right: auto;
-      border-top: 0;
-      border-left: 1px dashed var(--line-strong);
-    }
-
-    .timeline li {
-      padding: 0;
-    }
-
-    .timeline li::before {
-      left: -28px;
-      top: 4px;
-    }
-
-    .stats {
-      grid-template-columns: 1fr;
-    }
-
-    .stats div + div {
-      border-left: 0;
-      border-top: 1px solid var(--line);
-    }
-
-
-    .horizon li {
-      grid-template-columns: 1fr;
-      gap: 6px;
-    }
-
-    .layers li {
-      grid-template-columns: auto 1fr;
-    }
-
-    .layer-tag {
-      grid-column: 2;
-      text-align: left;
-    }
-  }
-</style>

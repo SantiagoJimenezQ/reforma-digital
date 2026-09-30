@@ -1,5 +1,4 @@
 ---
-
 // Valores reales del select#form oficial (fixture del 27/09/2026).
 const options = [
   { name: 'Madrid', value: '/icpplustiem/citar?p=28&locale=es' },
@@ -10,33 +9,39 @@ const options = [
   { name: 'Alicante', value: '/icpco/citar?p=3&locale=es' },
 ];
 
-const t = (s: string) => `<span class="t">${s}</span>`;
-const a = (s: string) => `<span class="a">${s}</span>`;
-const q = (s: string) => `<span class="s">"${s}"</span>`;
-const c = (s: string) => `<span class="c">${s}</span>`;
+const t = (s: string) => `<span class="text-ink-subtle">${s}</span>`;
+const a = (s: string) => `<span class="text-ink">${s}</span>`;
+const q = (s: string) => `<span class="text-brand-600">"${s}"</span>`;
+const c = (s: string) => `<span class="text-[#94a3b8]">${s}</span>`;
 const lines: { html: string; opt?: string }[] = [
   { html: c('&lt;!-- #divProvincias --&gt;') },
   { html: `${t('&lt;select')} ${a('id')}=${q('form')}${t('&gt;')}` },
   { html: `  ${t('&lt;option')} ${a('value')}=${q('')}${t('&gt;')}Selecciona Provincia ...${t('&lt;/option&gt;')}` },
   ...options.map((o) => ({
     opt: o.value,
-    html: `  ${t('&lt;option')} ${a('value')}=${q(`…p=${o.value.match(/p=(\d+)/)?.[1]}`)}<span class="sel"> selected</span>${t('&gt;')}${o.name}${t('&lt;/option&gt;')}`,
+    html: `  ${t('&lt;option')} ${a('value')}=${q(`…p=${o.value.match(/p=(\d+)/)?.[1]}`)}<span class="hidden text-[#b45309] [[data-selected]_&]:inline"> selected</span>${t('&gt;')}${o.name}${t('&lt;/option&gt;')}`,
   })),
   { html: c('  …46 provincias más') },
   { html: t('&lt;/select&gt;') },
   { html: `${t('&lt;input')} ${a('id')}=${q('btnAceptar')} ${a('type')}=${q('button')} ${a('value')}=${q('Aceptar')}${t('&gt;')}` },
 ];
+
+const choice =
+  'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] hover:border-line-control focus-within:border-brand-600 focus-within:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] data-[checked]:border-brand-600 data-[checked]:bg-brand-50 data-[checked]:font-semibold data-[checked]:text-brand-900 data-[checked]:shadow-[inset_0_0_0_1px_rgb(var(--bg-brand-600))] [&_input]:m-0 [&_input]:size-[18px] [&_input]:accent-brand-600';
 ---
 
-<div class="rig" data-bridge>
-  <div class="pane ui card">
-    <p class="pane-tag mono">Lo que ves · Reforma Digital</p>
-    <fieldset>
-      <legend>Elige la provincia</legend>
-      <div class="grid">
+<div
+  class="grid grid-cols-1 items-stretch gap-0 rounded-[14px] border border-line bg-[#fafafa] p-[clamp(12px,2vw,20px)] min-[961px]:grid-cols-[minmax(0,1fr)_72px_minmax(0,1.3fr)]"
+  data-bridge
+>
+  <div class="flex min-w-0 flex-col gap-5 rounded-card border border-line bg-surface p-[clamp(20px,2.4vw,28px)] text-ink shadow-none">
+    <p class="mb-0 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-subtle">Lo que ves · Reforma Digital</p>
+    <fieldset class="m-0 border-0 p-0">
+      <legend class="mb-3 p-0 text-[22px] font-bold tracking-[-0.01em]">Elige la provincia</legend>
+      <div class="grid grid-cols-2 gap-2">
         {
           options.map((o) => (
-            <label class="choice">
+            <label class={choice} data-choice>
               <input type="radio" name="bridge-provincia" value={o.value} data-name={o.name} />
               {o.name}
             </label>
@@ -44,30 +49,52 @@ const lines: { html: string; opt?: string }[] = [
         }
       </div>
     </fieldset>
-    <button type="button" class="btn btn-primary" disabled data-go>
+    <button type="button" class="bg-btn bg-btn-primary self-start" disabled data-go>
       Elige una provincia para continuar
     </button>
   </div>
 
-  <div class="wire" aria-hidden="true">
-    <span class="wire-line"></span>
-    <span class="wire-label mono">DomBridge</span>
-    <span class="pulse" data-pulse></span>
+  <div class="relative grid h-16 place-items-center min-[961px]:h-auto">
+    <span
+      class="absolute inset-y-0 left-1/2 border-l-[1.5px] border-dashed border-line-strong min-[961px]:inset-x-0 min-[961px]:top-1/2 min-[961px]:bottom-auto min-[961px]:left-auto min-[961px]:border-l-0 min-[961px]:border-t-[1.5px]"
+      aria-hidden="true"></span>
+    <span
+      class="relative rounded-md border border-line bg-white px-2 py-1.5 font-mono text-[10px] uppercase text-ink-muted"
+      >DomBridge</span
+    >
+    <span
+      class="absolute left-0 top-1/2 mt-[-5px] hidden size-2.5 rounded-full bg-ink opacity-0 min-[961px]:block"
+      data-pulse
+    ></span>
   </div>
 
-  <div class="pane code">
-    <p class="pane-tag mono">Lo que pasa debajo · web oficial</p>
-    <pre class="html" aria-label="Estado del select oficial"><code>{
+  <div class="flex min-w-0 flex-col rounded-card border border-line bg-white p-[clamp(20px,2.4vw,28px)]">
+    <p class="mb-4 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-subtle">
+      Lo que pasa debajo · web oficial
+    </p>
+    <pre class="m-0 overflow-x-auto whitespace-pre font-mono text-[11.5px] leading-[1.7] text-ink" aria-label="Estado del select oficial"><code>{
       lines.map((line) => (
-        <span class:list={['ln', { opt: line.opt }]} data-opt={line.opt} set:html={line.html} />
+        <span
+          class:list={[
+            'mx-[-6px] block min-w-max rounded px-1.5 transition-colors duration-[250ms] data-[selected]:bg-[#f5f5f5] data-[selected]:shadow-[inset_2px_0_0_rgb(var(--bg-ink))]',
+            { opt: line.opt },
+          ]}
+          data-opt={line.opt}
+          set:html={line.html}
+        />
       ))
     }</code></pre>
-    <div class="log" role="log" aria-live="polite" aria-label="Registro del puente" data-log>
-      <p class="idle">Elige una provincia en el panel.</p>
+    <div
+      class="mt-4 min-h-[118px] border-t border-line pt-3.5 font-mono text-[12.5px] leading-[1.7] [&_p]:whitespace-pre-wrap [&_p]:[overflow-wrap:anywhere]"
+      role="log"
+      aria-live="polite"
+      aria-label="Registro del puente"
+      data-log
+    >
+      <p class="text-[#94a3b8]" data-idle>Elige una provincia en el panel.</p>
     </div>
   </div>
 </div>
-
 
 <script>
   const root = document.querySelector<HTMLElement>('[data-bridge]')!;
@@ -76,28 +103,36 @@ const lines: { html: string; opt?: string }[] = [
   const pulse = root.querySelector<HTMLElement>('[data-pulse]')!;
   let chosen: HTMLInputElement | null = null;
 
-  const write = (lines: [string, string][]) => {
-    log.querySelector('.idle')?.remove();
-    for (const [kind, text] of lines) {
+  const entryClass = {
+    cmd: 'whitespace-pre-wrap [overflow-wrap:anywhere] text-ink',
+    evt: 'whitespace-pre-wrap [overflow-wrap:anywhere] text-ink-subtle',
+    ok: 'whitespace-pre-wrap [overflow-wrap:anywhere] text-success-fg',
+  } as const;
+
+  const write = (rows: ['cmd' | 'evt' | 'ok', string][]) => {
+    log.querySelector('[data-idle]')?.remove();
+    for (const [kind, text] of rows) {
       const p = document.createElement('p');
-      p.className = kind;
-      p.textContent = text;
+      p.className = entryClass[kind];
+      p.textContent = kind === 'cmd' ? `$ ${text}` : text;
       log.append(p);
     }
     while (log.children.length > 7) log.firstElementChild!.remove();
-    pulse.classList.remove('run');
+    pulse.classList.remove('animate-travel');
     void pulse.offsetWidth;
-    pulse.classList.add('run');
+    pulse.classList.add('animate-travel');
   };
 
   root.addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement;
     if (input.name !== 'bridge-provincia') return;
     chosen = input;
-    root.querySelectorAll('.choice').forEach((c) => c.classList.toggle('checked', c.contains(input)));
-    root
-      .querySelectorAll<HTMLElement>('[data-opt]')
-      .forEach((o) => o.classList.toggle('on', o.dataset.opt === input.value));
+    root.querySelectorAll<HTMLElement>('[data-choice]').forEach((choice) => {
+      choice.toggleAttribute('data-checked', choice.contains(input));
+    });
+    root.querySelectorAll<HTMLElement>('[data-opt]').forEach((option) => {
+      option.toggleAttribute('data-selected', option.dataset.opt === input.value);
+    });
     go.disabled = false;
     go.textContent = `Continuar con ${input.dataset.name}`;
     write([
@@ -114,389 +149,3 @@ const lines: { html: string; opt?: string }[] = [
     ]);
   });
 </script>
-
-<style>
-
-
-
-
-  .rig {
-    padding: clamp(12px, 2vw, 20px);
-    border-radius: var(--radius-card);
-    background: var(--ink);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1.15fr);
-    align-items: stretch;
-  }
-
-  .pane {
-    border-radius: var(--radius-card);
-    padding: clamp(20px, 2.4vw, 28px);
-    min-width: 0;
-  }
-
-  .pane-tag {
-    margin-bottom: 16px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .ui {
-    color: var(--ink);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .ui .pane-tag {
-    color: var(--brand-600);
-  }
-
-  fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
-  }
-
-  legend {
-    padding: 0;
-    margin-bottom: 12px;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .choice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 44px;
-    padding: 8px 12px;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-control);
-    font-size: 15px;
-    cursor: pointer;
-  }
-
-  .choice:hover {
-    border-color: var(--line-control);
-  }
-
-  .choice:focus-within {
-    border-color: var(--brand-600);
-    box-shadow: 0 0 0 3px var(--brand-200);
-  }
-
-  .choice input {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: var(--brand-600);
-  }
-
-  .choice.checked {
-    border-color: var(--brand-600);
-    background: var(--brand-50);
-    color: var(--brand-900);
-    font-weight: 600;
-    box-shadow: inset 0 0 0 1px var(--brand-600);
-  }
-
-  .ui .btn {
-    align-self: flex-start;
-  }
-
-  .ui .btn:disabled {
-    background: var(--line-strong);
-    color: var(--ink-muted);
-    cursor: not-allowed;
-  }
-
-  .wire {
-    position: relative;
-    display: grid;
-    place-items: center;
-  }
-
-  .wire-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    border-top: 1.5px dashed #475569;
-  }
-
-  .wire-label {
-    position: relative;
-    padding: 6px 8px;
-    border-radius: 6px;
-    background: var(--ink);
-    border: 1px solid #334155;
-    color: #cbd5e1;
-    font-size: 10px;
-    text-transform: uppercase;
-  }
-
-  .pulse {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    margin-top: -5px;
-    border-radius: 999px;
-    background: var(--brand-500);
-    box-shadow: 0 0 16px 4px rgb(59 111 224 / 0.6);
-    opacity: 0;
-  }
-
-  .pulse.run {
-    animation: travel 700ms var(--ease);
-  }
-
-  @keyframes travel {
-    0% {
-      opacity: 1;
-      left: 0;
-    }
-    100% {
-      opacity: 0.2;
-      left: calc(100% - 10px);
-    }
-  }
-
-  .code {
-    background: #020617;
-    border: 1px solid #1e293b;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .code .pane-tag {
-    color: #94a3b8;
-  }
-
-  .html {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    line-height: 1.7;
-    color: #e2e8f0;
-    overflow-x: auto;
-    white-space: pre;
-  }
-
-
-  .ln {
-    display: block;
-    min-width: max-content;
-    padding-inline: 6px;
-    margin-inline: -6px;
-    border-radius: 4px;
-    transition: background-color 250ms;
-  }
-
-  .ln.on {
-    background: rgb(59 111 224 / 0.25);
-  }
-
-  .ln :global(.t) {
-    color: #7dd3fc;
-  }
-
-  .ln :global(.a) {
-    color: #c4b5fd;
-  }
-
-  .ln :global(.s) {
-    color: #86efac;
-  }
-
-  .ln :global(.c) {
-    color: #64748b;
-  }
-
-  .ln :global(.sel) {
-    display: none;
-    color: #fcd34d;
-  }
-
-  .ln.on :global(.sel) {
-    display: inline;
-  }
-
-  .log {
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid #1e293b;
-    min-height: 118px;
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    line-height: 1.7;
-  }
-
-  .log :global(p) {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-  }
-
-  .log :global(.idle) {
-    color: #64748b;
-  }
-
-  .log :global(.cmd) {
-    color: #e2e8f0;
-  }
-
-  .log :global(.cmd)::before {
-    content: '$ ';
-    color: #64748b;
-  }
-
-  .log :global(.evt) {
-    color: #94a3b8;
-  }
-
-  .log :global(.ok) {
-    color: #86efac;
-  }
-
-
-
-
-
-
-
-  @media (max-width: 960px) {
-    .rig {
-      grid-template-columns: 1fr;
-    }
-
-    .wire {
-      height: 64px;
-    }
-
-    .wire-line {
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      right: auto;
-      border-top: 0;
-      border-left: 1.5px dashed #475569;
-    }
-
-    .pulse {
-      display: none;
-    }
-
-  }
-  /* Versión clara para el artículo */
-  .rig {
-    grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1.3fr);
-    background: #fafafa;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-  }
-
-  .ui {
-    color: var(--ink);
-    box-shadow: none;
-    border-color: var(--line);
-  }
-
-  .ui .pane-tag,
-  .code .pane-tag {
-    color: var(--ink-subtle);
-  }
-
-  .wire-line {
-    border-top-color: var(--line-strong);
-  }
-
-  .wire-label {
-    background: #fff;
-    border-color: var(--line);
-    color: var(--ink-muted);
-  }
-
-  .pulse {
-    background: var(--ink);
-    box-shadow: none;
-  }
-
-  .code {
-    background: #fff;
-    border: 1px solid var(--line);
-  }
-
-  .html {
-    color: var(--ink);
-    font-size: 11.5px;
-  }
-
-  .ln.on {
-    background: #f5f5f5;
-    box-shadow: inset 2px 0 0 var(--ink);
-  }
-
-  .ln :global(.t) {
-    color: var(--ink-subtle);
-  }
-
-  .ln :global(.a) {
-    color: var(--ink);
-  }
-
-  .ln :global(.s) {
-    color: #1f57bf;
-  }
-
-  .ln :global(.c) {
-    color: #94a3b8;
-  }
-
-  .ln :global(.sel) {
-    color: #b45309;
-  }
-
-  .log {
-    border-top-color: var(--line);
-  }
-
-  .log :global(.idle) {
-    color: #94a3b8;
-  }
-
-  .log :global(.cmd) {
-    color: var(--ink);
-  }
-
-  .log :global(.cmd)::before {
-    color: #94a3b8;
-  }
-
-  .log :global(.evt) {
-    color: var(--ink-subtle);
-  }
-
-  .log :global(.ok) {
-    color: #05603a;
-  }
-
-  @media (max-width: 960px) {
-    .rig {
-      grid-template-columns: 1fr;
-    }
-
-    .wire-line {
-      border-left-color: var(--line-strong);
-    }
-  }
-</style>
