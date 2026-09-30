@@ -1,8 +1,8 @@
-const repo = 'https://github.com/samuelcorsan/better-government';
+const repo = 'https://github.com/samuelcorsan/reforma-digital';
 
 export const links = {
   repo,
-  install: `${repo}#desarrollo`,
+  install: 'https://github.com/samuelcorsan/reforma-digital/releases/tag/v0.1.0-pre-alpha',
   architecture: `${repo}/blob/main/docs/ARCHITECTURE.md`,
   design: `${repo}/blob/main/DESIGN.md`,
   contributing: `${repo}/blob/main/CONTRIBUTING.md`,
@@ -15,7 +15,7 @@ export const links = {
 export const authors = [
   { name: 'Leo', href: 'https://x.com/mrloldev' },
   { name: 'Samu', href: 'https://x.com/disamdev' },
-  { name: 'Pablo', href: 'https://x.com/pdepablo' },
+  { name: 'Pablo', href: 'https://x.com/pdepablocom' },
 ];
 
 export const nav = [
