@@ -10,10 +10,12 @@
     "check": "astro check"
   },
   "dependencies": {
-    "@reforma-digital/design": "*",
     "@fontsource-variable/instrument-sans": "5.3.0",
     "@fontsource/ibm-plex-mono": "5.3.0",
     "@fontsource/instrument-serif": "5.3.0",
-    "astro": "7.3.5"
+    "@reforma-digital/design": "*",
+    "astro": "7.3.5",
+    "postcss": "8.5.28",
+    "tailwindcss": "3.4.19"
   }
 }
