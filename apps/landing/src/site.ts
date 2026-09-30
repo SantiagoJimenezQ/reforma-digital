@@ -8,6 +8,7 @@ export const links = {
   contributing: `${repo}/blob/main/CONTRIBUTING.md`,
   security: `${repo}/blob/main/SECURITY.md`,
   license: `${repo}/blob/main/LICENSE`,
+  hacienda: `${repo}/tree/main/sites/hacienda`,
   extranjeria: `${repo}/tree/main/sites/extranjeria`,
   dni: `${repo}/tree/main/sites/dni`,
 };
@@ -21,69 +22,22 @@ export const authors = [
 export const nav = [
   { href: '#texto', label: 'El texto' },
   { href: '#horizonte', label: 'Hoja de ruta' },
-  { href: '#preguntas', label: 'Preguntas' },
+  { href: '#participar', label: 'Participar' },
 ];
 
-/** Provincias tal y como las ofrece la web oficial (fixture del 27/09/2026). */
-export const provincias = [
-  'A Coruña',
-  'Albacete',
-  'Alicante',
-  'Almería',
-  'Araba',
-  'Asturias',
-  'Ávila',
-  'Badajoz',
-  'Barcelona',
-  'Bizkaia',
-  'Burgos',
-  'Cáceres',
-  'Cádiz',
-  'Cantabria',
-  'Castellón',
-  'Ceuta',
-  'Ciudad Real',
-  'Córdoba',
-  'Cuenca',
-  'Gipuzkoa',
-  'Girona',
-  'Granada',
-  'Guadalajara',
-  'Huelva',
-  'Huesca',
-  'Illes Balears',
-  'Jaén',
-  'La Rioja',
-  'Las Palmas',
-  'León',
-  'Lleida',
-  'Lugo',
-  'Madrid',
-  'Málaga',
-  'Melilla',
-  'Murcia',
-  'Navarra',
-  'Ourense',
-  'Palencia',
-  'Pontevedra',
-  'Salamanca',
-  'S.Cruz Tenerife',
-  'Segovia',
-  'Sevilla',
-  'Soria',
-  'Tarragona',
-  'Teruel',
-  'Toledo',
-  'Valencia',
-  'Valladolid',
-  'Zamora',
-  'Zaragoza',
-];
-
+/** Pasos de la aplicación oficial «Asistencia y Cita» de la Agencia Tributaria (sept. 2026). */
 export const pasos = [
-  'Información del trámite',
-  'Provincia',
-  'Oficina y trámite',
-  'Requisitos y forma de acceso',
-  'Tus datos y la cita',
+  'Tipo de cita y servicio',
+  'Para quién',
+  'Para qué',
+  'Selección de cita',
+  'Confirmación',
 ];
+
+/** Normaliza para buscar sin tildes ni arrobas: «clave» encuentra «Cl@ve». */
+export const normalize = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/@/g, 'a')
+    .toLowerCase();

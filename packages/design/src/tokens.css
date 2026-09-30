@@ -15,55 +15,55 @@
 :root[data-bg-popup],
 :root[data-bg-landing] {
   /* Texto */
-  --bg-ink: 15 23 42; /* #0F172A  17.9:1 sobre blanco */
-  --bg-ink-muted: 71 85 105; /* #475569   7.6:1 */
-  --bg-ink-subtle: 90 106 128; /* #5A6A80   5.5:1 (5.0:1 sobre canvas) · texto secundario */
+  --bg-ink: 20 20 20;
+  --bg-ink-muted: 85 85 85;
+  --bg-ink-subtle: 105 105 105;
   --bg-ink-inverse: 255 255 255;
 
   /* Superficies */
-  --bg-canvas: 243 245 248; /* #F3F5F8  fondo de página */
-  --bg-surface: 255 255 255; /* #FFFFFF  tarjetas */
-  --bg-surface-muted: 248 250 252; /* #F8FAFC  zonas secundarias */
+  --bg-canvas: 250 250 250;
+  --bg-surface: 255 255 255;
+  --bg-surface-muted: 247 247 247;
 
   /* Líneas */
-  --bg-line: 226 232 240; /* #E2E8F0 */
-  --bg-line-strong: 203 213 225; /* #CBD5E1  separadores de tarjetas seleccionables */
-  --bg-line-control: 116 132 154; /* #74849A  3.8:1 · borde de campos (WCAG 1.4.11) */
+  --bg-line: 235 235 235;
+  --bg-line-strong: 220 220 220;
+  --bg-line-control: 128 128 128;
 
-  /* Marca: azul cívico */
-  --bg-brand-50: 238 244 255; /* #EEF4FF */
-  --bg-brand-100: 220 231 254; /* #DCE7FE */
-  --bg-brand-200: 191 211 254; /* #BFD3FE */
-  --bg-brand-500: 59 111 224; /* #3B6FE0 */
-  --bg-brand-600: 31 87 191; /* #1F57BF   6.6:1 · acciones y enlaces */
-  --bg-brand-700: 27 70 154; /* #1B469A   8.8:1 · hover */
-  --bg-brand-900: 21 44 92; /* #152C5C */
+  /* Marca: tinta neutra */
+  --bg-brand-50: 247 247 247;
+  --bg-brand-100: 238 238 238;
+  --bg-brand-200: 205 205 205;
+  --bg-brand-500: 64 64 64;
+  --bg-brand-600: 20 20 20;
+  --bg-brand-700: 45 45 45;
+  --bg-brand-900: 20 20 20;
 
   /* Estados: fondo · borde · texto */
-  --bg-info-bg: 239 246 255; /* #EFF6FF */
-  --bg-info-line: 191 219 254; /* #BFDBFE */
-  --bg-info-fg: 30 58 138; /* #1E3A8A */
+  --bg-info-bg: 239 246 255;
+  --bg-info-line: 191 219 254;
+  --bg-info-fg: 30 58 138;
 
-  --bg-warning-bg: 255 251 235; /* #FFFBEB */
-  --bg-warning-line: 252 211 77; /* #FCD34D */
-  --bg-warning-fg: 120 53 15; /* #78350F */
+  --bg-warning-bg: 255 251 235;
+  --bg-warning-line: 252 211 77;
+  --bg-warning-fg: 120 53 15;
 
-  --bg-danger-bg: 254 242 242; /* #FEF2F2 */
-  --bg-danger-line: 252 165 165; /* #FCA5A5 */
-  --bg-danger-fg: 153 27 27; /* #991B1B */
+  --bg-danger-bg: 254 242 242;
+  --bg-danger-line: 252 165 165;
+  --bg-danger-fg: 153 27 27;
 
-  --bg-success-bg: 236 253 243; /* #ECFDF3 */
-  --bg-success-line: 166 244 197; /* #A6F4C5 */
-  --bg-success-fg: 5 96 58; /* #05603A */
+  --bg-success-bg: 236 253 243;
+  --bg-success-line: 166 244 197;
+  --bg-success-fg: 5 96 58;
 
   /* Forma */
-  --bg-radius-control: 10px;
-  --bg-radius-card: 16px;
-  --bg-shadow-card: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.04);
-  --bg-shadow-raised: 0 10px 30px -12px rgb(15 23 42 / 0.25);
+  --bg-radius-control: 16px;
+  --bg-radius-card: 24px;
+  --bg-shadow-card: none;
+  --bg-shadow-raised: 0 10px 30px -12px rgb(20 20 20 / 0.25);
 
   /* Tipografía: fuentes del sistema (sin fuentes remotas, ver DESIGN.md §Privacidad) */
-  --bg-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --bg-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --bg-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Layout */
