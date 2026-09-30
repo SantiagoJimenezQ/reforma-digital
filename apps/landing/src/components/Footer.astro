@@ -1,6 +1,6 @@
 ---
 import Logo from './Logo.astro';
-import { links } from '../site';
+import { authors, links } from '../site';
 ---
 
 <footer class="border-t border-line py-10">
@@ -12,8 +12,29 @@ import { links } from '../site';
       Proyecto independiente y comunitario, sin vinculación con la Administración. Los trámites se
       completan siempre en la web oficial.
     </p>
-    <p class="max-w-[60ch] text-sm text-ink-subtle">
-      <a class="text-inherit" href={links.license}>Licencia MIT</a> · 2026
-    </p>
+    <div class="grid gap-1 text-sm text-ink-subtle">
+      <p>
+        <a class="text-inherit" href={links.license}>Licencia MIT</a> · 2026
+      </p>
+      <p>
+        Made by{' '}
+        {
+          authors.map((author, index) => (
+            <>
+              {index === authors.length - 1 ? ' & ' : index > 0 ? ', ' : null}
+              <a
+                class="text-ink underline decoration-line-strong underline-offset-[3px] hover:decoration-ink"
+                href={author.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {author.name}
+                <span class="sr-only"> (se abre en una pestaña nueva)</span>
+              </a>
+            </>
+          ))
+        }
+      </p>
+    </div>
   </div>
 </footer>

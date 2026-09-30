@@ -16,6 +16,7 @@
     "dev": "vite --config apps/playground/vite.config.ts",
     "landing:dev": "astro dev --root apps/landing",
     "landing:build": "astro build --root apps/landing",
+    "landing:og": "node apps/landing/scripts/render-og.mjs",
     "build": "node scripts/build.mjs",
     "build:test": "node scripts/build.mjs --test",
     "typecheck": "tsc --noEmit",

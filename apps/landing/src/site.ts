@@ -12,6 +12,12 @@ export const links = {
   dni: `${repo}/tree/main/sites/dni`,
 };
 
+export const authors = [
+  { name: 'Leo', href: 'https://x.com/mrloldev' },
+  { name: 'Samu', href: 'https://x.com/disamdev' },
+  { name: 'Pablo', href: 'https://x.com/pdepablo' },
+];
+
 export const nav = [
   { href: '#texto', label: 'El texto' },
   { href: '#horizonte', label: 'Hoja de ruta' },
