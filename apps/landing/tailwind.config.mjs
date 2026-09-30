@@ -10,7 +10,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['Instrument Serif', 'Georgia', 'Times New Roman', 'serif'],
+        serif: ['Georgia', 'Times New Roman', 'serif'],
       },
       maxWidth: {
         page: '1280px',

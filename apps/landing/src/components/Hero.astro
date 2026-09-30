@@ -3,7 +3,7 @@ import Logo from './Logo.astro';
 import { links, nav } from '../site';
 ---
 
-<section aria-labelledby="hero-title">
+<section class="full-hero" aria-labelledby="hero-title">
   <div class="px-[clamp(16px,3vw,40px)]">
     <div class="flex h-[76px] items-center justify-between gap-6">
       <a href="#" class="no-underline [&_span:last-child]:!text-base" aria-label="Reforma Digital, inicio">
@@ -18,7 +18,7 @@ import { links, nav } from '../site';
           ))
         }
         <a
-          class="inline-flex h-[38px] items-center rounded-full bg-brand-900 px-4 text-sm font-medium text-white no-underline hover:bg-[#1b3a78] hover:text-white"
+          class="inline-flex h-[38px] items-center rounded-full bg-brand-900 px-4 text-sm font-medium text-white no-underline hover:bg-[#333] hover:text-white"
           href={links.install}>Instalar</a
         >
       </nav>

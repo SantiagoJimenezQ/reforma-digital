@@ -10,28 +10,24 @@ const marks = [
     n: 1,
     box: [258, 110, 404, 146],
     at: [420, 128],
-    dy: 8,
     text: 'Las 52 provincias, en un desplegable sin buscador.',
   },
   {
     n: 2,
     box: [60, 234, 582, 258],
     at: [600, 246],
-    dy: 0,
     text: 'El aviso de "lea atentamente" va después del botón.',
   },
   {
     n: 3,
     box: [64, 168, 264, 208],
     at: [282, 188],
-    dy: 0,
     text: 'Aceptar no dice qué pasa al pulsarlo.',
   },
   {
     n: 4,
     box: [60, 58, 420, 94],
     at: [436, 76],
-    dy: -10,
     text: 'Nada indica cuántos pasos quedan ni en cuál estás.',
   },
 ];
@@ -39,7 +35,7 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
 ---
 
 <div>
-  <div class="relative overflow-hidden rounded-xl border border-line bg-[#f6f6f6]">
+  <div class="relative overflow-hidden rounded-[20px] bg-[#f6f6f6]">
     <Image
       class="block h-auto w-full"
       src={shot}
@@ -48,7 +44,7 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
       sizes="(max-width: 900px) 100vw, 900px"
     />
     {
-      marks.map((m, i) => (
+      marks.map((m) => (
         <>
           <span
             class="absolute rounded-md border-2 border-brand-900 bg-brand-900/10"
@@ -62,23 +58,17 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
           >
             {m.n}
           </span>
-          <span
-            class="absolute z-[1] ml-[22px] hidden -translate-y-1/2 animate-pop whitespace-nowrap rounded-[10px] bg-brand-900 px-3 py-1.5 text-[13px] leading-snug text-white shadow-[0_10px_24px_-12px_rgb(21_44_92/0.6)] before:absolute before:left-[-5px] before:top-1/2 before:mt-[-5px] before:size-2.5 before:rotate-45 before:rounded-sm before:bg-brand-900 min-[721px]:block"
-            aria-hidden="true"
-            style={`left:${pct(m.at[0]!, W)};top:calc(${pct(m.at[1]!, H)} + ${m.dy}px);animation-delay:calc(200ms + ${i} * 120ms)`}
-          >
-            {m.text}
-          </span>
+
         </>
       ))
     }
   </div>
-  <ol class="m-0 mt-4 grid list-none gap-3 p-0 min-[721px]:sr-only">
+  <ol class="m-0 mt-4 grid list-none gap-3 p-0 sm:grid-cols-2">
     {
       marks.map((m) => (
-        <li class="flex gap-3 text-[15px] leading-normal text-ink-muted">
+        <li class="flex items-start gap-3 rounded-2xl bg-[#f7f7f7] p-4 text-[14px] leading-relaxed text-ink-muted">
           <span
-            class="grid size-[22px] shrink-0 place-items-center rounded-full border border-brand-900 font-mono text-[11px] text-brand-900"
+            class="grid size-[22px] shrink-0 place-items-center rounded-full bg-white font-mono text-[11px] text-brand-900"
             aria-hidden="true"
           >
             {m.n}

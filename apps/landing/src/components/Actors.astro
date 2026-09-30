@@ -1,4 +1,5 @@
 ---
+import { UserRound, BriefcaseBusiness, Landmark } from '@lucide/astro';
 interface Item {
   icon: 'person' | 'company' | 'state';
   title: string;
@@ -11,28 +12,22 @@ interface Props {
 
 const { items } = Astro.props;
 
-const icons = {
-  person:
-    '<svg viewBox="0 0 24 24" class="size-[22px]"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-  company:
-    '<svg viewBox="0 0 24 24" class="size-[22px]"><rect x="3.5" y="7.5" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5M3.5 12.5h17" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
-  state:
-    '<svg viewBox="0 0 24 24" class="size-[22px]"><path d="M3.5 9 12 4.5 20.5 9M5 9.5v8M9.5 9.5v8M14.5 9.5v8M19 9.5v8M3.5 19.5h17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-};
+const icons = { person: UserRound, company: BriefcaseBusiness, state: Landmark };
 ---
 
 <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 min-[721px]:grid-cols-3">
   {
-    items.map((item) => (
-      <li class="rounded-card border border-line bg-surface px-5 py-[22px]">
+    items.map((item) => {
+      const Icon = icons[item.icon];
+      return (
+      <li class="rounded-card border-0 bg-[#f7f7f7] px-5 py-[22px]">
         <span
           class="grid size-11 place-items-center rounded-full bg-canvas text-brand-900"
           aria-hidden="true"
-          set:html={icons[item.icon]}
-        />
+        ><Icon size={22} strokeWidth={1.65} /></span>
         <p class="mt-4 font-serif text-2xl leading-[1.1] text-ink">{item.title}</p>
         <p class="mt-2 text-[15px] leading-[1.55] text-ink-muted">{item.text}</p>
       </li>
-    ))
+    ); })
   }
 </ul>

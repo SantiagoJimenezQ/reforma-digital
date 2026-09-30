@@ -8,7 +8,7 @@ const { size = 28, inverse = false } = Astro.props;
 ---
 
 <span class:list={['inline-flex items-center gap-2.5', inverse ? 'text-white' : 'text-ink']}>
-  <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+  <svg width={size} height={size} viewBox="0 0 32 32" style="transform: rotate(-90deg)" aria-hidden="true">
     <path d="M16 3.5 28 10l-12 6.5L4 10z" fill="currentColor"></path>
     <path
       d="m4 15.5 12 6.5 12-6.5M4 21.5 16 28l12-6.5"

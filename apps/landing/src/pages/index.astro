@@ -169,12 +169,12 @@ const faqs = [
   </div>
   <Banner />
   <div
-    class="mx-[clamp(8px,1.6vw,20px)] mb-[clamp(8px,1.6vw,20px)] overflow-clip rounded-[clamp(24px,3vw,40px)] border border-line bg-[linear-gradient(180deg,#eef1f5_0,#f7f8fa_520px,#fff_900px)]"
+    class="full-landing"
   >
     <Hero />
     <main
       id="contenido"
-      class="grid pb-24 text-ink-muted [--content:min(680px,calc(100%-2*var(--gutter)))] [grid-template-columns:minmax(var(--gutter),1fr)_minmax(0,120px)_var(--content)_minmax(0,120px)_minmax(var(--gutter),1fr)] [&>*]:col-start-3 [&>*]:col-end-4 [&>.wide]:col-start-2 [&>.wide]:col-end-5 [&>p]:text-[clamp(17px,1.5vw,19px)] [&>p]:leading-[1.75] [&>p+p]:mt-[18px] [&_a]:text-ink [&_a]:underline [&_a]:decoration-line-strong [&_a]:underline-offset-[3px] hover:[&_a]:decoration-ink [&>h2]:mb-5 [&>h2]:mt-3 [&>h2]:scroll-mt-20 [&>h2]:font-serif [&>h2]:text-[clamp(34px,4vw,46px)] [&>h2]:font-normal [&>h2]:leading-[1.05] [&>h2]:tracking-[-0.02em] [&>h2]:text-ink [&>h3]:mb-3 [&>h3]:mt-10 [&>h3]:text-[19px] [&>h3]:font-semibold [&>h3]:tracking-[-0.015em] [&>h3]:text-ink [&_sup]:ml-0.5 [&_sup]:font-mono [&_sup]:text-[11px] [&_sup]:leading-none [&_sup_a]:!text-ink-subtle [&_sup_a]:!no-underline [&>.section-label]:mt-0 [&>.section-label]:scroll-mt-20 [&>.section-label]:pt-24 [&>.section-label]:font-mono [&>.section-label]:text-xs [&>.section-label]:uppercase [&>.section-label]:tracking-[0.12em] [&>.section-label]:text-ink-subtle"
+      class="full-article"
     >
       <div class="wide mt-2">
         <HeroFigure />
@@ -186,7 +186,7 @@ const faqs = [
         </p>
         <div class="mt-7 flex items-center justify-center gap-6 font-mono text-[13px]">
           <a
-            class="inline-flex h-11 items-center rounded-full bg-brand-900 px-[18px] font-sans text-[15px] font-medium !text-white !no-underline hover:bg-[#1b3a78] hover:!text-white"
+            class="inline-flex h-11 items-center rounded-full bg-brand-900 px-[18px] font-sans text-[15px] font-medium !text-white !no-underline hover:bg-[#333] hover:!text-white"
             href="#texto">Leer el texto completo</a
           >
           <a class="!font-mono !text-[13px] !text-ink-muted !no-underline hover:!text-ink" href="#resumen"
@@ -345,7 +345,7 @@ const faqs = [
                 l.ours ? 'border border-ink' : 'border border-dashed border-line-strong',
               ]}
             >
-              <span class="font-mono text-xs text-[#94a3b8]">{i + 1}</span>
+              <span class="font-mono text-xs text-ink-subtle">{i + 1}</span>
               <span class="grid gap-0.5 text-[15px] leading-normal">
                 <strong class="font-semibold text-ink">{l.name}</strong>
                 <span>{l.text}</span>
@@ -353,7 +353,7 @@ const faqs = [
               <span
                 class:list={[
                   'col-start-2 text-left font-mono text-[11px] uppercase tracking-[0.06em] sm:col-start-auto sm:text-right',
-                  l.ours ? 'text-ink' : 'text-[#94a3b8]',
+                  l.ours ? 'text-ink' : 'text-ink-subtle',
                 ]}
               >
                 {l.tag}
@@ -444,7 +444,7 @@ const faqs = [
         {
           horizon.map((h) => (
             <li class="grid grid-cols-1 gap-1.5 border-t border-line p-5 first:border-t-0 sm:grid-cols-[130px_1fr] sm:gap-4">
-              <span class="pt-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-[#94a3b8]">{h.when}</span>
+              <span class="pt-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-subtle">{h.when}</span>
               <span class="grid justify-items-start gap-1 text-[15px] leading-[1.55]">
                 <strong class="font-semibold text-ink">{h.title}</strong>
                 <span>{h.text}</span>
@@ -477,7 +477,7 @@ const faqs = [
     </p>
     <div class="mt-7 flex flex-wrap gap-3">
       <a
-        class="inline-flex h-11 items-center rounded-full bg-brand-900 px-[18px] text-[15px] font-medium !text-white !no-underline hover:bg-[#1b3a78]"
+        class="inline-flex h-11 items-center rounded-full bg-brand-900 px-[18px] text-[15px] font-medium !text-white !no-underline hover:bg-[#333]"
         href={links.install}>Instalar la extensión</a
       >
       <a
@@ -488,7 +488,7 @@ const faqs = [
 
     <h2 id="preguntas" class="!mt-24">Preguntas frecuentes</h2>
     <div
-      class="border-t border-line [&_details]:border-b [&_details]:border-line [&_summary]:flex [&_summary]:cursor-pointer [&_summary]:list-none [&_summary]:items-center [&_summary]:justify-between [&_summary]:gap-4 [&_summary]:py-[18px] [&_summary]:text-[17px] [&_summary]:font-medium [&_summary]:text-ink [&_summary::-webkit-details-marker]:hidden [&_summary]:after:shrink-0 [&_summary]:after:font-mono [&_summary]:after:text-lg [&_summary]:after:font-normal [&_summary]:after:text-[#94a3b8] [&_summary]:after:content-['+'] [&_details[open]_summary]:after:content-['−'] [&_details_p]:pb-5 [&_details_p]:text-base [&_details_p]:leading-[1.7]"
+      class="border-t border-line [&_details]:border-b [&_details]:border-line [&_summary]:flex [&_summary]:cursor-pointer [&_summary]:list-none [&_summary]:items-center [&_summary]:justify-between [&_summary]:gap-4 [&_summary]:py-[18px] [&_summary]:text-[17px] [&_summary]:font-medium [&_summary]:text-ink [&_summary::-webkit-details-marker]:hidden [&_summary]:after:shrink-0 [&_summary]:after:font-mono [&_summary]:after:text-lg [&_summary]:after:font-normal [&_summary]:after:text-ink-subtle [&_summary]:after:content-['+'] [&_details[open]_summary]:after:content-['−'] [&_details_p]:pb-5 [&_details_p]:text-base [&_details_p]:leading-[1.7]"
     >
       {
         faqs.map((item) => (

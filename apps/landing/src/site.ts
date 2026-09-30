@@ -1,4 +1,4 @@
-const repo = 'https://github.com/samuelcorsan/better-government';
+const repo = 'https://github.com/samuelcorsan/reforma-digital';
 
 export const links = {
   repo,
