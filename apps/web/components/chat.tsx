@@ -41,7 +41,6 @@ type SourceView = { evidence: Evidence[]; selected?: Evidence };
 const stages: Record<Stage, string> = {
   understandQuery: "Entendiendo tu pregunta",
   retrieval: "Consultando fuentes oficiales",
-  rerank: "Seleccionando evidencias",
   generation: "Redactando y verificando la respuesta",
   evaluation: "Comprobando referencias",
 };

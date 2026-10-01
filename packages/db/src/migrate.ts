@@ -8,7 +8,7 @@ try {
     for (const id of [
       "0001_initial",
       "0002_applicability",
-      "0003_index_scope",
+      "0004_retire_document_index",
     ]) {
       const done = await tx`SELECT id FROM schema_migrations WHERE id=${id}`;
       if (!done.length) {

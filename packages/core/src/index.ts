@@ -8,16 +8,8 @@ export type Source = {
   organization: string;
   jurisdictionType: "country" | "region" | "municipality";
   jurisdictionValue: Jurisdiction;
-  sourceType: "web" | "boe-api";
   authorityScore: number;
   enabled: boolean;
-  crawlConfig: {
-    seeds: string[];
-    maxPages: number;
-    recrawlHours: number;
-    includePaths?: string[];
-    priorityTerms?: string[];
-  };
 };
 export type Evidence = {
   chunkId: string;
@@ -79,37 +71,18 @@ export type VerifiedClaim = {
   citations: Answer["citations"];
 };
 export const configSchema = z.object({
-  vectorTopK: z.number().int().min(1).max(100).default(40),
-  lexicalTopK: z.number().int().min(1).max(100).default(40),
-  fusionK: z.number().min(1).default(60),
-  rerankerTopK: z.number().int().min(1).max(40).default(20),
-  diverseReranking: z.boolean().default(false),
-  rerankerChunksPerDocument: z.number().int().min(1).max(12).default(4),
   finalEvidenceCount: z.number().int().min(1).max(12).default(8),
-  evidenceChunksPerDocument: z.number().int().min(1).max(12).default(2),
-  chunkSize: z.number().int().min(200).max(1200).default(600),
-  chunkOverlap: z.number().int().min(0).max(200).default(70),
-  embeddingModel: z.string().default("google/gemini-embedding-001"),
-  embeddingDimensions: z.literal(1536).default(1536),
   reasoningEffort: z
     .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
-    .default("medium"),
+    .default("high"),
   generationModel: z.string().default("openai/gpt-6-luna"),
-  rerankerModel: z.string().default("openai/gpt-6-luna"),
   judgeModel: z.string().default("openai/gpt-6-luna"),
   promptVersion: z.enum(["evidence-v1", "evidence-v2"]).default("evidence-v2"),
-  fusionAlgorithm: z.enum(["rrf", "weighted-rrf"]).default("rrf"),
-  lexicalWeight: z.number().min(0).max(2).default(1),
-  vectorWeight: z.number().min(0).max(2).default(1),
-  ftsTitleWeight: z.number().min(0).max(1).default(1),
-  authorityWeight: z.number().min(0).max(1).default(0.15),
-  freshnessWeight: z.number().min(0).max(1).default(0.08),
-  minRerankRelevance: z.number().min(0).max(1).default(0.6),
 });
 export type SearchConfig = z.infer<typeof configSchema>;
 export const defaultConfig = configSchema.parse({});
 export type Stage =
-  "understandQuery" | "retrieval" | "rerank" | "generation" | "evaluation";
+  "understandQuery" | "retrieval" | "generation" | "evaluation";
 export type SearchResult = {
   id: string;
   traceId: string;
@@ -169,14 +142,4 @@ export function evidenceText(markdown: string): string {
 export function quoteSupported(content: string, quote: string): boolean {
   const text = evidenceText(quote);
   return text.length >= 8 && evidenceText(content).includes(text);
-}
-
-/** Stable identity for the index-affecting knobs, shared by ingestion and evals. */
-export function indexConfigIdentity(config: SearchConfig): string {
-  return JSON.stringify({
-    size: config.chunkSize,
-    overlap: config.chunkOverlap,
-    model: config.embeddingModel,
-    dimensions: config.embeddingDimensions,
-  });
 }

@@ -4,7 +4,7 @@ import * as schema from "./schema";
 export * from "./schema";
 export { eq, and, desc, sql } from "drizzle-orm";
 let client: ReturnType<typeof postgres> | undefined;
-export function indexAvailable(): boolean {
+export function databaseAvailable(): boolean {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
   if (process.env.VERCEL && /@(?:127\.0\.0\.1|localhost)(?::|\/|$)/.test(url))

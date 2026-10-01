@@ -27,12 +27,9 @@ export default function Sources() {
                       : "Municipio de Madrid"}
                 </p>
                 <span className="registry-meta">
-                  Fuente aprobada ·{" "}
-                  {s.sourceType === "boe-api"
-                    ? "API de datos abiertos"
-                    : "Web oficial"}
+                  Fuente aprobada · Web oficial
                   <br />
-                  Incorporación progresiva de documentos
+                  Consultada mediante búsqueda web
                 </span>
                 <a href={s.baseUrl} target="_blank" rel="noopener noreferrer">
                   Visitar organismo <ArrowUpRight size={15} />
@@ -41,13 +38,11 @@ export default function Sources() {
             ))}
           </div>
           <div className="prose">
-            <h2>Aprobada no significa indexada por completo.</h2>
+            <h2>Las respuestas dependen de la evidencia disponible.</h2>
             <p>
-              Empezamos con los trámites más útiles. Una fuente incluida en el
-              registro puede tener documentos todavía pendientes de rastreo. Si
-              la información recuperada no basta, el buscador lo indica. La
-              fecha de consulta y el fragmento utilizado se muestran en cada
-              cita.
+              Buscamos en la web de estos organismos para cada consulta. Si la
+              información recuperada no basta, el buscador lo indica. La fecha
+              de consulta y el fragmento utilizado se muestran en cada cita.
             </p>
           </div>
         </main>

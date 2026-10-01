@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defaultConfig } from "../packages/core/src/index";
-import { languageModel, embeddingModel } from "../packages/ai/src/models";
+import { languageModel } from "../packages/ai/src/models";
 import {
   recordUsage,
   usageContext,
@@ -11,7 +11,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe("OpenRouter transport", () => {
-  it("sends GPT-6 Luna with medium reasoning to OpenRouter", async () => {
+  it("sends GPT-6 Luna with high reasoning to OpenRouter", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "test-only-key");
     let request: Record<string, unknown> = {};
     let url = "";
@@ -46,37 +46,9 @@ describe("OpenRouter transport", () => {
     });
     expect(url).toBe("https://openrouter.ai/api/v1/chat/completions");
     expect(request.model).toBe("openai/gpt-6-luna");
-    expect(request.reasoning).toEqual({ effort: "medium", exclude: true });
+    expect(request.reasoning).toEqual({ effort: "high", exclude: true });
     expect(request.provider).toEqual({ require_parameters: true });
   });
-  it.each([
-    ["query", "search_query"],
-    ["document", "search_document"],
-  ] as const)(
-    "preserves dimensions and the %s embedding task",
-    async (kind, inputType) => {
-      vi.stubEnv("OPENROUTER_API_KEY", "test-only-key");
-      let request: Record<string, unknown> = {};
-      vi.stubGlobal(
-        "fetch",
-        vi.fn(async (_input, init) => {
-          request = JSON.parse(init.body);
-          return Response.json({
-            object: "list",
-            data: [{ object: "embedding", index: 0, embedding: [1, 2, 3] }],
-            model: defaultConfig.embeddingModel,
-            usage: { prompt_tokens: 1, total_tokens: 1 },
-          });
-        }),
-      );
-      await embeddingModel(defaultConfig, kind).doEmbed({ values: ["test"] });
-      expect(request).toMatchObject({
-        model: "google/gemini-embedding-001",
-        dimensions: 1536,
-        input_type: inputType,
-      });
-    },
-  );
 });
 describe("OpenRouter accounting", () => {
   it("records the real OpenRouter cost and never turns unknown cost into zero", () => {

@@ -14,7 +14,6 @@
     "@gov/government": "workspace:*",
     "@gov/db": "workspace:*",
     "@gov/ai": "workspace:*",
-    "@gov/retrieval": "workspace:*",
     "zod": "^4.1.0",
     "@langfuse/client": "^5.11.1"
   }
