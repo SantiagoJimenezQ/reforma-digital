@@ -235,6 +235,8 @@ function AnswerActions({
     turn.blocks.some((b) => b.citations.some((c) => c.chunkId === e.chunkId)),
   );
   const agencies = [...new Set(evidence.map((e) => e.organization))];
+  const hasRealAnswer =
+    turn.blocks.length > 0 || turn.result?.answer.status === "answered";
   async function vote(value: 1 | -1) {
     if (!turn.result?.feedbackToken) return;
     setBusy(true);
@@ -276,6 +278,8 @@ function AnswerActions({
       );
     }
   }
+  if (!evidence.length && !turn.result?.feedbackToken && !hasRealAnswer && !negative && !message)
+    return null;
   return (
     <>
       <div className="chat-actions">
@@ -314,13 +318,15 @@ function AnswerActions({
             </button>
           </div>
         )}
-        <button
-          className="chat-icon chat-copy"
-          onClick={() => void copy()}
-          aria-label={copied ? "Copiado" : "Copiar respuesta"}
-        >
-          {copied ? <Check size={16} /> : <Copy size={16} />}
-        </button>
+        {hasRealAnswer && (
+          <button
+            className="chat-icon chat-copy"
+            onClick={() => void copy()}
+            aria-label={copied ? "Copiado" : "Copiar respuesta"}
+          >
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+          </button>
+        )}
       </div>
       {negative && (
         <form
@@ -464,8 +470,15 @@ export default function Chat({
         signal: controller.signal,
       });
       if (!response.ok) {
-        const body = (await response.json()) as { error?: string };
-        throw new Error(body.error ?? "No se ha podido consultar las fuentes.");
+        const text = await response.text();
+        let message = "No se ha podido consultar las fuentes.";
+        try {
+          const body = JSON.parse(text) as { error?: string };
+          if (body.error) message = body.error;
+        } catch {
+          /* HTML or empty error bodies are not shown to the user. */
+        }
+        throw new Error(message);
       }
       if (!response.body) throw new Error("No se ha recibido una respuesta.");
       await readChatStream(response.body, (event, data) => {

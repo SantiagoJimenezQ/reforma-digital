@@ -64,6 +64,7 @@ export function understandQuery(
   const mapping: [RegExp, string][] = [
     [/ley|boe|normativa|procedimiento administrativo/, "boe"],
     [/dni|pasaporte|fnmt|certificado electronico/, "administracion"],
+    [/dni|pasaporte|cita previa dni/, "interior"],
     [
       /autonom|hacienda|renta|irpf|iva|036|030|censal|tributari|domicilio fiscal|datos fiscales/,
       "aeat",
@@ -114,6 +115,7 @@ export function understandQuery(
     [/mec/, ["beca", "general"]],
     [/empadron/, ["padrón"]],
     [/carnet/, ["permiso", "conducir"]],
+    [/dni/, ["dni", "documento", "identidad", "cita"]],
   ];
   for (const [re, words] of expansions) if (re.test(q)) keywords.push(...words);
   if (config.diverseReranking && /autonom/.test(q))

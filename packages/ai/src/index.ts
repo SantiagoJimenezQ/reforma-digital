@@ -11,6 +11,7 @@ import {
   type SearchResult,
   type Stage,
 } from '@gov/core';
+import { indexAvailable } from '@gov/db';
 import {
   understandQuery,
   retrieveCandidates,
@@ -22,10 +23,15 @@ import { embedding, structured, withModelSignal } from './models';
 import { usageContext, usageSummary } from './usage';
 import { trace, startActiveObservation, initTracing } from './trace';
 import { previewCorpus } from './preview-corpus';
+import {
+  generationAvailable,
+  retrieveOfficialSeeds,
+} from './official-retrieval';
 import { validateAnswer, resolveCitationText } from './grounding';
-export { validateAnswer, resolveCitationText } from './grounding';
 import { generateVerifiedAnswer } from './stream-answer';
 import type { VerifiedClaim } from '@gov/core';
+export { validateAnswer, resolveCitationText } from './grounding';
+export { generationAvailable, selectOfficialSeeds } from './official-retrieval';
 export { embedding, embeddings } from './models';
 export { shutdownTracing, trace } from './trace';
 export { understandQuery, retrieveCandidates, fuseCandidates } from '@gov/retrieval';
@@ -222,7 +228,7 @@ export async function search(
           });
           let evidence: Evidence[] = [];
           if (!understanding.clarification) {
-            if (mode === 'live') {
+            if (mode === 'live' && indexAvailable()) {
               const e = await trace('embedding', { query, model: config.embeddingModel }, () =>
                 embedding(resolvedQuery, config),
               );
@@ -241,17 +247,22 @@ export async function search(
               evidence = ranked.evidence;
               tokens += ranked.tokens;
             } else
-              evidence = await stage('retrieval', async () =>
-                previewCandidates(understanding, previewCorpus, config).slice(
+              evidence = await stage('retrieval', async () => {
+                const corpus = previewCandidates(understanding, previewCorpus, config).slice(
                   0,
                   config.finalEvidenceCount,
-                ),
-              );
+                );
+                if (corpus.length) return corpus;
+                return (await retrieveOfficialSeeds(understanding, config)).slice(
+                  0,
+                  config.finalEvidenceCount,
+                );
+              });
           }
           let answer = abstain();
           options.onEvidence?.(evidence);
           if (!options.retrievalOnly) {
-            if (mode === 'live') {
+            if (generationAvailable()) {
               const g = await stage('generation', () =>
                 generateAnswer(resolvedQuery, understanding, evidence, config, options.onClaim),
               );

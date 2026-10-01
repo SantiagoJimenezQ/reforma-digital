@@ -8,7 +8,7 @@ try {
       .values(row)
       .onConflictDoUpdate({ target: sourcesTable.id, set: row });
   }
-  console.log("9 fuentes oficiales registradas.");
+  console.log(`${sources.length} fuentes oficiales registradas.`);
 } finally {
   await closeDb();
 }

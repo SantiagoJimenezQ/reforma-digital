@@ -1,5 +1,7 @@
 import { timingSafeEqual, createHmac } from 'node:crypto';
-import { connection } from '@gov/db';
+import { connection, indexAvailable } from '@gov/db';
+import { searchMode } from './search-mode';
+export { searchMode };
 function hostOf(value: string): string | null {
   try {
     return new URL(value).host.replace(/^www\./, '');
@@ -29,14 +31,7 @@ export function authorized(token: string | null): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 export function databaseAvailable(): boolean {
-  const url = process.env.DATABASE_URL;
-  if (!url) return false;
-  // The local Compose database is not reachable from a Vercel function.
-  if (process.env.VERCEL && /@(?:127\.0\.0\.1|localhost)(?::|\/|$)/.test(url)) return false;
-  return true;
-}
-export function searchMode(): 'live' | 'preview' {
-  return process.env.SEARCH_MODE === 'live' && databaseAvailable() ? 'live' : 'preview';
+  return indexAvailable();
 }
 const memory = new Map<string, { start: number; count: number }>();
 export async function rateLimit(request: Request): Promise<boolean> {
@@ -52,8 +47,6 @@ export async function rateLimit(request: Request): Promise<boolean> {
       await connection()`INSERT INTO request_buckets(key,window_start,count) VALUES(${key},now(),1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN request_buckets.window_start<now()-interval '1 minute' THEN 1 ELSE request_buckets.count+1 END,window_start=CASE WHEN request_buckets.window_start<now()-interval '1 minute' THEN now() ELSE request_buckets.window_start END RETURNING count`;
     return Number(rows[0]?.count) <= 20;
   }
-  if (process.env.SEARCH_MODE === 'live' && !process.env.VERCEL)
-    throw new Error('Rate limit requiere base de datos');
   const now = Date.now();
   const row = memory.get(key);
   if (!row || now - row.start > 60000) {

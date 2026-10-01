@@ -5,13 +5,14 @@ import {
   verifyFeedback,
   rateLimit,
   redactQuery,
+  databaseAvailable,
 } from "../../../lib/security";
 export async function POST(request: Request) {
   if (!sameOrigin(request))
     return Response.json({ error: "Origen no permitido" }, { status: 403 });
-  if (!process.env.DATABASE_URL)
+  if (!databaseAvailable())
     return Response.json(
-      { error: "Feedback no disponible en esta vista previa" },
+      { error: "Feedback no disponible sin persistencia." },
       { status: 503 },
     );
   try {

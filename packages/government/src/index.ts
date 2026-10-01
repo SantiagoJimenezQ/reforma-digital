@@ -35,6 +35,18 @@ export const sources: Source[] = [
     ["https://administracion.gob.es/"],
   ),
   define(
+    "interior",
+    "Ministerio del Interior",
+    "https://www.interior.gob.es",
+    ["www.interior.gob.es", "interior.gob.es"],
+    "ES",
+    [
+      "https://www.interior.gob.es/opencms/es/servicios-al-ciudadano/tramites-y-gestiones/dni/",
+      "https://www.interior.gob.es/opencms/es/servicios-al-ciudadano/tramites-y-gestiones/dni/cita-previa/",
+      "https://www.interior.gob.es/opencms/es/servicios-al-ciudadano/tramites-y-gestiones/dni/documentacion-necesaria-para-su-tramitacion/",
+    ],
+  ),
+  define(
     "boe",
     "Boletín Oficial del Estado",
     "https://www.boe.es",
@@ -211,6 +223,10 @@ const discoveryScopes: Record<
       "^/lectura-facil/",
     ],
     priorityTerms: ["DNI", "pasaporte", "registro electronico", "documentos"],
+  },
+  interior: {
+    includePaths: ["^/opencms/.*/servicios-al-ciudadano/tramites-y-gestiones/dni/"],
+    priorityTerms: ["DNI", "cita previa", "renovacion", "documentacion"],
   },
   aeat: {
     includePaths: [
