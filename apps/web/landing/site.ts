@@ -19,9 +19,10 @@ export const authors = [
   { name: 'Pablo', href: 'https://x.com/pdepablocom' },
 ];
 
-export const nav = [
+export const nav: { href: string; label: string; mobile?: boolean }[] = [
+  { href: '#buscador', label: 'Buscador', mobile: true },
+  { href: '#fig-5', label: 'Extensión', mobile: true },
   { href: '#texto', label: 'El texto' },
-  { href: '#horizonte', label: 'Hoja de ruta' },
   { href: '#participar', label: 'Participar' },
 ];
 

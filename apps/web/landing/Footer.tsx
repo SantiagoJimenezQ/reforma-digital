@@ -15,22 +15,14 @@ export default function Footer() {
           </p>
           <div className="grid gap-1 text-sm text-ink-subtle">
             <p>
-              <a className="text-inherit" href={links.license}>
-                Licencia MIT
-              </a>{' '}
-              · 2026
+              <a href={links.license}>Licencia MIT</a> · 2026
             </p>
             <p>
               Made by{' '}
               {authors.map((author, index) => (
                 <Fragment key={author.href}>
                   {index === authors.length - 1 ? ' & ' : index > 0 ? ', ' : null}
-                  <a
-                    className="text-ink underline decoration-line-strong underline-offset-[3px] hover:decoration-ink"
-                    href={author.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={author.href} target="_blank" rel="noopener noreferrer">
                     {author.name}
                     <span className="sr-only"> (se abre en una pestaña nueva)</span>
                   </a>

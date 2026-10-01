@@ -1,18 +1,17 @@
 import type { Metadata } from 'next';
-import SearchHome from '../../components/search-home';
-import Initiative from '../../components/initiative';
+import LandingHome from '../../components/landing-home';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_ORIGIN || 'http://localhost:3000'),
-  title: 'Reforma Digital — Lo público, más fácil de usar.',
+  title: 'Reforma Digital · La próxima reforma de la Administración',
   description:
-    'Encuentra tu trámite con fuentes oficiales y descubre una iniciativa abierta para hacer más sencillas las webs de la Administración.',
+    'Una iniciativa abierta: un buscador de trámites con fuentes oficiales y una extensión para hacer más sencillas las webs de la Administración.',
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'Reforma Digital — Lo público, más fácil de usar.',
+    title: 'Reforma Digital · La próxima reforma de la Administración',
     description:
-      'Una iniciativa abierta: un buscador para entender los trámites y una extensión para mejorar las webs oficiales.',
+      'Un buscador para entender los trámites, una extensión para las sedes oficiales, y una propuesta para tratar la interfaz como un bien común.',
     images: ['/og.png'],
     locale: 'es_ES',
     type: 'website',
@@ -20,9 +19,5 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.svg' },
 };
 export default function HomePage() {
-  return (
-    <SearchHome mode={process.env.SEARCH_MODE === 'live' ? 'live' : 'preview'}>
-      <Initiative />
-    </SearchHome>
-  );
+  return <LandingHome mode={process.env.SEARCH_MODE === 'live' ? 'live' : 'preview'} />;
 }

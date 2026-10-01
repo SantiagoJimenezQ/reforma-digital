@@ -1,10 +1,10 @@
+import type { ReactNode } from 'react';
 import ReadingProgress from './ReadingProgress';
 
 import Banner from './Banner';
 import Hero from './Hero';
 import Footer from './Footer';
 import Figure from './Figure';
-import HeroFigure from './HeroFigure';
 import Annotated from './Annotated';
 import Actors from './Actors';
 import DemoTransform from './DemoTransform';
@@ -148,29 +148,16 @@ const timeline = [
   },
 ];
 
-export default function Landing() {
+export default function Landing({ composer }: { composer?: ReactNode }) {
   return (
     <>
       <ReadingProgress />
       <Banner />
       <div className="full-landing">
-        <Hero />
-        <main id="contenido" className="full-article">
-          <div className="wide mt-2">
-            <HeroFigure />
-          </div>
-
-          <section
-            id="resumen"
-            className="mt-20 scroll-mt-20 border-t border-line pt-8 [&_p]:text-[clamp(17px,1.5vw,19px)] [&_p]:leading-[1.75] [&_p+p]:mt-4"
-            aria-labelledby="resumen-title"
-          >
-            <h2
-              id="resumen-title"
-              className="mb-4 mt-0 scroll-mt-20 font-serif text-[clamp(34px,4vw,46px)] font-normal leading-[1.05] tracking-[-0.02em] text-ink"
-            >
-              Resumen
-            </h2>
+        <Hero composer={composer} />
+        <main id="main" className="full-article">
+          <section id="resumen" aria-labelledby="resumen-title">
+            <h2 id="resumen-title">Resumen</h2>
             <p>
               España ha llevado a internet casi todos sus trámites, y la relación entre el Estado y
               la gente ya ocurre sobre todo en una pantalla. Esa pantalla sigue pensada para quien
