@@ -1,4 +1,8 @@
-import type { SitePage } from '@better-government/registry';
+import { asistenciaPage } from './asistencia/page';
+import { catalogoPage } from './catalogo/page';
 
-// Add each reviewed page here. Each folder contains page.tsx and bindings.ts.
-export const pages: SitePage[] = [];
+/**
+ * Pantallas públicas de «Asistencia y Cita». La identificación (NIF y nombre) y los pasos
+ * siguientes no tienen pantalla registrada: conservan la interfaz original.
+ */
+export const pages = [asistenciaPage, catalogoPage];

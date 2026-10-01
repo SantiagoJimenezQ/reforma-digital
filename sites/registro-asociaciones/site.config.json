@@ -1,9 +1,11 @@
 {
   "id": "registro-asociaciones",
-  "name": "Registro de Asociaciones",
-  "enabled": false,
-  "origins": [],
-  "pathPrefix": "/",
-  "homepage": "",
-  "status": "experimental"
+  "name": "Consulta de asociaciones (Fichero de Denominaciones)",
+  "enabled": true,
+  "routes": [
+    { "origin": "https://sede.interior.gob.es", "path": "/portal/sede/asociacionesLegacy" }
+  ],
+  "homepage": "https://sede.interior.gob.es/portal/sede/asociacionesLegacy",
+  "status": "experimental",
+  "verifiedAt": "2026-09-27"
 }

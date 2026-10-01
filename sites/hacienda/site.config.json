@@ -1,9 +1,18 @@
 {
   "id": "hacienda",
-  "name": "Hacienda",
-  "enabled": false,
-  "origins": [],
-  "pathPrefix": "/",
-  "homepage": "",
-  "status": "experimental"
+  "name": "Asistencia y Cita de la Agencia Tributaria",
+  "enabled": true,
+  "routes": [
+    {
+      "origin": "https://sede.agenciatributaria.gob.es",
+      "path": "/Sede/procedimientoini/GC29.shtml"
+    },
+    {
+      "origin": "https://www2.agenciatributaria.gob.es",
+      "path": "/wlpl/TOCP-MUTE/ServiciosAsocCat"
+    }
+  ],
+  "homepage": "https://sede.agenciatributaria.gob.es/Sede/procedimientoini/GC29.shtml",
+  "status": "experimental",
+  "verifiedAt": "2026-09-27"
 }

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta asociaciones</title>
+<meta name="description" content="Consulta asociaciones">
+<meta name="keywords" content="Consulta asociaciones">
+<link rel="stylesheet" type="text/css" href="/portal/.resources/sede-module/webresources/css/main.css" media="all"><link rel="icon" type="image/x-icon" href="/portal/.resources/sede-module/webresources/images/favicon_16.png">
+<link href="/portal/.resources/sede-module/webresources/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="/portal/.resources/sede-module/webresources/css/all.min.css">
+
+</head>
+
+<body class="sede">
+<!--script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script-->
+<!--df-messenger intent="WELCOME" chat-title="Bienvenido"
+	agent-id="ac54a2e9-c3a3-4e93-9702-5874a343ea3f"
+	language-code="es" wait-open="true"
+	session-id="H76X9BGqb9EmPXyhihYPezPTh2PKLZ6_nBuTZj9f"
+	chat-icon="/portal/.resources/sede-module/webresources/images/icons/chatbot.svg">
+</df-messenger-->
+
+
+<div class="overlay"></div>
+<div class="spanner" role="status" aria-live="polite" aria-atomic="true">
+  <div class="loader" aria-hidden="true"></div>
+  <p id="spanner-mensaje">Cargando la información solicitada. Por favor, espere.</p>
+</div>
+
+
+
+<a class="skip-link" href="#main-content">
+    Saltar al contenido principal
+</a>
+
+<div class="bg-logo-yellow px-md-4 py-md-2">
+	<div class="align-items-center justify-content-end p-md-0 px-3 py-2 row">
+		<div class="col-auto">
+			<a href="/portal/sede/busquedaSede" class="text-dark"><span>Buscar</span>
+				<i class="fa-solid fa-magnifying-glass ms-2"></i> </a>
+		</div>
+		<div class="col-auto">
+			<div class="dropdown all-container-idioms">
+				<form action="/portal/sede/asociacionesLegacy" method="post">
+					<input type="hidden" id="csrf" name="csrf" value=""> 
+					
+					 
+
+					<div id="dropdown-button" tabindex="0" data-bs-toggle="dropdown" class="bg-transparent border-0">
+						 <input class="bg-transparent border-0 text-dark" type="submit" name="idiomaES" value="Castellano"> 
+						 <i class="fa-solid fa-chevron-down"></i>
+					</div>
+
+					<ul class="dropdown-menu bg-primary-dark" aria-label="Selección de idioma">
+
+						<li class="dropdown-item"><input class="bg-transparent border-0 text-white" type="submit" name="idiomaGA" value="Galego"></li> 
+						 
+						<li class="dropdown-item"><input class="bg-transparent border-0 text-white" type="submit" name="idiomaEU" value="Euskara"></li>  
+						<li class="dropdown-item"><input class="bg-transparent border-0 text-white" type="submit" name="idiomaCA" value="Català"></li> 
+						<li class="dropdown-item"><input class="bg-transparent border-0 text-white" type="submit" name="idiomaVA" value="Valencià"></li> 
+						<li class="dropdown-item"><input class="bg-transparent border-0 text-white" type="submit" name="idiomaEN" value="English"></li> 
+					</ul>
+				</form>
+			</div>
+		</div>
+		<div class="col-auto ms-auto ms-md-0">
+			<p class="d-inline" id="fechas">27/09/2026</p>
+			<p class="d-inline pe-2" id="horas">21:07</p>
+			
+		</div>
+	</div>
+	<div class="align-items-center d-flex d-md-none row mb-2 px-3">
+		<div class="col-auto">
+			<a href="https://www.interior.gob.es/" target="_blank">
+				<img src="/portal/.resources/sede-module/webresources/images/image_5.png" alt="Ministerio del interior, logo" class="header-logo" aria-label="Ir al portal web del Ministerio del Interior (se abre en nueva pestaña)" title="Ir al portal web del Ministerio del Interior (se abre en nueva pestaña)"></a>
+		</div>
+		<div class="col">
+			<a href="/portal/sede">
+				<img src="/portal/.resources/sede-module/webresources/images/sede_electronica.png" alt="Sede Electrónica, logo" class="header-logo" aria-label="Ir a la página de inicio de la Sede Electrónica" title="Ir a la página de inicio de la Sede Electrónica">
+			</a>
+		</div>
+	</div>
+	<div class="nav-flag d-block d-md-none"></div>
+	<div class="align-items-center d-md-flex d-none mb-md-3 mt-md-2 my-xl-0 row">
+		<div class="col-auto d-none d-md-block">
+			<a href="https://www.interior.gob.es/" target="_blank">
+				<img src="/portal/.resources/sede-module/webresources/images/image_5.png" alt="Ministerio del interior, logo" class="header-logo" aria-label="Ir al portal web del Ministerio del Interior (se abre en nueva pestaña)" title="Ir al portal web del Ministerio del Interior (se abre en nueva pestaña)"></a>
+		</div>
+		<div class="col-auto d-none d-md-block pe-0">
+			<a href="/portal/sede">
+				<img src="/portal/.resources/sede-module/webresources/images/sede_electronica.png" alt="Sede Electrónica, logo" class="header-logo" aria-label="Ir a la página de inicio de la Sede Electrónica" title="Ir a la página de inicio de la Sede Electrónica">
+			</a>
+		</div>
+		<div class="col-auto d-none d-md-block pe-0">
+			<h1 class="fw-bold mb-0 nc-CabeceraAPPTitulo1 color-primary-medium">Sede Electrónica</h1>
+			<p class="mb-0 nc-CabeceraAPPTitulo2 color-primary-medium">Ministerio del Interior</p>
+		</div>
+		<div class="col-auto ms-auto">
+			<button class="btn btn-primary" onclick="location.href='https://sede.interior.gob.es/portal-identificacion/login/oauth/authorize?code_challenge=lCvirXNQGSRVF2hraLH30OgG5cJHllrAJuhL4F2GwO8&amp;code_challenge_method=S256&amp;idioma=es&amp;application_value=SEDE';">
+				<i class="fa-solid fa-user me-2"></i> <span>Identifícate</span>
+			</button>
+		</div>
+	</div>
+	<div class="row justify-content-end">
+		<div class="col col-md-auto">
+			<nav class="navbar navbar-dark navbar-expand-md py-md-0">
+				<div class="navbar-brand d-block d-md-none ms-3">
+					<i class="fa-solid fa-user me-2"></i> 
+					<p class="d-inline text-white">Identifícate</p>
+				</div>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir menú de navegación">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse mt-2 mt-md-0" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item active "><a class="nav-link d-md-inline-block" href="/portal/sede">Inicio</a></li>
+						<li class="nav-item"><a class="nav-link d-md-inline-block" href="/portal/sede/informacion-general/que-sede">Qué es la Sede</a>
+						</li>
+						<li class="nav-item"><a class="nav-link d-md-inline-block" href="/portal/sede/agrupaciones">Procedimientos y servicios</a>
+						</li>
+						<li class="nav-item"><a class="nav-link d-md-inline-block" href="/portal/sede/informacion-general/requisitos-tecnicos">Requisitos técnicos</a>
+						</li>
+						<li class="nav-item"><a class="nav-link d-md-inline-block" href="/portal/sede/mi-sede">Mi Sede</a>
+						</li> 						<li class="border-top d-block d-md-none mt-2 nav-item"> <a class="nav-link" href="https://sede.interior.gob.es/portal-identificacion/login/oauth/authorize?code_challenge=lCvirXNQGSRVF2hraLH30OgG5cJHllrAJuhL4F2GwO8&amp;code_challenge_method=S256&amp;idioma=es&amp;application_value=SEDE">Iniciar sesión</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+	</div>
+</div>
+<div class="nav-flag d-none d-md-block"></div>
+
+<main id="main-content">
+
+<div class="container-fluid ps-4 text-black fw-bold h6">
+    <div class="row h-100 flex-column flex-md-row flex-wrap">
+        <div class="py-3">
+						<!-- pinta 2 -->
+					    <a href="/portal/sede" class="text-decoration-none text-black fw-bold h6">Inicio</a>
+				
+					<!-- pinta 5 -->
+					<img class="px-1 height-12" src="/portal/.resources/sede-module/webresources/images/icons/arrow-right-black.svg" alt="route path arrow">
+					<span class="text-decoration-none text-black fw-bold h6">Consulta asociaciones</span>		
+							
+				
+        </div>
+    </div>
+</div>
+	<div class="container-fluid">
+		<h2 class="m-2">Consulta asociaciones</h2>
+	</div>
+
+	<div class="container-components m-auto">
+		<div class="container">
+			<div class="row justify-content-md-center">
+				<div class="col-md-12">
+					<form method="POST" autocomplete="off" onsubmit="muestraSpinner()">
+						<div class="card shadow p-3 mb-5 bg-body rounded">
+							<div class="card-header bg-transparent text-end">
+								Buscador
+								<button type="button" data-bs-toggle="collapse" data-bs-target="#asociacionesSearch" aria-controls="recordsSearch" aria-expanded="false" aria-label="Mostrar u ocultar el menú de navegación" class="btn btn-primary">
+									<i class="fa"></i>
+								</button>
+							</div>
+							<div class="card-body" id="asociacionesSearch">
+								<div class="row">
+									<label class="form-label" for="denominacion">
+										Palabras clave de la denominación (*)
+									</label>
+									<div class="input-group">
+										<input type="text" class="form-control" name="denominacion" id="denominacion" value="vecinos" required="" minlength="2">
+										<div class="input-group-append">
+											<input type="hidden" id="csrf" name="csrf" value="">
+											<button type="submit" formaction="/portal/sede/asociacionesLegacy" name="buscarAsociaciones" id="buscar" class="btn btn-primary">
+												<i class="fa-solid fa-magnifying-glass me-2"></i>Buscar
+											</button>
+										</div>
+									</div>
+									<div class="col-md-4 mb-3">
+										<label class="form-label" for="busquedaExacta">
+											Búsqueda exacta
+										</label>
+										<input type="checkbox" class="checkbox check-and-radio-input" name="busquedaExacta" id="busquedaExacta" value="false" onblur="setCheckboxValue(this)">
+									</div>
+										<div class="form-group text-center">
+											<button type="submit" formaction="/portal/sede/asociacionesLegacy" id="imprimirAsociaciones" class="btn btn-primary" name="imprimirAsociaciones" onclick="window.print(); return false">
+												<i class="fa-solid fa-print"></i>
+												Imprimir
+											</button>
+										</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="row justify-content-md-center">
+			<div class="col-md-12">
+			<div class="card shadow p-3 mb-5 bg-body rounded">
+				<div class="card-body">
+					<div class="my-4">
+					<div class="justify-content-center row">
+							 <table class="table custom-table" role="presentation">
+                    <tbody><tr class="table-header">
+										<td>Denominación</td>
+										<td>Registro de procedencia</td>
+										<td>Detalle</td>
+									</tr>
+									<tr>
+										<td>A. DE VECINOS DE SANTA XUSTA MOSTEIRO A PONTEVELLA</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECINOS "INMACULADA CONCEPCION"</td>
+										<td>REGISTRO DE ASOCIACIONES DE BADAJOZ</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECINOS OS ZANGANOS DE MOSTEIRO</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECINOS Y PROPIETARIOS DE CAN MESTRE</td>
+										<td>REGISTRO DE ASOCIACIONES DE ILLES BALEARS</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECINOS Y PROPIETARIOS VEIGA DO BATAN</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECIÑOS  SAN XURXO DE ASMA Ó CRUCEIRO</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECIÑOS A CABANETA DE ÁMBITO MUNICIPAL</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A DE VECIÑOS CULTURAL  E DEPORTIVA DE GONTAN</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECIÑOS DO BARRIO DA FLORIDA EDUARDO PONDAL</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A DE VECIÑOS DOS CASÁS OSTABAOS - CERDIDO</td>
+										<td>REGISTRO DE ASOCIACIONES DE A CORUÑA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. DE VECIÑOS NEIRA DE A PARROQUIA DE A FONTANEIRA</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A ESPERELA DE VECIÑOS DE  FRANQUEAN</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A PARROQUIAL DE VECINOS SANTA LUCIA DE GUNTI</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. SOCIO CULTURAL Y DE VECINOS DEL CENTRO-PES</td>
+										<td>REGISTRO DE ASOCIACIONES DE A CORUÑA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. VECINOS BARRIADA CASAS DE CARRION</td>
+										<td>REGISTRO DE ASOCIACIONES DE BADAJOZ</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A. Veïns per a la Defensa i Millora Urbanística de Valldoreix (A. Vecinos para la Defensa y Mejora Urbanistica de Valldo</td>
+										<td>REGISTRO DE ASOCIACIONES DE BARCELONA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AA. VECINOS, CONSUMIDORES Y USUARIOS DEL ALTO DE SANTO EMILIANO</td>
+										<td>REGISTRO DE ASOCIACIONES DE ASTURIAS</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AA.VV. DE VECINOS DE LEA(POL)</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AAVV VECINOS RINCONES DE MOLINOS</td>
+										<td>REGISTRO DE ASOCIACIONES DE CÁDIZ</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AAVVV DE VECIÑOS DE SAN CRISTOVO DE PADERNE</td>
+										<td>REGISTRO DE ASOCIACIONES DE OURENSE</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>ACTUA VECINOS POR LUCENA</td>
+										<td>REGISTRO DE ASOCIACIONES DE CÓRDOBA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>A.DE VECIÑOS BEIRAMAR, DE O SEIXO-MUGARDOS</td>
+										<td>REGISTRO DE ASOCIACIONES DE A CORUÑA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>ADMINISTRATIVA DE VECINOS DE LA PLAYA SANTANDRIA</td>
+										<td>REGISTRO DE ASOCIACIONES DE ILLES BALEARS</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>ADSOCIACION DE VECINOS PEDRO XIMENEZ</td>
+										<td>REGISTRO DE ASOCIACIONES DE CÓRDOBA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AGRARIA DE VECINOS O PROPIETARIOS DE SIERRA MADRID</td>
+										<td>REGISTRO DE ASOCIACIONES DE GRANADA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AGROFORESTAL DE VECIÑOS DE SAN BARTOLOMÉ DE DOMIZ</td>
+										<td>REGISTRO DE ASOCIACIONES DE OURENSE</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AGRUP.  CONSUMIDORES  CONVECINOS Y USUARIOS</td>
+										<td>REGISTRO DE ASOCIACIONES DE LUGO</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>Agrupació de Veïns Districte Vi Barri el Fondo de Santa Coloma de Gramenet/agrupación de Vecinos Distrito Vi Barrio el Fondo de Santa Coloma de Gramenet</td>
+										<td>REGISTRO DE ASOCIACIONES DE BARCELONA</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AGRUPACION CIVICA VALLECANA DE VECINOS DE NUEVA NUMANCIA</td>
+										<td>REGISTRO DE ASOCIACIONES DE MADRID</td>
+										<td>
+										</td>
+									</tr>
+									<tr>
+										<td>AGRUPACION COMERCIANTES,VECINOS Y PROPIETARIOS-LOS GERANEOS</td>
+										<td>REGISTRO DE ASOCIACIONES DE ILLES BALEARS</td>
+										<td>
+										</td>
+									</tr>
+									<tr id="no-data-row" class="d-none text-center">
+			<td colspan="3">No se han encontrado datos</td>
+			</tr></tbody></table>
+					</div>
+					<div class="justify-content-center row">
+						<div class="col-auto">
+<nav aria-label="Navegación por páginas">
+   	<ul class="pagination pagination-sm">
+        <li class="page-item">
+        	<a class="page-link" aria-label="Primera página" href="javascript:changePage('primera','primera')">
+        	<i class="fa-solid fa-chevron-left"></i><i class="fa-solid fa-chevron-left"></i>
+        	</a>
+        </li>
+        <li class="page-item">
+        	<a class="page-link" aria-label="Página anterior" href="javascript:changePage('anterior','anterior')">
+        		<i class="fa-solid fa-chevron-left"></i>
+        	</a>
+        </li>
+      
+
+      	
+      	<li class="page-item active"><span class="page-link">1</span></li>
+      	
+      	<li class="page-item">
+      		<a class="page-link" href="javascript:changePage('pag2',2)">2</a>      	
+      	</li>
+		
+		<li class="page-item">
+	      	<a class="page-link" href="javascript:changePage('pag3',3)">3</a>
+	    </li>
+		
+		<li class="page-item">
+      		<a class="page-link" href="javascript:changePage('pag4',4)">4</a>
+      	</li>
+      	
+		<li class="page-item">
+      		<a class="page-link" href="javascript:changePage('pag5',5)">5</a>
+      	</li>
+      
+        <li class="page-item">
+        	<a class="page-link" aria-label="Página siguiente" href="javascript:changePage('siguiente','siguiente')">
+        		<i class="fa-solid fa-chevron-right"></i>
+        	</a>      
+       	</li>
+        <li class="page-item">
+        	<a class="page-link" aria-label="Última página" href="javascript:changePage('ultima','ultima')">
+        		<i class="fa-solid fa-chevron-right"></i><i class="fa-solid fa-chevron-right"></i>
+        	</a>     
+        </li>
+	</ul>
+</nav>
+
+<form action="?" method="post" id="tablePagination">
+	<input type="hidden" id="page" name="pag1" value="">
+	<input type="hidden" id="csrf" name="csrf" value="">
+	<input type="hidden" id="paginaActual" name="paginaActual" value="">
+	<input type="hidden" id="paginasTotales" name="paginasTotales" value="">
+	<input type="hidden" id="paginacionFiltro1" name="paginacionFiltro1" value="">
+	<input type="hidden" id="paginacionFiltro2" name="paginacionFiltro2" value="">
+	<input type="hidden" id="paginacionFiltro3" name="paginacionFiltro3" value="">
+	<input type="hidden" id="paginacionFiltro4" name="paginacionFiltro4" value="">
+	<input type="hidden" id="paginacionFiltro5" name="paginacionFiltro5" value="">
+	<input type="hidden" id="paginacionFiltro6" name="paginacionFiltro6" value="">
+</form>
+
+
+</div>
+					</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+	<div class=" py-4 ">
+		<div class="container-components m-auto ">
+		</div>
+	</div>
+
+</main>
+<div class="container-fluid py-3 logos-container d-block d-none">
+	<!-- <div class="row h-100 nc-iconos-misma-altura"> -->
+	<div class="flex-logos">
+		<div>
+			<a href="https://administracion.gob.es/"><img src="/portal/.resources/sede-module/webresources/images/image_1.png" class="col-sm-12 col-md-1 img-fluid nc-iconos-misma-altura img-cc " alt="Carpeta ciudadana, logo"></a>
+		</div>
+		<div>
+			<a href="https://www.aepd.es/es"><img src="/portal/.resources/sede-module/webresources/images/aepd_color_original_logo.png" class="col-sm-12 col-md-1  img-fluid img-aepd" alt="Agencia española de Protección de datos, logo"></a>
+		</div>
+		<div>
+			<a href="https://clave.gob.es/clave_Home/clave.html"><img src="/portal/.resources/sede-module/webresources/images/solicitar_clave_acceso_dgt.png" class="col-sm-12 col-md-1  img-fluid img-clave" alt="Cl@ve, logo"></a>
+		</div>
+		<div>
+			<a href="https://boe.es/"><img src="/portal/.resources/sede-module/webresources/images/image_3.png" class="col-sm-12 col-md-1  img-fluid img-boe" alt="Boletin Oficial del Estado, logo"></a>
+		</div>
+		<div>
+			<a href="https://sede.policia.gob.es/portalCiudadano/_es/index.php"><img src="/portal/.resources/sede-module/webresources/images/image_2.png" class="col-sm-12 col-md-1  img-fluid img-police" alt="Dirección General de Policía, logo"></a>
+		</div>
+		<div>
+			<a href="https://sede.guardiacivil.gob.es/"><img src="/portal/.resources/sede-module/webresources/images/image_4.png" class="col-sm-12 col-md-1  img-fluid img-civil" alt="Guardia Civil, logo"></a>
+		</div>
+		<div>
+			<a href="https://sede.dgt.gob.es/es/"><img src="/portal/.resources/sede-module/webresources/images/1200px_dgt_logo.png" class="col-sm-12 col-md-1  img-fluid img-dgt" alt="Dirección General de Tráfico, logo"></a>
+		</div>
+	</div>
+</div>
+<div class="container-fluid bg-primary-dark py-4 mt-auto">
+	<div class="row">
+		<div class="col-md-2">
+			<img src="/portal/.resources/sede-module/webresources/images/GdEMIR.jpg" class="d-block img-fluid" alt="Gobierno de España, Ministerio del Interior"> <p class="fw-normal text-white">Gobierno de
+				España. Ministerio del Interior Calle Amador de los Ríos, 7 28010
+				Madrid (España)</p>
+		</div>
+
+		<!-- PROCEDIMIENTOS Y SERVICIOS -->
+		<div class="col-md mt-3 mt-md-0">
+			<div class="row">
+				<div class="col">
+					<h2 class="text-white">Procedimientos y servicios destacados</h2>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<ul class="list-group footer-list-group">
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=Archivo general" class="fw-normal text-white">Archivo general</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=ASOCIACIONES" class="fw-normal text-white">Asociaciones</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=PARTIDOS" class="fw-normal text-white">Partidos Políticos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=ONGENT" class="fw-normal text-white">ONGs e Instituciones penitenciarias</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=RECURSOS" class="fw-normal text-white">Recursos e Indemnizaciones</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=Sanciones%20deportivas" class="fw-normal text-white">Sanciones Deportivas</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=VICTIMAS" class="fw-normal text-white">Víctimas del Terrorismo</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=SIGAY" class="fw-normal text-white">Ayuda y Subvenciones</a></li>
+						<li class="bg-transparent border-0 list-group-item px-0">
+						        <a href="/portal/sede/tramites?codAgrupacion=REMER" class="fw-normal text-white">Colaborador REMER</a></li>
+						</ul>
+					</div>
+					<div class="col-md-6">
+						<ul class="list-group footer-list-group">
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=GENERAL" class="fw-normal text-white">Formulario de propósito general</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=Proteccion Datos" class="fw-normal text-white">Protección de Datos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="https://www.institucionpenitenciaria.es/es/web/home/cita-previa" class="fw-normal text-white">Cita previa visitas en centros penitenciarios</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/matriculacion-escuela-nacional-proteccion-civil" class="fw-normal text-white">Matriculación Escuela Nacional de Protección Civil</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=INFORMACION" class="fw-normal text-white">Solicitud de información</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=Drones" class="fw-normal text-white">Comunicación de vuelo de aeronave pilotada por control remoto</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+								<a href="/portal/sede/tramites?codAgrupacion=QUEJAS" class="fw-normal text-white">Quejas y sugerencias</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0">
+                            	<a href="/portal/sede/tramites?codAgrupacion=Hospedajes" class="fw-normal text-white">Hospedajes y alquiler de vehículos</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- INFORMACIÓN GENERAL -->
+		<div class="col-md mt-3 mt-md-0">
+			<div class="row">
+				<div class="col">
+					<h2 class="text-white">Información General</h2>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<ul class="list-group footer-list-group">
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/guia-procedimientos" class="fw-normal text-white">Guía de procedimientos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/normativa" class="fw-normal text-white">Normativa</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/catalogo-de-datos" class="fw-normal text-white">Catálogo de datos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/aviso-legal" class="fw-normal text-white">Aviso legal</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/regulacion-legal" class="fw-normal text-white">Regulación legal</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="https://www.interior.gob.es/opencms/es/servicios-al-ciudadano/cartas-de-servicios/" target="_blank" class="fw-normal text-white" aria-label="Acceder a la página de Cartas de Servicios del Ministerio del Interior. (se abre en nueva pestaña)">Cartas de servicios</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/certificados-digitales" class="fw-normal text-white">Certificados digitales</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/preguntas-frecuentes" class="fw-normal text-white">Preguntas frecuentes</a></li>
+						</ul>
+					</div>
+					<div class="col-md-6">
+						<ul class="list-group footer-list-group">
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/que-sede" class="fw-normal text-white">Qué es la sede</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/manual-sede" class="fw-normal text-white">Manual de la sede</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/requisitos-tecnicos/" class="fw-normal text-white">Requisitos técnicos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/sistema-firmas" class="fw-normal text-white">Sistemas de firma admitidos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/datos-abiertos" class="fw-normal text-white">Datos abiertos</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="https://transparencia.gob.es" class="fw-normal text-white">Portal de transparencia</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/derecho-acceso" class="fw-normal text-white">Derecho de acceso</a></li>
+							<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/informacion-general/calendario-fecha-hora-oficial" class="fw-normal text-white">Calendario laboral y de días inhábiles</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-2 d-flex flex-column mt-3 mt-md-0">
+			<div class="row">
+				<div class="col">
+					<h2 class="text-white">Mi Sede</h2>
+					<ul class="list-group footer-list-group">
+						<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/mi-sede/documentos" class="fw-normal text-white">Mis documentos</a></li>
+						<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/mi-sede/registros" class="fw-normal text-white">Mis registros</a></li>
+						<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/mi-sede/expedientes" class="fw-normal text-white">Mis expedientes</a></li>
+						<li class="bg-transparent border-0 list-group-item px-0"><a href="/portal/sede/mi-sede/pagos" class="fw-normal text-white">Mis pagos</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="justify-content-end mt-auto row">
+				<div class="col-auto">
+					<img src="/portal/.resources/sede-module/webresources/images/logow3c.png " style="width: 90px;" alt="World Wide Web Consortium, logo">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="container-fluid nc-DivPieCopyRight">
+	<div class="row">
+		<div class="col-sm-12 col-md-6">
+			<!-- <div class="d-flex flex-wrap justify-content-between"> -->
+			<div class="d-flex flex-column flex-md-row">
+				<a href="/portal/sede/accesibilidad" class="m-2 text-decoration-none nc-DivPieCopyRight">Accesibilidad</a>
+				<span class="m-2 nc-DivPieCopyRight d-none d-md-block">|</span> <a href="/portal/sede/mapa-web" class="m-2 text-decoration-none nc-DivPieCopyRight">Mapa Web</a>
+				<span class="m-2 nc-DivPieCopyRight d-none d-md-block">|</span> <a href="/portal/sede/informacion-general/aviso-legal" class="m-2 text-decoration-none nc-DivPieCopyRight">Información legal</a>
+				<span class="m-2 nc-DivPieCopyRight d-none d-md-block">|</span> <a href="/portal/sede/tramites/consulta-ciudadano" class="m-2 text-decoration-none nc-DivPieCopyRight">Contacto</a>
+			</div>
+		</div>
+		<div class="col-sm-12 col-md-6">
+			<div class="d-flex justify-content-md-end justify-content-start">
+				<p id="copyAnyo" class="m-2 text-md-end text-start pt-md-0 pt-4">© 2026 Sede electrónica del Ministerio del Interior</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+
+
+</body></html>

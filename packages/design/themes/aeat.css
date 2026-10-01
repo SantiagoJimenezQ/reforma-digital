@@ -1,0 +1,172 @@
+/*
+ * Better Government · tema para webs de la Agencia Tributaria (kit AEAT basado en Bootstrap 4:
+ * sede.agenciatributaria.gob.es, www2.agenciatributaria.gob.es…).
+ *
+ * Aplica DESIGN.md §4. Todo va bajo html[data-bg-site]; solo tokens y componentes del preset.
+ * Se re-maqueta, nunca se oculta contenido informativo. Los logotipos oficiales se conservan.
+ */
+@import '../src/tokens.css';
+
+html[data-bg-site] body {
+  @apply bg-text;
+  background: rgb(var(--bg-canvas)) !important;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-bg-site]
+  body
+  :is(p, li, dd, dt, td, th, label, legend, span, div, a, strong, h1, h2, h3, h4, h5, h6, button) {
+  font-family: var(--bg-font);
+}
+
+/* ── Cabecera: logotipos intactos; barra de menú azul → barra blanca ── */
+html[data-bg-site] #AEAT_header {
+  background: rgb(var(--bg-surface)) !important;
+  border-bottom: 1px solid rgb(var(--bg-line));
+}
+html[data-bg-site] #AEAT_header :is(.bg-primary, nav.bg-primary, .navbar) {
+  background: rgb(var(--bg-surface)) !important;
+  border-top: 1px solid rgb(var(--bg-line));
+}
+html[data-bg-site] #AEAT_header .bg-primary.p-1 {
+  display: none; /* franja decorativa de color, sin contenido */
+}
+html[data-bg-site]
+  #AEAT_header
+  :is(.nav-link, .navbar a, #menuPrincipal a, .btn, .dropdown-toggle) {
+  color: rgb(var(--bg-ink)) !important;
+}
+html[data-bg-site] #AEAT_header #menuPrincipal a:hover {
+  color: rgb(var(--bg-brand-700)) !important;
+}
+html[data-bg-site] #AEAT_header .nav-link {
+  font-size: 15px;
+}
+/* El menú y el buscador comparten fila: el buscador conserva un ancho usable. */
+html[data-bg-site] #AEAT_header #form-buscador-menu {
+  flex: 1 1 280px;
+  min-width: 240px;
+}
+html[data-bg-site] #AEAT_header #input-buscador-menu {
+  @apply bg-field;
+  min-height: 40px;
+  border: 1px solid rgb(var(--bg-line-control)) !important; /* el HTML oficial lleva .border-0 */
+  border-radius: var(--bg-radius-control) 0 0 var(--bg-radius-control);
+}
+html[data-bg-site] #AEAT_header #btn-buscador-menu {
+  border: 1px solid rgb(var(--bg-line-control)) !important;
+  border-left: 0 !important;
+  border-radius: 0 var(--bg-radius-control) var(--bg-radius-control) 0;
+  background: rgb(var(--bg-surface-muted)) !important;
+}
+html[data-bg-site] #AEAT_header .btn-primary {
+  @apply bg-btn bg-btn-secondary;
+  color: rgb(var(--bg-ink)) !important;
+}
+
+/* Menú lateral de la sección (Bootstrap .nav): enlaces del sistema y selección en vez de azul sólido. */
+html[data-bg-site] .container-text > .row > nav .nav-link {
+  @apply bg-link;
+  border-radius: var(--bg-radius-control);
+}
+html[data-bg-site] .container-text > .row > nav .nav-link.active {
+  background: rgb(var(--bg-brand-50)) !important;
+  border: 1px solid rgb(var(--bg-brand-200));
+  color: rgb(var(--bg-brand-900)) !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+@media (min-width: 992px) {
+  /* La columna oficial ocupa 5/12 para un único enlace: se estrecha para dar sitio al contenido. */
+  html[data-bg-site] .container-text > .row > nav.col-lg-5 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+/* ── Estructura y migas ── */
+html[data-bg-site] main#acc-main {
+  padding-top: 8px;
+}
+html[data-bg-site] .breadcrumb {
+  @apply bg-small;
+  background: transparent !important;
+  padding-left: 0 !important;
+}
+html[data-bg-site] .breadcrumb a {
+  @apply bg-link;
+  font-weight: 400;
+}
+
+/* ── Contenido oficial ── */
+html[data-bg-site] main#acc-main h1 {
+  @apply bg-eyebrow;
+  margin: 0 0 8px !important;
+  font-size: 12px !important;
+}
+html[data-bg-site] main#acc-main :is(h2, .h3) {
+  @apply bg-h2;
+}
+html[data-bg-site] main#acc-main :is(h3, .h4, .h5, .h6) {
+  @apply bg-h3;
+}
+html[data-bg-site] main#acc-main :is(p, li) {
+  max-width: 70ch;
+  line-height: 1.6;
+}
+html[data-bg-site] main#acc-main a:not(.btn) {
+  @apply bg-link;
+}
+html[data-bg-site] main#acc-main :is(.card, .shadow-sm.border, .border.border-primary) {
+  @apply bg-card;
+  box-shadow: var(--bg-shadow-card) !important;
+}
+html[data-bg-site] main#acc-main .bg-light-blue {
+  background: rgb(var(--bg-surface-muted)) !important;
+  border-color: rgb(var(--bg-line)) !important;
+}
+html[data-bg-site] main#acc-main :is(.alert-light-primary, .alert-info) {
+  @apply bg-callout bg-callout-info;
+}
+html[data-bg-site] main#acc-main .alert-danger {
+  @apply bg-callout bg-callout-danger;
+}
+html[data-bg-site] main#acc-main .text-primary {
+  color: rgb(var(--bg-brand-700)) !important;
+}
+html[data-bg-site] main#acc-main .btn-primary {
+  @apply bg-btn bg-btn-primary;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+html[data-bg-site] main#acc-main .btn-link {
+  @apply bg-link;
+}
+html[data-bg-site]
+  main#acc-main
+  :is(input.form-control, select.form-control, textarea.form-control) {
+  @apply bg-field;
+}
+html[data-bg-site] aside .shadow-sm.border {
+  @apply bg-card;
+}
+
+/* ── Pie: de azul a superficie clara, mismos enlaces ── */
+html[data-bg-site] footer.bg-primary {
+  @apply bg-small;
+  background: rgb(var(--bg-surface)) !important;
+  border-top: 1px solid rgb(var(--bg-line));
+}
+html[data-bg-site] footer.bg-primary :is(p, li, span, h2, h3, h4, div) {
+  color: rgb(var(--bg-ink-muted)) !important;
+}
+html[data-bg-site] footer.bg-primary a {
+  @apply bg-link;
+  color: rgb(var(--bg-brand-700)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-bg-site] * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

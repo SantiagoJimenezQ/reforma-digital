@@ -16,8 +16,8 @@ export function CommunityBadge({ host }: { host: string }) {
         Interfaz comunitaria · sitio oficial
       </span>
       <span className="bg-small">
-        Estás en <strong className="font-semibold text-ink">{host}</strong>, la web oficial del
-        trámite. Los datos y envíos los gestiona esa web.
+        Estás en <strong className="font-semibold text-ink [overflow-wrap:anywhere]">{host}</strong>
+        , la web oficial del trámite. Los datos y envíos los gestiona esa web.
       </span>
     </div>
   );

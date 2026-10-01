@@ -4,12 +4,12 @@ Versión 1.0 · 2026‑09‑27
 
 Este documento es la referencia visual de **todo** lo que Better Government pinta: los paneles, el popup y la capa de estilo que viste la web oficial. Ningún portal (`sites/<id>`) define colores, tamaños ni componentes propios: usa los de aquí.
 
-| Qué                                                    | Dónde vive en el código                                                                                                                                  |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tokens (color, forma, tipografía)                      | [`packages/design/src/tokens.css`](packages/design/src/tokens.css)                                                                                       |
-| Componentes (botones, campos, avisos…)                 | [`packages/design/tailwind-preset.js`](packages/design/tailwind-preset.js)                                                                               |
-| Componentes React                                      | [`packages/design/src/ui/components.tsx`](packages/design/src/ui/components.tsx) · campos conectados en [`packages/react`](packages/react/src/index.tsx) |
-| Tema para webs oficiales con el framework Morfos (AGE) | [`packages/design/themes/morfos.css`](packages/design/themes/morfos.css)                                                                                 |
+| Qué                                    | Dónde vive en el código                                                                                                                                                                                                                                                       |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tokens (color, forma, tipografía)      | [`packages/design/src/tokens.css`](packages/design/src/tokens.css)                                                                                                                                                                                                            |
+| Componentes (botones, campos, avisos…) | [`packages/design/tailwind-preset.js`](packages/design/tailwind-preset.js)                                                                                                                                                                                                    |
+| Componentes React                      | [`packages/design/src/ui/components.tsx`](packages/design/src/ui/components.tsx) · campos conectados en [`packages/react`](packages/react/src/index.tsx)                                                                                                                      |
+| Temas para webs oficiales              | [`themes/morfos.css`](packages/design/themes/morfos.css) (framework Morfos de la AGE) · [`themes/aeat.css`](packages/design/themes/aeat.css) (Agencia Tributaria) · [`themes/sede-interior.css`](packages/design/themes/sede-interior.css) (Sede del Ministerio del Interior) |
 
 Los componentes se definen **una sola vez** en el preset. Los paneles los usan como clases (`bg-btn bg-btn-primary`) y los temas los aplican a los elementos oficiales con `@apply`. Así, un botón oficial y un botón del panel son idénticos por construcción.
 

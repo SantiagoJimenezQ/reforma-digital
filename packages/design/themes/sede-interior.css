@@ -1,0 +1,226 @@
+/*
+ * Better Government · tema para la Sede electrónica del Ministerio del Interior
+ * (sede.interior.gob.es, Magnolia + Bootstrap 5).
+ *
+ * Aplica DESIGN.md §4. Todo va bajo html[data-bg-site]; solo tokens y componentes del preset.
+ * Se re-maqueta, nunca se oculta contenido informativo. Escudo y logotipos se conservan.
+ */
+@import '../src/tokens.css';
+
+html[data-bg-site] body {
+  @apply bg-text;
+  background: rgb(var(--bg-canvas)) !important;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-bg-site] body :is(p, li, td, th, label, span, div, a, h1, h2, h3, h4, button, input) {
+  font-family: var(--bg-font);
+}
+
+/* ── Cabecera: fondo amarillo → superficie; escudo, logotipos y menú intactos ── */
+html[data-bg-site] .bg-logo-yellow {
+  background: rgb(var(--bg-surface)) !important;
+  border-bottom: 1px solid rgb(var(--bg-line));
+}
+html[data-bg-site] .bg-logo-yellow :is(a, span, h1, .nav-link) {
+  color: rgb(var(--bg-ink)) !important;
+}
+html[data-bg-site] .bg-logo-yellow .nav-link:hover {
+  color: rgb(var(--bg-brand-700)) !important;
+}
+html[data-bg-site] .bg-logo-yellow .btn-primary {
+  @apply bg-btn bg-btn-secondary;
+  color: rgb(var(--bg-ink)) !important;
+  background: rgb(var(--bg-surface)) !important;
+  border-color: rgb(var(--bg-line-control)) !important;
+}
+
+/* Barra de menú en móvil (navbar-dark): superficie clara e icono de menú oscuro. */
+html[data-bg-site] nav.navbar.navbar-dark {
+  background: rgb(var(--bg-surface)) !important;
+  border-bottom: 1px solid rgb(var(--bg-line));
+}
+html[data-bg-site] nav.navbar.navbar-dark :is(.nav-link, .navbar-brand, span) {
+  color: rgb(var(--bg-ink)) !important;
+}
+html[data-bg-site] nav.navbar.navbar-dark .navbar-toggler {
+  border-color: rgb(var(--bg-line-control)) !important;
+}
+html[data-bg-site] nav.navbar.navbar-dark .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* ── Contenido ── */
+html[data-bg-site] main#main-content > .container-fluid.ps-4 :is(a, span) {
+  @apply bg-small;
+  color: rgb(var(--bg-ink-muted)) !important;
+  font-weight: 400 !important;
+}
+html[data-bg-site] main#main-content > .container-fluid.ps-4 a {
+  @apply bg-link;
+}
+html[data-bg-site] main#main-content > .container-fluid > h2 {
+  @apply bg-eyebrow;
+  margin: 0 0 8px !important;
+  font-size: 12px !important;
+}
+html[data-bg-site] main#main-content > :is(.container-fluid, .container-components) {
+  max-width: var(--bg-content-max);
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+html[data-bg-site] main#main-content .container-components > .container {
+  max-width: none;
+  padding: 0;
+}
+html[data-bg-site] main#main-content .card {
+  @apply bg-card;
+  margin-bottom: 24px !important;
+  box-shadow: var(--bg-shadow-card) !important;
+}
+html[data-bg-site] main#main-content .card-header {
+  @apply bg-eyebrow;
+  border-bottom: 1px solid rgb(var(--bg-line)) !important;
+}
+html[data-bg-site] main#main-content .btn-primary {
+  @apply bg-btn bg-btn-primary;
+  background-image: none !important;
+}
+html[data-bg-site] main#main-content .card-header .btn-primary,
+html[data-bg-site] main#main-content #imprimirAsociaciones {
+  @apply bg-btn-secondary;
+}
+html[data-bg-site] main#main-content .form-label {
+  @apply bg-label;
+}
+html[data-bg-site] main#main-content .form-control {
+  @apply bg-field;
+}
+html[data-bg-site] main#main-content .check-and-radio-input {
+  width: 18px;
+  height: 18px;
+  accent-color: rgb(var(--bg-brand-600));
+  vertical-align: middle;
+}
+/* El campo conectado ocupa el hueco del original dentro del grupo con «Buscar». */
+html[data-bg-site] main#main-content .input-group {
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+/* «Buscar» a la altura del campo conectado (debajo de su etiqueta). */
+html[data-bg-site] main#main-content .input-group:has(> [data-bg-host]) #buscar {
+  margin-top: 31px;
+}
+html[data-bg-site] main#main-content .input-group > [data-bg-host] {
+  flex: 1 1 auto;
+}
+
+/* ── Resultados ── */
+/* Las .row de Bootstrap llevan márgenes negativos: dentro de la tarjeta desbordan en móvil. */
+html[data-bg-site] main#main-content .card-body .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+html[data-bg-site] main#main-content table.custom-table td {
+  overflow-wrap: break-word;
+}
+/* Móvil: cada fila como elemento apilado; la etiqueta de columna oficial se repite encima. */
+@media (max-width: 639px) {
+  html[data-bg-site] main#main-content table.custom-table,
+  html[data-bg-site] main#main-content table.custom-table :is(tbody, tr, td) {
+    display: block;
+    width: auto;
+  }
+  html[data-bg-site] main#main-content table.custom-table tr.table-header {
+    display: none;
+  }
+  html[data-bg-site] main#main-content table.custom-table tr:not(.table-header):not(.d-none) {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgb(var(--bg-line));
+  }
+  html[data-bg-site] main#main-content table.custom-table tr.d-none {
+    display: none;
+  }
+  html[data-bg-site] main#main-content table.custom-table td {
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important; /* Bootstrap 5 dibuja los bordes de celda con box-shadow */
+  }
+  html[data-bg-site] main#main-content table.custom-table td:nth-child(1) {
+    font-weight: 600;
+  }
+  html[data-bg-site] main#main-content table.custom-table td:nth-child(2)::before {
+    content: 'Registro de procedencia';
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--bg-ink-subtle));
+  }
+  /* «Detalle» llega siempre vacía de la web oficial. */
+  html[data-bg-site] main#main-content table.custom-table td:nth-child(3):empty,
+  html[data-bg-site] main#main-content table.custom-table td:nth-child(3):not(:has(*)) {
+    display: none;
+  }
+}
+html[data-bg-site] main#main-content table.custom-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgb(var(--bg-line)) !important;
+  border-radius: var(--bg-radius-control);
+  overflow: hidden;
+  font-size: 15px;
+}
+html[data-bg-site] main#main-content table.custom-table td {
+  padding: 10px 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgb(var(--bg-line)) !important;
+  color: rgb(var(--bg-ink));
+  vertical-align: top;
+}
+html[data-bg-site] main#main-content table.custom-table tr.table-header td {
+  @apply bg-eyebrow;
+  background: rgb(var(--bg-surface-muted)) !important;
+}
+html[data-bg-site] main#main-content table.custom-table td:nth-child(2) {
+  color: rgb(var(--bg-ink-muted));
+}
+html[data-bg-site] main#main-content .pagination {
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+html[data-bg-site] main#main-content .pagination .page-link {
+  color: rgb(var(--bg-brand-700)) !important;
+  border-color: rgb(var(--bg-line)) !important;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+html[data-bg-site] main#main-content .pagination .active .page-link {
+  background: rgb(var(--bg-brand-600)) !important;
+  border-color: rgb(var(--bg-brand-600)) !important;
+  color: rgb(var(--bg-ink-inverse)) !important;
+}
+
+/* ── Pie ── */
+html[data-bg-site] .bg-primary-dark {
+  @apply bg-small;
+  background: rgb(var(--bg-surface)) !important;
+  border-top: 1px solid rgb(var(--bg-line));
+}
+html[data-bg-site] .bg-primary-dark :is(p, li, span, h2, h3, h4, div) {
+  color: rgb(var(--bg-ink-muted)) !important;
+}
+html[data-bg-site] .bg-primary-dark a {
+  @apply bg-link;
+  color: rgb(var(--bg-brand-700)) !important;
+}

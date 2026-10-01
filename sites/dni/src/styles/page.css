@@ -1,18 +1,342 @@
-/* Estilos del portal DNI con los tokens del sistema de diseño (DESIGN.md). */
+/*
+ * Tema del portal DNI con el sistema de diseño (DESIGN.md §4). Todo va bajo
+ * html[data-bg-site='dni']: desaparece al restaurar la interfaz original.
+ * Solo tokens y componentes del preset (@apply bg-*). Nada informativo se oculta; solo
+ * los textos que el campo conectado ya repite (etiqueta y ayuda, DESIGN.md §4.2).
+ */
 @import '@better-government/design/tokens.css';
 
-body[data-bg-site='dni'] {
-  background: rgb(var(--bg-canvas));
-  color: rgb(var(--bg-ink));
-  font-family: var(--bg-font);
+/* ── Base: fuera la imagen de fondo, lienzo y tipografía del sistema ── */
+html[data-bg-site='dni'],
+html[data-bg-site='dni'] body {
+  background: rgb(var(--bg-canvas)) !important;
+  background-image: none !important;
 }
-body[data-bg-site='dni'] :is(input:not([type='hidden']), select, textarea, button) {
+html[data-bg-site='dni'] body {
+  @apply bg-text;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-bg-site='dni'] :is(input:not([type='hidden']), select, textarea, button) {
   font-size: max(1em, 16px);
 }
-body[data-bg-site='dni'] :is(input:not([type='hidden']), select, textarea) {
-  border-radius: var(--bg-radius-control);
-}
-body[data-bg-site='dni'] :is(a, button, input, select, textarea):focus-visible {
+html[data-bg-site='dni'] :is(a, button, input, select, textarea):focus-visible {
   outline: 3px solid rgb(var(--bg-brand-600));
   outline-offset: 2px;
+}
+html[data-bg-site='dni'] .PAGINA {
+  width: auto;
+  max-width: var(--bg-content-max);
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+  box-sizing: border-box;
+  background: transparent;
+}
+/* Sombra lateral decorativa (imagen de fondo), sin contenido. */
+html[data-bg-site='dni'] #sombra {
+  display: none;
+}
+
+/* ── Cabecera oficial: barra de enlaces y banner institucional intactos ── */
+html[data-bg-site='dni'] #precabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 8px 12px;
+  background: rgb(var(--bg-surface));
+  color: rgb(var(--bg-ink));
+  border: 1px solid rgb(var(--bg-line));
+  border-radius: var(--bg-radius-control) var(--bg-radius-control) 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+html[data-bg-site='dni'] .enlaces_precabecera {
+  float: none;
+  margin: 0;
+  line-height: 1.6;
+  font-family: var(--bg-font);
+  font-size: 13px;
+  text-align: left;
+}
+html[data-bg-site='dni'] .enlaces_precabecera a:is(:link, :visited, :hover, :active) {
+  color: rgb(var(--bg-brand-700)) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+html[data-bg-site='dni'] #cabecera img {
+  display: block;
+  width: 100% !important; /* el HTML oficial fija style="width:inherit" (1000 px) */
+  height: auto;
+  border-radius: 0 0 var(--bg-radius-control) var(--bg-radius-control);
+}
+
+/* ── Contenido: columna principal + columna de ayuda, en tarjetas ── */
+html[data-bg-site='dni'] .CONTENIDO {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  margin-top: 24px;
+}
+/* Anclas de salto («inicioContenido») fuera de la rejilla; siguen funcionando como destino. */
+html[data-bg-site='dni'] .CONTENIDO > a:empty {
+  position: absolute;
+}
+html[data-bg-site='dni'] .informacionGeneral {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+html[data-bg-site='dni'] .contenidoAdicional {
+  grid-column: 2;
+}
+@media (max-width: 1023px) {
+  html[data-bg-site='dni'] :is(.informacionGeneral, .contenidoAdicional) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+@media (max-width: 1023px) {
+  html[data-bg-site='dni'] .CONTENIDO {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+html[data-bg-site='dni'] .informacionGeneral {
+  @apply bg-card;
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 24px;
+}
+html[data-bg-site='dni'] .contenidoAdicional {
+  @apply bg-card;
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 20px;
+  align-self: start;
+}
+@media (max-width: 639px) {
+  html[data-bg-site='dni'] :is(.informacionGeneral, .contenidoAdicional) {
+    padding: 16px;
+  }
+}
+html[data-bg-site='dni'] .CONTENIDO :is(p, span, strong, b, label, legend, a, li) {
+  font-family: var(--bg-font);
+}
+html[data-bg-site='dni'] h1 {
+  @apply bg-h1;
+  font-family: var(--bg-font);
+  margin: 0 0 12px;
+}
+html[data-bg-site='dni'] .informacionGeneral p {
+  max-width: 70ch;
+  margin: 0 0 12px;
+  font-family: var(--bg-font);
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgb(var(--bg-ink));
+  text-align: left !important;
+}
+html[data-bg-site='dni'] .informacionGeneral a,
+html[data-bg-site='dni'] .contenidoAdicional a {
+  @apply bg-link;
+}
+html[data-bg-site='dni'] .titulo_azul {
+  @apply bg-eyebrow;
+  width: auto;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--bg-font);
+}
+html[data-bg-site='dni'] :is(.wellSize, .wellSize2) {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: rgb(var(--bg-ink-muted));
+  font-family: var(--bg-font);
+  font-size: 15px;
+  line-height: 1.55;
+  text-align: left;
+}
+html[data-bg-site='dni'] .wellSize2 p {
+  font-size: 15px !important;
+}
+html[data-bg-site='dni'] .contenidoAdicional img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 6px 0 2px;
+}
+html[data-bg-site='dni'] .marron {
+  @apply bg-h3;
+  display: block;
+  margin-top: 12px;
+}
+
+/* ── Entrada: cajas de acceso como opciones ── */
+html[data-bg-site='dni'] .cajaEntrada {
+  width: auto;
+  margin: 12px 0;
+  padding: 16px;
+  text-align: left;
+  background: rgb(var(--bg-surface-muted));
+  border: 1px solid rgb(var(--bg-line));
+  border-radius: var(--bg-radius-control);
+}
+html[data-bg-site='dni'] .cajaEntrada p {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+html[data-bg-site='dni'] .cssCandado {
+  vertical-align: middle;
+}
+
+/* ── Identificación: formulario en una columna limpia ── */
+html[data-bg-site='dni'] .formulario {
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+html[data-bg-site='dni'] .formulario fieldset {
+  @apply bg-callout bg-callout-neutral;
+  margin: 0 0 16px;
+  font-family: var(--bg-font);
+  font-size: 15px;
+  font-weight: 400;
+  color: rgb(var(--bg-ink)) !important;
+}
+html[data-bg-site='dni'] .formulario legend {
+  @apply bg-eyebrow;
+  padding: 0 4px;
+}
+html[data-bg-site='dni'] .formulario .floatIzquierda {
+  float: none;
+  margin: 0;
+}
+html[data-bg-site='dni'] .floatCentrado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 16px;
+  margin: 0;
+}
+html[data-bg-site='dni'] :is(.floatIzquierdaAutentificar, .floatDerechaAutentificar) {
+  float: none;
+  width: auto;
+  flex: 1 1 260px;
+  margin: 0;
+}
+html[data-bg-site='dni'] label:has(> #letraDocumento) {
+  flex: 0 0 120px;
+}
+/*
+ * Etiquetas oficiales que envuelven un control sustituido: su texto («Letra:») y su ayuda
+ * («(dd/mm/aaaa o PERMANENTE)») ya los muestra el campo conectado, que los lee de la página.
+ */
+html[data-bg-site='dni'] label:has(> [data-bg-host]) {
+  font-size: 0;
+}
+html[data-bg-site='dni'] .notas {
+  font-size: 14px;
+  color: rgb(var(--bg-ink-muted));
+}
+html[data-bg-site='dni'] label:has(> [data-bg-host]) .notas {
+  font-size: 0;
+}
+html[data-bg-site='dni'] .formulario label[for='codSeguridad'] {
+  display: block;
+  margin: 16px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+html[data-bg-site='dni'] .formulario input[type='text']:not([data-bg-source]) {
+  @apply bg-field;
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  margin-top: 6px;
+}
+
+/* CAPTCHA oficial: se conserva tal cual, solo se recoloca. */
+html[data-bg-site='dni'] #captchas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  width: auto;
+  min-height: 0;
+  margin: 12px 0;
+}
+html[data-bg-site='dni'] :is(#divVisualCaptchaIzq, #divVisualCaptchaDer) {
+  float: none;
+  width: auto;
+  height: auto;
+  padding: 0;
+  font-family: var(--bg-font);
+  font-size: 14px;
+  color: rgb(var(--bg-ink-muted));
+}
+html[data-bg-site='dni'] .borderCapcha {
+  border: 1px solid rgb(var(--bg-line-control));
+  border-radius: 6px;
+}
+html[data-bg-site='dni'] .alineaCentrado {
+  text-align: left !important;
+  font-size: 15px;
+}
+html[data-bg-site='dni'] .formulario input.boton {
+  @apply bg-btn bg-btn-primary;
+  margin: 8px 8px 0 0;
+}
+html[data-bg-site='dni'] .formulario input.boton[value='Volver'] {
+  @apply bg-btn-secondary;
+}
+
+/* ── Pie ── */
+html[data-bg-site='dni'] .BARRAPIE {
+  @apply bg-small;
+  height: auto;
+  margin-top: 24px;
+  padding: 16px;
+  background: rgb(var(--bg-surface));
+  border: 1px solid rgb(var(--bg-line));
+  border-radius: var(--bg-radius-control);
+  font-family: var(--bg-font);
+}
+
+/* ── Aviso de cookies: tarjeta fija abajo. No se acepta ni se oculta. ── */
+html[data-bg-site='dni'] .alertaModal {
+  @apply bg-card;
+  position: fixed;
+  top: auto;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  background: rgb(var(--bg-surface));
+  box-shadow: var(--bg-shadow-raised);
+}
+html[data-bg-site='dni'] .alertaModal .msg.cookies p {
+  margin: 8px 4px;
+  font-size: 14px;
+  text-align: left;
+}
+html[data-bg-site='dni'] .alertaModal .msg.cookies {
+  text-align: left;
+}
+html[data-bg-site='dni'] .alertaModal .msg.cookies span[id*='Cookies'] {
+  @apply bg-btn bg-btn-secondary;
+  width: auto;
+  min-height: 36px;
+  margin: 4px;
+  padding: 6px 14px;
+  font-size: 14px;
+  color: rgb(var(--bg-ink));
+  background: rgb(var(--bg-surface));
 }

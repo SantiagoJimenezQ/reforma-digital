@@ -46,6 +46,17 @@ export interface BridgeOptions {
 }
 
 const textTypes = new Set(['text', 'email', 'tel', 'url', 'search']);
+function violatesLength(element: FieldElement): boolean {
+  if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement))
+    return false;
+  const length = element.value.length;
+  if (length === 0) return false; // "required" is still checked natively by the browser
+  return (
+    (element.minLength > 0 && length < element.minLength) ||
+    (element.maxLength >= 0 && length > element.maxLength)
+  );
+}
+
 export function isBindableField(element: Element): element is FieldElement {
   if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) return true;
   return (
@@ -104,6 +115,7 @@ export class DomBridge {
   private observer: MutationObserver;
   private timer: ReturnType<typeof setInterval>;
   private disposed = false;
+  private invalid: string | null = null;
   private revision = 0;
   private doc: Document;
 
@@ -139,6 +151,7 @@ export class DomBridge {
     this.refresh();
     for (const name of ['input', 'change', 'reset', 'focusin', 'focusout'])
       this.doc.addEventListener(name, this.onEvent, true);
+    this.doc.addEventListener('submit', this.onSubmit, true);
     this.observer = new MutationObserver(this.refresh);
     this.observer.observe(this.doc.documentElement, {
       subtree: true,
@@ -225,6 +238,26 @@ export class DomBridge {
     };
   };
   getRevision = (): number => this.revision;
+  /** Binding whose value broke an official length constraint on the last submit attempt. */
+  getInvalid = (): string | null => this.invalid;
+  /**
+   * Values written by script skip the browser's minlength/maxlength checks (they only apply to
+   * user edits). Before an official form with connected fields is submitted, the same limits
+   * declared on the original controls are checked; if one fails, the submission is stopped and
+   * the connected field reports it.
+   */
+  private onSubmit = (event: Event) => {
+    if (this.disposed || !(event.target instanceof HTMLFormElement)) return;
+    for (const [id, { element }] of this.fields) {
+      if (element.form !== event.target || !violatesLength(element)) continue;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      this.invalid = id;
+      this.revision++;
+      this.listeners.forEach((listener) => listener());
+      return;
+    }
+  };
   getField(id: string): FieldSnapshot {
     const result = this.snapshots.get(id);
     if (!result) throw new Error('Unknown field binding');
@@ -270,6 +303,7 @@ export class DomBridge {
     }
     element.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
     element.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    if (this.invalid === id) this.invalid = null;
     this.refresh();
     return true;
   }
@@ -350,6 +384,7 @@ export class DomBridge {
     this.observer.disconnect();
     for (const name of ['input', 'change', 'reset', 'focusin', 'focusout'])
       this.doc.removeEventListener(name, this.onEvent, true);
+    this.doc.removeEventListener('submit', this.onSubmit, true);
     this.listeners.clear();
     this.snapshots.clear();
     this.signatures.clear();

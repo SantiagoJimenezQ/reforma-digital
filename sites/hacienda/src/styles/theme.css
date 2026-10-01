@@ -1,0 +1,11 @@
+/*
+ * Tema del portal de la Agencia Tributaria = tema AEAT del sistema de diseño + controles
+ * replicados. DESIGN.md §4.2: en «Asistencia y Cita» las tres gestiones oficiales las repite el
+ * panel (mismo enlace oficial y su tutorial), así que el recuadro oficial se oculta mientras la
+ * interfaz está activa. El catálogo oficial NO se oculta: tiene «¿En qué oficinas?».
+ */
+@import '@better-government/design/themes/aeat.css';
+
+html[data-bg-page='asistencia'] main#acc-main .js-gestiones-destacadas {
+  display: none !important;
+}

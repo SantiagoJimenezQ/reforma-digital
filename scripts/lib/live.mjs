@@ -56,32 +56,57 @@ export function harPath(siteId) {
   return path.join(cache, `${siteId}.har`);
 }
 
-/** Serves pages from a HAR recorded by site:record: no request reaches the official site. */
-export async function replayHar(context, file) {
+/** Serves pages from one or more HARs recorded by site:record: no request reaches the official site. */
+export async function replayHar(context, files) {
   const key = (u) => {
     const url = new URL(u);
     return url.origin + url.pathname.replace(/;jsessionid=[^/?#]*/i, '') + url.search;
   };
-  const entries = new Map();
-  for (const entry of JSON.parse(readFileSync(file, 'utf8')).log.entries) {
+  // A page and its own XHR can share a URL (GET document vs POST data), so match the method first
+  // and fall back to any recording of that URL (e.g. a page reached by a form POST, opened by GET).
+  // Two searches POST to the same URL: the request body tells them apart.
+  const byBody = new Map();
+  const byMethod = new Map();
+  const byUrl = new Map();
+  const entries = [files]
+    .flat()
+    .flatMap((file) => JSON.parse(readFileSync(file, 'utf8')).log.entries);
+  for (const entry of entries) {
     if (entry.response.status >= 300 || entry.response.content?.text === undefined) continue;
-    entries.set(key(entry.request.url), entry.response);
+    const body = entry.request.postData?.text;
+    if (body)
+      byBody.set(`${entry.request.method} ${key(entry.request.url)} ${body}`, entry.response);
+    byMethod.set(`${entry.request.method} ${key(entry.request.url)}`, entry.response);
+    if (!byUrl.has(key(entry.request.url)) || entry.request.method === 'GET')
+      byUrl.set(key(entry.request.url), entry.response);
   }
   await context.route('**/*', async (route) => {
     const url = route.request().url();
     if (/\/TSPD\/|google|ruxitagent|\/rb_/.test(url)) return route.abort();
-    const res = entries.get(key(url));
+    const method = route.request().method();
+    const res =
+      byBody.get(`${method} ${key(url)} ${route.request().postData() ?? ''}`) ??
+      byMethod.get(`${method} ${key(url)}`) ??
+      byUrl.get(key(url));
     if (!res) return route.abort();
     const body =
       res.content.encoding === 'base64'
         ? Buffer.from(res.content.text, 'base64')
         : res.content.text;
+    // Text bodies come back from the HAR as JS strings: re-encode them as UTF-8 and say so,
+    // whatever charset the official server declared (e.g. ISO-8859-15 on www2.agenciatributaria).
+    const textBody = res.content.encoding !== 'base64';
     const headers = Object.fromEntries(
       res.headers
         .filter(
           (h) => !/content-(encoding|length|security)|transfer-encoding|set-cookie/i.test(h.name),
         )
-        .map((h) => [h.name, h.value]),
+        .map((h) => [
+          h.name,
+          textBody && /^content-type$/i.test(h.name)
+            ? h.value.replace(/charset=[^;]+/i, 'charset=utf-8')
+            : h.value,
+        ]),
     );
     await route.fulfill({ status: res.status, headers, body });
   });
@@ -124,6 +149,9 @@ export function flowContext(site, page, { prefix, fixtures, results }) {
       }
       await (target ?? page).screenshot({
         path: path.join(shots, `${target ? 'panel' : prefix}-${name}.png`),
+        // Playwright's default caret hiding writes a style attribute on every input; the runtime
+        // treats that as a changed official control and restores the original page.
+        caret: 'initial',
       });
     },
     async fixture(name) {

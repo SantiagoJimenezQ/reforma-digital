@@ -38,8 +38,12 @@ for (const site of await sitesWithFlow()) {
         .catch(() => console.warn(`  no interface on ${name}`));
       if (site.flow.captureCss) await page.addStyleTag({ content: site.flow.captureCss });
       await page.waitForTimeout(400);
-      await page.screenshot({ path: path.join(out, `${name}${suffix}.png`), fullPage: true });
-      await page.screenshot({ path: path.join(out, `${name}${suffix}-top.png`) });
+      await page.screenshot({
+        path: path.join(out, `${name}${suffix}.png`),
+        fullPage: true,
+        caret: 'initial',
+      });
+      await page.screenshot({ path: path.join(out, `${name}${suffix}-top.png`), caret: 'initial' });
     }
     console.log(`✔ ${site.id} · ${name}`);
   }

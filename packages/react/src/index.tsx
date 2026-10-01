@@ -36,6 +36,12 @@ export function BoundField({
   const state = useBoundField(binding);
   const spec = bridge.fieldSpec(binding);
   const id = useId();
+  // When the bridge stops an official submit because of this field, show the browser's message here.
+  const invalid = useSyncExternalStore(bridge.subscribe, () => bridge.getInvalid() === binding);
+  const control = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (invalid) control.current?.reportValidity();
+  }, [invalid]);
   const checkable = state.type === 'checkbox' || state.type === 'radio';
   const common = {
     id,
@@ -80,6 +86,7 @@ export function BoundField({
       ) : state.type === 'textarea' ? (
         <textarea
           {...common}
+          ref={control}
           value={state.value}
           readOnly={state.readOnly}
           maxLength={state.maxLength < 0 ? undefined : state.maxLength}
@@ -100,6 +107,7 @@ export function BoundField({
       ) : (
         <input
           {...common}
+          ref={control}
           type={state.type}
           value={state.value}
           readOnly={state.readOnly}

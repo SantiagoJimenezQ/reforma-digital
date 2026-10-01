@@ -13,3 +13,13 @@
 - Pantallas guiadas en el runtime (`panels`, `page`, `shell`) y espera a contenido oficial tardío con aviso de interfaz original.
 - Acciones `custom` en `DomBridge` para elementos no nativos revisados.
 - Herramientas `site:live`, `site:record` y `site:preview` para trabajar con la web real y sin conexión.
+- DNI con tema de página completa, ayudas leídas de la página oficial y fixtures reales.
+- Hacienda (experimental): «Asistencia y Cita» y buscador del catálogo de servicios de la Agencia Tributaria. Tema `aeat.css`.
+- Registro de Asociaciones (experimental): consulta pública del Fichero de Denominaciones con campo conectado. Tema `sede-interior.css`.
+- `DomBridge` aplica los límites de longitud del control oficial antes de enviar el formulario (los valores escritos por script no los activan en el navegador).
+- Las capturas de las herramientas no alteran los controles oficiales (`caret: 'initial'`) y la reproducción sin conexión distingue peticiones por método y cuerpo.
+- DNI con tema de página completa, ayudas leídas de la página oficial y fixtures reales.
+- Hacienda (experimental): «Asistencia y Cita» y buscador del catálogo de servicios de la Agencia Tributaria. Tema `aeat.css`.
+- Registro de Asociaciones (experimental): consulta pública del Fichero de Denominaciones con campo conectado. Tema `sede-interior.css`.
+- `DomBridge` aplica los límites de longitud del control oficial antes de enviar el formulario (los valores escritos por script no los activan en el navegador).
+- Las capturas de las herramientas no alteran los controles oficiales (`caret: 'initial'`); la reproducción sin conexión distingue peticiones por método y cuerpo.

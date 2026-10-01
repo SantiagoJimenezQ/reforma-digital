@@ -8,3 +8,6 @@ package-lock.json
 # HTML capturado de webs oficiales (npm run site:live): se conserva tal cual
 sites/extranjeria/fixtures/*.html
 .cache
+sites/dni/fixtures/real-*.html
+sites/hacienda/fixtures/*.html
+sites/registro-asociaciones/fixtures/*.html

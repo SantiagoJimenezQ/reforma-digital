@@ -19,8 +19,8 @@ packages/
 sites/
   dni/                      Cita previa DNI y pasaporte, experimental
   extranjeria/              Cita previa de Extranjería, experimental
-  hacienda/                 Subproyecto preparado, desactivado
-  registro-asociaciones/    Subproyecto preparado, desactivado
+  hacienda/                 Asistencia y Cita de la Agencia Tributaria, experimental
+  registro-asociaciones/    Consulta pública de asociaciones, experimental
 ```
 
 Cada portal es un workspace de npm y tiene la misma estructura:
@@ -88,6 +88,8 @@ El generador crea un workspace completo y desactivado. También admite un domini
 La base se compila y dispone de pruebas unitarias y pruebas con la extensión cargada. El 10 de septiembre de 2026 se comprobó la extensión instalada en Chrome de pruebas sobre el portal oficial: se montaron los cinco campos React de identificación y se verificó que un valor ficticio introducido en la nueva interfaz llegaba al input original, sin enviar el formulario. La adaptación es parcial: quedan la maquetación antigua y alguna etiqueta duplicada. **No se ha validado el trámite oficial completo**. Las pantallas no reconocidas mantienen su interfaz original.
 
 El 27 de septiembre de 2026 se recorrió la web oficial de cita previa de Extranjería con la extensión cargada: página informativa, provincia, oficina y trámite, e información del trámite con la elección con o sin Cl@ve (Madrid, «Toma de huellas»). La interfaz se detiene antes del formulario de datos personales. Sus fixtures son HTML real de esas páginas públicas. Consulta [la cobertura de Extranjería](sites/extranjeria/README.md).
+
+El mismo día se comprobaron con la extensión cargada en su web real la cita previa del DNI con el tema completo del sistema de diseño, «Asistencia y Cita» y el catálogo de servicios de la Agencia Tributaria, y la consulta pública del Fichero de Denominaciones de Asociaciones. Todos terminan antes de pedir identificación o datos personales. Consulta [DNI](sites/dni/README.md), [Hacienda](sites/hacienda/README.md) y [Asociaciones](sites/registro-asociaciones/README.md).
 
 CAPTCHA, audio, certificados, firma, archivos y controles de navegador se mantienen como controles originales. No se simulan ni se sustituyen genéricamente. Conservar esos controles no demuestra por sí solo que todos los flujos de un portal funcionen: cada integración requiere verificación. Consulta [SECURITY.md](SECURITY.md) y [la cobertura del DNI](sites/dni/README.md).
 

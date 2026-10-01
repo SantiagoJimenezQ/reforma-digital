@@ -1,15 +1,21 @@
-# registro-asociaciones
+# Consulta de asociaciones (Fichero de Denominaciones)
 
-Subproyecto preparado, todavía sin interfaces implementadas. enabled: false lo excluye del código y de los permisos de la extensión.
+Subproyecto del monorepo. Estado experimental; incluido en el build. Una ruta exacta: la consulta pública de la Sede del Ministerio del Interior.
 
-## Organización
+## Pantallas
 
-- src/pages/<pantalla>/page.tsx: interfaz y preparación de esa pantalla.
-- src/pages/<pantalla>/bindings.ts: conexiones exactas con los controles originales.
-- src/pages/index.ts: registro de pantallas.
-- src/components/: componentes propios compartidos.
-- src/styles/: estilos propios.
-- fixtures/: HTML de prueba sin datos personales.
-- tests/: pruebas de rutas y comportamiento.
+| Carpeta               | Ruta                                                  | Adaptación                                                                                                                                                                                                                                           |
+| --------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/consulta/` | `sede.interior.gob.es/portal/sede/asociacionesLegacy` | El campo oficial `#denominacion` se sustituye en su sitio por un `BoundField` (Intro activa el «Buscar» oficial). Guía que cambia según el estado: búsqueda, resultados (término, página y número de filas) o el mensaje oficial de «sin resultados» |
 
-Antes de activar el portal, define sus dominios exactos, implementa al menos una pantalla y documenta qué has verificado. Consulta ../../CONTRIBUTING.md.
+«Búsqueda exacta» y «Buscar» siguen siendo controles originales. La casilla actualiza su valor solo al perder el foco (`onblur`), y un clic sintético no lo reproduce, así que no se sustituye. El tema `@better-government/design/themes/sede-interior.css` re‑estiliza cabecera, tarjetas, tabla y paginación. En móvil, cada resultado se apila con la etiqueta de columna oficial.
+
+La consulta no tiene páginas de detalle en la web oficial.
+
+## Evidencia y trabajo pendiente
+
+El 27 de septiembre de 2026 se consultó la web real con la extensión (`npm run site:live -- registro-asociaciones`) con términos genéricos («vecinos» y uno sin resultados). No hay identificación, CAPTCHA ni comprobación anti‑bot en la Sede. La página informativa de `www.interior.gob.es` sí tiene una comprobación de Cloudflare y no se usa.
+
+Los valores escritos por script no activan `minlength` en el navegador. Por eso `DomBridge` comprueba los límites de longitud del control oficial antes de enviar el formulario: una búsqueda de un carácter se detiene y el campo muestra el aviso, igual que en la web oficial.
+
+Pendiente: la paginación oficial falla en búsquedas muy grandes (p. ej. «cultural», página 2 → «Error general»), un problema de la propia web que no se corrige; solo castellano.

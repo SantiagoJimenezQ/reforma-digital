@@ -1,15 +1,22 @@
-# hacienda
+# Asistencia y Cita de la Agencia Tributaria
 
-Subproyecto preparado, todavía sin interfaces implementadas. enabled: false lo excluye del código y de los permisos de la extensión.
+Subproyecto del monorepo. Estado experimental; incluido en el build. Configuración en `site.config.json`: dos rutas exactas, la página «Asistencia y Cita» de la Sede y el catálogo de servicios de `www2`.
 
-## Organización
+## Pantallas
 
-- src/pages/<pantalla>/page.tsx: interfaz y preparación de esa pantalla.
-- src/pages/<pantalla>/bindings.ts: conexiones exactas con los controles originales.
-- src/pages/index.ts: registro de pantallas.
-- src/components/: componentes propios compartidos.
-- src/styles/: estilos propios.
-- fixtures/: HTML de prueba sin datos personales.
-- tests/: pruebas de rutas y comportamiento.
+| Carpeta                 | Ruta                                                             | Adaptación                                                                                                                                                                                                                                                                           |
+| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/pages/asistencia/` | `sede.agenciatributaria.gob.es/Sede/procedimientoini/GC29.shtml` | Guía con el aviso oficial sobre la Renta, las tres gestiones oficiales como opciones equivalentes (con el tipo de acceso que declara la página y su tutorial oficial), enlace al catálogo y otras vías citadas de la página. Cada opción activa el enlace oficial mediante el bridge |
+| `src/pages/catalogo/`   | `www2.agenciatributaria.gob.es/wlpl/TOCP-MUTE/ServiciosAsocCat`  | Buscador sobre los 89 servicios del catálogo oficial (sin tildes; «clave» encuentra «Cl@ve»), con filtros por categoría y canal. «Solicita asistencia y cita» activa el botón oficial de ese servicio. El catálogo oficial sigue visible (tiene «¿En qué oficinas?»)                 |
 
-Antes de activar el portal, define sus dominios exactos, implementa al menos una pantalla y documenta qué has verificado. Consulta ../../CONTRIBUTING.md.
+`src/styles/theme.css` aplica el tema AEAT del sistema de diseño (`@better-government/design/themes/aeat.css`) y oculta solo el recuadro oficial de gestiones, que el panel replica.
+
+La identificación (`/wlpl/TOCP-MUTE/internet/identificacion`, NIF y nombre) y los pasos siguientes no tienen pantalla registrada: conservan la interfaz original.
+
+## Evidencia y trabajo pendiente
+
+El 27 de septiembre de 2026 se recorrieron las dos páginas públicas con la extensión cargada (`npm run site:live -- hacienda`). No se pulsó ninguna solicitud de cita. No hubo comprobación anti‑bot, CAPTCHA ni aviso de cookies.
+
+El catálogo se pinta por JavaScript (petición `POST` de la propia página). El runtime espera a que aparezcan los servicios. Fixtures: HTML real, sin scripts ni tokens.
+
+Pendiente: el widget flotante oficial «¿Dudas?» (`#ClickToCall`) se conserva sin re‑estilizar; las rutas de colaboradores (`www1`, con certificado) no están cubiertas; solo castellano.

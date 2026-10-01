@@ -165,3 +165,28 @@ describe('DOM bridge behavior', () => {
     expect(() => b.getField('name')).toThrow();
   });
 });
+
+it('applies the official length limits that script-written values skip', () => {
+  document.body.innerHTML =
+    '<form id="f"><input id="q" name="q" minlength="2" maxlength="5"><button id="go">Buscar</button></form>';
+  const input = document.querySelector<HTMLInputElement>('#q')!;
+  const form = document.querySelector<HTMLFormElement>('#f')!;
+  const submitted = vi.fn((event: Event) => event.preventDefault());
+  form.addEventListener('submit', submitted);
+  const bridge = new DomBridge(
+    { q: { element: input, label: 'Búsqueda' } },
+    { go: { element: document.querySelector<HTMLButtonElement>('#go')!, label: 'Buscar' } },
+  );
+  bridge.setValue('q', 'v');
+  bridge.activate('go');
+  expect(submitted).not.toHaveBeenCalled();
+  expect(bridge.getInvalid()).toBe('q');
+  bridge.setValue('q', 'vecinos');
+  bridge.activate('go');
+  expect(submitted).not.toHaveBeenCalled(); // 7 > maxlength 5
+  bridge.setValue('q', 'veci');
+  bridge.activate('go');
+  expect(submitted).toHaveBeenCalledOnce();
+  expect(bridge.getInvalid()).toBeNull();
+  bridge.dispose();
+});
