@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import "./globals.css";
 import "../../components/chat.css";
@@ -20,6 +21,7 @@ export default function RootLayout({
           Saltar al contenido
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );
