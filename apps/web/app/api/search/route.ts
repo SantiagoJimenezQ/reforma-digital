@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { search } from '@gov/ai';
 import { db, searches } from '@gov/db';
-import { sameOrigin, rateLimit, feedbackToken, redactQuery } from '../../../lib/security';
+import {
+  sameOrigin,
+  rateLimit,
+  feedbackToken,
+  redactQuery,
+  databaseAvailable,
+  searchMode,
+} from '../../../lib/security';
 export const runtime = 'nodejs';
 export const maxDuration = 120;
 export async function POST(request: Request) {
@@ -62,6 +69,7 @@ export async function POST(request: Request) {
         );
         try {
           const result = await search(redactQuery(parsed.data.query), {
+            mode: searchMode(),
             signal,
             context: parsed.data.context?.map(redactQuery),
             attachmentContext: parsed.data.attachmentContext
@@ -72,7 +80,7 @@ export async function POST(request: Request) {
             onStage: (s) => send('stage', s),
           });
           let token: string | null = null;
-          if (process.env.DATABASE_URL && process.env.FEEDBACK_SECRET) {
+          if (databaseAvailable() && process.env.FEEDBACK_SECRET) {
             await db().insert(searches).values({ id: result.id, result });
             token = feedbackToken(result.id);
           }
