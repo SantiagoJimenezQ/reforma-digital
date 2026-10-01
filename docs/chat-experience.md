@@ -16,7 +16,7 @@ No es una copia literal de todos los servicios de America.gov: se utiliza Arial 
 
 ## Comportamiento
 
-La portada pasa la pregunta al chat mediante contexto React; no aparece en la URL ni en almacenamiento persistente del navegador. Los seis últimos mensajes del usuario permiten resolver referencias como «¿Dónde lo puedo tramitar?». La consulta actual prevalece. El contexto se redacta en servidor antes de usar el modelo, y no se usa como evidencia oficial.
+La portada pasa la pregunta al chat mediante contexto React; no aparece en la URL ni en almacenamiento persistente del navegador. Los seis últimos mensajes del usuario permiten resolver referencias como «¿Dónde lo puedo tramitar?». La consulta actual prevalece. La consulta, el contexto y el texto del PDF se redactan en el navegador antes de enviarse y de nuevo en servidor antes de usar el modelo ([datos personales](search.md#datos-personales)). El contexto no se usa como evidencia oficial.
 
 El prompt `evidence-v2` genera un array de bloques estructurados mediante Vercel AI SDK. Cada elemento completo pasa validación Zod, comprobación de registro oficial, jurisdicción y referencias, y un verificador semántico antes del evento SSE `claim`. La UI muestra esos bloques sin esperar a `result`. No se muestran tokens sin verificar ni se simula escritura de una respuesta ya completa. Las partes no respaldadas se omiten y se señala cuando el resultado es parcial. `evidence-v1` permanece disponible para experimentos.
 

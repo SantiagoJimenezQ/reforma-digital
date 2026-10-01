@@ -23,6 +23,7 @@ import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
 import { ProjectBrand } from "./project-header";
 import { AttachmentPicker } from "./attachment-picker";
 import type { PdfContext } from "../lib/attachment";
+import { protect } from "../lib/pii";
 import { readChatStream } from "../lib/chat-stream";
 
 type Result = SearchResult & { feedbackToken: string | null };
@@ -458,13 +459,24 @@ export default function Chat({
     setSpeechError("");
     nearBottom.current = true;
     try {
+      const outgoing = [query, ...prior.slice(-6).map((t) => t.query)];
+      if (documentContext) outgoing.push(documentContext.text);
+      const safe: string[] = [];
+      try {
+        for (const text of outgoing) safe.push(await protect(text));
+      } catch {
+        throw new Error(
+          "No hemos podido proteger tus datos personales en este dispositivo, así que no se ha enviado la consulta. Inténtalo de nuevo.",
+        );
+      }
+      controller.signal.throwIfAborted();
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          query,
-          attachmentContext: documentContext?.text,
-          context: prior.slice(-6).map((t) => t.query),
+          query: safe[0],
+          attachmentContext: documentContext ? safe.at(-1) : undefined,
+          context: safe.slice(1, outgoing.length - (documentContext ? 1 : 0)),
         }),
         signal: controller.signal,
       });

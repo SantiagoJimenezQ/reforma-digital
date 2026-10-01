@@ -35,6 +35,12 @@ Toda la IA utiliza OpenRouter mediante Vercel AI SDK. El modelo por defecto es `
 
 La API transmite etapas, evidencias y afirmaciones completas mediante SSE. Detener una respuesta cancela las llamadas en curso. Las preguntas anteriores y los documentos del usuario sirven como contexto, nunca como evidencia oficial. Una fecha de consulta reciente no demuestra que un plazo o una norma sigan vigentes.
 
+## Datos personales
+
+Antes de enviar, el navegador aplica a la consulta, a las preguntas anteriores y al texto del PDF las reglas de DNI, NIE, IBAN, correo y teléfono, y después [Rampart](https://github.com/nationaldesignstudio/rampart) (CC BY 4.0), que sustituye nombres, direcciones y otros identificadores por marcadores como `[GIVEN_NAME_1]`. Si Rampart no carga o falla, la consulta no se envía. El modelo se descarga de `huggingface.co` y su runtime de `cdn.jsdelivr.net`.
+
+El servidor repite las reglas de patrones, pero no ejecuta Rampart: una petición directa a la API solo recibe esa capa. Es reducción de daño, no anonimización.
+
 ## Credenciales
 
 - `OPENROUTER_API_KEY`: búsqueda web y llamadas de modelos.

@@ -19,6 +19,11 @@ export default function Privacy() {
             Langfuse está configurado, registra la consulta y las etapas de la
             respuesta para evaluar fallos.
           </p>
+          <p>
+            Antes de enviarla, tu navegador sustituye nombres, direcciones,
+            DNI, correos, teléfonos y datos bancarios por marcadores. Si no
+            puede hacerlo, la consulta no se envía.
+          </p>
           <h2>Documentos adjuntos y dictado</h2>
           <p>
             El PDF se lee en tu navegador. Al enviar una pregunta, se procesa un
