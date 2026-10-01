@@ -22,7 +22,7 @@ export default function Hero({ composer }: { composer?: ReactNode }) {
             </a>
           ))}
           <a
-            className="hero-repo inline-flex h-[38px] items-center gap-2 rounded-full bg-brand-900 px-4 text-sm font-medium no-underline"
+            className="hero-repo inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-brand-900 px-4 text-sm font-medium no-underline"
             href={links.repo}
           >
             <GithubIcon size={16} />

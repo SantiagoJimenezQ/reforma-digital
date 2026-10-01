@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { ArrowUp, Search } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 export default function HeroComposer({
   onAsk,
@@ -21,22 +21,25 @@ export default function HeroComposer({
       <label htmlFor="question" className="sr-only">
         Pregunta sobre trámites
       </label>
-      <div className="hero-composer-field">
-        <Search size={18} strokeWidth={1.8} aria-hidden="true" />
-        <input
-          id="question"
-          type="text"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="¿Qué trámite necesitas?"
-          maxLength={1200}
-          autoComplete="off"
-          spellCheck={false}
-        />
-        <button type="submit" disabled={!ready} aria-label="Preguntar">
-          <ArrowUp size={18} />
-        </button>
-      </div>
+      <textarea
+        id="question"
+        rows={2}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+            event.preventDefault();
+            submit();
+          }
+        }}
+        placeholder="Escribe qué trámite necesitas"
+        maxLength={1200}
+        autoComplete="off"
+        enterKeyHint="send"
+      />
+      <button type="submit" disabled={!ready} aria-label="Preguntar">
+        <ArrowUp size={18} />
+      </button>
     </form>
   );
 }

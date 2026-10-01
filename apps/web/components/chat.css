@@ -1,6 +1,11 @@
+body:has(.chat-page) {
+  overflow-x: clip;
+}
 .chat-page {
   background: rgb(var(--bg-canvas));
   min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: clip;
   color: rgb(var(--bg-ink));
   font-family: var(--bg-font);
   font-size: 16px;
@@ -27,9 +32,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 48px;
+  gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) 48px 16px;
   background: linear-gradient(rgb(var(--bg-canvas)) 70%, rgb(var(--bg-canvas) / 0));
-  height: 100px;
+  min-height: 88px;
+  box-sizing: border-box;
   pointer-events: none;
 }
 .chat-header > * {
@@ -91,7 +98,8 @@
 .chat-conversation {
   max-width: 688px;
   margin: 0 auto;
-  padding: 124px 12px 0;
+  padding: calc(108px + env(safe-area-inset-top, 0px)) 12px 0;
+  overflow-wrap: anywhere;
 }
 .chat-turn {
   margin-bottom: 56px;
@@ -298,7 +306,17 @@
   flex-shrink: 0;
 }
 .chat-bottom {
-  height: 160px;
+  height: calc(240px + env(safe-area-inset-bottom, 0px));
+}
+.chat-assistant :where(img, video) {
+  max-width: 100%;
+  height: auto;
+}
+.chat-assistant :where(table),
+.chat-assistant :where(pre) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 .chat-empty {
   padding-top: 80px;
@@ -315,10 +333,12 @@
   position: fixed;
   z-index: 15;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: min(688px, calc(100% - 40px));
-  padding: 20px 0 30px;
+  margin-inline: auto;
+  box-sizing: border-box;
+  padding: 20px 0 max(20px, env(safe-area-inset-bottom));
   background: linear-gradient(rgb(var(--bg-canvas) / 0), rgb(var(--bg-canvas)) 20%);
   isolation: isolate;
 }
@@ -326,8 +346,8 @@
   content: '';
   position: absolute;
   z-index: -1;
-  left: -30px;
-  right: -30px;
+  left: 0;
+  right: 0;
   bottom: 0;
   top: 25px;
   background: rgb(var(--bg-canvas));
@@ -661,10 +681,16 @@
       0 0;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 800px) {
   .chat-header {
-    height: 88px;
-    padding: 22px 20px;
+    min-height: 72px;
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .chat-header .project-brand {
+    min-width: 0;
+    font-size: 16px;
   }
   .chat-wordmark {
     font-size: 24px;
@@ -674,9 +700,18 @@
   }
   .chat-menu summary {
     padding: 8px 18px;
+    min-height: 44px;
+  }
+  .chat-menu nav {
+    width: min(245px, calc(100vw - 32px));
+  }
+  .chat-menu nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
   .chat-conversation {
-    padding: 112px 24px 0;
+    padding: calc(96px + env(safe-area-inset-top, 0px)) 16px 0;
   }
   .chat-user {
     margin-bottom: 28px;
@@ -688,30 +723,41 @@
   .chat-turn {
     margin-bottom: 42px;
   }
+  .chat-actions {
+    flex-wrap: wrap;
+  }
   .chat-composer-dock {
     width: calc(100% - 32px);
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
   .chat-composer {
-    padding: 15px 14px 15px 22px;
-    min-height: 74px;
+    width: 100%;
+    padding: 12px 12px 12px 16px;
+    min-height: 64px;
     gap: 8px;
   }
   .composer-controls {
     gap: 4px;
-    padding-bottom: 3px;
+    padding-bottom: 0;
   }
   .chat-followups button {
-    padding: 13px 18px;
-    min-height: 52px;
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+  .chat-feedback button,
+  .chat-retry,
+  .chat-error button {
+    min-height: 44px;
   }
   .chat-empty {
     padding-top: 40px;
   }
   .chat-empty h1 {
-    font-size: 36px;
+    font-size: clamp(28px, 8vw, 36px);
   }
   .chat-source-dialog {
+    width: min(432px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     border-radius: var(--bg-radius-card);
   }
   .source-modal-inner {
@@ -721,7 +767,7 @@
     padding-left: 0;
   }
   .chat-bottom {
-    height: 140px;
+    height: calc(260px + env(safe-area-inset-bottom, 0px));
   }
 }
 @media (prefers-reduced-motion: reduce) {
