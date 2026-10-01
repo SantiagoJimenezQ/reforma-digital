@@ -1,0 +1,6 @@
+{
+  "recall5Drop": 0.03,
+  "faithfulness": 0.97,
+  "citationPrecision": 0.97,
+  "wrongJurisdiction": 0.03
+}

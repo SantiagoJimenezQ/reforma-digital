@@ -1,0 +1,35 @@
+{
+  "name": "@gov/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gov/ai": "workspace:*",
+    "@gov/core": "workspace:*",
+    "@gov/db": "workspace:*",
+    "@gov/evals": "workspace:*",
+    "@gov/government": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.0",
+    "dotenv": "^17.2.3",
+    "lucide-react": "^0.468.0",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tailwindcss": "^4.1.0",
+    "unpdf": "^1.8.1",
+    "zod": "^4.1.0",
+    "@fontsource-variable/inter": "5.3.0",
+    "@reforma-digital/design": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0"
+  }
+}

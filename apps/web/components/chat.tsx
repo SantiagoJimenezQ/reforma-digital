@@ -1,0 +1,954 @@
+"use client";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import {
+  ArrowRight,
+  ArrowDown,
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  Square,
+  X,
+  ChevronDown,
+  RotateCcw,
+  Mic,
+  FileText,
+} from "lucide-react";
+import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
+import { ProjectBrand } from "./project-header";
+import { AttachmentPicker } from "./attachment-picker";
+import type { PdfContext } from "../lib/attachment";
+import { readChatStream } from "../lib/chat-stream";
+
+type Result = SearchResult & { feedbackToken: string | null };
+type Turn = {
+  id: string;
+  query: string;
+  state: "loading" | "done" | "stopped" | "error";
+  stage: Stage;
+  evidence: Evidence[];
+  blocks: VerifiedClaim[];
+  result?: Result;
+  error?: string;
+  attachment?: PdfContext;
+};
+type SourceView = { evidence: Evidence[]; selected?: Evidence };
+const stages: Record<Stage, string> = {
+  understandQuery: "Entendiendo tu pregunta",
+  retrieval: "Consultando fuentes oficiales",
+  rerank: "Seleccionando evidencias",
+  generation: "Redactando y verificando la respuesta",
+  evaluation: "Comprobando referencias",
+};
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((s) => s.length > 3)
+    .slice(0, 2)
+    .map((s) => s[0])
+    .join("")
+    .toUpperCase() || "ES";
+function Badge({ name }: { name: string }) {
+  return (
+    <span className="agency-badge" aria-hidden="true">
+      {initials(name)}
+    </span>
+  );
+}
+function SourceDialog({
+  view,
+  close,
+  select,
+}: {
+  view: SourceView | null;
+  close: () => void;
+  select: (e?: Evidence) => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (view && !dialog.current?.open) dialog.current?.showModal();
+    if (!view) dialog.current?.close();
+  }, [view]);
+  const groups = new Map<string, Evidence[]>();
+  for (const e of view?.evidence ?? []) {
+    const host = new URL(e.canonicalUrl).hostname.replace(/^www\./, "");
+    groups.set(host, [...(groups.get(host) ?? []), e]);
+  }
+  return (
+    <dialog
+      ref={dialog}
+      className="chat-source-dialog"
+      aria-labelledby="source-modal-title"
+      onCancel={close}
+      onClose={close}
+      onClick={(event) => {
+        if (event.target === dialog.current) close();
+      }}
+    >
+      <div className="source-modal-inner">
+        <div className="source-modal-header">
+          {view?.selected && (
+            <button
+              className="chat-icon source-back"
+              onClick={() => select()}
+              aria-label="Todas las fuentes"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <h2 id="source-modal-title">
+            {view?.selected ? "Fragmento citado" : "Fuentes"}
+          </h2>
+          <button
+            className="chat-icon source-close"
+            onClick={close}
+            aria-label="Cerrar fuentes"
+          >
+            <X size={19} />
+          </button>
+        </div>
+        {view?.selected ? (
+          <div className="source-detail">
+            <div className="source-detail-agency">
+              <Badge name={view.selected.organization} />
+              {view.selected.organization}
+            </div>
+            <h3>{view.selected.title}</h3>
+            <p className="source-heading">{view.selected.heading}</p>
+            <blockquote>
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                skipHtml
+                components={{
+                  a: ({ children }) => <span>{children}</span>,
+                  img: () => null,
+                }}
+              >
+                {view.selected.content}
+              </Markdown>
+            </blockquote>
+            <dl>
+              <div>
+                <dt>Ámbito</dt>
+                <dd>{view.selected.jurisdiction}</dd>
+              </div>
+              <div>
+                <dt>Consultado</dt>
+                <dd>
+                  {new Date(view.selected.crawledAt).toLocaleDateString(
+                    "es-ES",
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Actualización de origen</dt>
+                <dd>
+                  {view.selected.sourceUpdatedAt
+                    ? new Date(
+                        view.selected.sourceUpdatedAt,
+                      ).toLocaleDateString("es-ES")
+                    : "No indicada"}
+                </dd>
+              </div>
+            </dl>
+            <a
+              href={view.selected.canonicalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="chat-official-link"
+            >
+              Abrir documento oficial <ArrowUpRight size={15} />
+            </a>
+          </div>
+        ) : (
+          <div className="source-groups">
+            {[...groups].map(([host, evidence]) => {
+              const documents = [
+                ...new Map(evidence.map((e) => [e.documentId, e])).values(),
+              ];
+              return (
+                <details key={host} className="source-group">
+                  <summary>
+                    <Badge name={evidence[0]!.organization} />
+                    <span>
+                      {host}
+                      <small>
+                        {documents.length}{" "}
+                        {documents.length === 1 ? "fuente" : "fuentes"}
+                      </small>
+                    </span>
+                    <ChevronDown size={18} />
+                  </summary>
+                  <div className="source-documents">
+                    {documents.map((doc) => (
+                      <div key={doc.documentId}>
+                        <a
+                          href={doc.canonicalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {doc.title} <ArrowUpRight size={14} />
+                        </a>
+                        {evidence
+                          .filter((e) => e.documentId === doc.documentId)
+                          .map((e, i) => (
+                            <button key={e.chunkId} onClick={() => select(e)}>
+                              Ver fragmento citado
+                              {evidence.filter(
+                                (item) => item.documentId === doc.documentId,
+                              ).length > 1
+                                ? ` ${i + 1}`
+                                : ""}
+                            </button>
+                          ))}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </dialog>
+  );
+}
+function AnswerActions({
+  turn,
+  showSources,
+}: {
+  turn: Turn;
+  showSources: (evidence: Evidence[], selected?: Evidence) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [rating, setRating] = useState<1 | -1>();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [negative, setNegative] = useState(false);
+  const [reason, setReason] = useState("incorrect");
+  const evidence = turn.evidence.filter((e) =>
+    turn.blocks.some((b) => b.citations.some((c) => c.chunkId === e.chunkId)),
+  );
+  const agencies = [...new Set(evidence.map((e) => e.organization))];
+  async function vote(value: 1 | -1) {
+    if (!turn.result?.feedbackToken) return;
+    setBusy(true);
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          searchId: turn.result.id,
+          token: turn.result.feedbackToken,
+          rating: value,
+          ...(value === -1 ? { reason } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error();
+      setRating(value);
+      setNegative(false);
+      setMessage("Gracias por tu valoración.");
+    } catch {
+      setMessage("No se pudo guardar. Inténtalo de nuevo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(
+        [
+          turn.blocks.map((b) => b.claim.text).join("\n\n") ||
+            turn.result?.answer.answer,
+          ...[...new Set(evidence.map((e) => e.canonicalUrl))],
+        ].join("\n\n"),
+      );
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setMessage(
+        "No se pudo copiar. Puedes seleccionar el texto de la respuesta.",
+      );
+    }
+  }
+  return (
+    <>
+      <div className="chat-actions">
+        {evidence.length > 0 && (
+          <button
+            className="chat-sources-pill"
+            onClick={() => showSources(evidence)}
+          >
+            <span className="agency-stack">
+              {agencies.slice(0, 3).map((name) => (
+                <Badge key={name} name={name} />
+              ))}
+            </span>
+            Fuentes
+          </button>
+        )}
+        {turn.result?.feedbackToken && (
+          <div className="chat-votes">
+            <button
+              className="chat-icon"
+              disabled={busy}
+              aria-label="Respuesta útil"
+              aria-pressed={rating === 1}
+              onClick={() => void vote(1)}
+            >
+              <ThumbsUp size={16} />
+            </button>
+            <button
+              className="chat-icon"
+              disabled={busy}
+              aria-label="Respuesta no útil"
+              aria-pressed={rating === -1}
+              onClick={() => setNegative(!negative)}
+            >
+              <ThumbsDown size={16} />
+            </button>
+          </div>
+        )}
+        <button
+          className="chat-icon chat-copy"
+          onClick={() => void copy()}
+          aria-label={copied ? "Copiado" : "Copiar respuesta"}
+        >
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+        </button>
+      </div>
+      {negative && (
+        <form
+          className="chat-feedback"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void vote(-1);
+          }}
+        >
+          <label htmlFor={`reason-${turn.id}`}>¿Qué falló?</label>
+          <select
+            id={`reason-${turn.id}`}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          >
+            <option value="incorrect">Respuesta incorrecta</option>
+            <option value="source">Fuente incorrecta</option>
+            <option value="outdated">Información desactualizada</option>
+            <option value="unanswered">No respondió</option>
+            <option value="other">Otro motivo</option>
+          </select>
+          <button disabled={busy}>Enviar</button>
+          <button type="button" onClick={() => setNegative(false)}>
+            Cancelar
+          </button>
+        </form>
+      )}
+      {message && (
+        <p className="chat-action-message" role="status">
+          {message}
+        </p>
+      )}
+    </>
+  );
+}
+// Web Speech is progressive enhancement; recognition starts only after the user's click.
+type Recognition = {
+  lang: string;
+  interimResults: boolean;
+  onresult:
+    | ((event: {
+        results: {
+          [index: number]: { [index: number]: { transcript: string } };
+        };
+      }) => void)
+    | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  abort: () => void;
+};
+export default function Chat({
+  initialQuestion,
+  onNewConversation,
+  onGoHome,
+}: {
+  initialQuestion: string;
+  onNewConversation: () => void;
+  onGoHome: () => void;
+}) {
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [input, setInput] = useState("");
+  const [sourceView, setSourceView] = useState<SourceView | null>(null);
+  const [showJump, setShowJump] = useState(false);
+  const [speechAvailable, setSpeechAvailable] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speechError, setSpeechError] = useState("");
+  const [attachment, setAttachment] = useState<PdfContext>();
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
+  const [attachmentError, setAttachmentError] = useState("");
+  const active = useRef<AbortController | null>(null);
+  const history = useRef<Turn[]>([]);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bottom = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDetailsElement>(null);
+  const nearBottom = useRef(true);
+  const recognition = useRef<Recognition | null>(null);
+  const loading = turns.some((t) => t.state === "loading");
+  function update(
+    id: string,
+    change: Partial<Turn> | ((turn: Turn) => Partial<Turn>),
+  ) {
+    setTurns((previous) => {
+      const next = previous.map((t) =>
+        t.id === id
+          ? { ...t, ...(typeof change === "function" ? change(t) : change) }
+          : t,
+      );
+      history.current = next;
+      return next;
+    });
+  }
+  function jump() {
+    nearBottom.current = true;
+    bottom.current?.scrollIntoView({ behavior: "instant", block: "end" });
+    setShowJump(false);
+  }
+  async function send(question: string, retryId?: string) {
+    const query = question.trim();
+    if (query.length < 4 || active.current || attachmentBusy) return;
+    recognition.current?.abort();
+    const controller = new AbortController();
+    active.current = controller;
+    const id = retryId ?? crypto.randomUUID();
+    const prior = retryId
+      ? history.current.slice(
+          0,
+          history.current.findIndex((t) => t.id === retryId),
+        )
+      : history.current;
+    const attached = retryId
+      ? history.current.find((t) => t.id === retryId)?.attachment
+      : attachment;
+    const documentContext =
+      attached ?? [...prior].reverse().find((t) => t.attachment)?.attachment;
+    const turn: Turn = {
+      id,
+      query,
+      attachment: attached,
+      state: "loading",
+      stage: "understandQuery",
+      evidence: [],
+      blocks: [],
+    };
+    history.current = [...prior, turn];
+    setTurns(history.current);
+    setInput("");
+    setAttachment(undefined);
+    setAttachmentError("");
+    setSpeechError("");
+    nearBottom.current = true;
+    try {
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query,
+          attachmentContext: documentContext?.text,
+          context: prior.slice(-6).map((t) => t.query),
+        }),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const body = (await response.json()) as { error?: string };
+        throw new Error(body.error ?? "No se ha podido consultar las fuentes.");
+      }
+      if (!response.body) throw new Error("No se ha recibido una respuesta.");
+      await readChatStream(response.body, (event, data) => {
+        if (controller.signal.aborted) return;
+        if (event === "stage") update(id, { stage: data as Stage });
+        if (event === "evidence") update(id, { evidence: data as Evidence[] });
+        if (event === "claim")
+          update(id, (t) => ({ blocks: [...t.blocks, data as VerifiedClaim] }));
+        if (event === "result") {
+          const result = data as Result;
+          update(id, {
+            result,
+            evidence: result.evidence,
+            blocks: result.answer.claims.map((claim) => ({
+              claim,
+              citations: result.answer.citations.filter(
+                (c) => c.claimId === claim.id,
+              ),
+            })),
+            state: "done",
+          });
+        }
+      });
+    } catch (error) {
+      update(id, {
+        state: controller.signal.aborted ? "stopped" : "error",
+        error: controller.signal.aborted
+          ? undefined
+          : error instanceof Error
+            ? error.message
+            : "No se ha podido completar la respuesta.",
+      });
+    } finally {
+      if (active.current === controller) active.current = null;
+    }
+  }
+  useEffect(() => {
+    let cancelled = false;
+    if (!initialQuestion) inputRef.current?.focus();
+    if (initialQuestion)
+      queueMicrotask(() => {
+        if (!cancelled) {
+          void send(initialQuestion);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+    // A pending landing question is consumed once; conversation state is deliberately kept in memory.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion]);
+  useEffect(() => {
+    const onScroll = () => {
+      nearBottom.current =
+        document.documentElement.scrollHeight -
+          window.scrollY -
+          window.innerHeight <
+        150;
+      setShowJump(!nearBottom.current);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const dismissMenu = (event: PointerEvent) => {
+      if (menu.current?.open && !menu.current.contains(event.target as Node))
+        menu.current.open = false;
+    };
+    const escapeMenu = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && menu.current?.open) {
+        menu.current.open = false;
+        menu.current.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", dismissMenu);
+    document.addEventListener("keydown", escapeMenu);
+    const speech = window as unknown as {
+      SpeechRecognition?: new () => Recognition;
+      webkitSpeechRecognition?: new () => Recognition;
+    };
+    setSpeechAvailable(
+      !!(speech.SpeechRecognition || speech.webkitSpeechRecognition),
+    );
+    return () => {
+      document.removeEventListener("pointerdown", dismissMenu);
+      document.removeEventListener("keydown", escapeMenu);
+      window.removeEventListener("scroll", onScroll);
+      active.current?.abort();
+      recognition.current?.abort();
+    };
+  }, []);
+  useEffect(() => {
+    if (nearBottom.current) jump();
+  }, [turns]);
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el) {
+      el.style.height = "24px";
+      el.style.height = `${Math.min(el.scrollHeight, 144)}px`;
+    }
+  }, [input]);
+  function dictate() {
+    if (listening) {
+      recognition.current?.abort();
+      return;
+    }
+    const speech = window as unknown as {
+      SpeechRecognition?: new () => Recognition;
+      webkitSpeechRecognition?: new () => Recognition;
+    };
+    const Constructor =
+      speech.SpeechRecognition || speech.webkitSpeechRecognition;
+    if (!Constructor) return;
+    const instance = new Constructor();
+    recognition.current = instance;
+    instance.lang = "es-ES";
+    instance.interimResults = false;
+    instance.onresult = (event) =>
+      setInput((value) =>
+        `${value}${value ? " " : ""}${event.results[0]?.[0]?.transcript ?? ""}`.slice(
+          0,
+          1200,
+        ),
+      );
+    instance.onerror = () => {
+      setListening(false);
+      setSpeechError(
+        "No se ha podido usar el micrófono. Comprueba el permiso o escribe tu pregunta.",
+      );
+    };
+    instance.onend = () => setListening(false);
+    try {
+      instance.start();
+      setListening(true);
+      setSpeechError("");
+    } catch {
+      setSpeechError("El micrófono no está disponible.");
+    }
+  }
+  function submit(e?: FormEvent) {
+    e?.preventDefault();
+    void send(input);
+  }
+  const showSources = (evidence: Evidence[], selected?: Evidence) =>
+    setSourceView({ evidence, selected });
+  return (
+    <div className="chat-page">
+      <header className="chat-header">
+        <Link href="/" onClick={(event) => { event.preventDefault(); onGoHome(); }} className="project-brand" aria-label="Reforma Digital, inicio">
+          <ProjectBrand />
+        </Link>
+        <details ref={menu} className="chat-menu">
+          <summary>Menú</summary>
+          <nav aria-label="Navegación del chat">
+            <Link
+              href="/composer"
+              onClick={(event) => {
+                event.preventDefault();
+                onNewConversation();
+              }}
+            >
+              Nueva conversación
+            </Link>
+            <Link href="/#iniciativa">La iniciativa</Link>
+            <Link href="/sources">Fuentes oficiales</Link>
+            <Link href="/how-it-works">Cómo funciona</Link>
+            <Link href="/privacy">Privacidad</Link>
+            <small>
+              Proyecto independiente.
+              <br />
+              No es una sede oficial.
+            </small>
+          </nav>
+        </details>
+      </header>
+      <a className="skip-link" href="#chat-input">
+        Ir al cuadro de mensaje
+      </a>
+      <main id="main" className="chat-conversation" aria-label="Conversación">
+        {!turns.length && (
+          <div className="chat-empty">
+            <h1>¿Qué necesitas hacer?</h1>
+            <p>
+              Pregunta con tus palabras. Te acercamos a las fuentes oficiales.
+            </p>
+            <div className="chat-followups">
+              {["¿Cómo me hago autónomo?", "¿Cómo me empadrono en Madrid?"].map(
+                (q) => (
+                  <button key={q} onClick={() => void send(q)}>
+                    {q}
+                    <ArrowUpRight size={17} />
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+        )}
+        {turns.map((turn, turnIndex) => (
+          <section
+            className="chat-turn"
+            key={turn.id}
+            aria-label={`Pregunta ${turnIndex + 1}`}
+          >
+            <div className="chat-user">
+              <p>
+                {turn.attachment && (
+                  <span className="chat-attached-message">
+                    <FileText size={16} /> {turn.attachment.name}
+                  </span>
+                )}
+                {turn.query}
+              </p>
+            </div>
+            <div className="chat-assistant">
+              {turn.blocks.map((block, index) => {
+                const citations = [
+                  ...new Map(
+                    block.citations.map((c) => [
+                      c.chunkId,
+                      turn.evidence.find(
+                        (e) =>
+                          e.chunkId === c.chunkId &&
+                          e.documentId === c.documentId,
+                      ),
+                    ]),
+                  ).values(),
+                ].filter((e): e is Evidence => !!e);
+                const previousKind = turn.blocks[index - 1]?.claim.kind;
+                const heading =
+                  block.claim.kind !== previousKind
+                    ? (
+                        {
+                          document: "Documentación",
+                          cost: "Coste",
+                          deadline: "Plazos",
+                        } as Record<string, string>
+                      )[block.claim.kind]
+                    : undefined;
+                return (
+                  <div className="chat-claim" key={block.claim.id}>
+                    {heading && <h2>{heading}</h2>}
+                    <div
+                      className={
+                        block.claim.kind === "step" ? "chat-step" : "chat-fact"
+                      }
+                    >
+                      {block.claim.kind === "step" && (
+                        <span className="chat-step-number">
+                          {
+                            turn.blocks
+                              .slice(0, index + 1)
+                              .filter((b) => b.claim.kind === "step").length
+                          }
+                          .
+                        </span>
+                      )}
+                      <p>
+                        {block.claim.text}
+                        {citations.map((e) => (
+                          <span key={e.chunkId}>
+                            {" "}
+                            <button
+                              className="chat-inline-citation"
+                              onClick={() =>
+                                showSources(
+                                  turn.evidence.filter((source) =>
+                                    turn.blocks.some((b) =>
+                                      b.citations.some(
+                                        (c) => c.chunkId === source.chunkId,
+                                      ),
+                                    ),
+                                  ),
+                                  e,
+                                )
+                              }
+                              title={`Ver evidencia: ${e.title}`}
+                            >
+                              {e.organization}
+                              <ArrowUpRight size={13} />
+                            </button>
+                          </span>
+                        ))}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+              {turn.state === "loading" && (
+                <div className="chat-thinking" role="status">
+                  <span aria-hidden="true">Pensando…</span>
+                  <span className="sr-only">{stages[turn.stage]}</span>
+                </div>
+              )}
+              {turn.result && !turn.blocks.length && (
+                <p className="chat-abstention">{turn.result.answer.answer}</p>
+              )}
+              {turn.result?.answer.incomplete && (
+                <p className="chat-partial">
+                  Las fuentes no permiten confirmar todos los detalles. Aquí
+                  aparecen únicamente los que hemos podido verificar.
+                </p>
+              )}
+              {turn.state === "stopped" && (
+                <div className="chat-stopped">
+                  <p className="chat-partial" role="status">
+                    Respuesta detenida.
+                    {turn.blocks.length > 0 &&
+                      " Los fragmentos mostrados ya están verificados."}
+                  </p>
+                  {turnIndex === turns.length - 1 && (
+                    <button
+                      className="chat-retry"
+                      disabled={loading}
+                      onClick={() => void send(turn.query, turn.id)}
+                    >
+                      <RotateCcw size={14} /> Volver a intentar
+                    </button>
+                  )}
+                </div>
+              )}
+              {turn.state === "error" && (
+                <div className="chat-error" role="alert">
+                  <p>{turn.error}</p>
+                  {turn.blocks.length > 0 && (
+                    <p>
+                      La respuesta está incompleta. Los fragmentos mostrados
+                      están verificados.
+                    </p>
+                  )}
+                  {turnIndex === turns.length - 1 && (
+                    <button
+                      disabled={loading}
+                      onClick={() => void send(turn.query, turn.id)}
+                    >
+                      <RotateCcw size={15} /> Volver a intentar
+                    </button>
+                  )}
+                </div>
+              )}
+              {turn.state !== "loading" &&
+                (turn.result || turn.blocks.length > 0) && (
+                  <AnswerActions turn={turn} showSources={showSources} />
+                )}
+              {turn.state === "done" &&
+                turn.result?.answer.status === "answered" &&
+                turnIndex === turns.length - 1 && (
+                  <div className="chat-followups">
+                    {[
+                      "¿Qué documentación necesito?",
+                      "¿Dónde lo puedo tramitar?",
+                    ].map((q) => (
+                      <button key={q} onClick={() => void send(q)}>
+                        {q}
+                        <ArrowUpRight size={17} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+            </div>
+          </section>
+        ))}
+        <div ref={bottom} className="chat-bottom" />
+      </main>
+      <div className="chat-composer-dock">
+        {showJump && (
+          <button
+            className="chat-jump"
+            onClick={jump}
+            aria-label="Ir al último mensaje"
+          >
+            <ArrowDown size={18} />
+          </button>
+        )}
+        {speechError && (
+          <p className="chat-speech-error" role="alert">
+            {speechError}
+          </p>
+        )}
+        {attachmentError && (
+          <p className="chat-speech-error" role="alert">
+            {attachmentError}
+          </p>
+        )}
+        {(attachment || attachmentBusy) && (
+          <div className="chat-attachment-preview">
+            <div>
+              <FileText size={20} />
+              <span>{attachmentBusy ? "Leyendo PDF…" : attachment?.name}</span>
+              {attachment && !attachmentBusy && (
+                <button
+                  className="chat-icon"
+                  onClick={() => setAttachment(undefined)}
+                  aria-label="Quitar PDF"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <small>
+              {attachment?.truncated
+                ? "Se usarán los primeros 6.000 caracteres. "
+                : ""}
+              Al enviar, el texto se usará como contexto; nunca como fuente
+              oficial.
+            </small>
+          </div>
+        )}
+        <form
+          className={`chat-composer ${listening ? "is-listening" : ""}`}
+          onSubmit={submit}
+        >
+          <label htmlFor="chat-input" className="sr-only">
+            Pregunta sobre trámites, ayudas o impuestos
+          </label>
+          <textarea
+            id="chat-input"
+            ref={inputRef}
+            rows={1}
+            value={input}
+            maxLength={1200}
+            placeholder={
+              listening ? "Te escucho…" : "Pregunta lo que necesites"
+            }
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
+                e.preventDefault();
+                if (!loading) submit();
+              }
+            }}
+          />
+          <div className="composer-controls">
+            <AttachmentPicker
+              busy={attachmentBusy}
+              disabled={loading}
+              onBusy={setAttachmentBusy}
+              onAttachment={setAttachment}
+              onError={setAttachmentError}
+            />
+            {speechAvailable && (
+              <button
+                type="button"
+                className="chat-icon chat-mic"
+                onClick={dictate}
+                aria-label={listening ? "Detener dictado" : "Dictar pregunta"}
+                aria-pressed={listening}
+              >
+                <Mic size={21} />
+              </button>
+            )}
+            {loading ? (
+              <button
+                className="chat-send"
+                type="button"
+                onClick={() => active.current?.abort()}
+                aria-label="Detener respuesta"
+              >
+                <Square size={13} fill="currentColor" />
+              </button>
+            ) : (
+              <button
+                className="chat-send"
+                disabled={input.trim().length < 4 || attachmentBusy}
+                aria-label="Enviar pregunta"
+              >
+                <ArrowRight size={23} />
+              </button>
+            )}
+          </div>
+        </form>
+        <span className="sr-only">
+          Las respuestas se basan en fuentes oficiales. Comprueba las citas
+          antes de realizar el trámite.
+        </span>
+      </div>
+      <SourceDialog
+        view={sourceView}
+        close={() => setSourceView(null)}
+        select={(selected) =>
+          setSourceView((view) => (view ? { ...view, selected } : null))
+        }
+      />
+    </div>
+  );
+}

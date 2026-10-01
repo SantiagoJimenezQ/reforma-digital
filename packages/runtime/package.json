@@ -7,12 +7,12 @@
     ".": "./src/index.tsx"
   },
   "dependencies": {
-    "@reforma-digital/design": "*",
-    "@reforma-digital/react": "*",
-    "@reforma-digital/registry": "*"
+    "@reforma-digital/design": "workspace:*",
+    "@reforma-digital/react": "workspace:*",
+    "@reforma-digital/registry": "workspace:*"
   },
   "peerDependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   }
 }

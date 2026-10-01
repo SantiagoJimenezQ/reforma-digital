@@ -5,12 +5,12 @@
   "type": "module",
   "exports": "./src/index.ts",
   "dependencies": {
-    "@reforma-digital/bridge": "*",
-    "@reforma-digital/design": "*",
-    "@reforma-digital/react": "*",
-    "@reforma-digital/registry": "*"
+    "@reforma-digital/bridge": "workspace:*",
+    "@reforma-digital/design": "workspace:*",
+    "@reforma-digital/react": "workspace:*",
+    "@reforma-digital/registry": "workspace:*"
   },
   "devDependencies": {
-    "@reforma-digital/runtime": "*"
+    "@reforma-digital/runtime": "workspace:*"
   }
 }

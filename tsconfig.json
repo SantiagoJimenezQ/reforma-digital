@@ -21,6 +21,17 @@
       "@reforma-digital/site-dni": ["./sites/dni/src/index.ts"]
     }
   },
-  "include": ["apps", "packages", "sites", "tests", "vitest.config.ts", "playwright.config.ts"],
-  "exclude": ["apps/landing"]
+  "include": [
+    "apps/extension",
+    "apps/playground",
+    "packages/bridge",
+    "packages/design",
+    "packages/react",
+    "packages/registry",
+    "packages/runtime",
+    "sites",
+    "tests/e2e",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ]
 }

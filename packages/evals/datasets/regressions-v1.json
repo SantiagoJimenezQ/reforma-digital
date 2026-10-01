@@ -1,0 +1,159 @@
+{
+  "version": "production-regressions-v1",
+  "description": "Consultas reales y controles de regresión. Referencias propuestas, no golden aprobado.",
+  "cases": [
+    {
+      "id": "sl-1",
+      "query": "como me monto una SL",
+      "metadata": {
+        "category": "common",
+        "difficulty": "medium"
+      },
+      "critical": true,
+      "golden": false,
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "evidenceNotes": "Regresión de consulta real comunicada mediante captura el 30-09-2026. Referencia propuesta: https://administracion.gob.es/tu-espacio-europeo/derechos-obligaciones/empresas/inicio-gestion-cierre/registro-cambio-cierre/crear. Pendiente de revisión humana."
+      },
+      "expected": {
+        "relevantSourceIds": ["administracion"],
+        "relevantDocumentIds": ["fa5f7dd908537138e0b5561b"],
+        "mustContainFacts": [
+          "Las sociedades limitadas pueden constituirse por vía electrónica mediante CIRCE",
+          "Se utiliza el Documento Único Electrónico (DUE)"
+        ],
+        "mustNotContainFacts": [],
+        "expectedJurisdiction": "ES",
+        "expectedOrganization": "Punto de Acceso General",
+        "shouldAnswer": true
+      }
+    },
+    {
+      "id": "sl-2",
+      "query": "¿Cómo constituyo una S.L.?",
+      "metadata": {
+        "category": "common",
+        "difficulty": "medium"
+      },
+      "critical": true,
+      "golden": false,
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "evidenceNotes": "Regresión de consulta real comunicada mediante captura el 30-09-2026. Referencia propuesta: https://administracion.gob.es/tu-espacio-europeo/derechos-obligaciones/empresas/inicio-gestion-cierre/registro-cambio-cierre/crear. Pendiente de revisión humana."
+      },
+      "expected": {
+        "relevantSourceIds": ["administracion"],
+        "relevantDocumentIds": ["fa5f7dd908537138e0b5561b"],
+        "mustContainFacts": [
+          "Las sociedades limitadas pueden constituirse por vía electrónica mediante CIRCE",
+          "Se utiliza el Documento Único Electrónico (DUE)"
+        ],
+        "mustNotContainFacts": [],
+        "expectedJurisdiction": "ES",
+        "expectedOrganization": "Punto de Acceso General",
+        "shouldAnswer": true
+      }
+    },
+    {
+      "id": "sl-3",
+      "query": "Quiero crear una sociedad limitada en Madrid",
+      "metadata": {
+        "category": "common",
+        "difficulty": "medium"
+      },
+      "critical": true,
+      "golden": false,
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "evidenceNotes": "Regresión de consulta real comunicada mediante captura el 30-09-2026. Referencia propuesta: https://administracion.gob.es/tu-espacio-europeo/derechos-obligaciones/empresas/inicio-gestion-cierre/registro-cambio-cierre/crear. Pendiente de revisión humana."
+      },
+      "expected": {
+        "relevantSourceIds": ["administracion"],
+        "relevantDocumentIds": ["fa5f7dd908537138e0b5561b"],
+        "mustContainFacts": [
+          "Las sociedades limitadas pueden constituirse por vía electrónica mediante CIRCE",
+          "Se utiliza el Documento Único Electrónico (DUE)"
+        ],
+        "mustNotContainFacts": [],
+        "expectedJurisdiction": "ES-MD-MADRID",
+        "expectedOrganization": "Punto de Acceso General",
+        "shouldAnswer": true
+      }
+    },
+    {
+      "id": "sl-control-1",
+      "query": "Quiero pedir una ayuda",
+      "metadata": {
+        "category": "ambiguous",
+        "difficulty": "easy"
+      },
+      "critical": true,
+      "golden": false,
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "evidenceNotes": "Regresión de consulta real comunicada mediante captura el 30-09-2026. Referencia propuesta: https://administracion.gob.es/tu-espacio-europeo/derechos-obligaciones/empresas/inicio-gestion-cierre/registro-cambio-cierre/crear. Pendiente de revisión humana."
+      },
+      "expected": {
+        "relevantSourceIds": [],
+        "relevantDocumentIds": [],
+        "mustContainFacts": [],
+        "mustNotContainFacts": [],
+        "shouldAnswer": false
+      }
+    },
+    {
+      "id": "sl-control-2",
+      "query": "Necesito un certificado",
+      "metadata": {
+        "category": "ambiguous",
+        "difficulty": "easy"
+      },
+      "critical": true,
+      "golden": false,
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "evidenceNotes": "Regresión de consulta real comunicada mediante captura el 30-09-2026. Referencia propuesta: https://administracion.gob.es/tu-espacio-europeo/derechos-obligaciones/empresas/inicio-gestion-cierre/registro-cambio-cierre/crear. Pendiente de revisión humana."
+      },
+      "expected": {
+        "relevantSourceIds": [],
+        "relevantDocumentIds": [],
+        "mustContainFacts": [],
+        "mustNotContainFacts": [],
+        "shouldAnswer": false
+      }
+    },
+    {
+      "id": "sl-control-3",
+      "query": "¿Cuál es mi saldo bancario?",
+      "metadata": {
+        "category": "unanswerable",
+        "difficulty": "easy"
+      },
+      "critical": true,
+      "golden": false,
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "evidenceNotes": "Regresión de consulta real comunicada mediante captura el 30-09-2026. Referencia propuesta: https://administracion.gob.es/tu-espacio-europeo/derechos-obligaciones/empresas/inicio-gestion-cierre/registro-cambio-cierre/crear. Pendiente de revisión humana."
+      },
+      "expected": {
+        "relevantSourceIds": [],
+        "relevantDocumentIds": [],
+        "mustContainFacts": [],
+        "mustNotContainFacts": [],
+        "shouldAnswer": false
+      }
+    }
+  ]
+}

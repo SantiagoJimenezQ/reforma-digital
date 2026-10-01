@@ -13,34 +13,50 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "dev": "vite --config apps/playground/vite.config.ts",
-    "landing:dev": "astro dev --root apps/landing",
-    "landing:build": "astro build --root apps/landing",
-    "landing:og": "node apps/landing/scripts/render-og.mjs",
-    "build": "node scripts/build.mjs",
+    "dev": "pnpm --filter @gov/web dev",
+    "landing:dev": "pnpm --filter @gov/web dev",
+    "landing:build": "pnpm --filter @gov/web build",
+    "landing:og": "node apps/web/scripts/render-og.mjs",
+    "build": "pnpm build:extension && turbo build",
     "build:test": "node scripts/build.mjs --test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm typecheck:extension && turbo typecheck",
     "test": "vitest run",
-    "test:e2e": "npm run build:test && playwright test",
-    "check": "npm run check:workspaces && npm run typecheck && npm test && npm run build && npm run audit:bundle",
+    "test:e2e": "pnpm build:test && playwright test",
+    "check": "pnpm check:workspaces && pnpm typecheck && pnpm test && pnpm build && pnpm audit:bundle",
     "audit:bundle": "node scripts/audit-bundle.mjs",
-    "package": "npm run check && node scripts/package.mjs",
+    "package": "pnpm check && node scripts/package.mjs",
     "site:new": "node scripts/new-site.mjs",
     "site:live": "node scripts/site-live.mjs",
     "site:record": "node scripts/site-record.mjs",
     "site:preview": "node scripts/site-preview.mjs",
     "check:workspaces": "node scripts/check-workspaces.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "eval": "tsx --env-file-if-exists=.env packages/evals/src/cli.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env packages/db/src/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env packages/db/src/seed.ts",
+    "crawl": "tsx --env-file-if-exists=.env apps/worker/src/cli.ts",
+    "feedback:export": "tsx --env-file-if-exists=.env packages/evals/src/feedback.ts",
+    "doctor": "tsx --env-file-if-exists=.env scripts/doctor.ts",
+    "eval:approve": "tsx --env-file-if-exists=.env packages/evals/src/approve-baseline.ts",
+    "dev:extension": "vite --config apps/playground/vite.config.ts",
+    "build:extension": "node scripts/build.mjs",
+    "typecheck:extension": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "dotenv": "^17.2.3",
+    "@reforma-digital/design": "workspace:*"
   },
   "devDependencies": {
+    "typescript": "7.0.2",
+    "tsx": "^4.20.6",
+    "turbo": "^2.5.8",
+    "vitest": "5.0.0",
+    "@types/node": "26.5.0",
     "@playwright/test": "1.63.0",
     "@types/chrome": "0.2.9",
-    "@types/node": "26.5.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
@@ -48,8 +64,7 @@
     "postcss": "8.5.28",
     "prettier": "3.9.6",
     "tailwindcss": "3.4.19",
-    "typescript": "7.0.2",
-    "vite": "8.2.2",
-    "vitest": "5.0.0"
-  }
+    "vite": "8.2.2"
+  },
+  "packageManager": "pnpm@11.1.1"
 }
