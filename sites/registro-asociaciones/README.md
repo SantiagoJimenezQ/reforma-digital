@@ -8,7 +8,7 @@ Subproyecto del monorepo. Estado experimental; incluido en el build. Una ruta ex
 | --------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/pages/consulta/` | `sede.interior.gob.es/portal/sede/asociacionesLegacy` | El campo oficial `#denominacion` se sustituye en su sitio por un `BoundField` (Intro activa el «Buscar» oficial). Guía que cambia según el estado: búsqueda, resultados (término, página y número de filas) o el mensaje oficial de «sin resultados» |
 
-«Búsqueda exacta» y «Buscar» siguen siendo controles originales. La casilla actualiza su valor solo al perder el foco (`onblur`), y un clic sintético no lo reproduce, así que no se sustituye. El tema `@better-government/design/themes/sede-interior.css` re‑estiliza cabecera, tarjetas, tabla y paginación. En móvil, cada resultado se apila con la etiqueta de columna oficial.
+«Búsqueda exacta» y «Buscar» siguen siendo controles originales. La casilla actualiza su valor solo al perder el foco (`onblur`), y un clic sintético no lo reproduce, así que no se sustituye. El tema `@reforma-digital/design/themes/sede-interior.css` re‑estiliza cabecera, tarjetas, tabla y paginación. En móvil, cada resultado se apila con la etiqueta de columna oficial.
 
 La consulta no tiene páginas de detalle en la web oficial.
 

@@ -1,6 +1,6 @@
-import { DomBridge, scrollToOfficial } from '@better-government/bridge';
-import { useBridge } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
+import { useBridge } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
 import {
   Callout,
   ExternalLink,
@@ -9,7 +9,7 @@ import {
   ProgressSteps,
   SecondaryAction,
   SectionTitle,
-} from '@better-government/design';
+} from '@reforma-digital/design';
 import pageStyles from '../../styles/theme.css?inline';
 import { aeatLayout } from '../../components/panels';
 import { OUT_OF_SCOPE_FROM, STEPS } from '../../components/steps';
@@ -132,7 +132,7 @@ function Asistencia({ bindings, restore }: { bindings: AsistenciaBindings; resto
         </div>
       )}
 
-      <Callout tone="neutral" title="Hasta aquí llega Better Government">
+      <Callout tone="neutral" title="Hasta aquí llega Reforma Digital">
         La aplicación de cita pide tu NIF y tu nombre en el siguiente paso: desde ahí todo ocurre en
         la web oficial sin cambios.{' '}
         <LinkButton onClick={() => scrollToOfficial(bindings.description)}>

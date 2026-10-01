@@ -1,16 +1,16 @@
 {
-  "name": "@better-government/site-registro-asociaciones",
+  "name": "@reforma-digital/site-registro-asociaciones",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "exports": "./src/adapter.ts",
   "dependencies": {
-    "@better-government/bridge": "*",
-    "@better-government/design": "*",
-    "@better-government/react": "*",
-    "@better-government/registry": "*"
+    "@reforma-digital/bridge": "*",
+    "@reforma-digital/design": "*",
+    "@reforma-digital/react": "*",
+    "@reforma-digital/registry": "*"
   },
   "devDependencies": {
-    "@better-government/runtime": "*"
+    "@reforma-digital/runtime": "*"
   }
 }

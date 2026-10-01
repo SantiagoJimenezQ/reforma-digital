@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, it, vi } from 'vitest';
-import { matchesSite } from '@better-government/registry';
-import { mountAdapter, type RuntimeController } from '@better-government/runtime';
+import { matchesSite } from '@reforma-digital/registry';
+import { mountAdapter, type RuntimeController } from '@reforma-digital/runtime';
 import { adapter } from '../src/adapter';
 import { consultaBindings, consultaState } from '../src/pages/consulta/bindings';
 

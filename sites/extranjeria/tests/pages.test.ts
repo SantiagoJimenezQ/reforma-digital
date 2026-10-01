@@ -1,5 +1,5 @@
 import { afterEach, expect, it } from 'vitest';
-import { matchesSite, type Enhancement } from '@better-government/registry';
+import { matchesSite, type Enhancement } from '@reforma-digital/registry';
 import { extranjeriaAdapter as adapter } from '../src';
 import { landingBindings } from '../src/pages/landing/bindings';
 import { provinciasBindings } from '../src/pages/provincias/bindings';

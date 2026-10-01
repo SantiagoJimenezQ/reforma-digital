@@ -6,7 +6,7 @@
  * .error_list), los avisos, #divSubTramites ni ningún texto informativo.
  * Al pulsar «Ver original» o desactivar el portal vuelve todo.
  */
-@import '@better-government/design/themes/morfos.css';
+@import '@reforma-digital/design/themes/morfos.css';
 
 /* Página informativa: el panel pulsa el botón oficial «Acceder al Procedimiento». */
 html[data-bg-page='landing'] .mf-main--content .align_center:has(> form#formulario) {

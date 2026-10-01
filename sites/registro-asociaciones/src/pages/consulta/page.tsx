@@ -1,13 +1,13 @@
-import { DomBridge, scrollToOfficial } from '@better-government/bridge';
-import { BoundField, BridgeProvider, useBoundField, useDomValue } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
+import { BoundField, BridgeProvider, useBoundField, useDomValue } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
 import {
   Callout,
   ExternalLink,
   LinkButton,
   OfficialDivider,
   Panel,
-} from '@better-government/design';
+} from '@reforma-digital/design';
 import pageStyles from '../../styles/theme.css?inline';
 import { consultaBindings, consultaState, RESULTS_TABLE, type ConsultaBindings } from './bindings';
 

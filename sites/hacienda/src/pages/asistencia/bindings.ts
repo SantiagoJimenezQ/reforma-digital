@@ -1,4 +1,4 @@
-import { requireElements, textOf } from '@better-government/bridge';
+import { requireElements, textOf } from '@reforma-digital/bridge';
 
 /** Selectores de «Asistencia y Cita» en la Sede (GC29), verificados el 2026-09-27. */
 export const ASISTENCIA = {

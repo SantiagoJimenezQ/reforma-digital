@@ -1,4 +1,4 @@
-import { requireElements, textOf } from '@better-government/bridge';
+import { requireElements, textOf } from '@reforma-digital/bridge';
 import { officialLinks, type OfficialLink } from '../../components/official';
 
 /** Selectores de la selección de provincia (<app>/index.html), verificados el 2026-09-27. */

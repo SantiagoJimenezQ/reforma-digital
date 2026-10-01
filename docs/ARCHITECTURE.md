@@ -1,6 +1,6 @@
 # Arquitectura
 
-Cómo encajan las piezas de Better Government. Para contribuir, lee [CONTRIBUTING.md](../CONTRIBUTING.md); para todo lo visual, [DESIGN.md](../DESIGN.md).
+Cómo encajan las piezas de Reforma Digital. Para contribuir, lee [CONTRIBUTING.md](../CONTRIBUTING.md); para todo lo visual, [DESIGN.md](../DESIGN.md).
 
 ## Paquetes y límites
 

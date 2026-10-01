@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { DomBridge } from '@better-government/bridge';
+import type { DomBridge } from '@reforma-digital/bridge';
 
 /** Where an interface is mounted next to an official element (Element.insertAdjacentElement). */
 export type PanelPosition = 'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend';

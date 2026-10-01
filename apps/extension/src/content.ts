@@ -1,6 +1,6 @@
 import { adapters } from 'virtual:site-adapters';
-import { matchesSite, type SiteAdapter } from '@better-government/registry';
-import { startAdapter, type RuntimeController } from '@better-government/runtime';
+import { matchesSite, type SiteAdapter } from '@reforma-digital/registry';
+import { startAdapter, type RuntimeController } from '@reforma-digital/runtime';
 
 /** Test builds only: the local playground serves each site's fixtures under their official paths. */
 function officialURL(local: URL, sites: readonly SiteAdapter[]): URL {

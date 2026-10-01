@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react';
-import { DomBridge, scrollToOfficial } from '@better-government/bridge';
-import { useBoundField, useBridge, useDomValue } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
+import { useBoundField, useBridge, useDomValue } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
 import {
   Actions,
   Callout,
@@ -13,7 +13,7 @@ import {
   ProgressSteps,
   SearchField,
   SecondaryAction,
-} from '@better-government/design';
+} from '@reforma-digital/design';
 import pageStyles from '../../styles/theme.css?inline';
 import { icpScreen, readVisibleErrors } from '../../components/official';
 import { communityBar, screenPanels } from '../../components/panels';

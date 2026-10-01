@@ -1,0 +1,16 @@
+---
+interface Props {
+  n: number;
+  wide?: boolean;
+}
+
+const { n, wide = false } = Astro.props;
+---
+
+<figure class:list={['my-10 mb-12', { wide }]} id={`fig-${n}`}>
+  <slot />
+  <figcaption class="mt-3.5 max-w-[72ch] font-mono text-xs leading-relaxed tracking-[0.01em] text-ink-subtle">
+    <span class="text-ink">Fig. {n}.</span>{' '}
+    <slot name="caption" />
+  </figcaption>
+</figure>

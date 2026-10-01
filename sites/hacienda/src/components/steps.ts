@@ -1,4 +1,4 @@
-import type { Step } from '@better-government/design';
+import type { Step } from '@reforma-digital/design';
 
 /** Pasos del servicio oficial «Asistencia y Cita» (pestañas de la aplicación, sept. 2026). */
 export const STEPS: Step[] = [

@@ -1,4 +1,4 @@
-import { normalizedLabel } from '@better-government/bridge';
+import { normalizedLabel } from '@reforma-digital/bridge';
 
 /** Búsqueda sin tildes ni mayúsculas, por palabras: "cadiz" encuentra "Cádiz". */
 export function matchesQuery(label: string, query: string): boolean {

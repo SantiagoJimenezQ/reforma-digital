@@ -14,9 +14,9 @@ Cada cambio de un trámite se desarrolla dentro de `sites/<portal>`. El código 
 Las páginas implementan `SitePage`. El registro verifica el dominio y rechaza rutas ambiguas. `prepare` devuelve `null` si el DOM no coincide con el contrato, o una `Enhancement` con el motor de conexiones, las zonas a reemplazar y una comprobación de integridad.
 
 ```tsx
-import { DomBridge, fieldByLabel } from '@better-government/bridge';
-import { BridgeProvider, BoundField } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
+import { DomBridge, fieldByLabel } from '@reforma-digital/bridge';
+import { BridgeProvider, BoundField } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
 
 export const contactPage: SitePage = {
   id: 'contact',

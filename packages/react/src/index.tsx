@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
   type ButtonHTMLAttributes,
 } from 'react';
-import { DomBridge, type FieldSnapshot } from '@better-government/bridge';
+import { DomBridge, type FieldSnapshot } from '@reforma-digital/bridge';
 
 const BridgeContext = createContext<DomBridge | null>(null);
 export const BridgeProvider = BridgeContext.Provider;

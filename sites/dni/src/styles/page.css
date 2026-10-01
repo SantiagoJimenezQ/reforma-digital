@@ -4,7 +4,7 @@
  * Solo tokens y componentes del preset (@apply bg-*). Nada informativo se oculta; solo
  * los textos que el campo conectado ya repite (etiqueta y ayuda, DESIGN.md §4.2).
  */
-@import '@better-government/design/tokens.css';
+@import '@reforma-digital/design/tokens.css';
 
 /* ── Base: fuera la imagen de fondo, lienzo y tipografía del sistema ── */
 html[data-bg-site='dni'],

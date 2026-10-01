@@ -14,12 +14,13 @@
     "resolveJsonModule": true,
     "types": ["vite/client", "chrome", "node"],
     "paths": {
-      "@better-government/bridge": ["./packages/bridge/src/index.ts"],
-      "@better-government/react": ["./packages/react/src/index.tsx"],
-      "@better-government/registry": ["./packages/registry/src/index.ts"],
-      "@better-government/runtime": ["./packages/runtime/src/index.tsx"],
-      "@better-government/site-dni": ["./sites/dni/src/index.ts"]
+      "@reforma-digital/bridge": ["./packages/bridge/src/index.ts"],
+      "@reforma-digital/react": ["./packages/react/src/index.tsx"],
+      "@reforma-digital/registry": ["./packages/registry/src/index.ts"],
+      "@reforma-digital/runtime": ["./packages/runtime/src/index.tsx"],
+      "@reforma-digital/site-dni": ["./sites/dni/src/index.ts"]
     }
   },
-  "include": ["apps", "packages", "sites", "tests", "vitest.config.ts", "playwright.config.ts"]
+  "include": ["apps", "packages", "sites", "tests", "vitest.config.ts", "playwright.config.ts"],
+  "exclude": ["apps/landing"]
 }

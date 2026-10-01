@@ -1,4 +1,4 @@
-import { requireElements, textOf } from '@better-government/bridge';
+import { requireElements, textOf } from '@reforma-digital/bridge';
 
 /** Selectores del catálogo de servicios (www2 · ServiciosAsocCat), verificados el 2026-09-27. */
 export const CATALOGO = {

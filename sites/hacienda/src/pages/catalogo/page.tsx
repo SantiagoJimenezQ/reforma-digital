@@ -1,8 +1,8 @@
 import { useId, useMemo, useState } from 'react';
-import { DomBridge, normalizedLabel, scrollToOfficial } from '@better-government/bridge';
-import { useBridge } from '@better-government/react';
-import type { SitePage } from '@better-government/registry';
-import { Callout, LinkButton, Panel, ProgressSteps, SearchField } from '@better-government/design';
+import { DomBridge, normalizedLabel, scrollToOfficial } from '@reforma-digital/bridge';
+import { useBridge } from '@reforma-digital/react';
+import type { SitePage } from '@reforma-digital/registry';
+import { Callout, LinkButton, Panel, ProgressSteps, SearchField } from '@reforma-digital/design';
 import pageStyles from '../../styles/theme.css?inline';
 import { aeatLayout } from '../../components/panels';
 import { OUT_OF_SCOPE_FROM, STEPS } from '../../components/steps';

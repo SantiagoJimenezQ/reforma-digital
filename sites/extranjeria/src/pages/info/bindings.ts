@@ -1,4 +1,4 @@
-import { requireElements, textOf } from '@better-government/bridge';
+import { requireElements, textOf } from '@reforma-digital/bridge';
 import { linkText, type OfficialLink } from '../../components/official';
 
 /** Selectores de la información del trámite (<app>/acInfo), verificados el 2026-09-27. */
