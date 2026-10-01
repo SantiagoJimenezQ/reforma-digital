@@ -109,7 +109,12 @@ export async function POST(request: Request) {
         'X-Content-Type-Options': 'nosniff',
       },
     });
-  } catch {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error';
+    console.error(
+      'search_rejected',
+      message.replace(/[a-z][a-z0-9+.-]*:\/\/\S+/gi, '[url]').slice(0, 300),
+    );
     return Response.json({ error: 'No se ha podido procesar la consulta.' }, { status: 503 });
   }
 }
