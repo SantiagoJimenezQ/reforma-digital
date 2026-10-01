@@ -1,0 +1,15 @@
+{
+  "name": "@gov/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gov/core": "workspace:*",
+    "@gov/government": "workspace:*",
+    "@gov/db": "workspace:*",
+    "@gov/crawler": "workspace:*",
+    "@gov/ai": "workspace:*"
+  }
+}

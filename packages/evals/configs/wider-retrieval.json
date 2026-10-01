@@ -1,0 +1,6 @@
+{
+  "vectorTopK": 50,
+  "lexicalTopK": 50,
+  "rerankerTopK": 30,
+  "finalEvidenceCount": 10
+}

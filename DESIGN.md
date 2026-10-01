@@ -2,7 +2,7 @@
 
 Versión 1.0 · 2026‑09‑27
 
-Este documento es la referencia visual de **todo** lo que Reforma Digital pinta: los paneles, el popup, la capa de estilo que viste la web oficial y la landing (`apps/landing`). Ningún portal (`sites/<id>`) ni la landing definen colores, tamaños ni componentes propios: usan los de aquí. Las demostraciones de la landing se pintan con las mismas clases que la extensión, así que lo que enseña la portada es lo que se instala.
+Este documento es la referencia visual de **todo** lo que Reforma Digital pinta: los paneles, el popup, la capa de estilo que viste la web oficial y la web pública (`apps/web`: landing, chat y páginas informativas). Ningún portal (`sites/<id>`) ni la landing definen colores, tamaños ni componentes propios: usan los de aquí. Las demostraciones de la landing se pintan con las mismas clases que la extensión, así que lo que enseña la portada es lo que se instala.
 
 | Qué                                    | Dónde vive en el código                                                                                                                                                                                                                                                       |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -179,11 +179,20 @@ Si un panel ofrece un control sincronizado con uno oficial (el desplegable de pr
 
 ## 8. Landing
 
-La landing (`apps/landing`) usa los mismos tokens y el mismo preset que la extensión; no tiene una guía aparte.
+La web pública (`apps/web`: landing, chat y páginas informativas) usa los mismos tokens y el mismo preset que la extensión; no tiene una guía aparte.
 
 - **Componentes.** Las demostraciones (portada y Fig. 5) se montan con las clases del preset (`bg-card`, `bg-step`, `bg-field-search`, `bg-choice`, `bg-btn`). La hoja de la landing solo añade lo que la extensión no tiene: el marco de navegador (contenedor gris de 28 px de radio con 10 px de relleno y panel interior de 18 px) y la maquetación del artículo.
 - **Tipografía.** Es la única diferencia: la landing carga Inter Variable en local (títulos con el diseño óptico Display, `opsz: 32`; cuerpo con `opsz: 14`) redefiniendo `--bg-font`. La extensión sigue con las fuentes del sistema para no empaquetar ni pedir fuentes dentro de una web oficial (§1.6).
-- **Iconos.** `@lucide/astro`, trazo 1.65–1.7. La marca se gira −90° con el texto horizontal.
+- **Iconos.** `lucide-react`, trazo 1.65–1.7. La marca se gira −90° con el texto horizontal.
 - **Figuras.** Blanco y negro, sin marcos decorativos. Las capturas de webs oficiales no se recolorean y van dentro del marco de navegador; las notas sobre una captura son píldoras negras con número, y en móvil pasan a lista bajo la imagen. Rojo (`danger-fg`) y verde (`success-fg`) solo rotulan «sin» y «con» Reforma Digital.
 - **Movimiento.** La portada admite una animación de entrada en sus dos previsualizaciones; se desactiva con `prefers-reduced-motion`. El resto sigue §2.4.
 - Las demostraciones no solicitan citas ni envían datos.
+
+### 8.1 Buscador y conversación
+
+- La landing, `/composer`, el chat, las citas y las páginas informativas comparten `apps/web/styles/theme.css`: Inter local y los tokens originales de `packages/design`. La propuesta se explica en la misma landing; sus enlaces hacen scroll a la iniciativa. El chat conserva los tokens originales; la portada añade acentos editoriales propios.
+- Títulos con Inter Display (`opsz: 32`), peso 500 y espaciado compacto; cuerpo con Inter Text (`opsz: 14`), 16 px como mínimo. Metadatos a 14 px y rótulos a 12 px. El titular de la iniciativa puede crecer hasta 60 px; las secciones mantienen la escala editorial de la propuesta.
+- Lienzo `canvas`, superficies blancas, radios de 16/24 px y acciones negras. En portada, el composer tiene un ancho máximo de 700 px, radio de 24 px y anillo de foco; no lleva píldoras ni texto auxiliar de fuentes. Al salir por arriba del viewport, el mismo campo se fija abajo, conservando el borrador y el foco. Las citas son enlaces subrayados en `brand-600`; el fragmento se presenta en una superficie neutra. Los errores usan los tokens `danger`.
+- Color de portada: lienzo neutro original, tinta negra, rojo `#ad182b` y amarillo `#f1c232` en acentos puntuales (titular, envío, selector de demo y detalles). Sin fondos cromáticos de página. Estos acentos no recolorean las sedes de la demo.
+- La portada presenta primero Reforma Digital como iniciativa. Debajo del titular y la descripción vive el composer, sin tarjeta exterior. La extensión se presenta a continuación con el texto a la izquierda y una única demo a la derecha: «Original / Mejorada» alterna sus vistas cada cinco segundos, con barra de tiempo y pausa. Las pestañas quedan unidas al borde superior del navegador. La web interior usa una vista ampliada de 960×640 escalada al contenedor para mantener legibles los trámites. En móvil se apilan. Las dos herramientas quedan explícitas desde la introducción. El hero combina el mensaje y el composer a la izquierda con una fotografía local de Madrid a la derecha; en móvil la fotografía va debajo. La sección de iniciativa incluye el recorrido visual Pregunta → Comprueba → Continúa. No se usa un saludo de chatbot. Las demostraciones de sedes conservan sus colores oficiales y los componentes compartidos.
+- La respuesta aparece según llega, sin animaciones de entrada. Como indicador de actividad, el texto «Pensando» conserva un brillo neutro mientras hay trabajo pendiente; queda estático con `prefers-reduced-motion`. No se anima el resto del contenido al entrar.

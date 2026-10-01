@@ -10,3 +10,13 @@ test-results/
 !.env.example
 .cache/
 .astro/
+
+.next/
+.turbo/
+.env
+.env.*
+coverage/
+*.tsbuildinfo
+artifacts/runs/
+artifacts/feedback/
+artifacts/crawl/

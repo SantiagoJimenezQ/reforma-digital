@@ -1,0 +1,13 @@
+{
+  "vectorTopK": 40,
+  "lexicalTopK": 40,
+  "fusionK": 60,
+  "rerankerTopK": 20,
+  "finalEvidenceCount": 8,
+  "chunkSize": 600,
+  "chunkOverlap": 70,
+  "embeddingModel": "google/gemini-embedding-001",
+  "generationModel": "openai/gpt-4.1-mini",
+  "rerankerModel": "openai/gpt-4.1-mini",
+  "promptVersion": "evidence-v1"
+}

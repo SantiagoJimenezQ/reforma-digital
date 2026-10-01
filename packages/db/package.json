@@ -1,0 +1,18 @@
+{
+  "name": "@gov/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gov/core": "workspace:*",
+    "@gov/government": "workspace:*",
+    "drizzle-orm": "^0.44.6",
+    "postgres": "^3.4.7"
+  }
+}

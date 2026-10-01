@@ -1,0 +1,17 @@
+{
+  "name": "@gov/retrieval",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gov/core": "workspace:*",
+    "@gov/db": "workspace:*",
+    "@gov/government": "workspace:*"
+  }
+}
