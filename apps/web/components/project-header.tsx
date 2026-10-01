@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowUpRight, Github } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { links } from '../landing/site';
 
 export function ProjectBrand() {
@@ -26,27 +26,6 @@ export function ProjectBrand() {
     </>
   );
 }
-export function ProjectHeader() {
-  return (
-    <>
-      <div className="project-notice">
-        Un proyecto independiente, sin vinculación con la Administración.
-      </div>
-      <header className="project-header">
-        <Link href="/" className="project-brand" aria-label="Reforma Digital, inicio">
-          <ProjectBrand />
-        </Link>
-        <nav aria-label="Navegación principal">
-          <a href="/#iniciativa">La iniciativa</a>
-          <a href={links.repo} className="project-github" aria-label="Código en GitHub">
-            <Github size={17} />
-            <span>GitHub</span>
-          </a>
-        </nav>
-      </header>
-    </>
-  );
-}
 export function ProjectFooter() {
   return (
     <footer className="project-footer">
@@ -55,7 +34,7 @@ export function ProjectFooter() {
           <ProjectBrand />
         </Link>
         <nav aria-label="Información del proyecto">
-          <Link href="/#iniciativa">La propuesta</Link>
+          <Link href="/#texto">La propuesta</Link>
           <Link href="/sources">Fuentes oficiales</Link>
           <Link href="/privacy">Privacidad</Link>
           <a href={links.repo}>

@@ -6,7 +6,7 @@ import Landing from '../landing/Landing';
 import HeroComposer from '../landing/HeroComposer';
 import '../landing/landing.css';
 
-export default function LandingHome({ mode }: { mode: 'preview' | 'live' }) {
+export default function LandingHome() {
   const [conversation, setConversation] = useState<string | null>(null);
   const [chatKey, setChatKey] = useState(0);
   if (conversation !== null) {
@@ -25,9 +25,5 @@ export default function LandingHome({ mode }: { mode: 'preview' | 'live' }) {
       />
     );
   }
-  return (
-    <Landing
-      composer={<HeroComposer mode={mode} onAsk={(query) => setConversation(query)} />}
-    />
-  );
+  return <Landing composer={<HeroComposer onAsk={(query) => setConversation(query)} />} />;
 }

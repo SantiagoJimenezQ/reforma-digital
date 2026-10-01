@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { ProjectBrand, ProjectFooter } from "./project-header";
+import Link from 'next/link';
+import { ProjectBrand, ProjectFooter } from './project-header';
 export function Header() {
   return (
     <>
@@ -7,11 +7,7 @@ export function Header() {
         Un proyecto independiente, sin vinculación con la Administración.
       </div>
       <header className="header project-header">
-        <Link
-          href="/"
-          className="project-brand"
-          aria-label="Reforma Digital, inicio"
-        >
+        <Link href="/" className="project-brand" aria-label="Reforma Digital, inicio">
           <ProjectBrand />
         </Link>
         <nav aria-label="Navegación principal">
@@ -23,7 +19,7 @@ export function Header() {
               Menú <span>≡</span>
             </summary>
             <div>
-              <Link href="/composer">Hacer una pregunta</Link>
+              <Link href="/">Hacer una pregunta</Link>
               <Link href="/sources">Fuentes oficiales</Link>
               <Link href="/how-it-works">Cómo funciona</Link>
               <Link href="/privacy">Privacidad</Link>
