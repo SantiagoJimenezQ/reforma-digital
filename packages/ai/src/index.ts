@@ -248,10 +248,13 @@ export async function search(
               tokens += ranked.tokens;
             } else
               evidence = await stage('retrieval', async () => {
-                const corpus = previewCandidates(understanding, previewCorpus, config).slice(
-                  0,
-                  config.finalEvidenceCount,
-                );
+                const corpus = previewCandidates(understanding, previewCorpus, config)
+                  .filter(
+                    (item) =>
+                      !understanding.likelyOrganizations.length ||
+                      understanding.likelyOrganizations.includes(item.sourceId),
+                  )
+                  .slice(0, config.finalEvidenceCount);
                 if (corpus.length) return corpus;
                 return (await retrieveOfficialSeeds(understanding, config)).slice(
                   0,
