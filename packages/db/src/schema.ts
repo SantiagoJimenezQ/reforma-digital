@@ -6,7 +6,7 @@ import {
   jsonb,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { SearchResult } from "@gov/core";
+import type { SearchResult } from "@reforma-digital/core";
 export const searches = pgTable("searches", {
   id: uuid("id").primaryKey(),
   createdAt: timestamp("created_at", { withTimezone: true })

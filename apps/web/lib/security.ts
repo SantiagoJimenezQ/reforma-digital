@@ -1,5 +1,5 @@
 import { timingSafeEqual, createHmac } from 'node:crypto';
-import { connection, databaseAvailable as storageAvailable } from '@gov/db';
+import { connection, databaseAvailable as storageAvailable } from '@reforma-digital/db';
 import { searchMode } from './search-mode';
 export { searchMode };
 function hostOf(value: string): string | null {

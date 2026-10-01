@@ -1,5 +1,5 @@
 {
-  "name": "@gov/evals",
+  "name": "@reforma-digital/evals",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,10 +10,10 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@gov/core": "workspace:*",
-    "@gov/government": "workspace:*",
-    "@gov/db": "workspace:*",
-    "@gov/ai": "workspace:*",
+    "@reforma-digital/core": "workspace:*",
+    "@reforma-digital/government": "workspace:*",
+    "@reforma-digital/db": "workspace:*",
+    "@reforma-digital/ai": "workspace:*",
     "zod": "^4.1.0",
     "@langfuse/client": "^5.11.1"
   }

@@ -4,14 +4,14 @@ import {
   type Evidence,
   type QueryUnderstanding,
   type SearchConfig,
-} from '@gov/core';
+} from '@reforma-digital/core';
 import {
   approvedSource,
   canonicalize,
   documentJurisdiction,
   documentYear,
   sources,
-} from '@gov/government';
+} from '@reforma-digital/government';
 import { searchWebSources } from './models';
 
 export async function retrieveWebEvidence(

@@ -102,24 +102,24 @@ importers:
       '@fontsource-variable/inter':
         specifier: 5.3.0
         version: 5.3.0
-      '@gov/ai':
+      '@reforma-digital/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@gov/db':
+      '@reforma-digital/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@gov/evals':
-        specifier: workspace:*
-        version: link:../../packages/evals
-      '@gov/government':
-        specifier: workspace:*
-        version: link:../../packages/government
       '@reforma-digital/design':
         specifier: workspace:*
         version: link:../../packages/design
+      '@reforma-digital/evals':
+        specifier: workspace:*
+        version: link:../../packages/evals
+      '@reforma-digital/government':
+        specifier: workspace:*
+        version: link:../../packages/government
       '@tailwindcss/postcss':
         specifier: ^4.1.0
         version: 4.3.3
@@ -166,15 +166,6 @@ importers:
 
   packages/ai:
     dependencies:
-      '@gov/core':
-        specifier: workspace:*
-        version: link:../core
-      '@gov/government':
-        specifier: workspace:*
-        version: link:../government
-      '@gov/retrieval':
-        specifier: workspace:*
-        version: link:../retrieval
       '@langfuse/client':
         specifier: ^5.11.1
         version: 5.11.1(@opentelemetry/api@1.9.1)
@@ -190,6 +181,15 @@ importers:
       '@opentelemetry/sdk-node':
         specifier: latest
         version: 0.222.0(@opentelemetry/api@1.9.1)
+      '@reforma-digital/core':
+        specifier: workspace:*
+        version: link:../core
+      '@reforma-digital/government':
+        specifier: workspace:*
+        version: link:../government
+      '@reforma-digital/retrieval':
+        specifier: workspace:*
+        version: link:../retrieval
       ai:
         specifier: ^7.0.124
         version: 7.0.124(zod@4.6.5)
@@ -207,10 +207,10 @@ importers:
 
   packages/db:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../government
       drizzle-orm:
@@ -228,28 +228,28 @@ importers:
 
   packages/evals:
     dependencies:
-      '@gov/ai':
-        specifier: workspace:*
-        version: link:../ai
-      '@gov/core':
-        specifier: workspace:*
-        version: link:../core
-      '@gov/db':
-        specifier: workspace:*
-        version: link:../db
-      '@gov/government':
-        specifier: workspace:*
-        version: link:../government
       '@langfuse/client':
         specifier: ^5.11.1
         version: 5.11.1(@opentelemetry/api@1.9.1)
+      '@reforma-digital/ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@reforma-digital/core':
+        specifier: workspace:*
+        version: link:../core
+      '@reforma-digital/db':
+        specifier: workspace:*
+        version: link:../db
+      '@reforma-digital/government':
+        specifier: workspace:*
+        version: link:../government
       zod:
         specifier: ^4.1.0
         version: 4.6.5
 
   packages/government:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
 
@@ -273,10 +273,10 @@ importers:
 
   packages/retrieval:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../government
 

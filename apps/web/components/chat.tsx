@@ -19,7 +19,7 @@ import {
   Mic,
   FileText,
 } from "lucide-react";
-import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
+import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@reforma-digital/core";
 import { ProjectBrand } from "./project-header";
 import { AttachmentPicker } from "./attachment-picker";
 import type { PdfContext } from "../lib/attachment";

@@ -13,9 +13,9 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "dev": "pnpm --filter @gov/web dev",
-    "landing:dev": "pnpm --filter @gov/web dev",
-    "landing:build": "pnpm --filter @gov/web build",
+    "dev": "pnpm --filter @reforma-digital/web dev",
+    "landing:dev": "pnpm --filter @reforma-digital/web dev",
+    "landing:build": "pnpm --filter @reforma-digital/web build",
     "landing:og": "node apps/web/scripts/render-og.mjs",
     "build": "pnpm build:extension && turbo build",
     "build:test": "node scripts/build.mjs --test",

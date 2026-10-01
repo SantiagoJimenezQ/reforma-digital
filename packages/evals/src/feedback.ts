@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { db, feedback, searches, eq, closeDb } from "@gov/db";
+import { db, feedback, searches, eq, closeDb } from "@reforma-digital/db";
 import { repoRoot } from "./index";
 try {
   const rows = await db()

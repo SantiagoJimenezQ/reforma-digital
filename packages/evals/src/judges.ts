@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { structured } from "@gov/ai/models";
-import type { SearchResult } from "@gov/core";
+import { structured } from "@reforma-digital/ai/models";
+import type { SearchResult } from "@reforma-digital/core";
 import type { EvalCase } from "./schema";
 import type { Metrics } from "./metrics";
 export const judgeSchema = z.object({

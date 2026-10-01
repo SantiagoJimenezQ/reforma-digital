@@ -1,7 +1,7 @@
 /** Operator command. Never called by the experiment runner or by an LLM. */
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { db, experiments, closeDb } from "@gov/db";
+import { db, experiments, closeDb } from "@reforma-digital/db";
 import { loadDataset, regressionGate, repoRoot, type Report } from "./index";
 const args = process.argv.slice(2);
 const value = (name: string) => args[args.indexOf(name) + 1];

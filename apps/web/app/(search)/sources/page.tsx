@@ -1,4 +1,4 @@
-import { sources } from "@gov/government";
+import { sources } from "@reforma-digital/government";
 import { Header, Footer } from "../../../components/header";
 import { ArrowUpRight, Landmark } from "lucide-react";
 export default function Sources() {

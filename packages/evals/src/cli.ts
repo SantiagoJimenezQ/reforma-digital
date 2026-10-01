@@ -1,8 +1,8 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { configSchema } from "@gov/core";
-import { closeDb } from "@gov/db";
-import { shutdownTracing } from "@gov/ai";
+import { configSchema } from "@reforma-digital/core";
+import { closeDb } from "@reforma-digital/db";
+import { shutdownTracing } from "@reforma-digital/ai";
 import {
   loadDataset,
   runExperiment,

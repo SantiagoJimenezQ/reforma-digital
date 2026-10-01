@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { search } from '@gov/ai';
-import { db, searches } from '@gov/db';
+import { search } from '@reforma-digital/ai';
+import { db, searches } from '@reforma-digital/db';
 import {
   sameOrigin,
   rateLimit,

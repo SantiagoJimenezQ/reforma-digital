@@ -1,5 +1,5 @@
 {
-  "name": "@gov/retrieval",
+  "name": "@reforma-digital/retrieval",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,7 +10,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@gov/core": "workspace:*",
-    "@gov/government": "workspace:*"
+    "@reforma-digital/core": "workspace:*",
+    "@reforma-digital/government": "workspace:*"
   }
 }

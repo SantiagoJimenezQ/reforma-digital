@@ -1,5 +1,5 @@
 {
-  "name": "@gov/db",
+  "name": "@reforma-digital/db",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,8 +10,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@gov/core": "workspace:*",
-    "@gov/government": "workspace:*",
+    "@reforma-digital/core": "workspace:*",
+    "@reforma-digital/government": "workspace:*",
     "drizzle-orm": "^0.44.6",
     "postgres": "^3.4.7"
   }
