@@ -2,7 +2,7 @@
 
 Versión 1.0 · 2026‑09‑27
 
-Este documento es la referencia visual de **todo** lo que Reforma Digital pinta: los paneles, el popup y la capa de estilo que viste la web oficial. Ningún portal (`sites/<id>`) define colores, tamaños ni componentes propios: usa los de aquí.
+Este documento es la referencia visual de **todo** lo que Reforma Digital pinta: los paneles, el popup, la capa de estilo que viste la web oficial y la landing (`apps/landing`). Ningún portal (`sites/<id>`) ni la landing definen colores, tamaños ni componentes propios: usan los de aquí. Las demostraciones de la landing se pintan con las mismas clases que la extensión, así que lo que enseña la portada es lo que se instala.
 
 | Qué                                    | Dónde vive en el código                                                                                                                                                                                                                                                       |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -30,25 +30,25 @@ Los componentes se definen **una sola vez** en el preset. Los paneles los usan c
 
 Los valores están en `packages/design/src/tokens.css` como canales RGB (`--bg-brand-600: 20 20 20`). El contraste está medido sobre blanco salvo que se indique otra cosa.
 
-| Token              | Hex                               | Uso                                        | Contraste             |
-| ------------------ | --------------------------------- | ------------------------------------------ | --------------------- |
-| `ink`              | `#141414`                         | Texto principal, títulos                   | 18.4:1 sobre blanco   |
-| `ink-muted`        | `#555555`                         | Texto secundario, ayudas                   | 7.5:1 sobre blanco    |
-| `ink-subtle`       | `#696969`                         | Metadatos, eyebrow                         | 5.5:1 sobre blanco    |
-| `canvas`           | `#FAFAFA`                         | Fondo de página                            | —                     |
-| `surface`          | `#FFFFFF`                         | Tarjetas, campos                           | —                     |
-| `surface-muted`    | `#F7F7F7`                         | Zonas secundarias, avisos neutros          | —                     |
-| `line`             | `#EBEBEB`                         | Bordes de tarjeta, separadores             | decorativo            |
-| `line-strong`      | `#DCDCDC`                         | Borde de opciones seleccionables           | decorativo            |
-| `line-control`     | `#808080`                         | Borde de campos y botón secundario         | 3.9:1 sobre blanco    |
-| `brand-600`        | `#141414`                         | **Acción principal**, enlaces, foco        | 18.4:1 sobre blanco   |
-| `brand-700`        | `#2D2D2D`                         | Hover de acción/enlace                     | 13.8:1 sobre blanco   |
-| `brand-50/100/200` | `#F7F7F7` `#EEEEEE` `#CDCDCD`     | Selección, badge, anillo de foco de campos | —                     |
-| `brand-900`        | `#141414`                         | Texto sobre `brand-50`                     | 17.2:1 sobre brand-50 |
-| `info-*`           | `#EFF6FF` · `#BFDBFE` · `#1E3A8A` | Aviso informativo (fondo · borde · texto)  | 9.5:1                 |
-| `warning-*`        | `#FFFBEB` · `#FCD34D` · `#78350F` | «Lee esto antes de continuar»              | 8.8:1                 |
-| `danger-*`         | `#FEF2F2` · `#FCA5A5` · `#991B1B` | Errores y énfasis rojo de la web oficial   | 7.6:1                 |
-| `success-*`        | `#ECFDF3` · `#A6F4C5` · `#05603A` | Confirmaciones                             | 7.3:1                 |
+| Token              | Hex                               | Uso                                                                      | Contraste             |
+| ------------------ | --------------------------------- | ------------------------------------------------------------------------ | --------------------- |
+| `ink`              | `#141414`                         | Texto principal, títulos                                                 | 18.4:1 sobre blanco   |
+| `ink-muted`        | `#555555`                         | Texto secundario, ayudas                                                 | 7.5:1 sobre blanco    |
+| `ink-subtle`       | `#696969`                         | Metadatos, eyebrow                                                       | 5.5:1 sobre blanco    |
+| `canvas`           | `#F7F7F8`                         | Fondo de página                                                          | —                     |
+| `surface`          | `#FFFFFF`                         | Tarjetas, campos                                                         | —                     |
+| `surface-muted`    | `#F4F4F5`                         | Zonas secundarias, avisos neutros                                        | —                     |
+| `line`             | `#EBEBEB`                         | Bordes de tarjeta, separadores                                           | decorativo            |
+| `line-strong`      | `#DCDCDC`                         | Borde de opciones seleccionables                                         | decorativo            |
+| `line-control`     | `#808080`                         | Borde de campos y botón secundario                                       | 3.9:1 sobre blanco    |
+| `brand-600`        | `#141414`                         | **Acción principal**, enlaces, foco                                      | 18.4:1 sobre blanco   |
+| `brand-700`        | `#2D2D2D`                         | Hover de acción/enlace                                                   | 13.8:1 sobre blanco   |
+| `brand-50/100/200` | `#F7F7F7` `#EEEEEE` `#CDCDCD`     | Badge, selección y paso actual (`100`), anillo de foco de campos (`200`) | —                     |
+| `brand-900`        | `#141414`                         | Texto sobre `brand-50`                                                   | 17.2:1 sobre brand-50 |
+| `info-*`           | `#EFF6FF` · `#BFDBFE` · `#1E3A8A` | Aviso informativo (fondo · borde · texto)                                | 9.5:1                 |
+| `warning-*`        | `#FFFBEB` · `#FCD34D` · `#78350F` | «Lee esto antes de continuar»                                            | 8.8:1                 |
+| `danger-*`         | `#FEF2F2` · `#FCA5A5` · `#991B1B` | Errores y énfasis rojo de la web oficial                                 | 7.6:1                 |
+| `success-*`        | `#ECFDF3` · `#A6F4C5` · `#05603A` | Confirmaciones                                                           | 7.3:1                 |
 
 Reglas:
 
@@ -77,8 +77,8 @@ Fuente: Helvetica Neue, Helvetica y Arial como alternativa. No se cargan fuentes
 
 - Retícula de **4 px**. Escala habitual: 4, 8, 12, 16, 20, 24, 32, 48.
 - Entre bloques de un panel: 20 px. Relleno de tarjeta: 16 px en móvil y 24 px desde 640 px.
-- `--bg-radius-control`: **16 px** (campos, opciones, avisos); botones en píldora. `--bg-radius-card`: **24 px** (tarjetas y panel). `999px` solo para el badge.
-- Sombras: tarjetas sin sombra (`shadow-card: none`) y `shadow-raised` solo para el aviso flotante de fallback. Nada más flota.
+- `--bg-radius-control`: **16 px** (campos, opciones, avisos, pasos). `--bg-radius-card`: **24 px** (tarjetas y panel). Píldora (`999px`) para botones, buscador y badge.
+- Tarjetas **sin borde ni sombra**: una superficie blanca sobre el `canvas` gris. La línea (`line`) solo separa elementos dentro de una tarjeta. `shadow-raised` queda para el aviso flotante de fallback; nada más flota.
 - Ancho máximo del contenido: **1120 px** (`--bg-content-max`).
 - Puntos de corte: `sm` 640 px (una a varias columnas) y `lg` 1024 px (aparece la barra lateral oficial). Todo se diseña primero a **375 px**.
 
@@ -91,20 +91,21 @@ Fuente: Helvetica Neue, Helvetica y Arial como alternativa. No se cargan fuentes
 
 Los nombres de clase son los del preset. En React se usan los componentes que exporta `@reforma-digital/design`.
 
-| Componente               | Clases                                                                             | React                                   | Reglas                                                                                                                                                                                                                                        |
-| ------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Barra superior**       | `bg-badge` + `bg-btn-secondary`                                                    | `Shell` (runtime) + `CommunityBadge`    | La pinta el runtime en toda página mejorada: «Interfaz comunitaria · sitio oficial», el dominio actual y el botón «Ver original». Ningún portal la repite.                                                                                    |
-| **Panel**                | `bg-card`                                                                          | `Panel`                                 | Uno por página, justo después del título oficial. Contiene: `bg-h1` → `bg-lead` → progreso → contenido.                                                                                                                                       |
-| **Campo conectado**      | `bg-bound` + `bg-label` + `bg-field` + `bg-hint`                                   | `BoundField` (`@reforma-digital/react`) | Sustituye un control oficial en su sitio (slot) y lo sincroniza mediante `DomBridge`.                                                                                                                                                         |
-| **Progreso**             | —                                                                                  | `ProgressSteps`                         | Lista de pasos con `aria-current="step"` desde 640 px; en móvil, una barra segmentada más «Paso N de M: nombre». Los pasos fuera del alcance llevan «solo en la web oficial».                                                                 |
-| **Botón principal**      | `bg-btn bg-btn-primary` (+`bg-btn-lg`)                                             | `PrimaryAction`                         | Uno por pantalla. Verbo más destino («Continuar con Madrid»). Deshabilitado solo con una ayuda que diga por qué. Si la web oficial ofrece opciones equivalentes (p. ej. con o sin Cl@ve), **ninguna** se destaca: todas van como secundarias. |
-| **Botón secundario**     | `bg-btn bg-btn-secondary`                                                          | `SecondaryAction`                       | «Volver» y acciones alternativas.                                                                                                                                                                                                             |
-| **Enlace**               | `bg-link`                                                                          | `LinkButton`, `ExternalLink`            | Siempre subrayado. Los externos llevan ↗ y «(se abre en una pestaña nueva)» para lectores de pantalla.                                                                                                                                        |
-| **Campo**                | `bg-label` + `bg-field` + `bg-hint`                                                | —                                       | Etiqueta visible siempre; el placeholder solo pone ejemplos.                                                                                                                                                                                  |
-| **Opción seleccionable** | `bg-choice` (+`bg-choice-checked`)                                                 | —                                       | `radio` nativo dentro de `label`. Se usa en listas largas con buscador; con menos de 7 opciones, radios sin buscador.                                                                                                                         |
-| **Aviso**                | `bg-callout bg-callout-{info,warning,danger,success,neutral}` + `bg-callout-title` | `Callout`                               | `warning` = «lee esto antes de seguir»; `danger` = errores (con `role="alert"`); `neutral` = texto legal.                                                                                                                                     |
-| **Bloque oficial**       | `bg-eyebrow`                                                                       | `OfficialDivider`                       | Separa el panel del contenido oficial: «Información oficial de esta página».                                                                                                                                                                  |
-| **Aviso de fallback**    | `bg-card shadow-raised`                                                            | `FallbackNotice`                        | Esquina inferior izquierda, se puede cerrar y no bloquea nada.                                                                                                                                                                                |
+| Componente               | Clases                                                                             | React                                   | Reglas                                                                                                                                                                                                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Barra superior**       | `bg-badge` + `bg-btn-secondary`                                                    | `Shell` (runtime) + `CommunityBadge`    | La pinta el runtime en toda página mejorada: «Interfaz comunitaria · sitio oficial», el dominio actual y el botón «Ver original». Ningún portal la repite.                                                                                                         |
+| **Panel**                | `bg-card`                                                                          | `Panel`                                 | Uno por página, justo después del título oficial. Contiene: `bg-h1` → `bg-lead` → progreso → contenido.                                                                                                                                                            |
+| **Campo conectado**      | `bg-bound` + `bg-label` + `bg-field` + `bg-hint`                                   | `BoundField` (`@reforma-digital/react`) | Sustituye un control oficial en su sitio (slot) y lo sincroniza mediante `DomBridge`.                                                                                                                                                                              |
+| **Progreso**             | `bg-step` (+`bg-step-current`, `bg-step-done`, `bg-step-todo`) + `bg-step-num`     | `ProgressSteps`                         | Fichas sin borde con `aria-current="step"` desde 640 px: el paso actual lleva fondo `brand-100`, número en negro y peso 600; los hechos, ✓. En móvil, una barra segmentada más «Paso N de M: nombre». Los pasos fuera del alcance llevan «solo en la web oficial». |
+| **Botón principal**      | `bg-btn bg-btn-primary` (+`bg-btn-lg`)                                             | `PrimaryAction`                         | Uno por pantalla. Verbo más destino («Continuar con Madrid»). Deshabilitado solo con una ayuda que diga por qué. Si la web oficial ofrece opciones equivalentes (p. ej. con o sin Cl@ve), **ninguna** se destaca: todas van como secundarias.                      |
+| **Botón secundario**     | `bg-btn bg-btn-secondary`                                                          | `SecondaryAction`                       | «Volver» y acciones alternativas.                                                                                                                                                                                                                                  |
+| **Enlace**               | `bg-link`                                                                          | `LinkButton`, `ExternalLink`            | Siempre subrayado. Los externos llevan ↗ y «(se abre en una pestaña nueva)» para lectores de pantalla.                                                                                                                                                             |
+| **Campo**                | `bg-label` + `bg-field` + `bg-hint`                                                | —                                       | Etiqueta visible siempre; el placeholder solo pone ejemplos.                                                                                                                                                                                                       |
+| **Buscador**             | `bg-field bg-field-search`                                                         | `SearchField`                           | El mismo campo en píldora. Busca sin tildes ni símbolos («clave» encuentra «Cl@ve») y dice cuántos resultados hay.                                                                                                                                                 |
+| **Opción seleccionable** | `bg-choice` (+`bg-choice-checked`)                                                 | `Choice`                                | `radio` nativo dentro de `label`. Seleccionada: borde `brand-600`, fondo `brand-100` y peso 600. Se usa en listas largas con buscador; con menos de 7 opciones, radios sin buscador.                                                                               |
+| **Aviso**                | `bg-callout bg-callout-{info,warning,danger,success,neutral}` + `bg-callout-title` | `Callout`                               | `warning` = «lee esto antes de seguir»; `danger` = errores (con `role="alert"`); `neutral` = texto legal.                                                                                                                                                          |
+| **Bloque oficial**       | `bg-eyebrow`                                                                       | `OfficialDivider`                       | Separa el panel del contenido oficial: «Información oficial de esta página».                                                                                                                                                                                       |
+| **Aviso de fallback**    | `bg-card shadow-raised`                                                            | `FallbackNotice`                        | Esquina inferior izquierda, se puede cerrar y no bloquea nada.                                                                                                                                                                                                     |
 
 ## 4. Cómo se viste la web oficial
 
@@ -176,10 +177,13 @@ Si un panel ofrece un control sincronizado con uno oficial (el desplegable de pr
 3. Revisa el resultado con `npm run site:preview -- <portal>`, que reproduce una visita grabada con `site:record` sin conexión y guarda capturas a 1280 y 390 px en `.cache/preview/<portal>/`. Para los campos conectados, usa el laboratorio (`npm run dev`).
 4. Un PR que cambie el diseño debe incluir capturas y, si toca tokens de color, el contraste medido.
 
-## Landing completa
+## 8. Landing
 
-La portada conserva el resumen, las seis secciones originales, cronología, ocho figuras, notas, preguntas y fuentes. Inter Variable, alojada localmente, para texto y títulos de la landing; blanco y negro, sin marcos decorativos ni fondos de campaña. Los controles usan selección negra y foco visible. Las capturas documentan la versión de septiembre de 2026 y no se recolorean. Las demostraciones no solicitan citas.
+La landing (`apps/landing`) usa los mismos tokens y el mismo preset que la extensión; no tiene una guía aparte.
 
-Iconos de la landing: `@lucide/astro`, trazo 1.65–1.7. La marca se gira −90° manteniendo el texto horizontal. Notas de imágenes en listas numeradas, sin bocadillos con punta. Superficies anidadas: 32/20 px con 12 px de relleno en el puente, 28/18 px con 10 px en comparación y demo. Grises suaves distinguen el contenedor de los paneles blancos.
-
-Los títulos de la landing usan el diseño óptico Display de Inter Variable (`opsz: 32`); el cuerpo usa `opsz: 14`. Se carga el archivo local con ambos ejes (peso y tamaño óptico).
+- **Componentes.** Las demostraciones (portada y Fig. 5) se montan con las clases del preset (`bg-card`, `bg-step`, `bg-field-search`, `bg-choice`, `bg-btn`). La hoja de la landing solo añade lo que la extensión no tiene: el marco de navegador (contenedor gris de 28 px de radio con 10 px de relleno y panel interior de 18 px) y la maquetación del artículo.
+- **Tipografía.** Es la única diferencia: la landing carga Inter Variable en local (títulos con el diseño óptico Display, `opsz: 32`; cuerpo con `opsz: 14`) redefiniendo `--bg-font`. La extensión sigue con las fuentes del sistema para no empaquetar ni pedir fuentes dentro de una web oficial (§1.6).
+- **Iconos.** `@lucide/astro`, trazo 1.65–1.7. La marca se gira −90° con el texto horizontal.
+- **Figuras.** Blanco y negro, sin marcos decorativos. Las capturas de webs oficiales no se recolorean y van dentro del marco de navegador; las notas sobre una captura son píldoras negras con número, y en móvil pasan a lista bajo la imagen. Rojo (`danger-fg`) y verde (`success-fg`) solo rotulan «sin» y «con» Reforma Digital.
+- **Movimiento.** La portada admite una animación de entrada en sus dos previsualizaciones; se desactiva con `prefers-reduced-motion`. El resto sigue §2.4.
+- Las demostraciones no solicitan citas ni envían datos.

@@ -48,9 +48,10 @@ const components = plugin(({ addComponents }) => {
     '.bg-small': { fontSize: '14px', lineHeight: '1.5', color: c('ink-muted') },
 
     // ── Superficies ───────────────────────────────────────────────
+    // Tarjeta blanca sin borde sobre el lienzo gris: la superficie separa, no la línea.
     '.bg-card': {
       backgroundColor: c('surface'),
-      border: `1px solid ${c('line')}`,
+      border: '0',
       borderRadius: 'var(--bg-radius-card)',
       boxShadow: 'var(--bg-shadow-card)',
     },
@@ -75,13 +76,13 @@ const components = plugin(({ addComponents }) => {
       justifyContent: 'center',
       gap: '8px',
       minHeight: '44px',
-      padding: '10px 18px',
+      padding: '12px 20px',
       borderRadius: '999px',
       border: '1px solid transparent',
       fontFamily: 'var(--bg-font)',
       fontSize: '16px',
       lineHeight: '1.25',
-      fontWeight: '600',
+      fontWeight: '500',
       textDecoration: 'none',
       textTransform: 'none',
       letterSpacing: 'normal',
@@ -153,6 +154,8 @@ const components = plugin(({ addComponents }) => {
       },
       '&:disabled, &[readonly]': { backgroundColor: c('surface-muted'), color: c('ink-muted') },
     },
+    // Buscador: el mismo campo, en píldora.
+    '.bg-field-search': { borderRadius: '999px', paddingLeft: '18px', paddingRight: '18px' },
     '.bg-choice': {
       display: 'flex',
       alignItems: 'flex-start',
@@ -178,11 +181,41 @@ const components = plugin(({ addComponents }) => {
     },
     '.bg-choice-checked': {
       borderColor: c('brand-600'),
-      backgroundColor: c('brand-50'),
+      backgroundColor: c('brand-100'),
       color: c('brand-900'),
       fontWeight: '600',
-      boxShadow: `inset 0 0 0 1px ${c('brand-600')}`,
     },
+
+    // ── Progreso ──────────────────────────────────────────────────
+    // Fichas sin borde; el paso actual se marca con fondo, número en negro y peso.
+    '.bg-step': {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: '8px',
+      padding: '10px 12px',
+      borderRadius: 'var(--bg-radius-control)',
+      fontSize: '13px',
+      lineHeight: '1.4',
+      color: c('ink-muted'),
+    },
+    '.bg-step-current': { backgroundColor: c('brand-100'), color: c('ink'), fontWeight: '600' },
+    '.bg-step-todo': { color: c('ink-subtle') },
+    '.bg-step-num': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '24px',
+      height: '24px',
+      flexShrink: '0',
+      borderRadius: '999px',
+      fontSize: '12px',
+      fontWeight: '700',
+      backgroundColor: c('surface-muted'),
+      color: c('ink-subtle'),
+    },
+    '.bg-step-current .bg-step-num': { backgroundColor: c('brand-600'), color: c('ink-inverse') },
+    '.bg-step-done .bg-step-num': { backgroundColor: c('success-bg'), color: c('success-fg') },
 
     // ── Avisos ────────────────────────────────────────────────────
     '.bg-callout': {

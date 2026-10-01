@@ -5,8 +5,8 @@ import { pasos } from '../site';
 
 const domain = 'www2.agenciatributaria.gob.es';
 
-const choice =
-  'grid cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 rounded-control border border-line-strong bg-surface px-3.5 py-3 transition-[border-color,background-color] duration-150 hover:border-line-control focus-within:border-brand-600 focus-within:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] data-[checked]:border-brand-600 data-[checked]:bg-brand-50 data-[checked]:shadow-[inset_0_0_0_1px_rgb(var(--bg-brand-600))] [&[hidden]]:!hidden [&_input]:m-0 [&_input]:mt-0.5 [&_input]:size-[18px] [&_input]:accent-brand-600';
+// Mismas clases que la extensión (packages/design/tailwind-preset.js): la demo no define estilos propios.
+const choice = 'bg-choice [&[hidden]]:!hidden';
 ---
 
 <div class="m-0 flex flex-col gap-4 min-[861px]:flex-row" data-demo>
@@ -110,35 +110,23 @@ const choice =
         class="absolute inset-0 overflow-auto overscroll-contain bg-canvas px-4 pb-8 pt-4"
         data-view="enhanced"
       >
-        <p class="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Catálogo de servicios de asistencia</p>
+        <p class="bg-eyebrow mb-2">Catálogo de servicios de asistencia</p>
 
-        <div class="bg-card p-[clamp(16px,2.4vw,28px)]">
-          <p class="text-[22px] font-bold leading-[1.2] tracking-[-0.01em]">Encuentra tu servicio de asistencia</p>
-          <p class="mt-1.5 text-base text-ink-muted">
+        <div class="bg-card bg-text p-4 sm:p-6">
+          <p class="bg-h1 !text-[24px]">Encuentra tu servicio de asistencia</p>
+          <p class="bg-lead mt-2 !text-base">
             Busca entre los {servicios.length} servicios que publica la Agencia Tributaria. Al solicitar uno, la web
             oficial te pedirá tu NIF y tu nombre.
           </p>
-          <p class="mt-5 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle">Paso 1 de 5 · {pasos[0]}</p>
+          <p class="bg-eyebrow mt-5">Paso 1 de 5 · {pasos[0]}</p>
           <ol class="m-0 mb-5 mt-2 grid list-none grid-cols-5 gap-2 p-0 max-[900px]:gap-1">
             {
               pasos.map((paso, i) => (
-                <li
-                  class:list={[
-                    'grid content-start gap-1.5 rounded-control border justify-items-center p-1.5 text-[13px] leading-snug text-ink-muted',
-                    i === 0 ? 'border-brand-600 bg-brand-50 font-semibold text-brand-900' : 'border-dashed border-line',
-                  ]}
-                >
-                  <span
-                    class:list={[
-                      'grid size-[22px] place-items-center rounded-full text-xs font-bold',
-                      i === 0 ? 'bg-brand-600 text-white' : 'bg-surface-muted',
-                    ]}
-                  >
-                    {i + 1}
-                  </span>
-                  <span class="hidden">
+                <li class:list={['bg-step !items-center', i === 0 ? 'bg-step-current' : 'bg-step-todo']}>
+                  <span class="bg-step-num">{i + 1}</span>
+                  <span class="sr-only">
                     {paso}
-                    {i > 0 && <span class="block text-xs font-normal text-ink-subtle">solo en la web oficial</span>}
+                    {i > 0 && ' (solo en la web oficial)'}
                   </span>
                 </li>
               ))
@@ -146,10 +134,10 @@ const choice =
           </ol>
           <div class="grid gap-3">
             <div>
-              <label class="mb-1.5 block text-[15px] font-semibold" for="demo-search">Buscar servicio</label>
+              <label class="bg-label" for="demo-search">Buscar servicio</label>
               <input
                 id="demo-search"
-                class="block min-h-11 w-full rounded-control border border-line-control bg-surface px-3.5 py-2.5 text-base focus:border-brand-600 focus:shadow-[0_0_0_3px_rgb(var(--bg-brand-200))] focus:outline-none"
+                class="bg-field bg-field-search"
                 type="search"
                 placeholder="Ej.: clave, renta, embargo…"
                 autocomplete="off"
@@ -157,10 +145,10 @@ const choice =
               />
             </div>
             <div>
-              <label class="mb-1.5 block text-[15px] font-semibold" for="demo-category">Categoría</label>
+              <label class="bg-label" for="demo-category">Categoría</label>
               <select
                 id="demo-category"
-                class="block min-h-11 w-full rounded-control border border-line-control bg-surface px-3 py-2.5 text-base focus:border-brand-600 focus:outline-none"
+                class="bg-field"
                 data-category
               >
                 <option value="">Todas</option>
@@ -168,20 +156,20 @@ const choice =
               </select>
             </div>
           </div>
-          <p class="mb-2 mt-4 text-xs font-semibold uppercase tracking-[0.06em] text-ink-subtle" aria-live="polite" data-count>
+          <p class="bg-eyebrow mb-2 mt-4" aria-live="polite" data-count>
             {servicios.length} servicios
           </p>
-          <div class="grid max-h-[340px] gap-2 overflow-auto overscroll-contain rounded-control border border-line bg-surface-muted p-2" role="radiogroup" aria-label="Servicios de asistencia" data-choices>
+          <div class="grid max-h-[340px] gap-2 overflow-auto overscroll-contain rounded-control bg-surface-muted p-2" role="radiogroup" aria-label="Servicios de asistencia" data-choices>
             {
               servicios.map((s) => (
                 <label class={choice} data-name={s.name} data-cat={s.category} data-choice>
                   <input type="radio" name="demo-servicio" value={s.id} />
                   <span class="grid gap-1">
-                    <span class="text-[11px] font-semibold uppercase tracking-[0.05em] text-ink-subtle">{s.category}</span>
+                    <span class="bg-eyebrow !text-[11px]">{s.category}</span>
                     <span class="text-[15px] font-semibold leading-snug">{s.name}</span>
                     <span class="flex flex-wrap gap-1.5">
                       {s.channels.map((ch) => (
-                        <span class="rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted">{ch}</span>
+                        <span class="rounded-full border border-line bg-surface px-2 py-0.5 text-xs font-normal text-ink-muted">{ch}</span>
                       ))}
                     </span>
                   </span>
@@ -219,7 +207,7 @@ const choice =
       for (const choice of choices) {
         const input = choice.querySelector('input')!;
         input.checked = input.value === id;
-        choice.toggleAttribute('data-checked', input.checked);
+        choice.classList.toggle('bg-choice-checked', input.checked);
         if (input.checked) name = choice.dataset.name!;
       }
       legacy.querySelectorAll<HTMLElement>('[data-legacy]').forEach((card) => {

@@ -38,12 +38,14 @@ for (const site of await sitesWithFlow()) {
         .catch(() => console.warn(`  no interface on ${name}`));
       if (site.flow.captureCss) await page.addStyleTag({ content: site.flow.captureCss });
       await page.waitForTimeout(400);
+      // First the viewport, then the full page: the full-page capture resizes the window and some
+      // official scripts (AEAT header) re-layout on resize.
+      await page.screenshot({ path: path.join(out, `${name}${suffix}-top.png`), caret: 'initial' });
       await page.screenshot({
         path: path.join(out, `${name}${suffix}.png`),
         fullPage: true,
         caret: 'initial',
       });
-      await page.screenshot({ path: path.join(out, `${name}${suffix}-top.png`), caret: 'initial' });
     }
     console.log(`✔ ${site.id} · ${name}`);
   }

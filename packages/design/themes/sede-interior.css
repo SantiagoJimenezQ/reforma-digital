@@ -84,13 +84,23 @@ html[data-bg-site] main#main-content .card-header {
   @apply bg-eyebrow;
   border-bottom: 1px solid rgb(var(--bg-line)) !important;
 }
+/* La hoja oficial fija el azul corporativo con más peso: el color de acción se impone aquí. */
 html[data-bg-site] main#main-content .btn-primary {
   @apply bg-btn bg-btn-primary;
   background-image: none !important;
+  background-color: rgb(var(--bg-brand-600)) !important;
+  border-color: rgb(var(--bg-brand-600)) !important;
+  color: rgb(var(--bg-ink-inverse)) !important;
+}
+html[data-bg-site] main#main-content .btn-primary:hover {
+  background-color: rgb(var(--bg-brand-700)) !important;
 }
 html[data-bg-site] main#main-content .card-header .btn-primary,
 html[data-bg-site] main#main-content #imprimirAsociaciones {
   @apply bg-btn-secondary;
+  background-color: rgb(var(--bg-surface)) !important;
+  border-color: rgb(var(--bg-line-control)) !important;
+  color: rgb(var(--bg-ink)) !important;
 }
 html[data-bg-site] main#main-content .form-label {
   @apply bg-label;

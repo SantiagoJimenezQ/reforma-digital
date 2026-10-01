@@ -69,21 +69,13 @@ export function ProgressSteps({
               key={step.id}
               aria-current={state === 'current' ? 'step' : undefined}
               className={cx(
-                'flex flex-col items-start gap-2 rounded-control border px-3 py-2.5 text-[13px] leading-snug',
-                state === 'current' && 'border-brand-600 bg-brand-50 font-semibold text-brand-900',
-                state === 'done' && 'border-line bg-surface text-ink-muted',
-                state === 'todo' && 'border-dashed border-line-strong bg-surface text-ink-subtle',
+                'bg-step',
+                state === 'current' && 'bg-step-current',
+                state === 'done' && 'bg-step-done',
+                state === 'todo' && 'bg-step-todo',
               )}
             >
-              <span
-                aria-hidden="true"
-                className={cx(
-                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold',
-                  state === 'current' && 'bg-brand-600 text-ink-inverse',
-                  state === 'done' && 'bg-success-bg text-success-fg',
-                  state === 'todo' && 'bg-surface-muted text-ink-subtle',
-                )}
-              >
+              <span aria-hidden="true" className="bg-step-num">
                 {state === 'done' ? '✓' : i + 1}
               </span>
               <span>
@@ -276,7 +268,7 @@ export function SearchField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
-        className="bg-field"
+        className="bg-field bg-field-search"
       />
     </div>
   );
