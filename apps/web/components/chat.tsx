@@ -16,7 +16,6 @@ import {
   X,
   ChevronDown,
   RotateCcw,
-  Mic,
   FileText,
 } from "lucide-react";
 import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
@@ -361,22 +360,6 @@ function AnswerActions({
     </>
   );
 }
-// Web Speech is progressive enhancement; recognition starts only after the user's click.
-type Recognition = {
-  lang: string;
-  interimResults: boolean;
-  onresult:
-    | ((event: {
-        results: {
-          [index: number]: { [index: number]: { transcript: string } };
-        };
-      }) => void)
-    | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  abort: () => void;
-};
 export default function Chat({
   initialQuestion,
   onNewConversation,
@@ -390,9 +373,6 @@ export default function Chat({
   const [input, setInput] = useState("");
   const [sourceView, setSourceView] = useState<SourceView | null>(null);
   const [showJump, setShowJump] = useState(false);
-  const [speechAvailable, setSpeechAvailable] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [speechError, setSpeechError] = useState("");
   const [attachment, setAttachment] = useState<PdfContext>();
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const [attachmentError, setAttachmentError] = useState("");
@@ -402,7 +382,6 @@ export default function Chat({
   const bottom = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDetailsElement>(null);
   const nearBottom = useRef(true);
-  const recognition = useRef<Recognition | null>(null);
   const loading = turns.some((t) => t.state === "loading");
   function update(
     id: string,
@@ -426,7 +405,6 @@ export default function Chat({
   async function send(question: string, retryId?: string) {
     const query = question.trim();
     if (query.length < 4 || active.current || attachmentBusy) return;
-    recognition.current?.abort();
     const controller = new AbortController();
     active.current = controller;
     const id = retryId ?? crypto.randomUUID();
@@ -455,7 +433,6 @@ export default function Chat({
     setInput("");
     setAttachment(undefined);
     setAttachmentError("");
-    setSpeechError("");
     nearBottom.current = true;
     try {
       const response = await fetch("/api/search", {
@@ -551,19 +528,11 @@ export default function Chat({
     };
     document.addEventListener("pointerdown", dismissMenu);
     document.addEventListener("keydown", escapeMenu);
-    const speech = window as unknown as {
-      SpeechRecognition?: new () => Recognition;
-      webkitSpeechRecognition?: new () => Recognition;
-    };
-    setSpeechAvailable(
-      !!(speech.SpeechRecognition || speech.webkitSpeechRecognition),
-    );
     return () => {
       document.removeEventListener("pointerdown", dismissMenu);
       document.removeEventListener("keydown", escapeMenu);
       window.removeEventListener("scroll", onScroll);
       active.current?.abort();
-      recognition.current?.abort();
     };
   }, []);
   useEffect(() => {
@@ -572,48 +541,11 @@ export default function Chat({
   useEffect(() => {
     const el = inputRef.current;
     if (el) {
-      el.style.height = "24px";
+      el.style.height = "auto";
       el.style.height = `${Math.min(el.scrollHeight, 144)}px`;
+      el.style.overflowY = el.scrollHeight > 144 ? "auto" : "hidden";
     }
   }, [input]);
-  function dictate() {
-    if (listening) {
-      recognition.current?.abort();
-      return;
-    }
-    const speech = window as unknown as {
-      SpeechRecognition?: new () => Recognition;
-      webkitSpeechRecognition?: new () => Recognition;
-    };
-    const Constructor =
-      speech.SpeechRecognition || speech.webkitSpeechRecognition;
-    if (!Constructor) return;
-    const instance = new Constructor();
-    recognition.current = instance;
-    instance.lang = "es-ES";
-    instance.interimResults = false;
-    instance.onresult = (event) =>
-      setInput((value) =>
-        `${value}${value ? " " : ""}${event.results[0]?.[0]?.transcript ?? ""}`.slice(
-          0,
-          1200,
-        ),
-      );
-    instance.onerror = () => {
-      setListening(false);
-      setSpeechError(
-        "No se ha podido usar el micrófono. Comprueba el permiso o escribe tu pregunta.",
-      );
-    };
-    instance.onend = () => setListening(false);
-    try {
-      instance.start();
-      setListening(true);
-      setSpeechError("");
-    } catch {
-      setSpeechError("El micrófono no está disponible.");
-    }
-  }
   function submit(e?: FormEvent) {
     e?.preventDefault();
     void send(input);
@@ -848,13 +780,8 @@ export default function Chat({
             <ArrowDown size={18} />
           </button>
         )}
-        {speechError && (
-          <p className="chat-speech-error" role="alert">
-            {speechError}
-          </p>
-        )}
         {attachmentError && (
-          <p className="chat-speech-error" role="alert">
+          <p className="chat-composer-error" role="alert">
             {attachmentError}
           </p>
         )}
@@ -883,7 +810,7 @@ export default function Chat({
           </div>
         )}
         <form
-          className={`chat-composer ${listening ? "is-listening" : ""}`}
+          className="chat-composer"
           onSubmit={submit}
         >
           <label htmlFor="chat-input" className="sr-only">
@@ -895,9 +822,7 @@ export default function Chat({
             rows={1}
             value={input}
             maxLength={1200}
-            placeholder={
-              listening ? "Te escucho…" : "Pregunta lo que necesites"
-            }
+            placeholder="Pregunta aquí"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (
@@ -918,17 +843,6 @@ export default function Chat({
               onAttachment={setAttachment}
               onError={setAttachmentError}
             />
-            {speechAvailable && (
-              <button
-                type="button"
-                className="chat-icon chat-mic"
-                onClick={dictate}
-                aria-label={listening ? "Detener dictado" : "Dictar pregunta"}
-                aria-pressed={listening}
-              >
-                <Mic size={21} />
-              </button>
-            )}
             {loading ? (
               <button
                 className="chat-send"

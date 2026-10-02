@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Logo from './Logo';
+import MobileNavigation from './MobileNavigation';
 import GithubIcon from './GithubIcon';
 import { links, nav } from './site';
 
@@ -10,7 +11,7 @@ export default function Hero({ composer }: { composer?: ReactNode }) {
         <a href="/" className="no-underline [&_span:last-child]:!text-base" aria-label="Reforma Digital, inicio">
           <Logo size={22} />
         </a>
-        <nav className="flex items-center gap-3 sm:gap-[22px]" aria-label="Principal">
+        <nav className="hero-desktop-nav flex items-center gap-3 sm:gap-[22px]" aria-label="Principal">
           {nav.map((item) => (
             <a
               key={item.href}
@@ -29,6 +30,7 @@ export default function Hero({ composer }: { composer?: ReactNode }) {
             <span className="max-sm:sr-only">Código fuente</span>
           </a>
         </nav>
+        <MobileNavigation />
       </div>
 
       <div className="hero-body">

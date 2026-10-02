@@ -394,7 +394,10 @@ body:has(.chat-page) {
   padding: 6px 0 8px;
   color: rgb(var(--bg-ink));
   caret-color: rgb(var(--bg-ink));
-  field-sizing: content;
+  box-sizing: border-box;
+  min-width: 0;
+  flex: 1;
+  overflow-y: hidden;
   scrollbar-width: thin;
 }
 .chat-composer textarea::placeholder {
@@ -403,6 +406,7 @@ body:has(.chat-page) {
 }
 .composer-controls {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 12px;
   align-self: flex-end;
@@ -435,16 +439,6 @@ body:has(.chat-page) {
 }
 .chat-send:not(:disabled):active {
   transform: scale(0.97);
-}
-.chat-mic {
-  color: rgb(var(--bg-ink-subtle));
-}
-.is-listening {
-  border-color: rgb(var(--bg-brand-600));
-}
-.is-listening .chat-mic {
-  background: rgb(var(--bg-surface-muted));
-  color: rgb(var(--bg-brand-600));
 }
 .chat-jump {
   display: flex;
@@ -479,7 +473,7 @@ body:has(.chat-page) {
   color: rgb(var(--bg-brand-600));
   text-decoration: underline;
 }
-.chat-speech-error {
+.chat-composer-error {
   font-size: 14px;
   background: rgb(var(--bg-surface-muted));
   padding: 12px;
