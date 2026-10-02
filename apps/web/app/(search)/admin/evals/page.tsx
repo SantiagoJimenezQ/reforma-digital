@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { listReports, compareReports, type Report } from '@gov/evals/reports';
+import { listReports, compareReports, type Report } from '@reforma-digital/evals/reports';
 import { Header, Footer } from '../../../../components/header';
 import { authorized } from '../../../../lib/security';
 import { login, logout } from './actions';

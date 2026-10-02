@@ -6,8 +6,8 @@ import {
   type Answer,
   type Evidence,
   type QueryUnderstanding,
-} from '@gov/core';
-import { approvedSource } from '@gov/government';
+} from '@reforma-digital/core';
+import { approvedSource } from '@reforma-digital/government';
 export function validateAnswer(raw: unknown, evidence: Evidence[], q: QueryUnderstanding): Answer {
   const parsed = answerSchema.safeParse(raw);
   if (!parsed.success)

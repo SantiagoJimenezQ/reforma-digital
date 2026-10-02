@@ -3,8 +3,8 @@ import {
   compatibleJurisdiction,
   type Evidence,
   type QueryUnderstanding,
-} from '@gov/core';
-import { approvedSource } from '@gov/government';
+} from '@reforma-digital/core';
+import { approvedSource } from '@reforma-digital/government';
 const stop = new Set(
   'como que donde cuando cuanto cuales puedo necesito para una uno unos las los del por con sin sobre quiero hacer tengo este esta hay me mi el la de en y a se es al un'.split(
     ' ',

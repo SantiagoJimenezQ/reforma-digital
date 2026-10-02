@@ -3,9 +3,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { search, trace } from '@gov/ai';
-import { defaultConfig, type SearchConfig } from '@gov/core';
-import { db, experiments } from '@gov/db';
+import { search, trace } from '@reforma-digital/ai';
+import { defaultConfig, type SearchConfig } from '@reforma-digital/core';
+import { db, experiments } from '@reforma-digital/db';
 import { datasetSchema, type Dataset } from './schema';
 import {
   retrievalMetrics,
@@ -15,7 +15,7 @@ import {
   type CaseResult,
 } from './metrics';
 import { judgeAnswer } from './judges';
-import { sources } from '@gov/government';
+import { sources } from '@reforma-digital/government';
 export * from './schema';
 export * from './metrics';
 export const repoRoot = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
@@ -83,7 +83,9 @@ export async function runExperiment(options: {
   );
   const sourcesHash = hash(
     JSON.stringify(
-      options.mode === 'live' ? sources : (await import('@gov/ai/preview-corpus')).previewCorpus,
+      options.mode === 'live'
+        ? sources
+        : (await import('@reforma-digital/ai/preview-corpus')).previewCorpus,
     ),
   );
   const report: Report = {

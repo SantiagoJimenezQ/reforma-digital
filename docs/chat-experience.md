@@ -4,7 +4,7 @@ Referencia revisada en el navegador: `https://america.gov/chat`, 30-09-2026. Se 
 
 ## Diseño aplicado
 
-- Ruta `/chat` independiente de la portada; conversación en blanco, columna exterior de 688 px e interior de 664 px, cuerpo 16/24.
+- La conversación sustituye a la portada en `/`, sin ruta propia. Columna exterior de 688 px e interior de 664 px, cuerpo 16/24.
 - Pregunta alineada a la derecha sobre burbuja gris azulada; compositor fijo de 86 px con borde y radio amplio; envío, parada y dictado donde Web Speech está disponible.
 - «Pensando…» reproduce el gradiente de 250% de anchura, brillo de 28 px y ciclo lineal de 1,6 s observado. La aparición de bloques tiene un fundido breve y respeta movimiento reducido.
 - Citas azules subrayadas, acciones compactas para fuentes, valoración y copia, sugerencias de seguimiento en píldoras con borde.

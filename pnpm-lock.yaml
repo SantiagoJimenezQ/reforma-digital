@@ -101,19 +101,19 @@ importers:
       '@fontsource-variable/inter':
         specifier: 5.3.0
         version: 5.3.0
-      '@gov/ai':
+      '@reforma-digital/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@gov/db':
+      '@reforma-digital/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@gov/evals':
+      '@reforma-digital/evals':
         specifier: workspace:*
         version: link:../../packages/evals
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../../packages/government
       '@huggingface/transformers':
@@ -171,13 +171,13 @@ importers:
 
   packages/ai:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../government
-      '@gov/retrieval':
+      '@reforma-digital/retrieval':
         specifier: workspace:*
         version: link:../retrieval
       '@langfuse/client':
@@ -212,10 +212,10 @@ importers:
 
   packages/db:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../government
       drizzle-orm:
@@ -233,16 +233,16 @@ importers:
 
   packages/evals:
     dependencies:
-      '@gov/ai':
+      '@reforma-digital/ai':
         specifier: workspace:*
         version: link:../ai
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
-      '@gov/db':
+      '@reforma-digital/db':
         specifier: workspace:*
         version: link:../db
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../government
       '@langfuse/client':
@@ -254,7 +254,7 @@ importers:
 
   packages/government:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
 
@@ -278,10 +278,10 @@ importers:
 
   packages/retrieval:
     dependencies:
-      '@gov/core':
+      '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
-      '@gov/government':
+      '@reforma-digital/government':
         specifier: workspace:*
         version: link:../government
 

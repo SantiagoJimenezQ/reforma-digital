@@ -4,8 +4,8 @@ import {
   quoteSupported,
   type Evidence,
   type SearchResult,
-} from '@gov/core';
-import { approvedSource } from '@gov/government';
+} from '@reforma-digital/core';
+import { approvedSource } from '@reforma-digital/government';
 import type { EvalCase } from './schema';
 export type Metrics = Record<string, number | null>;
 export const mean = (values: (number | null | undefined)[]) => {

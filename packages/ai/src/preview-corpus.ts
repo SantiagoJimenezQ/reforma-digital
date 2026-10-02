@@ -1,6 +1,6 @@
 /** Small, frozen official excerpts for UI inspection. Never a production index or an eval gold. */
-import type { Evidence } from '@gov/core';
-import { sourceById } from '@gov/government';
+import type { Evidence } from '@reforma-digital/core';
+import { sourceById } from '@reforma-digital/government';
 const excerpts = [
   [
     'vida-laboral',

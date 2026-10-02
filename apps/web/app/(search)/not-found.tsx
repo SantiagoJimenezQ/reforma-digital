@@ -10,7 +10,7 @@ export default function NotFound() {
           <p className="lede">
             No encontramos esta página. Vuelve al buscador para encontrar tu trámite.
           </p>
-          <Link href="/composer" className="primary-link">
+          <Link href="/" className="primary-link">
             Volver al inicio
           </Link>
         </main>

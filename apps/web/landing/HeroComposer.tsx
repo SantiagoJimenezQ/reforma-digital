@@ -3,12 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowUp } from 'lucide-react';
 
-export default function HeroComposer({
-  onAsk,
-}: {
-  mode: 'preview' | 'live';
-  onAsk: (query: string) => void;
-}) {
+export default function HeroComposer({ onAsk }: { onAsk: (query: string) => void }) {
   const [query, setQuery] = useState('');
   const ready = query.trim().length >= 4;
   function submit(event?: FormEvent) {

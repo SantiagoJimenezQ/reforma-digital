@@ -1,4 +1,4 @@
-import type { Source } from '@gov/core';
+import type { Source } from '@reforma-digital/core';
 const define = (
   id: string,
   name: string,

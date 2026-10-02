@@ -6,7 +6,7 @@ import {
   type QueryUnderstanding,
   type SearchConfig,
   type VerifiedClaim,
-} from '@gov/core';
+} from '@reforma-digital/core';
 import { validateAnswer, resolveCitationText } from './grounding';
 import { streamElements, structured } from './models';
 import { trace } from './trace';

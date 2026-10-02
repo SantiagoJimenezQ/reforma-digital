@@ -1,5 +1,5 @@
 {
-  "name": "@gov/ai",
+  "name": "@reforma-digital/ai",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,9 +10,9 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@gov/core": "workspace:*",
-    "@gov/government": "workspace:*",
-    "@gov/retrieval": "workspace:*",
+    "@reforma-digital/core": "workspace:*",
+    "@reforma-digital/government": "workspace:*",
+    "@reforma-digital/retrieval": "workspace:*",
     "@langfuse/client": "^5.11.1",
     "@langfuse/otel": "^5.11.1",
     "@langfuse/tracing": "^5.11.1",

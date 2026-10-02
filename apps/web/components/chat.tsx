@@ -21,7 +21,7 @@ import {
   Info,
   PencilLine,
 } from 'lucide-react';
-import type { Evidence, SearchResult, Stage, VerifiedClaim } from '@gov/core';
+import type { Evidence, SearchResult, Stage, VerifiedClaim } from '@reforma-digital/core';
 import { ProjectBrand } from './project-header';
 import { AttachmentPicker } from './attachment-picker';
 import type { PdfContext } from '../lib/attachment';
@@ -592,7 +592,7 @@ export default function Chat({
           <summary>Menú</summary>
           <nav aria-label="Navegación del chat">
             <Link
-              href="/composer"
+              href="/"
               onClick={(event) => {
                 event.preventDefault();
                 onNewConversation();
@@ -600,7 +600,7 @@ export default function Chat({
             >
               Nueva conversación
             </Link>
-            <Link href="/#iniciativa">La iniciativa</Link>
+            <Link href="/#texto">La iniciativa</Link>
             <Link href="/sources">Fuentes oficiales</Link>
             <Link href="/how-it-works">Cómo funciona</Link>
             <Link href="/privacy">Privacidad</Link>

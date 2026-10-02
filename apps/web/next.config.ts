@@ -3,12 +3,12 @@ loadEnv({ path: new URL('../../.env', import.meta.url).pathname, quiet: true });
 import type { NextConfig } from 'next';
 const config: NextConfig = {
   transpilePackages: [
-    '@gov/core',
-    '@gov/government',
-    '@gov/db',
-    '@gov/retrieval',
-    '@gov/ai',
-    '@gov/evals',
+    '@reforma-digital/core',
+    '@reforma-digital/government',
+    '@reforma-digital/db',
+    '@reforma-digital/retrieval',
+    '@reforma-digital/ai',
+    '@reforma-digital/evals',
   ],
   serverExternalPackages: ['postgres', '@langfuse/otel', '@opentelemetry/sdk-node'],
   poweredByHeader: false,

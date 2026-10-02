@@ -2,7 +2,6 @@
 @import 'tailwindcss' source(none);
 @config "../tailwind.landing.config.mjs";
 @source "./**/*.{tsx,ts}";
-@source "../app/(landing)/**/*.{tsx,ts}";
 
 @layer base {
   :root[data-bg-landing] {

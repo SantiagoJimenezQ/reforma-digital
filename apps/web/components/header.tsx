@@ -19,7 +19,7 @@ export function Header() {
               Menú <span>≡</span>
             </summary>
             <div>
-              <Link href="/composer">Hacer una pregunta</Link>
+              <Link href="/">Hacer una pregunta</Link>
               <Link href="/sources">Fuentes oficiales</Link>
               <Link href="/how-it-works">Cómo funciona</Link>
               <Link href="/privacy">Privacidad</Link>

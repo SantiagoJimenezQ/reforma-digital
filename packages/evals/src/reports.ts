@@ -1,5 +1,5 @@
-import { connection } from '@gov/db';
-import type { SearchConfig } from '@gov/core';
+import { connection } from '@reforma-digital/db';
+import type { SearchConfig } from '@reforma-digital/core';
 import type { Metrics, CaseResult } from './metrics';
 export type Report = {
   id: string;
