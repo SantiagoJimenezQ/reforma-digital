@@ -4,7 +4,7 @@ import Link from "next/link";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
-  ArrowRight,
+  ArrowUp,
   ArrowDown,
   ArrowLeft,
   ArrowUpRight,
@@ -17,6 +17,9 @@ import {
   ChevronDown,
   RotateCcw,
   FileText,
+  CircleAlert,
+  Info,
+  PencilLine,
 } from "lucide-react";
 import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
 import { ProjectBrand } from "./project-header";
@@ -233,8 +236,6 @@ function AnswerActions({
     turn.blocks.some((b) => b.citations.some((c) => c.chunkId === e.chunkId)),
   );
   const agencies = [...new Set(evidence.map((e) => e.organization))];
-  const hasRealAnswer =
-    turn.blocks.length > 0 || turn.result?.answer.status === "answered";
   async function vote(value: 1 | -1) {
     if (!turn.result?.feedbackToken) return;
     setBusy(true);
@@ -263,8 +264,7 @@ function AnswerActions({
     try {
       await navigator.clipboard.writeText(
         [
-          turn.blocks.map((b) => b.claim.text).join("\n\n") ||
-            turn.result?.answer.answer,
+          turn.blocks.map((b) => b.claim.text).join("\n\n"),
           ...[...new Set(evidence.map((e) => e.canonicalUrl))],
         ].join("\n\n"),
       );
@@ -276,8 +276,8 @@ function AnswerActions({
       );
     }
   }
-  if (!evidence.length && !turn.result?.feedbackToken && !hasRealAnswer && !negative && !message)
-    return null;
+  // Sources, votes and copy only make sense next to verified claims.
+  if (!turn.blocks.length) return null;
   return (
     <>
       <div className="chat-actions">
@@ -316,15 +316,13 @@ function AnswerActions({
             </button>
           </div>
         )}
-        {hasRealAnswer && (
-          <button
-            className="chat-icon chat-copy"
-            onClick={() => void copy()}
-            aria-label={copied ? "Copiado" : "Copiar respuesta"}
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-          </button>
-        )}
+        <button
+          className="chat-icon chat-copy"
+          onClick={() => void copy()}
+          aria-label={copied ? "Copiado" : "Copiar respuesta"}
+        >
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+        </button>
       </div>
       {negative && (
         <form
@@ -380,6 +378,7 @@ export default function Chat({
   const history = useRef<Turn[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
+  const dock = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDetailsElement>(null);
   const nearBottom = useRef(true);
   const loading = turns.some((t) => t.state === "loading");
@@ -542,10 +541,49 @@ export default function Chat({
     const el = inputRef.current;
     if (el) {
       el.style.height = "auto";
-      el.style.height = `${Math.min(el.scrollHeight, 144)}px`;
-      el.style.overflowY = el.scrollHeight > 144 ? "auto" : "hidden";
+      el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+      el.style.overflowY = el.scrollHeight > 200 ? "auto" : "hidden";
     }
   }, [input]);
+  useEffect(() => {
+    const el = dock.current;
+    if (!el) return;
+    const root = document.documentElement;
+    let height = 0;
+    const observer = new ResizeObserver(() => {
+      const nextHeight = el.offsetHeight;
+      if (nextHeight === height) return;
+      height = nextHeight;
+      const follow = nearBottom.current;
+      root.style.setProperty("--chat-dock-height", `${height}px`);
+      // Keep the last response visible as the composer grows, unless reading older turns.
+      if (follow) jump();
+    });
+    observer.observe(el);
+    let resizeFrame = 0;
+    const onResize = () => {
+      if (!nearBottom.current) return;
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(jump);
+    };
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(resizeFrame);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+      observer.disconnect();
+      root.style.removeProperty("--chat-dock-height");
+    };
+  }, []);
+  function rephrase(query: string) {
+    setInput(query);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      el?.focus();
+      el?.setSelectionRange(query.length, query.length);
+    });
+  }
   function submit(e?: FormEvent) {
     e?.preventDefault();
     void send(input);
@@ -700,9 +738,42 @@ export default function Chat({
                   <span className="sr-only">{stages[turn.stage]}</span>
                 </div>
               )}
-              {turn.result && !turn.blocks.length && (
-                <p className="chat-abstention">{turn.result.answer.answer}</p>
-              )}
+              {turn.result &&
+                !turn.blocks.length &&
+                (turn.result.answer.status === "answered" ? (
+                  <p>{turn.result.answer.answer}</p>
+                ) : (
+                  <div className="chat-notice" role="status">
+                    <Info size={20} aria-hidden="true" />
+                    <div>
+                      <h2>
+                        {turn.result.answer.status === "needs_clarification"
+                          ? "Necesitamos un poco más de detalle"
+                          : "No hemos encontrado una respuesta verificada"}
+                      </h2>
+                      <p>{turn.result.answer.answer}</p>
+                      <div className="chat-notice-actions">
+                        {turnIndex === turns.length - 1 && (
+                          <button
+                            className="chat-link-button"
+                            onClick={() => rephrase(turn.query)}
+                          >
+                            <PencilLine size={15} aria-hidden="true" />
+                            Reformular la pregunta
+                          </button>
+                        )}
+                        {turn.evidence.length > 0 && (
+                          <button
+                            className="chat-link-button"
+                            onClick={() => showSources(turn.evidence)}
+                          >
+                            Ver lo consultado ({turn.evidence.length})
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               {turn.result?.answer.incomplete && (
                 <p className="chat-partial">
                   Las fuentes no permiten confirmar todos los detalles. Aquí
@@ -728,28 +799,31 @@ export default function Chat({
                 </div>
               )}
               {turn.state === "error" && (
-                <div className="chat-error" role="alert">
-                  <p>{turn.error}</p>
-                  {turn.blocks.length > 0 && (
-                    <p>
-                      La respuesta está incompleta. Los fragmentos mostrados
-                      están verificados.
-                    </p>
-                  )}
-                  {turnIndex === turns.length - 1 && (
-                    <button
-                      disabled={loading}
-                      onClick={() => void send(turn.query, turn.id)}
-                    >
-                      <RotateCcw size={15} /> Volver a intentar
-                    </button>
-                  )}
+                <div className="chat-notice chat-error" role="alert">
+                  <CircleAlert size={20} aria-hidden="true" />
+                  <div>
+                    <h2>No se ha podido completar la respuesta</h2>
+                    <p>{turn.error}</p>
+                    {turn.blocks.length > 0 && (
+                      <p>
+                        La respuesta está incompleta. Los fragmentos mostrados
+                        están verificados.
+                      </p>
+                    )}
+                    {turnIndex === turns.length - 1 && (
+                      <button
+                        disabled={loading}
+                        onClick={() => void send(turn.query, turn.id)}
+                      >
+                        <RotateCcw size={15} /> Volver a intentar
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
-              {turn.state !== "loading" &&
-                (turn.result || turn.blocks.length > 0) && (
-                  <AnswerActions turn={turn} showSources={showSources} />
-                )}
+              {turn.state !== "loading" && (
+                <AnswerActions turn={turn} showSources={showSources} />
+              )}
               {turn.state === "done" &&
                 turn.result?.answer.status === "answered" &&
                 turnIndex === turns.length - 1 && (
@@ -770,7 +844,7 @@ export default function Chat({
         ))}
         <div ref={bottom} className="chat-bottom" />
       </main>
-      <div className="chat-composer-dock">
+      <div ref={dock} className="chat-composer-dock">
         {showJump && (
           <button
             className="chat-jump"
@@ -812,6 +886,11 @@ export default function Chat({
         <form
           className="chat-composer"
           onSubmit={submit}
+          onClick={(event) => {
+            if (event.target instanceof Element && !event.target.closest("button, input, textarea, a")) {
+              inputRef.current?.focus();
+            }
+          }}
         >
           <label htmlFor="chat-input" className="sr-only">
             Pregunta sobre trámites, ayudas o impuestos
@@ -819,10 +898,12 @@ export default function Chat({
           <textarea
             id="chat-input"
             ref={inputRef}
-            rows={1}
+            rows={2}
             value={input}
             maxLength={1200}
             placeholder="Pregunta aquí"
+            autoComplete="off"
+            enterKeyHint="send"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (
@@ -836,13 +917,15 @@ export default function Chat({
             }}
           />
           <div className="composer-controls">
-            <AttachmentPicker
-              busy={attachmentBusy}
-              disabled={loading}
-              onBusy={setAttachmentBusy}
-              onAttachment={setAttachment}
-              onError={setAttachmentError}
-            />
+            <div className="composer-tools">
+              <AttachmentPicker
+                busy={attachmentBusy}
+                disabled={loading}
+                onBusy={setAttachmentBusy}
+                onAttachment={setAttachment}
+                onError={setAttachmentError}
+              />
+            </div>
             {loading ? (
               <button
                 className="chat-send"
@@ -858,7 +941,7 @@ export default function Chat({
                 disabled={input.trim().length < 4 || attachmentBusy}
                 aria-label="Enviar pregunta"
               >
-                <ArrowRight size={23} />
+                <ArrowUp size={20} />
               </button>
             )}
           </div>
