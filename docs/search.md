@@ -35,6 +35,16 @@ Toda la IA utiliza OpenRouter mediante Vercel AI SDK. El modelo por defecto es `
 
 La API transmite etapas, evidencias y afirmaciones completas mediante SSE. Detener una respuesta cancela las llamadas en curso. Las preguntas anteriores y los documentos del usuario sirven como contexto, nunca como evidencia oficial. Una fecha de consulta reciente no demuestra que un plazo o una norma sigan vigentes.
 
+## Datos personales
+
+Antes de enviar, el navegador aplica a la consulta, a las preguntas anteriores y al texto del PDF las reglas de DNI, NIE, IBAN, correo y teléfono, y después [Rampart](https://github.com/nationaldesignstudio/rampart) (CC BY 4.0), que sustituye los identificadores detectados por marcadores como `[GIVEN_NAME_1]`. Puede pasar por alto datos: no garantiza anonimización. Si Rampart no carga, falla o supera los 60 segundos para el lote completo, la consulta no se envía. Detener libera el chat y descarta resultados tardíos; no interrumpe necesariamente la descarga interna de Rampart. El modelo se descarga de `huggingface.co` y su runtime de `cdn.jsdelivr.net`; el chat avisa durante esta fase.
+
+Los límites originales del formulario (1.200 caracteres) y del PDF (6.000) se mantienen. La API permite hasta 6.000 caracteres por pregunta protegida y 30.000 de PDF protegido, seis preguntas de contexto y 300.000 bytes por cuerpo JSON, para permitir la expansión de marcadores sin aceptar cuerpos ilimitados. Si se supera ese margen, se rechaza la petición; no se recortan los marcadores.
+
+El servidor repite las reglas de patrones, pero no ejecuta Rampart: una petición directa a la API solo recibe esa capa. Es reducción de daño, no anonimización.
+
+Tras proteger una pregunta, el chat subraya los fragmentos retirados del envío y muestra su cantidad. Cada marca explica, al pasar el cursor o enfocarla con el teclado, que ese dato no se ha enviado al modelo. Los originales y sus posiciones se conservan solo en el navegador; la API recibe el texto protegido, sin estos metadatos. El contador corresponde a la pregunta visible, no al historial ni al PDF. No se marca texto si no se puede reconstruir con certeza su correspondencia con el resultado protegido.
+
 ## Credenciales
 
 - `OPENROUTER_API_KEY`: búsqueda web y llamadas de modelos.

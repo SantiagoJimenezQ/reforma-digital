@@ -25,6 +25,9 @@ import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
 import { ProjectBrand } from "./project-header";
 import { AttachmentPicker } from "./attachment-picker";
 import type { PdfContext } from "../lib/attachment";
+import { protectMessages, ProtectionTimeoutError } from "../lib/pii";
+import type { HiddenRange, ProtectedText } from "../lib/pii-display";
+import { ProtectedQuestion } from "./protected-question";
 import { readChatStream } from "../lib/chat-stream";
 
 type Result = SearchResult & { feedbackToken: string | null };
@@ -33,6 +36,8 @@ type Turn = {
   query: string;
   state: "loading" | "done" | "stopped" | "error";
   stage: Stage;
+  protecting?: boolean;
+  hiddenData?: HiddenRange[];
   evidence: Evidence[];
   blocks: VerifiedClaim[];
   result?: Result;
@@ -424,6 +429,7 @@ export default function Chat({
       attachment: attached,
       state: "loading",
       stage: "understandQuery",
+      protecting: true,
       evidence: [],
       blocks: [],
     };
@@ -434,13 +440,28 @@ export default function Chat({
     setAttachmentError("");
     nearBottom.current = true;
     try {
+      const outgoing = [query, ...prior.slice(-6).map((t) => t.query)];
+      if (documentContext) outgoing.push(documentContext.text);
+      let protectedMessages: ProtectedText[];
+      try {
+        protectedMessages = await protectMessages(outgoing, controller.signal);
+      } catch (error) {
+        if (controller.signal.aborted || error instanceof ProtectionTimeoutError)
+          throw error;
+        throw new Error(
+          "No hemos podido proteger tus datos personales en este dispositivo, así que no se ha enviado la consulta. Inténtalo de nuevo.",
+        );
+      }
+      controller.signal.throwIfAborted();
+      const safe = protectedMessages.map((message) => message.text);
+      update(id, { protecting: false, hiddenData: protectedMessages[0]?.ranges ?? [] });
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          query,
-          attachmentContext: documentContext?.text,
-          context: prior.slice(-6).map((t) => t.query),
+          query: safe[0],
+          attachmentContext: documentContext ? safe.at(-1) : undefined,
+          context: safe.slice(1, outgoing.length - (documentContext ? 1 : 0)),
         }),
         signal: controller.signal,
       });
@@ -655,8 +676,15 @@ export default function Chat({
                     <FileText size={16} /> {turn.attachment.name}
                   </span>
                 )}
-                {turn.query}
+                <ProtectedQuestion text={turn.query} ranges={turn.hiddenData ?? []} id={turn.id} />
               </p>
+              {!!turn.hiddenData?.length && (
+                <small className="chat-hidden-summary">
+                  {turn.hiddenData.length === 1
+                    ? "1 dato personal ocultado al modelo"
+                    : `${turn.hiddenData.length} datos personales ocultados al modelo`}
+                </small>
+              )}
             </div>
             <div className="chat-assistant">
               {turn.blocks.map((block, index) => {
@@ -734,8 +762,16 @@ export default function Chat({
               })}
               {turn.state === "loading" && (
                 <div className="chat-thinking" role="status">
-                  <span aria-hidden="true">Pensando…</span>
-                  <span className="sr-only">{stages[turn.stage]}</span>
+                  <span aria-hidden="true">
+                    {turn.protecting
+                      ? "Protegiendo tus datos… La primera vez se descarga el modelo y puede tardar. Puedes detenerlo."
+                      : "Pensando…"}
+                  </span>
+                  <span className="sr-only">
+                    {turn.protecting
+                      ? "Protegiendo tus datos. La primera vez se descarga el modelo y puede tardar. Puedes detenerlo."
+                      : stages[turn.stage]}
+                  </span>
                 </div>
               )}
               {turn.result &&

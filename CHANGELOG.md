@@ -2,6 +2,7 @@
 
 ## 0.1.0 · En desarrollo
 
+- El chat sustituye datos personales en el navegador con Rampart antes de enviar la consulta, y no la envía si esa protección falla.
 - Monorepo con una extensión Chrome, laboratorio local y paquetes comunes.
 - Subproyectos por portal, con pantallas y conexiones organizadas por carpeta.
 - Adaptación experimental de entrada e identificación del DNI con fixtures sintéticas.
