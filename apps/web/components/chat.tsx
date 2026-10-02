@@ -25,7 +25,9 @@ import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
 import { ProjectBrand } from "./project-header";
 import { AttachmentPicker } from "./attachment-picker";
 import type { PdfContext } from "../lib/attachment";
-import { protectTexts, ProtectionTimeoutError } from "../lib/pii";
+import { protectMessages, ProtectionTimeoutError } from "../lib/pii";
+import type { HiddenRange, ProtectedText } from "../lib/pii-display";
+import { ProtectedQuestion } from "./protected-question";
 import { readChatStream } from "../lib/chat-stream";
 
 type Result = SearchResult & { feedbackToken: string | null };
@@ -35,6 +37,7 @@ type Turn = {
   state: "loading" | "done" | "stopped" | "error";
   stage: Stage;
   protecting?: boolean;
+  hiddenData?: HiddenRange[];
   evidence: Evidence[];
   blocks: VerifiedClaim[];
   result?: Result;
@@ -439,9 +442,9 @@ export default function Chat({
     try {
       const outgoing = [query, ...prior.slice(-6).map((t) => t.query)];
       if (documentContext) outgoing.push(documentContext.text);
-      let safe: string[];
+      let protectedMessages: ProtectedText[];
       try {
-        safe = await protectTexts(outgoing, controller.signal);
+        protectedMessages = await protectMessages(outgoing, controller.signal);
       } catch (error) {
         if (controller.signal.aborted || error instanceof ProtectionTimeoutError)
           throw error;
@@ -450,7 +453,8 @@ export default function Chat({
         );
       }
       controller.signal.throwIfAborted();
-      update(id, { protecting: false });
+      const safe = protectedMessages.map((message) => message.text);
+      update(id, { protecting: false, hiddenData: protectedMessages[0]?.ranges ?? [] });
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -672,8 +676,15 @@ export default function Chat({
                     <FileText size={16} /> {turn.attachment.name}
                   </span>
                 )}
-                {turn.query}
+                <ProtectedQuestion text={turn.query} ranges={turn.hiddenData ?? []} id={turn.id} />
               </p>
+              {!!turn.hiddenData?.length && (
+                <small className="chat-hidden-summary">
+                  {turn.hiddenData.length === 1
+                    ? "1 dato personal ocultado al modelo"
+                    : `${turn.hiddenData.length} datos personales ocultados al modelo`}
+                </small>
+              )}
             </div>
             <div className="chat-assistant">
               {turn.blocks.map((block, index) => {

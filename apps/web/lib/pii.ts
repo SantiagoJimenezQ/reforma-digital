@@ -1,5 +1,6 @@
 import type { ChatGuard } from '@nationaldesignstudio/rampart';
 import { redactQuery } from './redact';
+import { protectionDetails, type ProtectedText } from './pii-display';
 let guard: Promise<ChatGuard> | undefined;
 export const PROTECTION_TIMEOUT_MS = 60_000;
 export class ProtectionTimeoutError extends Error {
@@ -12,10 +13,17 @@ export class ProtectionTimeoutError extends Error {
 }
 // Browser only. Rejects if Rampart cannot load or run, so nothing is sent unprotected.
 export async function protect(text: string): Promise<string> {
+  return (await protectMessage(text)).text;
+}
+async function protectMessage(text: string): Promise<ProtectedText> {
   guard ??= import('@nationaldesignstudio/rampart').then((m) => m.createGuard());
   const current = guard;
   try {
-    return (await (await current).protect(redactQuery(text))).text;
+    const loaded = await current;
+    const result = await loaded.protect(redactQuery(text));
+    return protectionDetails(text, result.text, result.placeholders ?? [], (token) =>
+      loaded.reveal(token),
+    );
   } catch (e) {
     if (guard === current) guard = undefined;
     throw e;
@@ -24,6 +32,12 @@ export async function protect(text: string): Promise<string> {
 
 // Bound the whole batch, including model loading. Late results never reach fetch.
 export async function protectTexts(texts: string[], signal: AbortSignal): Promise<string[]> {
+  return (await protectMessages(texts, signal)).map((message) => message.text);
+}
+export async function protectMessages(
+  texts: string[],
+  signal: AbortSignal,
+): Promise<ProtectedText[]> {
   signal.throwIfAborted();
   const cancellation = new AbortController();
   const workSignal = AbortSignal.any([signal, cancellation.signal]);
@@ -35,10 +49,10 @@ export async function protectTexts(texts: string[], signal: AbortSignal): Promis
     timer = setTimeout(() => reject(new ProtectionTimeoutError()), PROTECTION_TIMEOUT_MS);
   });
   const work = (async () => {
-    const safe: string[] = [];
+    const safe: ProtectedText[] = [];
     for (const text of texts) {
       workSignal.throwIfAborted();
-      safe.push(await protect(text));
+      safe.push(await protectMessage(text));
     }
     return safe;
   })();

@@ -43,6 +43,8 @@ Los límites originales del formulario (1.200 caracteres) y del PDF (6.000) se m
 
 El servidor repite las reglas de patrones, pero no ejecuta Rampart: una petición directa a la API solo recibe esa capa. Es reducción de daño, no anonimización.
 
+Tras proteger una pregunta, el chat subraya los fragmentos retirados del envío y muestra su cantidad. Cada marca explica, al pasar el cursor o enfocarla con el teclado, que ese dato no se ha enviado al modelo. Los originales y sus posiciones se conservan solo en el navegador; la API recibe el texto protegido, sin estos metadatos. El contador corresponde a la pregunta visible, no al historial ni al PDF. No se marca texto si no se puede reconstruir con certeza su correspondencia con el resultado protegido.
+
 ## Credenciales
 
 - `OPENROUTER_API_KEY`: búsqueda web y llamadas de modelos.
