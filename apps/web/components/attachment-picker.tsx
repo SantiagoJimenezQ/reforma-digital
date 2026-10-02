@@ -1,7 +1,7 @@
-"use client";
-import { useRef } from "react";
-import { Paperclip } from "lucide-react";
-import { readPdfContext, type PdfContext } from "../lib/attachment";
+'use client';
+import { useRef } from 'react';
+import { Paperclip } from 'lucide-react';
+import { readPdfContext, type PdfContext } from '../lib/attachment';
 export function AttachmentPicker({
   busy,
   disabled,
@@ -25,25 +25,16 @@ export function AttachmentPicker({
         hidden
         onChange={async (event) => {
           const file = event.target.files?.[0];
-          event.target.value = "";
+          event.target.value = '';
           if (!file) return;
           onBusy(true);
-          onError("");
+          onError('');
           try {
             if (file.size > 5 * 1024 * 1024)
-              throw new Error("El PDF debe ocupar como máximo 5 MB.");
-            onAttachment(
-              await readPdfContext(
-                file.name,
-                new Uint8Array(await file.arrayBuffer()),
-              ),
-            );
+              throw new Error('El PDF debe ocupar como máximo 5 MB.');
+            onAttachment(await readPdfContext(file.name, new Uint8Array(await file.arrayBuffer())));
           } catch (error) {
-            onError(
-              error instanceof Error
-                ? error.message
-                : "No se ha podido leer el PDF.",
-            );
+            onError(error instanceof Error ? error.message : 'No se ha podido leer el PDF.');
           } finally {
             onBusy(false);
           }

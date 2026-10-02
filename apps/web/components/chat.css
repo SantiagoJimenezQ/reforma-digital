@@ -154,7 +154,9 @@ html:has(.chat-page) {
 .chat-hidden-datum:focus-visible .chat-hidden-tooltip {
   visibility: visible;
 }
-.chat-user:has(.chat-hidden-datum:focus-visible) .chat-hidden-datum:not(:focus-visible) .chat-hidden-tooltip {
+.chat-user:has(.chat-hidden-datum:focus-visible)
+  .chat-hidden-datum:not(:focus-visible)
+  .chat-hidden-tooltip {
   visibility: hidden;
 }
 .chat-user p {
@@ -900,7 +902,9 @@ html:has(.chat-page) {
   }
   .chat-source-dialog {
     width: min(432px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(
+      100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
     border-radius: var(--bg-radius-card);
   }
   .source-modal-inner {

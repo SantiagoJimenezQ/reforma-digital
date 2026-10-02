@@ -1,6 +1,6 @@
-import { connection } from "@gov/db";
-import type { SearchConfig } from "@gov/core";
-import type { Metrics, CaseResult } from "./metrics";
+import { connection } from '@gov/db';
+import type { SearchConfig } from '@gov/core';
+import type { Metrics, CaseResult } from './metrics';
 export type Report = {
   id: string;
   metadata: {
@@ -12,10 +12,10 @@ export type Report = {
     datasetHash: string;
     sourcesHash: string;
     model: string;
-    retrievalBackend: "web-search";
+    retrievalBackend: 'web-search';
     promptVersion: string;
     retrievalConfig: SearchConfig;
-    mode: "preview" | "live";
+    mode: 'preview' | 'live';
     retrievalOnly: boolean;
     judges: boolean;
     reviewedCases: number;
@@ -38,21 +38,20 @@ export function compareReports(
 } {
   const mismatches = (
     [
-      "retrievalBackend",
-      "datasetVersion",
-      "datasetHash",
-      "mode",
-      "retrievalOnly",
-      "judges",
-      "evaluatorVersion",
+      'retrievalBackend',
+      'datasetVersion',
+      'datasetHash',
+      'mode',
+      'retrievalOnly',
+      'judges',
+      'evaluatorVersion',
     ] as const
   ).filter((k) => current.metadata[k] !== baseline.metadata[k]);
-  if (mismatches.length)
-    throw new Error("Comparación inválida: difieren " + mismatches.join(", "));
+  if (mismatches.length) throw new Error('Comparación inválida: difieren ' + mismatches.join(', '));
   const deltas: Metrics = {};
   for (const [k, v] of Object.entries(current.metrics)) {
     const b = baseline.metrics[k];
-    deltas[k] = typeof v === "number" && typeof b === "number" ? v - b : null;
+    deltas[k] = typeof v === 'number' && typeof b === 'number' ? v - b : null;
   }
   const regressions = current.cases
     .flatMap((c) => {
@@ -64,7 +63,7 @@ export function compareReports(
   const warnings: string[] = [];
   if (current.metadata.codeHash !== baseline.metadata.codeHash)
     warnings.push(
-      "El código de la pipeline ha cambiado; la comparación no aísla solo la configuración.",
+      'El código de la pipeline ha cambiado; la comparación no aísla solo la configuración.',
     );
   return {
     deltas,
@@ -72,16 +71,13 @@ export function compareReports(
     warnings: [
       ...warnings,
       ...(current.metadata.sourcesHash !== baseline.metadata.sourcesHash
-        ? [
-            "Las fuentes autorizadas o los ejemplos han cambiado; revisar la comparación.",
-          ]
+        ? ['Las fuentes autorizadas o los ejemplos han cambiado; revisar la comparación.']
         : []),
     ],
   };
 }
 export async function listReports(): Promise<Report[]> {
   if (!process.env.DATABASE_URL) return [];
-  const rows =
-    await connection()`SELECT report FROM experiments ORDER BY created_at DESC LIMIT 30`;
+  const rows = await connection()`SELECT report FROM experiments ORDER BY created_at DESC LIMIT 30`;
   return rows.map((r) => r.report as Report);
 }
