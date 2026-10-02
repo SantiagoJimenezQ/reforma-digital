@@ -2,7 +2,6 @@
 @import 'tailwindcss' source(none);
 @config "../tailwind.landing.config.mjs";
 @source "./**/*.{tsx,ts}";
-@source "../app/(landing)/**/*.{tsx,ts}";
 
 @layer base {
   :root[data-bg-landing] {
@@ -567,4 +566,3 @@ body:has(.full-landing) {
 .full-article #fig-4 li:last-child {
   background: #ededf0;
 }
-

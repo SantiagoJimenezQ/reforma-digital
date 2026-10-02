@@ -1,17 +1,13 @@
-import { LangfuseClient } from "@langfuse/client";
-import type { Report } from "./index";
+import { LangfuseClient } from '@langfuse/client';
+import type { Report } from './index';
 export async function publishExperiment(report: Report) {
   if (!process.env.LANGFUSE_SECRET_KEY || !process.env.LANGFUSE_PUBLIC_KEY)
-    throw new Error("Credenciales Langfuse ausentes");
+    throw new Error('Credenciales Langfuse ausentes');
   const client = new LangfuseClient();
-  const name =
-    report.metadata.datasetVersion +
-    "-" +
-    report.metadata.datasetHash.slice(0, 12);
+  const name = report.metadata.datasetVersion + '-' + report.metadata.datasetHash.slice(0, 12);
   await client.api.datasets.create({
     name,
-    description:
-      "Repositorio versionado; las expectativas se editan solo mediante revisión.",
+    description: 'Repositorio versionado; las expectativas se editan solo mediante revisión.',
     metadata: {
       version: report.metadata.datasetVersion,
       hash: report.metadata.datasetHash,
@@ -19,7 +15,7 @@ export async function publishExperiment(report: Report) {
   });
   for (const row of report.cases)
     await client.api.datasetItems.create({
-      id: name + "-" + row.case.id,
+      id: name + '-' + row.case.id,
       datasetName: name,
       input: { id: row.case.id, query: row.case.query },
       expectedOutput: row.case.expected,
@@ -33,7 +29,7 @@ export async function publishExperiment(report: Report) {
   await dataset.runExperiment({
     name: report.id,
     description:
-      "Resultados del runner reproducible. El output enlaza el trace original de búsqueda.",
+      'Resultados del runner reproducible. El output enlaza el trace original de búsqueda.',
     metadata: report.metadata,
     task: async ({ input }) => {
       const i = input as { id: string };
@@ -49,7 +45,7 @@ export async function publishExperiment(report: Report) {
       async ({ output }) => {
         const o = output as { metrics?: Record<string, number | null> };
         return Object.entries(o.metrics ?? {})
-          .filter((kv): kv is [string, number] => typeof kv[1] === "number")
+          .filter((kv): kv is [string, number] => typeof kv[1] === 'number')
           .map(([name, value]) => ({ name, value }));
       },
     ],
@@ -62,7 +58,7 @@ export async function publishExperiment(report: Report) {
             traceId: row.result.traceId,
             name,
             value,
-            dataType: "NUMERIC",
+            dataType: 'NUMERIC',
           });
   await client.flush();
 }

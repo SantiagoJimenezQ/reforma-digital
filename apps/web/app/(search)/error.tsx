@@ -1,4 +1,4 @@
-"use client";
+'use client';
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <main id="main" className="content-page">

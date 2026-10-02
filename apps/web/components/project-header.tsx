@@ -34,7 +34,7 @@ export function ProjectFooter() {
           <ProjectBrand />
         </Link>
         <nav aria-label="Información del proyecto">
-          <Link href="/#iniciativa">La propuesta</Link>
+          <Link href="/#texto">La propuesta</Link>
           <Link href="/sources">Fuentes oficiales</Link>
           <Link href="/privacy">Privacidad</Link>
           <a href={links.repo}>

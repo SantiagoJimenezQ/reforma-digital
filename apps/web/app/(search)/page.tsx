@@ -19,5 +19,5 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.svg' },
 };
 export default function HomePage() {
-  return <LandingHome mode={process.env.SEARCH_MODE === 'live' ? 'live' : 'preview'} />;
+  return <LandingHome />;
 }

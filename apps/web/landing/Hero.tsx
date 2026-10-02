@@ -8,10 +8,17 @@ export default function Hero({ composer }: { composer?: ReactNode }) {
   return (
     <section className="full-hero" aria-labelledby="hero-title">
       <div className="hero-bar">
-        <a href="/" className="no-underline [&_span:last-child]:!text-base" aria-label="Reforma Digital, inicio">
+        <a
+          href="/"
+          className="no-underline [&_span:last-child]:!text-base"
+          aria-label="Reforma Digital, inicio"
+        >
           <Logo size={22} />
         </a>
-        <nav className="hero-desktop-nav flex items-center gap-3 sm:gap-[22px]" aria-label="Principal">
+        <nav
+          className="hero-desktop-nav flex items-center gap-3 sm:gap-[22px]"
+          aria-label="Principal"
+        >
           {nav.map((item) => (
             <a
               key={item.href}
