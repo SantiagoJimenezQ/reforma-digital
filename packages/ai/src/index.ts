@@ -30,15 +30,11 @@ export async function generateAnswer(
   evidence: Evidence[],
   config: SearchConfig,
   onClaim?: (claim: VerifiedClaim) => void,
-): Promise<{ answer: Answer; tokens: number }> {
+): Promise<Answer> {
   if (config.promptVersion === 'evidence-v2')
     return generateVerifiedAnswer(query, q, evidence, config, onClaim);
-  if (q.clarification)
-    return {
-      answer: { ...abstain(q.clarification), status: 'needs_clarification' },
-      tokens: 0,
-    };
-  if (!evidence.length) return { answer: abstain(), tokens: 0 };
+  if (q.clarification) return { ...abstain(q.clarification), status: 'needs_clarification' };
+  if (!evidence.length) return abstain();
   const generationSchema = answerSchema.extend({
     citations: z
       .array(
@@ -68,7 +64,7 @@ export async function generateAnswer(
     citations: resolveCitationText(result.object.citations, evidence),
   };
   const answer = validateAnswer(resolved, evidence, q);
-  if (answer.status !== 'answered') return { answer, tokens: result.usage.totalTokens ?? 0 };
+  if (answer.status !== 'answered') return answer;
   const verified = await trace(
     'citation_verification',
     { query, claimIds: answer.claims.map((c) => c.id) },
@@ -108,16 +104,10 @@ export async function generateAnswer(
         !verified.object.claims.some((v) => v.id === c.id && v.supported),
     )
   )
-    return {
-      answer: abstain(
-        'No he podido respaldar todos los detalles con las fuentes disponibles. Puedes consultar los documentos oficiales que aparecen debajo.',
-      ),
-      tokens: (result.usage.totalTokens ?? 0) + (verified.usage.totalTokens ?? 0),
-    };
-  return {
-    answer,
-    tokens: (result.usage.totalTokens ?? 0) + (verified.usage.totalTokens ?? 0),
-  };
+    return abstain(
+      'No he podido respaldar todos los detalles con las fuentes disponibles. Puedes consultar los documentos oficiales que aparecen debajo.',
+    );
+  return answer;
 }
 export async function search(
   query: string,
@@ -192,10 +182,9 @@ export async function search(
           options.onEvidence?.(evidence);
           if (!options.retrievalOnly) {
             if (mode === 'live') {
-              const g = await stage('generation', () =>
+              answer = await stage('generation', () =>
                 generateAnswer(resolvedQuery, understanding, evidence, config, options.onClaim),
               );
-              answer = g.answer;
             } else
               answer = understanding.clarification
                 ? {
