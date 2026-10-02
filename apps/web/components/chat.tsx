@@ -25,7 +25,7 @@ import type { Evidence, SearchResult, Stage, VerifiedClaim } from "@gov/core";
 import { ProjectBrand } from "./project-header";
 import { AttachmentPicker } from "./attachment-picker";
 import type { PdfContext } from "../lib/attachment";
-import { protect } from "../lib/pii";
+import { protectTexts, ProtectionTimeoutError } from "../lib/pii";
 import { readChatStream } from "../lib/chat-stream";
 
 type Result = SearchResult & { feedbackToken: string | null };
@@ -34,6 +34,7 @@ type Turn = {
   query: string;
   state: "loading" | "done" | "stopped" | "error";
   stage: Stage;
+  protecting?: boolean;
   evidence: Evidence[];
   blocks: VerifiedClaim[];
   result?: Result;
@@ -425,6 +426,7 @@ export default function Chat({
       attachment: attached,
       state: "loading",
       stage: "understandQuery",
+      protecting: true,
       evidence: [],
       blocks: [],
     };
@@ -437,15 +439,18 @@ export default function Chat({
     try {
       const outgoing = [query, ...prior.slice(-6).map((t) => t.query)];
       if (documentContext) outgoing.push(documentContext.text);
-      const safe: string[] = [];
+      let safe: string[];
       try {
-        for (const text of outgoing) safe.push(await protect(text));
-      } catch {
+        safe = await protectTexts(outgoing, controller.signal);
+      } catch (error) {
+        if (controller.signal.aborted || error instanceof ProtectionTimeoutError)
+          throw error;
         throw new Error(
           "No hemos podido proteger tus datos personales en este dispositivo, así que no se ha enviado la consulta. Inténtalo de nuevo.",
         );
       }
       controller.signal.throwIfAborted();
+      update(id, { protecting: false });
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -746,8 +751,16 @@ export default function Chat({
               })}
               {turn.state === "loading" && (
                 <div className="chat-thinking" role="status">
-                  <span aria-hidden="true">Pensando…</span>
-                  <span className="sr-only">{stages[turn.stage]}</span>
+                  <span aria-hidden="true">
+                    {turn.protecting
+                      ? "Protegiendo tus datos… La primera vez se descarga el modelo y puede tardar. Puedes detenerlo."
+                      : "Pensando…"}
+                  </span>
+                  <span className="sr-only">
+                    {turn.protecting
+                      ? "Protegiendo tus datos. La primera vez se descarga el modelo y puede tardar. Puedes detenerlo."
+                      : stages[turn.stage]}
+                  </span>
                 </div>
               )}
               {turn.result &&

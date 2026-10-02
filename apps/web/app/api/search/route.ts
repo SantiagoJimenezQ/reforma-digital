@@ -1,4 +1,9 @@
-import { z } from 'zod';
+import {
+  MAX_SEARCH_BODY_BYTES,
+  readSearchBody,
+  SearchBodyTooLargeError,
+  searchRequestSchema,
+} from '../../../lib/search-request';
 import { search } from '@gov/ai';
 import { db, searches } from '@gov/db';
 import {
@@ -13,7 +18,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 120;
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: 'Origen no permitido' }, { status: 403 });
-  if (Number(request.headers.get('content-length') ?? 0) > 40000)
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_SEARCH_BODY_BYTES)
     return Response.json({ error: 'Consulta demasiado larga' }, { status: 413 });
   try {
     if (!(await rateLimit(request)))
@@ -23,25 +28,20 @@ export async function POST(request: Request) {
         },
         { status: 429 },
       );
-    const body = await request.text();
-    if (body.length > 40000)
-      return Response.json({ error: 'Consulta demasiado larga' }, { status: 413 });
+    const body = await readSearchBody(request);
     let json: unknown;
     try {
       json = JSON.parse(body);
     } catch {
       return Response.json({ error: 'JSON inválido' }, { status: 400 });
     }
-    const parsed = z
-      .object({
-        query: z.string().trim().min(4).max(1200),
-        attachmentContext: z.string().max(6000).optional(),
-        context: z.array(z.string().trim().min(4).max(1200)).max(6).optional(),
-      })
-      .safeParse(json);
+    const parsed = searchRequestSchema.safeParse(json);
     if (!parsed.success)
       return Response.json(
-        { error: 'Escribe una pregunta de entre 4 y 1200 caracteres.' },
+        {
+          error:
+            'La consulta debe contener al menos 4 caracteres y respetar los límites de texto protegido.',
+        },
         { status: 400 },
       );
     const encoder = new TextEncoder();
@@ -118,6 +118,8 @@ export async function POST(request: Request) {
       },
     });
   } catch (e) {
+    if (e instanceof SearchBodyTooLargeError)
+      return Response.json({ error: 'Consulta demasiado larga' }, { status: 413 });
     const message = e instanceof Error ? e.message : 'Error';
     console.error(
       'search_rejected',

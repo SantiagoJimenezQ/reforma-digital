@@ -20,19 +20,20 @@ export default function Privacy() {
             respuesta para evaluar fallos.
           </p>
           <p>
-            Antes de enviarla, tu navegador sustituye nombres, direcciones,
-            DNI, correos, teléfonos y datos bancarios por marcadores. Si no
-            puede hacerlo, la consulta no se envía.
+            Antes de enviarla, tu navegador intenta detectar nombres, direcciones, DNI, correos,
+            teléfonos y datos bancarios y sustituye los datos detectados por marcadores. Puede pasar
+            por alto información personal: esto reduce la exposición, pero no garantiza el
+            anonimato. Si la protección falla o tarda demasiado, la consulta no se envía. La primera
+            vez se descargan el modelo de Hugging Face y su runtime de jsDelivr; el análisis del
+            texto se realiza en tu dispositivo.
           </p>
-          <h2>Documentos adjuntos y dictado</h2>
+          <h2>Documentos adjuntos</h2>
           <p>
             El PDF se lee en tu navegador. Al enviar una pregunta, se procesa un
             máximo de 6.000 caracteres de su texto para entender el contexto,
             con los mismos proveedores y registros de la consulta. No se guarda
             el archivo PDF ni se incorpora al registro de fuentes oficiales.
-            Evita documentos con datos personales. El dictado utiliza el
-            servicio de reconocimiento de voz de tu navegador y solo se activa
-            al pulsar el micrófono.
+            Evita documentos con datos personales.
           </p>
           <h2>Qué se guarda</h2>
           <p>
