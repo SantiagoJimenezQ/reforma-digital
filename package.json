@@ -22,7 +22,8 @@
     "typecheck": "pnpm typecheck:extension && turbo typecheck",
     "test": "vitest run",
     "test:e2e": "pnpm build:test && playwright test",
-    "check": "pnpm check:workspaces && pnpm typecheck && pnpm test && pnpm build && pnpm audit:bundle",
+    "check": "pnpm lint && pnpm check:workspaces && pnpm typecheck && pnpm test && pnpm build && pnpm audit:bundle",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives-severity=error .",
     "audit:bundle": "node scripts/audit-bundle.mjs",
     "package": "pnpm check && node scripts/package.mjs",
     "site:new": "node scripts/new-site.mjs",
@@ -62,7 +63,9 @@
     "postcss": "8.5.28",
     "prettier": "3.9.6",
     "tailwindcss": "3.4.19",
-    "vite": "8.2.2"
+    "vite": "8.2.2",
+    "oxlint": "1.86.0",
+    "ultracite": "7.12.2"
   },
   "packageManager": "pnpm@11.1.1"
 }
