@@ -1,24 +1,24 @@
-import { z } from "zod";
+import { z } from 'zod';
 export const categorySchema = z.enum([
-  "common",
-  "jurisdiction",
-  "ambiguous",
-  "unanswerable",
-  "adversarial",
-  "freshness",
-  "citation",
+  'common',
+  'jurisdiction',
+  'ambiguous',
+  'unanswerable',
+  'adversarial',
+  'freshness',
+  'citation',
 ]);
 export const evalCaseSchema = z.object({
   id: z.string(),
   query: z.string().min(4),
   metadata: z.object({
     category: categorySchema,
-    difficulty: z.enum(["easy", "medium", "hard"]),
+    difficulty: z.enum(['easy', 'medium', 'hard']),
   }),
   critical: z.boolean().default(false),
   golden: z.boolean().default(false),
   review: z.object({
-    status: z.enum(["pending", "approved"]),
+    status: z.enum(['pending', 'approved']),
     reviewer: z.string().nullable(),
     reviewedAt: z.string().nullable(),
     evidenceNotes: z.string(),

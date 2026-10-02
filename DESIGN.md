@@ -190,7 +190,7 @@ La web pública (`apps/web`: landing, chat y páginas informativas) usa los mism
 
 ### 8.1 Buscador y conversación
 
-- La landing, el chat, las citas y las páginas informativas comparten `apps/web/styles/theme.css`: Inter local y los tokens originales de `packages/design`. `/composer` y `/chat` redirigen a `/`. La propuesta se explica en la misma landing; `/propuesta` baja a `#texto`. El chat conserva los tokens originales; la portada añade acentos editoriales propios.
+- La landing, el chat, las citas y las páginas informativas comparten `apps/web/styles/theme.css`: Inter local y los tokens originales de `packages/design`. La propuesta se explica en la misma landing; `/propuesta` baja a `#texto`. El chat conserva los tokens originales; la portada añade acentos editoriales propios.
 - Títulos con Inter Display (`opsz: 32`), peso 500 y espaciado compacto; cuerpo con Inter Text (`opsz: 14`), 16 px como mínimo. Metadatos a 14 px y rótulos a 12 px. El titular de la iniciativa puede crecer hasta 60 px; las secciones mantienen la escala editorial de la propuesta.
 - Lienzo `canvas`, superficies blancas, radios de 16/24 px y acciones negras. En portada, el composer va sobre la fotografía del hero, con anillo de foco; no lleva píldoras ni texto auxiliar de fuentes. Las citas son enlaces subrayados en `brand-600`; el fragmento se presenta en una superficie neutra. Los errores usan los tokens `danger`.
 - Color de portada: lienzo neutro original, tinta negra, rojo `#ad182b` y amarillo `#f1c232` en acentos puntuales (titular, envío, selector de demo y detalles). Sin fondos cromáticos de página. Estos acentos no recolorean las sedes de la demo.

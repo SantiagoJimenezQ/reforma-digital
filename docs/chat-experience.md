@@ -4,7 +4,7 @@ Referencia revisada en el navegador: `https://america.gov/chat`, 30-09-2026. Se 
 
 ## Diseño aplicado
 
-- La conversación sustituye a la portada en `/`, sin ruta propia: `/chat` redirige allí. Columna exterior de 688 px e interior de 664 px, cuerpo 16/24.
+- La conversación sustituye a la portada en `/`, sin ruta propia. Columna exterior de 688 px e interior de 664 px, cuerpo 16/24.
 - Pregunta alineada a la derecha sobre burbuja gris azulada; compositor fijo de 86 px con borde y radio amplio; envío, parada y dictado donde Web Speech está disponible.
 - «Pensando…» reproduce el gradiente de 250% de anchura, brillo de 28 px y ciclo lineal de 1,6 s observado. La aparición de bloques tiene un fundido breve y respeta movimiento reducido.
 - Citas azules subrayadas, acciones compactas para fuentes, valoración y copia, sugerencias de seguimiento en píldoras con borde.
@@ -16,7 +16,7 @@ No es una copia literal de todos los servicios de America.gov: se utiliza Arial 
 
 ## Comportamiento
 
-La portada pasa la pregunta al chat mediante contexto React; no aparece en la URL ni en almacenamiento persistente del navegador. Los seis últimos mensajes del usuario permiten resolver referencias como «¿Dónde lo puedo tramitar?». La consulta actual prevalece. El contexto se redacta en servidor antes de usar el modelo, y no se usa como evidencia oficial.
+La portada pasa la pregunta al chat mediante contexto React; no aparece en la URL ni en almacenamiento persistente del navegador. Los seis últimos mensajes del usuario permiten resolver referencias como «¿Dónde lo puedo tramitar?». La consulta actual prevalece. La consulta, el contexto y el texto del PDF se redactan en el navegador antes de enviarse y de nuevo en servidor antes de usar el modelo ([datos personales](search.md#datos-personales)). El contexto no se usa como evidencia oficial.
 
 El prompt `evidence-v2` genera un array de bloques estructurados mediante Vercel AI SDK. Cada elemento completo pasa validación Zod, comprobación de registro oficial, jurisdicción y referencias, y un verificador semántico antes del evento SSE `claim`. La UI muestra esos bloques sin esperar a `result`. No se muestran tokens sin verificar ni se simula escritura de una respuesta ya completa. Las partes no respaldadas se omiten y se señala cuando el resultado es parcial. `evidence-v1` permanece disponible para experimentos.
 

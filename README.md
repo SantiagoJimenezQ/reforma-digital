@@ -73,7 +73,7 @@ pnpm landing:build     # Build de Next.js
 pnpm build:extension   # Extensión en dist/
 ```
 
-Rutas: `/` presenta el ensayo, con el buscador sobre la fotografía del hero. Al preguntar, el chat sustituye a la portada en la misma ruta; el logo vuelve al inicio y «Nueva conversación» abre un chat vacío. `/composer` y `/chat` redirigen a `/`. «Lee nuestra propuesta» baja a `/#texto`; `/propuesta` redirige allí por compatibilidad. `/explorar` conserva una portada alternativa, sin indexar. Las fuentes están en `/sources` y el laboratorio protegido en `/admin/evals`.
+Rutas: `/` presenta el ensayo, con el buscador sobre la fotografía del hero. Al preguntar, el chat sustituye a la portada en la misma ruta; el logo vuelve al inicio y «Nueva conversación» abre un chat vacío. «Lee nuestra propuesta» baja a `/#texto`; `/propuesta` redirige allí por compatibilidad. `/explorar` conserva una portada alternativa, sin indexar. Las fuentes están en `/sources` y el laboratorio protegido en `/admin/evals`.
 
 El chat utiliza Web Search de OpenRouter con GPT-6 Luna y razonamiento high. Con `OPENROUTER_API_KEY` configurada, la web usa la búsqueda real; `SEARCH_MODE=preview` selecciona los ejemplos locales. PostgreSQL es opcional para feedback e informes. Consulta [la puesta en marcha, arquitectura y evaluaciones del buscador](docs/search.md). La extensión sigue funcionando localmente y no depende de estos servicios.
 

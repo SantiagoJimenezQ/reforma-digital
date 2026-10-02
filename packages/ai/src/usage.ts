@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { AsyncLocalStorage } from 'node:async_hooks';
 export type ModelUsage = {
   model: string;
   inputTokens: number;
@@ -21,8 +21,7 @@ export function recordUsage(
       }
     | undefined;
   const raw = m?.openrouter?.usage?.cost ?? m?.gateway?.cost;
-  const cost =
-    typeof raw === "string" || typeof raw === "number" ? Number(raw) : NaN;
+  const cost = typeof raw === 'string' || typeof raw === 'number' ? Number(raw) : NaN;
   usageContext.getStore()?.push({
     model,
     inputTokens,
