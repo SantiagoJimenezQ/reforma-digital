@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, useSyncExternalStore } from 'react';
 import {
   DomBridge,
   isVisible,
@@ -6,7 +6,7 @@ import {
   textOf,
   type FieldSnapshot,
 } from '@reforma-digital/bridge';
-import { useBoundField, useBridge, useDomValue } from '@reforma-digital/react';
+import { useBridge, useDomValue } from '@reforma-digital/react';
 import type { SitePage } from '@reforma-digital/registry';
 import {
   Actions,
@@ -73,8 +73,9 @@ export const tramitesPage: SitePage = {
 
 function Tramites({ bindings, restore }: { bindings: TramitesBindings; restore: () => void }) {
   const bridge = useBridge();
+  useSyncExternalStore(bridge.subscribe, bridge.getRevision);
   const doc = bindings.form.ownerDocument;
-  const office = useBoundField('oficina');
+  const office = bridge.getField('oficina');
   const [query, setQuery] = useState('');
   const officeId = useId();
   const officeHintId = useId();
@@ -84,7 +85,7 @@ function Tramites({ bindings, restore }: { bindings: TramitesBindings; restore: 
   const groups = bindings.groups.map((g, index) => ({
     ...g,
     index,
-    field: useBoundField(group(index)),
+    field: bridge.getField(group(index)),
   }));
   const selected = groups.find((g) => g.field.value && g.field.value !== EMPTY);
   const selectedLabel = selected?.field.options.find(
