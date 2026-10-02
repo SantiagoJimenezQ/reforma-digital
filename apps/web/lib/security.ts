@@ -1,5 +1,5 @@
 import { timingSafeEqual, createHmac } from 'node:crypto';
-import { connection, indexAvailable } from '@gov/db';
+import { connection, databaseAvailable as storageAvailable } from '@gov/db';
 import { searchMode } from './search-mode';
 export { searchMode };
 function hostOf(value: string): string | null {
@@ -31,7 +31,7 @@ export function authorized(token: string | null): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 export function databaseAvailable(): boolean {
-  return indexAvailable();
+  return storageAvailable();
 }
 const memory = new Map<string, { start: number; count: number }>();
 export async function rateLimit(request: Request): Promise<boolean> {

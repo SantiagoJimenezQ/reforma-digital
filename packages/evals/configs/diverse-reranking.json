@@ -1,5 +1,0 @@
-{
-  "diverseReranking": true,
-  "rerankerChunksPerDocument": 4,
-  "evidenceChunksPerDocument": 4
-}

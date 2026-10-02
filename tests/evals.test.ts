@@ -112,10 +112,9 @@ const report = {
     timestamp: "2026-09-30",
     datasetVersion: "v1",
     datasetHash: "abc",
-    corpusHash: "def",
+    sourcesHash: "def",
     model: "test",
-    embeddingModel: "test",
-    reranker: "test",
+    retrievalBackend: "web-search",
     promptVersion: "v1",
     retrievalConfig: defaultConfig,
     mode: "live",
@@ -184,27 +183,4 @@ describe("Regression gate", () => {
         report,
       ),
     ).toContain("Recall@5 cae más de 3pp"));
-});
-
-describe("Index configuration validation", () => {
-  it("rejects chunk-size comparisons made without reindexing", async () => {
-    const { assertIndexProfile } = await import(
-      "../packages/evals/src/index-profile"
-    );
-    const { createHash } = await import("node:crypto");
-    const { indexConfigIdentity, defaultConfig } = await import(
-      "../packages/core/src/index"
-    );
-    const profile = {
-      embedding_model: defaultConfig.embeddingModel,
-      index_config_hash: createHash("sha256")
-        .update(indexConfigIdentity(defaultConfig))
-        .digest("hex"),
-    };
-    expect(() => assertIndexProfile([profile], defaultConfig)).not.toThrow();
-    expect(() =>
-      assertIndexProfile([profile], { ...defaultConfig, chunkSize: 800 }),
-    ).toThrow("Reindexa");
-    expect(() => assertIndexProfile([], defaultConfig)).toThrow("vacío");
-  });
 });

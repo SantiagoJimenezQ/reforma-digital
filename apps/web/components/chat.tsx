@@ -16,7 +16,6 @@ import {
   X,
   ChevronDown,
   RotateCcw,
-  Mic,
   FileText,
   CircleAlert,
   Info,
@@ -44,7 +43,6 @@ type SourceView = { evidence: Evidence[]; selected?: Evidence };
 const stages: Record<Stage, string> = {
   understandQuery: "Entendiendo tu pregunta",
   retrieval: "Consultando fuentes oficiales",
-  rerank: "Seleccionando evidencias",
   generation: "Redactando y verificando la respuesta",
   evaluation: "Comprobando referencias",
 };
@@ -360,22 +358,6 @@ function AnswerActions({
     </>
   );
 }
-// Web Speech is progressive enhancement; recognition starts only after the user's click.
-type Recognition = {
-  lang: string;
-  interimResults: boolean;
-  onresult:
-    | ((event: {
-        results: {
-          [index: number]: { [index: number]: { transcript: string } };
-        };
-      }) => void)
-    | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  abort: () => void;
-};
 export default function Chat({
   initialQuestion,
   onNewConversation,
@@ -389,9 +371,6 @@ export default function Chat({
   const [input, setInput] = useState("");
   const [sourceView, setSourceView] = useState<SourceView | null>(null);
   const [showJump, setShowJump] = useState(false);
-  const [speechAvailable, setSpeechAvailable] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [speechError, setSpeechError] = useState("");
   const [attachment, setAttachment] = useState<PdfContext>();
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const [attachmentError, setAttachmentError] = useState("");
@@ -402,7 +381,6 @@ export default function Chat({
   const dock = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDetailsElement>(null);
   const nearBottom = useRef(true);
-  const recognition = useRef<Recognition | null>(null);
   const loading = turns.some((t) => t.state === "loading");
   function update(
     id: string,
@@ -426,7 +404,6 @@ export default function Chat({
   async function send(question: string, retryId?: string) {
     const query = question.trim();
     if (query.length < 4 || active.current || attachmentBusy) return;
-    recognition.current?.abort();
     const controller = new AbortController();
     active.current = controller;
     const id = retryId ?? crypto.randomUUID();
@@ -455,7 +432,6 @@ export default function Chat({
     setInput("");
     setAttachment(undefined);
     setAttachmentError("");
-    setSpeechError("");
     nearBottom.current = true;
     try {
       const response = await fetch("/api/search", {
@@ -551,19 +527,11 @@ export default function Chat({
     };
     document.addEventListener("pointerdown", dismissMenu);
     document.addEventListener("keydown", escapeMenu);
-    const speech = window as unknown as {
-      SpeechRecognition?: new () => Recognition;
-      webkitSpeechRecognition?: new () => Recognition;
-    };
-    setSpeechAvailable(
-      !!(speech.SpeechRecognition || speech.webkitSpeechRecognition),
-    );
     return () => {
       document.removeEventListener("pointerdown", dismissMenu);
       document.removeEventListener("keydown", escapeMenu);
       window.removeEventListener("scroll", onScroll);
       active.current?.abort();
-      recognition.current?.abort();
     };
   }, []);
   useEffect(() => {
@@ -574,18 +542,36 @@ export default function Chat({
     if (el) {
       el.style.height = "auto";
       el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+      el.style.overflowY = el.scrollHeight > 200 ? "auto" : "hidden";
     }
   }, [input]);
   useEffect(() => {
-    // The conversation reserves exactly the dock's height so it never covers the last message.
     const el = dock.current;
     if (!el) return;
     const root = document.documentElement;
-    const observer = new ResizeObserver(() =>
-      root.style.setProperty("--chat-dock-height", `${el.offsetHeight}px`),
-    );
+    let height = 0;
+    const observer = new ResizeObserver(() => {
+      const nextHeight = el.offsetHeight;
+      if (nextHeight === height) return;
+      height = nextHeight;
+      const follow = nearBottom.current;
+      root.style.setProperty("--chat-dock-height", `${height}px`);
+      // Keep the last response visible as the composer grows, unless reading older turns.
+      if (follow) jump();
+    });
     observer.observe(el);
+    let resizeFrame = 0;
+    const onResize = () => {
+      if (!nearBottom.current) return;
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(jump);
+    };
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
     return () => {
+      cancelAnimationFrame(resizeFrame);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
       observer.disconnect();
       root.style.removeProperty("--chat-dock-height");
     };
@@ -597,44 +583,6 @@ export default function Chat({
       el?.focus();
       el?.setSelectionRange(query.length, query.length);
     });
-  }
-  function dictate() {
-    if (listening) {
-      recognition.current?.abort();
-      return;
-    }
-    const speech = window as unknown as {
-      SpeechRecognition?: new () => Recognition;
-      webkitSpeechRecognition?: new () => Recognition;
-    };
-    const Constructor =
-      speech.SpeechRecognition || speech.webkitSpeechRecognition;
-    if (!Constructor) return;
-    const instance = new Constructor();
-    recognition.current = instance;
-    instance.lang = "es-ES";
-    instance.interimResults = false;
-    instance.onresult = (event) =>
-      setInput((value) =>
-        `${value}${value ? " " : ""}${event.results[0]?.[0]?.transcript ?? ""}`.slice(
-          0,
-          1200,
-        ),
-      );
-    instance.onerror = () => {
-      setListening(false);
-      setSpeechError(
-        "No se ha podido usar el micrófono. Comprueba el permiso o escribe tu pregunta.",
-      );
-    };
-    instance.onend = () => setListening(false);
-    try {
-      instance.start();
-      setListening(true);
-      setSpeechError("");
-    } catch {
-      setSpeechError("El micrófono no está disponible.");
-    }
   }
   function submit(e?: FormEvent) {
     e?.preventDefault();
@@ -906,13 +854,8 @@ export default function Chat({
             <ArrowDown size={18} />
           </button>
         )}
-        {speechError && (
-          <p className="chat-speech-error" role="alert">
-            {speechError}
-          </p>
-        )}
         {attachmentError && (
-          <p className="chat-speech-error" role="alert">
+          <p className="chat-composer-error" role="alert">
             {attachmentError}
           </p>
         )}
@@ -941,11 +884,12 @@ export default function Chat({
           </div>
         )}
         <form
-          className={`chat-composer ${listening ? "is-listening" : ""}`}
+          className="chat-composer"
           onSubmit={submit}
-          onClick={(e) => {
-            // The whole field is the writing surface, not just the textarea's line box.
-            if (e.target === e.currentTarget) inputRef.current?.focus();
+          onClick={(event) => {
+            if (event.target instanceof Element && !event.target.closest("button, input, textarea, a")) {
+              inputRef.current?.focus();
+            }
           }}
         >
           <label htmlFor="chat-input" className="sr-only">
@@ -957,9 +901,7 @@ export default function Chat({
             rows={2}
             value={input}
             maxLength={1200}
-            placeholder={
-              listening ? "Te escucho…" : "Pregunta lo que necesites"
-            }
+            placeholder="Pregunta aquí"
             autoComplete="off"
             enterKeyHint="send"
             onChange={(e) => setInput(e.target.value)}
@@ -983,17 +925,6 @@ export default function Chat({
                 onAttachment={setAttachment}
                 onError={setAttachmentError}
               />
-              {speechAvailable && (
-                <button
-                  type="button"
-                  className="chat-icon chat-mic"
-                  onClick={dictate}
-                  aria-label={listening ? "Detener dictado" : "Dictar pregunta"}
-                  aria-pressed={listening}
-                >
-                  <Mic size={21} />
-                </button>
-              )}
             </div>
             {loading ? (
               <button

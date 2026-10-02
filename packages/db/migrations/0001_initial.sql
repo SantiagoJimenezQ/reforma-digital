@@ -1,12 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE TABLE sources (id text PRIMARY KEY, name text NOT NULL, base_url text NOT NULL, organization text NOT NULL, jurisdiction_type text NOT NULL, jurisdiction_value text NOT NULL, source_type text NOT NULL, authority_score integer NOT NULL CHECK(authority_score BETWEEN 0 AND 100), enabled boolean NOT NULL DEFAULT true, crawl_config jsonb NOT NULL, last_crawled_at timestamptz);
-CREATE TABLE documents (id text PRIMARY KEY, source_id text NOT NULL REFERENCES sources(id), canonical_url text NOT NULL UNIQUE, title text NOT NULL, content text NOT NULL, markdown text NOT NULL, organization text NOT NULL, jurisdiction text NOT NULL, authority_score integer NOT NULL, published_at timestamptz, source_updated_at timestamptz, crawled_at timestamptz NOT NULL, content_hash text NOT NULL, available boolean NOT NULL DEFAULT true, unavailable_at timestamptz, valid_until timestamptz, embedding_model text, index_config_hash text);
-CREATE INDEX documents_source_idx ON documents(source_id);
-CREATE TABLE chunks (id text PRIMARY KEY, document_id text NOT NULL REFERENCES documents(id) ON DELETE CASCADE, content text NOT NULL, heading text NOT NULL, position integer NOT NULL, token_count integer NOT NULL, embedding vector(1536), search_vector tsvector GENERATED ALWAYS AS (setweight(to_tsvector('spanish', heading), 'A') || setweight(to_tsvector('spanish', content), 'B')) STORED);
-CREATE INDEX chunks_document_idx ON chunks(document_id);
-CREATE INDEX chunks_fts_idx ON chunks USING gin(search_vector);
-CREATE INDEX chunks_vector_idx ON chunks USING hnsw(embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
-CREATE TABLE document_versions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), document_id text NOT NULL REFERENCES documents(id), content_hash text NOT NULL, markdown text NOT NULL, archived_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE searches (id uuid PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now(), result jsonb NOT NULL);
 CREATE TABLE feedback (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), search_id uuid NOT NULL REFERENCES searches(id) ON DELETE CASCADE, rating integer NOT NULL CHECK(rating IN (-1,1)), reason text, comment text, created_at timestamptz NOT NULL DEFAULT now(), reviewed_at timestamptz);
 CREATE TABLE experiments (id text PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now(), report jsonb NOT NULL);

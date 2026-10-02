@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  defaultConfig,
   quoteSupported,
   compatibleJurisdiction,
   type Answer,
@@ -11,14 +10,8 @@ import {
   canonicalize,
   documentJurisdiction,
   sourceById,
-  eligibleDocument,
 } from "../packages/government/src/index";
-import { chunkMarkdown, classifyUrl } from "../packages/crawler/src/index";
-import {
-  understandQuery,
-  fuseCandidates,
-  selectRerankCandidates,
-} from "../packages/retrieval/src/index";
+import { understandQuery } from "../packages/retrieval/src/index";
 import { validateAnswer, resolveCitationText } from "../packages/ai/src/index";
 const evidence: Evidence = {
   chunkId: "c1",
@@ -90,139 +83,6 @@ describe("Jurisdiction precedes similarity", () => {
     expect(understandQuery("Padrón en Alcobendas, Madrid").jurisdiction).toBe(
       "ES-MD-ALCOBENDAS",
     ));
-  it("excludes wrong jurisdiction despite highest retrieval score", () => {
-    const wrong = {
-      ...evidence,
-      chunkId: "wrong",
-      jurisdiction: "ES-CT-BARCELONA",
-      score: 99999,
-    };
-    const q = understandQuery("vida laboral Madrid");
-    expect(
-      fuseCandidates(
-        { lexical: [wrong, evidence], semantic: [wrong] },
-        q,
-        defaultConfig,
-      ).map((e) => e.chunkId),
-    ).toEqual(["c1"]);
-  });
-  it("excludes unavailable and expired documents", () =>
-    expect(
-      fuseCandidates(
-        {
-          lexical: [
-            { ...evidence, available: false },
-            { ...evidence, chunkId: "expired", validUntil: "2020-01-01" },
-          ],
-          semantic: [],
-        },
-        understandQuery("vida laboral"),
-        defaultConfig,
-      ),
-    ).toEqual([]));
-  it("fuses by ranks rather than incompatible raw scores", () => {
-    const b = { ...evidence, chunkId: "c2", score: 100000 };
-    const result = fuseCandidates(
-      { lexical: [evidence, b], semantic: [b, evidence] },
-      understandQuery("vida laboral"),
-      defaultConfig,
-    );
-    expect(result[0]!.score).toBeCloseTo(result[1]!.score);
-  });
-});
-describe("Reranker document diversity", () => {
-  it("keeps both responsible publishers when one long document dominates", () => {
-    const dominant = Array.from({ length: 25 }, (_, i) => ({
-      ...evidence,
-      chunkId: `social-${i}`,
-    }));
-    const tax = {
-      ...evidence,
-      sourceId: "aeat",
-      documentId: "tax",
-      chunkId: "tax-036",
-    };
-    const result = selectRerankCandidates(
-      [...dominant, tax],
-      understandQuery("¿Cómo me hago autónomo?"),
-      { ...defaultConfig, diverseReranking: true },
-    );
-    expect(result.some((e) => e.chunkId === tax.chunkId)).toBe(true);
-    expect(
-      result.filter((e) => e.documentId === evidence.documentId),
-    ).toHaveLength(4);
-    expect(result.length).toBeLessThanOrEqual(defaultConfig.rerankerTopK);
-  });
-  it("respects the configured window and adds no missing publisher evidence", () => {
-    const candidates = [
-      evidence,
-      { ...evidence, chunkId: "second", documentId: "second-doc" },
-    ];
-    expect(
-      selectRerankCandidates(candidates, understandQuery("alta autónomo"), {
-        ...defaultConfig,
-        diverseReranking: true,
-        rerankerTopK: 1,
-      }),
-    ).toEqual([evidence]);
-  });
-  it("keeps the established selection unless the experiment is enabled", () => {
-    const candidates = Array.from({ length: 25 }, (_, i) => ({
-      ...evidence,
-      chunkId: `chunk-${i}`,
-    }));
-    expect(
-      selectRerankCandidates(
-        candidates,
-        understandQuery("autónomo"),
-        defaultConfig,
-      ),
-    ).toEqual(candidates.slice(0, 20));
-    expect(understandQuery("autónomo").keywords).not.toContain("036");
-    expect(
-      understandQuery("autónomo", { ...defaultConfig, diverseReranking: true })
-        .keywords,
-    ).toContain("036");
-  });
-});
-describe("Structure-aware chunks", () => {
-  it("retains parent headings and list blocks", () => {
-    const chunks = chunkMarkdown(
-      "# Solicitud\n\n## Documentos\n\n- DNI\n- Formulario\n\n## Presentación\n\nEn la sede.",
-      "Trámite",
-      400,
-      50,
-    );
-    expect(chunks[0]!.heading).toBe("Trámite > Solicitud > Documentos");
-    expect(chunks[0]!.content).toContain("- DNI\n- Formulario");
-    expect(chunks[1]!.heading).toBe("Trámite > Solicitud > Presentación");
-  });
-  it("bounds giant paragraphs without dropping content", () => {
-    const text = "requisito ".repeat(1600);
-    const chunks = chunkMarkdown(text, "Test", 400, 0);
-    expect(chunks.length).toBeGreaterThan(5);
-    expect(chunks.every((c) => c.tokenCount <= 405)).toBe(true);
-    expect(
-      chunks
-        .map((c) => c.content)
-        .join("")
-        .replace(/\s/g, ""),
-    ).toBe(text.replace(/\s/g, ""));
-  });
-  it("uses metadata for classification", () => {
-    expect(
-      classifyUrl({
-        url: "https://sede.madrid.es/abc",
-        title: "Galería de prensa",
-      }),
-    ).toBe(-1);
-    expect(
-      classifyUrl({
-        url: "https://sede.madrid.es/abc",
-        title: "Documentación del trámite",
-      }),
-    ).toBe(2);
-  });
 });
 describe("Citation integrity, fail closed", () => {
   const q = understandQuery("¿Cómo obtengo mi vida laboral?");
@@ -300,22 +160,6 @@ describe("Real ingestion regressions", () => {
         "https://sede.agenciatributaria.gob.es/Sede/asturias",
       ),
     ).toBe("ES-AS"));
-  it("quarantines irrelevant pages but permits canonical health service redirects", () => {
-    expect(
-      eligibleDocument(
-        sourceById("comunidad-madrid"),
-        "Tarjeta Sanitaria",
-        "https://www.comunidad.madrid/salud/tarjeta-sanitaria",
-      ),
-    ).toBe(true);
-    expect(
-      eligibleDocument(
-        sourceById("comunidad-madrid"),
-        "Noticia",
-        "https://www.comunidad.madrid/agenda-gobierno/2026/acto",
-      ),
-    ).toBe(false);
-  });
   it("recognizes a precise fiscal query without asking for the procedure again", () =>
     expect(
       understandQuery("Cómo cambio mi domicilio fiscal").clarification,

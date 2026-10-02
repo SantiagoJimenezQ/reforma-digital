@@ -76,7 +76,7 @@ pnpm build:extension   # Extensión en dist/
 
 Rutas: `/` presenta la iniciativa, un composer compacto que se fija abajo al hacer scroll, y la extensión con una demo conmutable Original / Mejorada a su derecha, seguida de la participación. Al preguntar, el chat sustituye a la portada en la misma ruta; el logo vuelve al inicio y «Nueva conversación» abre un chat vacío. `/composer` conserva el mismo acceso por compatibilidad y `/chat` redirige a él. «Lee nuestra propuesta» baja a `/#iniciativa`; `/propuesta` redirige allí por compatibilidad. Las fuentes están en `/sources` y el laboratorio protegido en `/admin/evals`.
 
-El buscador requiere PostgreSQL con pgvector y credenciales de OpenRouter, Firecrawl y Langfuse para el modo real. Sin configurar `SEARCH_MODE=live`, muestra la vista previa. Consulta [la puesta en marcha, arquitectura y evaluaciones del buscador](docs/search.md). La extensión sigue funcionando localmente y no depende de estos servicios.
+El chat utiliza Web Search de OpenRouter con GPT-6 Luna y razonamiento high. Con `OPENROUTER_API_KEY` configurada, la web usa la búsqueda real; `SEARCH_MODE=preview` selecciona los ejemplos locales. PostgreSQL es opcional para feedback e informes. Consulta [la puesta en marcha, arquitectura y evaluaciones del buscador](docs/search.md). La extensión sigue funcionando localmente y no depende de estos servicios.
 
 Para trabajar con la web oficial real (ventana visible, un solo recorrido, nunca datos personales ni CAPTCHA):
 

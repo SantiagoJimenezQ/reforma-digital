@@ -37,6 +37,9 @@ body:has(.full-landing) {
   gap: 24px;
   height: 76px;
 }
+.hero-mobile-menu {
+  display: none;
+}
 .full-hero nav a {
   min-height: 44px;
   display: inline-flex;
@@ -400,7 +403,7 @@ body:has(.full-landing) {
   .full-hero nav {
     gap: 12px;
   }
-  .full-hero nav a:not(:last-child):not([data-keep-mobile]) {
+  .full-hero .hero-desktop-nav a:not(:last-child):not([data-keep-mobile]) {
     display: none;
   }
 }
@@ -464,9 +467,58 @@ body:has(.full-landing) {
   }
 }
 @media (max-width: 639px) {
-  .full-hero nav .hero-repo {
+  .hero-bar {
+    gap: 12px;
+  }
+  .full-hero .hero-desktop-nav {
+    display: none;
+  }
+  .hero-mobile-menu {
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .hero-mobile-menu summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
-    padding-inline: 0;
+    min-height: 44px;
+    border-radius: 10px;
+    color: rgb(var(--bg-ink));
+    list-style: none;
+    cursor: pointer;
+  }
+  .hero-mobile-menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .full-hero .hero-mobile-menu nav {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 8px);
+    right: 0;
+    display: grid;
+    gap: 0;
+    margin: 0;
+    width: min(224px, calc(100vw - 32px));
+    padding: 6px;
+    border: 1px solid rgb(var(--bg-line-control));
+    border-radius: 16px;
+    background: rgb(var(--bg-surface));
+    box-shadow: 0 12px 32px rgb(var(--bg-ink) / 0.12);
+  }
+  .full-hero .hero-mobile-menu nav a {
+    display: flex;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: rgb(var(--bg-ink));
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .hero-mobile-menu nav a:hover {
+    background: rgb(var(--bg-surface-muted));
   }
   .full-article > .text-center > .flex {
     flex-wrap: wrap;
@@ -483,8 +535,7 @@ body:has(.full-landing) {
   .hero-bar {
     height: auto;
     min-height: 64px;
-    flex-wrap: wrap;
-    gap: 8px 12px;
+    gap: 12px;
     padding-block: 12px;
   }
   .full-hero nav {

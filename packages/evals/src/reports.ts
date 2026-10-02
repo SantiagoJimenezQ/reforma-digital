@@ -10,11 +10,9 @@ export type Report = {
     timestamp: string;
     datasetVersion: string;
     datasetHash: string;
-    corpusHash: string;
-    corpusStable?: boolean;
+    sourcesHash: string;
     model: string;
-    embeddingModel: string;
-    reranker: string;
+    retrievalBackend: "web-search";
     promptVersion: string;
     retrievalConfig: SearchConfig;
     mode: "preview" | "live";
@@ -38,15 +36,9 @@ export function compareReports(
   regressions: { id: string; query: string; delta: number }[];
   warnings: string[];
 } {
-  if (
-    current.metadata.corpusStable === false ||
-    baseline.metadata.corpusStable === false
-  )
-    throw new Error(
-      "El corpus cambió durante un experimento; comparación inválida",
-    );
   const mismatches = (
     [
+      "retrievalBackend",
       "datasetVersion",
       "datasetHash",
       "mode",
@@ -79,9 +71,9 @@ export function compareReports(
     regressions,
     warnings: [
       ...warnings,
-      ...(current.metadata.corpusHash !== baseline.metadata.corpusHash
+      ...(current.metadata.sourcesHash !== baseline.metadata.sourcesHash
         ? [
-            "El corpus ha cambiado: revisar cambios de crawling/indexación junto a la configuración.",
+            "Las fuentes autorizadas o los ejemplos han cambiado; revisar la comparación.",
           ]
         : []),
     ],

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { search, trace } from "@gov/ai";
 import { defaultConfig, type SearchConfig } from "@gov/core";
-import { db, experiments, connection } from "@gov/db";
+import { db, experiments } from "@gov/db";
 import { datasetSchema, type Dataset } from "./schema";
 import {
   retrievalMetrics,
@@ -15,7 +15,7 @@ import {
   type CaseResult,
 } from "./metrics";
 import { judgeAnswer } from "./judges";
-import { assertIndexProfile } from "./index-profile";
+import { sources } from "@gov/government";
 export * from "./schema";
 export * from "./metrics";
 export const repoRoot = path.resolve(
@@ -52,13 +52,6 @@ export async function runExperiment(options: {
   concurrency?: number;
 }): Promise<Report> {
   const config = options.config ?? defaultConfig;
-  if (options.mode === "live")
-    assertIndexProfile(
-      await connection()<
-        { embedding_model: string | null; index_config_hash: string | null }[]
-      >`SELECT DISTINCT d.embedding_model,d.index_config_hash FROM documents d JOIN sources s ON s.id=d.source_id WHERE d.available AND d.indexable AND s.enabled`,
-      config,
-    );
   const hash = (s: string) => createHash("sha256").update(s).digest("hex");
   let gitCommit = "uncommitted";
   let dirty = true;
@@ -81,17 +74,8 @@ export async function runExperiment(options: {
       else if (/\.(ts|tsx|sql)$/.test(p)) codeFiles.push(p);
     }
   };
-  for (const pkg of [
-    "ai",
-    "core",
-    "retrieval",
-    "government",
-    "crawler",
-    "db",
-    "evals",
-  ])
+  for (const pkg of ["ai", "core", "retrieval", "government", "db", "evals"])
     await collect(path.join(repoRoot, "packages", pkg, "src"));
-  await collect(path.join(repoRoot, "apps/worker/src"));
   const codeHash = hash(
     (
       await Promise.all(
@@ -104,18 +88,13 @@ export async function runExperiment(options: {
       )
     ).join("\n"),
   );
-  const corpusHash =
-    options.mode === "live"
-      ? hash(
-          JSON.stringify(
-            await connection()`SELECT d.id,d.content_hash,d.index_config_hash,d.available,d.indexable,d.jurisdiction,d.applicability_year,d.source_updated_at,d.valid_until,d.authority_score,s.enabled FROM documents d JOIN sources s ON s.id=d.source_id ORDER BY d.id`,
-          ),
-        )
-      : hash(
-          JSON.stringify(
-            (await import("@gov/ai/preview-corpus")).previewCorpus,
-          ),
-        );
+  const sourcesHash = hash(
+    JSON.stringify(
+      options.mode === "live"
+        ? sources
+        : (await import("@gov/ai/preview-corpus")).previewCorpus,
+    ),
+  );
   const report: Report = {
     id: randomUUID(),
     metadata: {
@@ -125,10 +104,9 @@ export async function runExperiment(options: {
       timestamp: new Date().toISOString(),
       datasetVersion: options.dataset.version,
       datasetHash: hash(JSON.stringify(options.dataset)),
-      corpusHash,
+      sourcesHash,
       model: config.generationModel,
-      embeddingModel: config.embeddingModel,
-      reranker: config.rerankerModel,
+      retrievalBackend: "web-search",
       promptVersion: config.promptVersion,
       retrievalConfig: config,
       mode: options.mode,
@@ -232,14 +210,6 @@ export async function runExperiment(options: {
       options.dataset.cases.indexOf(a.case) -
       options.dataset.cases.indexOf(b.case),
   );
-  if (options.mode === "live")
-    report.metadata.corpusStable =
-      report.metadata.corpusHash ===
-      hash(
-        JSON.stringify(
-          await connection()`SELECT d.id,d.content_hash,d.index_config_hash,d.available,d.indexable,d.jurisdiction,d.applicability_year,d.source_updated_at,d.valid_until,d.authority_score,s.enabled FROM documents d JOIN sources s ON s.id=d.source_id ORDER BY d.id`,
-        ),
-      );
   report.metrics = aggregate(report.cases);
   for (const category of new Set(
     report.cases.map((c) => c.case.metadata.category),
@@ -270,8 +240,6 @@ export function regressionGate(
   limits = thresholds,
 ): string[] {
   const reasons: string[] = [];
-  if (r.metadata.corpusStable === false)
-    reasons.push("El corpus cambió durante el experimento");
   if (r.metadata.mode !== "live")
     reasons.push("La vista previa no certifica producción");
   if (r.metadata.reviewedCases !== r.metadata.totalCases)
