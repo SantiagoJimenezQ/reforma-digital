@@ -18,20 +18,13 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Altas,+bajas+y+modificaciones/Altas+y+afiliacion+de+trabajadores/Alta_trabajo_autonomo; https://sede.agenciatributaria.gob.es/Sede/procedimientos/G322.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "cf8744f5fbfc2c514492e822",
-          "4c31ecb32d1aaf6f4eacd7f2"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["cf8744f5fbfc2c514492e822", "4c31ecb32d1aaf6f4eacd7f2"],
         "relevanceGrades": {
           "cf8744f5fbfc2c514492e822": 3,
           "4c31ecb32d1aaf6f4eacd7f2": 3
         },
-        "mustContainFacts": [
-          "Alta censal con el modelo 036"
-        ],
+        "mustContainFacts": ["Alta censal con el modelo 036"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -53,18 +46,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
-        "mustContainFacts": [
-          "Obtener el informe en PDF"
-        ],
+        "mustContainFacts": ["Obtener el informe en PDF"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -86,12 +73,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://administracion.gob.es/lectura-facil/como-realizar-tramites"
       },
       "expected": {
-        "relevantSourceIds": [
-          "administracion"
-        ],
-        "relevantDocumentIds": [
-          "b4bdf134e8022f019c857513"
-        ],
+        "relevantSourceIds": ["administracion"],
+        "relevantDocumentIds": ["b4bdf134e8022f019c857513"],
         "relevanceGrades": {
           "b4bdf134e8022f019c857513": 3
         },
@@ -120,18 +103,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.sepe.es/HomeSepe/prestaciones-desempleo/prestacion-contributiva/prestacion-contributiva-mas-de-un-anyo.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
-        "relevantDocumentIds": [
-          "f8e93e70985fa57787f605bd"
-        ],
+        "relevantSourceIds": ["sepe"],
+        "relevantDocumentIds": ["f8e93e70985fa57787f605bd"],
         "relevanceGrades": {
           "f8e93e70985fa57787f605bd": 3
         },
-        "mustContainFacts": [
-          "Prestación contributiva por desempleo"
-        ],
+        "mustContainFacts": ["Prestación contributiva por desempleo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -153,18 +130,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/Renta.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "f1909fecdfb5aa1b44e824a1"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["f1909fecdfb5aa1b44e824a1"],
         "relevanceGrades": {
           "f1909fecdfb5aa1b44e824a1": 3
         },
-        "mustContainFacts": [
-          "Campaña correspondiente al ejercicio 2025"
-        ],
+        "mustContainFacts": ["Campaña correspondiente al ejercicio 2025"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -186,18 +157,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/becas-y-ayudas/universidad-grado-master/que-necesitas.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "2c11c95e58dc8c008fce6277"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["2c11c95e58dc8c008fce6277"],
         "relevanceGrades": {
           "2c11c95e58dc8c008fce6277": 3
         },
-        "mustContainFacts": [
-          "Requisitos de la beca general"
-        ],
+        "mustContainFacts": ["Requisitos de la beca general"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -219,18 +184,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/permisos-de-conducir/obtencion-y-gestion-de-permisos/renovacion-de-permiso-proximo-a-caducar/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "d99f04a065292dc7b86ad41e"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["d99f04a065292dc7b86ad41e"],
         "relevanceGrades": {
           "d99f04a065292dc7b86ad41e": 3
         },
-        "mustContainFacts": [
-          "Renovación del permiso de conducir"
-        ],
+        "mustContainFacts": ["Renovación del permiso de conducir"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -252,18 +211,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/multas/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "13bea2b258761a70f6f2cdf4"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["13bea2b258761a70f6f2cdf4"],
         "relevanceGrades": {
           "13bea2b258761a70f6f2cdf4": 3
         },
-        "mustContainFacts": [
-          "Identificar el organismo que impuso la multa"
-        ],
+        "mustContainFacts": ["Identificar el organismo que impuso la multa"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -285,18 +238,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/permisos-de-conducir/permiso-por-puntos/consulta-de-puntos/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "682cd262658f788b841894f0"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["682cd262658f788b841894f0"],
         "relevanceGrades": {
           "682cd262658f788b841894f0": 3
         },
-        "mustContainFacts": [
-          "Consulta del saldo de puntos"
-        ],
+        "mustContainFacts": ["Consulta del saldo de puntos"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -318,14 +265,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Solicitud del NUSS"
-        ],
+        "mustContainFacts": ["Solicitud del NUSS"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -347,12 +290,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/censos-nif-domicilio-fiscal/domicilio-ciudadanos/comunicar-cambio-domicilio-fiscal.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "40906eed9e8482653c5962ef"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["40906eed9e8482653c5962ef"],
         "relevanceGrades": {
           "40906eed9e8482653c5962ef": 3
         },
@@ -380,18 +319,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www3.agenciatributaria.gob.es/Sede/procedimientoini/G304.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "adff07f353547d3545e03f2b"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["adff07f353547d3545e03f2b"],
         "relevanceGrades": {
           "adff07f353547d3545e03f2b": 3
         },
-        "mustContainFacts": [
-          "Certificado tributario"
-        ],
+        "mustContainFacts": ["Certificado tributario"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -413,18 +346,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+de+tus+cotizaciones/Informe+de+bases+de+cotizacion"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "6307abe4ff327a3bf87f823f"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["6307abe4ff327a3bf87f823f"],
         "relevanceGrades": {
           "6307abe4ff327a3bf87f823f": 3
         },
-        "mustContainFacts": [
-          "Informe de bases de cotización"
-        ],
+        "mustContainFacts": ["Informe de bases de cotización"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -446,12 +373,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+situacion+laboral+actual"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "878834836ff2359c80b8c910"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["878834836ff2359c80b8c910"],
         "relevanceGrades": {
           "878834836ff2359c80b8c910": 3
         },
@@ -479,12 +402,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
@@ -512,18 +431,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
-        "mustContainFacts": [
-          "Solicitar incorporación o modificación de datos"
-        ],
+        "mustContainFacts": ["Solicitar incorporación o modificación de datos"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -545,18 +458,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
-        "mustContainFacts": [
-          "Descarga del informe en PDF"
-        ],
+        "mustContainFacts": ["Descarga del informe en PDF"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -578,14 +485,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Acreditación del alta en trabajo autónomo"
-        ],
+        "mustContainFacts": ["Acreditación del alta en trabajo autónomo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -607,14 +510,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Baja en trabajo autónomo"
-        ],
+        "mustContainFacts": ["Baja en trabajo autónomo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -636,14 +535,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Modificar datos bancarios"
-        ],
+        "mustContainFacts": ["Modificar datos bancarios"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -665,18 +560,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/procedimientos/G322.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "4c31ecb32d1aaf6f4eacd7f2"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["4c31ecb32d1aaf6f4eacd7f2"],
         "relevanceGrades": {
           "4c31ecb32d1aaf6f4eacd7f2": 3
         },
-        "mustContainFacts": [
-          "Alta en el Censo de empresarios, profesionales y retenedores"
-        ],
+        "mustContainFacts": ["Alta en el Censo de empresarios, profesionales y retenedores"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -698,14 +587,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
+        "relevantSourceIds": ["aeat"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Modelo 303"
-        ],
+        "mustContainFacts": ["Modelo 303"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -727,18 +612,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/Renta.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "f1909fecdfb5aa1b44e824a1"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["f1909fecdfb5aa1b44e824a1"],
         "relevanceGrades": {
           "f1909fecdfb5aa1b44e824a1": 3
         },
-        "mustContainFacts": [
-          "Consulta de datos fiscales en la sede de la Agencia Tributaria"
-        ],
+        "mustContainFacts": ["Consulta de datos fiscales en la sede de la Agencia Tributaria"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -760,18 +639,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/Renta.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "f1909fecdfb5aa1b44e824a1"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["f1909fecdfb5aa1b44e824a1"],
         "relevanceGrades": {
           "f1909fecdfb5aa1b44e824a1": 3
         },
-        "mustContainFacts": [
-          "Cita previa de la campaña aplicable"
-        ],
+        "mustContainFacts": ["Cita previa de la campaña aplicable"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -793,14 +666,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
+        "relevantSourceIds": ["sepe"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Certificado de prestaciones"
-        ],
+        "mustContainFacts": ["Certificado de prestaciones"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -822,14 +691,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
+        "relevantSourceIds": ["sepe"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Comunicación de colocación"
-        ],
+        "mustContainFacts": ["Comunicación de colocación"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -851,18 +716,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.sepe.es/HomeSepe/prestaciones-desempleo/prestacion-contributiva/prestacion-contributiva-mas-de-un-anyo.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
-        "relevantDocumentIds": [
-          "f8e93e70985fa57787f605bd"
-        ],
+        "relevantSourceIds": ["sepe"],
+        "relevantDocumentIds": ["f8e93e70985fa57787f605bd"],
         "relevanceGrades": {
           "f8e93e70985fa57787f605bd": 3
         },
-        "mustContainFacts": [
-          "La baja voluntaria no es situación legal de desempleo"
-        ],
+        "mustContainFacts": ["La baja voluntaria no es situación legal de desempleo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -884,14 +743,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
+        "relevantSourceIds": ["sepe"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Consulta de la prestación en el SEPE"
-        ],
+        "mustContainFacts": ["Consulta de la prestación en el SEPE"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -913,14 +768,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
+        "relevantSourceIds": ["sepe"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Comprobar los requisitos del subsidio aplicable"
-        ],
+        "mustContainFacts": ["Comprobar los requisitos del subsidio aplicable"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -942,14 +793,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
+        "relevantSourceIds": ["sepe"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Capitalización de la prestación"
-        ],
+        "mustContainFacts": ["Capitalización de la prestación"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -971,18 +818,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/dudas/asi-de-facil.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "d1cfc220b240890c3d3793eb"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["d1cfc220b240890c3d3793eb"],
         "relevanceGrades": {
           "d1cfc220b240890c3d3793eb": 3
         },
-        "mustContainFacts": [
-          "Consultar la sede electrónica"
-        ],
+        "mustContainFacts": ["Consultar la sede electrónica"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1004,18 +845,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/dudas/asi-de-facil.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "d1cfc220b240890c3d3793eb"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["d1cfc220b240890c3d3793eb"],
         "relevanceGrades": {
           "d1cfc220b240890c3d3793eb": 3
         },
-        "mustContainFacts": [
-          "Revisar notificaciones de la sede electrónica"
-        ],
+        "mustContainFacts": ["Revisar notificaciones de la sede electrónica"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1037,18 +872,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/becas-y-ayudas.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "e949454acb5f83070d16515d"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["e949454acb5f83070d16515d"],
         "relevanceGrades": {
           "e949454acb5f83070d16515d": 3
         },
-        "mustContainFacts": [
-          "Incluyen estudios no universitarios como FP y Bachillerato"
-        ],
+        "mustContainFacts": ["Incluyen estudios no universitarios como FP y Bachillerato"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1070,14 +899,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
+        "relevantSourceIds": ["educacion"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Seguir el plazo de la notificación"
-        ],
+        "mustContainFacts": ["Seguir el plazo de la notificación"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1099,18 +924,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/dudas/asi-de-facil.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "d1cfc220b240890c3d3793eb"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["d1cfc220b240890c3d3793eb"],
         "relevanceGrades": {
           "d1cfc220b240890c3d3793eb": 3
         },
-        "mustContainFacts": [
-          "Indicar datos provisionales en la solicitud"
-        ],
+        "mustContainFacts": ["Indicar datos provisionales en la solicitud"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1132,14 +951,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Consulta de notas de examen en línea"
-        ],
+        "mustContainFacts": ["Consulta de notas de examen en línea"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1161,14 +976,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Estado de tramitación del permiso"
-        ],
+        "mustContainFacts": ["Estado de tramitación del permiso"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1190,14 +1001,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Duplicado del permiso de conducir"
-        ],
+        "mustContainFacts": ["Duplicado del permiso de conducir"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1219,14 +1026,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Cambio de titularidad de vehículo"
-        ],
+        "mustContainFacts": ["Cambio de titularidad de vehículo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1248,14 +1051,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Baja temporal del vehículo"
-        ],
+        "mustContainFacts": ["Baja temporal del vehículo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1277,18 +1076,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/informe-de-un-vehiculo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "6f481ea379e15cbfc5f529e2"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["6f481ea379e15cbfc5f529e2"],
         "relevanceGrades": {
           "6f481ea379e15cbfc5f529e2": 3
         },
-        "mustContainFacts": [
-          "Informe de vehículo"
-        ],
+        "mustContainFacts": ["Informe de vehículo"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1310,18 +1103,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/multas/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "13bea2b258761a70f6f2cdf4"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["13bea2b258761a70f6f2cdf4"],
         "relevanceGrades": {
           "13bea2b258761a70f6f2cdf4": 3
         },
-        "mustContainFacts": [
-          "Identificación del conductor"
-        ],
+        "mustContainFacts": ["Identificación del conductor"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1343,14 +1130,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Actualización del domicilio en la DGT"
-        ],
+        "mustContainFacts": ["Actualización del domicilio en la DGT"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1372,18 +1155,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.boe.es/buscar/act.php?id=BOE-A-2015-10565"
       },
       "expected": {
-        "relevantSourceIds": [
-          "boe"
-        ],
-        "relevantDocumentIds": [
-          "3774dae991c9a95f1005f3a7"
-        ],
+        "relevantSourceIds": ["boe"],
+        "relevantDocumentIds": ["3774dae991c9a95f1005f3a7"],
         "relevanceGrades": {
           "3774dae991c9a95f1005f3a7": 3
         },
-        "mustContainFacts": [
-          "Texto consolidado y sus modificaciones"
-        ],
+        "mustContainFacts": ["Texto consolidado y sus modificaciones"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1405,18 +1182,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://administracion.gob.es/lectura-facil/como-realizar-tramites"
       },
       "expected": {
-        "relevantSourceIds": [
-          "administracion"
-        ],
-        "relevantDocumentIds": [
-          "b4bdf134e8022f019c857513"
-        ],
+        "relevantSourceIds": ["administracion"],
+        "relevantDocumentIds": ["b4bdf134e8022f019c857513"],
         "relevanceGrades": {
           "b4bdf134e8022f019c857513": 3
         },
-        "mustContainFacts": [
-          "Registro electrónico"
-        ],
+        "mustContainFacts": ["Registro electrónico"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1438,14 +1209,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "administracion"
-        ],
+        "relevantSourceIds": ["administracion"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Acceso a las notificaciones electrónicas"
-        ],
+        "mustContainFacts": ["Acceso a las notificaciones electrónicas"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1467,14 +1234,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Informe de estar al corriente"
-        ],
+        "mustContainFacts": ["Informe de estar al corriente"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1496,14 +1259,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Se pueden consultar los últimos 12 meses"
-        ],
+        "mustContainFacts": ["Se pueden consultar los últimos 12 meses"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1525,14 +1284,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Modificar los datos de contacto"
-        ],
+        "mustContainFacts": ["Modificar los datos de contacto"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1554,14 +1309,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Solicitud de tarjeta sanitaria europea"
-        ],
+        "mustContainFacts": ["Solicitud de tarjeta sanitaria europea"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -1583,18 +1334,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.madrid.es/portal/site/tramites/menuitem.62876cb64654a55e2dbd7003a8a409a0/?vgnextchannel=775ba38813180210VgnVCM100000c90da8c0RCRD&vgnextfmt=default&vgnextoid=3e3debb41f6e2410VgnVCM2000000c205a0aRCRD"
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
-        "relevantDocumentIds": [
-          "502fed5ea4873c13e5204a04"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
+        "relevantDocumentIds": ["502fed5ea4873c13e5204a04"],
         "relevanceGrades": {
           "502fed5ea4873c13e5204a04": 3
         },
-        "mustContainFacts": [
-          "Trámite municipal de alta en el padrón"
-        ],
+        "mustContainFacts": ["Trámite municipal de alta en el padrón"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1618,18 +1363,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.madrid.es/portal/site/tramites/menuitem.62876cb64654a55e2dbd7003a8a409a0/?vgnextchannel=775ba38813180210VgnVCM100000c90da8c0RCRD&vgnextfmt=default&vgnextoid=3e3debb41f6e2410VgnVCM2000000c205a0aRCRD"
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
-        "relevantDocumentIds": [
-          "502fed5ea4873c13e5204a04"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
+        "relevantDocumentIds": ["502fed5ea4873c13e5204a04"],
         "relevanceGrades": {
           "502fed5ea4873c13e5204a04": 3
         },
-        "mustContainFacts": [
-          "Cita para Altas, Bajas y Cambio de domicilio en Padrón"
-        ],
+        "mustContainFacts": ["Cita para Altas, Bajas y Cambio de domicilio en Padrón"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1653,18 +1392,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.madrid.es/portal/site/tramites/menuitem.62876cb64654a55e2dbd7003a8a409a0/?vgnextchannel=775ba38813180210VgnVCM100000c90da8c0RCRD&vgnextfmt=default&vgnextoid=3e3debb41f6e2410VgnVCM2000000c205a0aRCRD"
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
-        "relevantDocumentIds": [
-          "502fed5ea4873c13e5204a04"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
+        "relevantDocumentIds": ["502fed5ea4873c13e5204a04"],
         "relevanceGrades": {
           "502fed5ea4873c13e5204a04": 3
         },
-        "mustContainFacts": [
-          "Cambio de domicilio en el padrón municipal"
-        ],
+        "mustContainFacts": ["Cambio de domicilio en el padrón municipal"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1688,14 +1421,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Certificado municipal"
-        ],
+        "mustContainFacts": ["Certificado municipal"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1719,18 +1448,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.comunidad.madrid/empleo/oficina-empleo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
-        "relevantDocumentIds": [
-          "da96fa411fb3c2517df737b0"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
+        "relevantDocumentIds": ["da96fa411fb3c2517df737b0"],
         "relevanceGrades": {
           "da96fa411fb3c2517df737b0": 3
         },
-        "mustContainFacts": [
-          "Inscripción en la Comunidad de Madrid"
-        ],
+        "mustContainFacts": ["Inscripción en la Comunidad de Madrid"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1754,18 +1477,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.comunidad.madrid/empleo/oficina-empleo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
-        "relevantDocumentIds": [
-          "da96fa411fb3c2517df737b0"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
+        "relevantDocumentIds": ["da96fa411fb3c2517df737b0"],
         "relevanceGrades": {
           "da96fa411fb3c2517df737b0": 3
         },
-        "mustContainFacts": [
-          "Oficina Virtual de Empleo"
-        ],
+        "mustContainFacts": ["Oficina Virtual de Empleo"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1789,18 +1506,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.comunidad.madrid/salud/tarjeta-sanitaria"
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
-        "relevantDocumentIds": [
-          "17b51fafd76623029b599a26"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
+        "relevantDocumentIds": ["17b51fafd76623029b599a26"],
         "relevanceGrades": {
           "17b51fafd76623029b599a26": 3
         },
-        "mustContainFacts": [
-          "Tarjeta sanitaria de la Comunidad de Madrid"
-        ],
+        "mustContainFacts": ["Tarjeta sanitaria de la Comunidad de Madrid"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1824,14 +1535,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Trámite autonómico de familia numerosa"
-        ],
+        "mustContainFacts": ["Trámite autonómico de familia numerosa"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1855,14 +1562,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Valoración de discapacidad autonómica"
-        ],
+        "mustContainFacts": ["Valoración de discapacidad autonómica"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1886,14 +1589,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Trámite autonómico de dependencia"
-        ],
+        "mustContainFacts": ["Trámite autonómico de dependencia"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1917,14 +1616,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Impuesto municipal"
-        ],
+        "mustContainFacts": ["Impuesto municipal"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -1948,14 +1643,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Organismo municipal sancionador"
-        ],
+        "mustContainFacts": ["Organismo municipal sancionador"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -2222,13 +1913,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.sepe.es/HomeSepe/prestaciones-desempleo/prestacion-contributiva/prestacion-contributiva-mas-de-un-anyo.html; https://www.comunidad.madrid/empleo/oficina-empleo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
-        "relevantDocumentIds": [
-          "f8e93e70985fa57787f605bd",
-          "da96fa411fb3c2517df737b0"
-        ],
+        "relevantSourceIds": ["sepe"],
+        "relevantDocumentIds": ["f8e93e70985fa57787f605bd", "da96fa411fb3c2517df737b0"],
         "relevanceGrades": {
           "f8e93e70985fa57787f605bd": 3,
           "da96fa411fb3c2517df737b0": 3
@@ -2259,18 +1945,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
-        "mustContainFacts": [
-          "Servicio estatal de Seguridad Social"
-        ],
+        "mustContainFacts": ["Servicio estatal de Seguridad Social"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -2294,18 +1974,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/procedimientos/G322.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "4c31ecb32d1aaf6f4eacd7f2"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["4c31ecb32d1aaf6f4eacd7f2"],
         "relevanceGrades": {
           "4c31ecb32d1aaf6f4eacd7f2": 3
         },
-        "mustContainFacts": [
-          "Agencia Tributaria"
-        ],
+        "mustContainFacts": ["Agencia Tributaria"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -2329,18 +2003,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/becas-y-ayudas.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "e949454acb5f83070d16515d"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["e949454acb5f83070d16515d"],
         "relevanceGrades": {
           "e949454acb5f83070d16515d": 3
         },
-        "mustContainFacts": [
-          "Beca del Ministerio de Educación"
-        ],
+        "mustContainFacts": ["Beca del Ministerio de Educación"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3239,18 +2907,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.madrid.es/portal/site/tramites/menuitem.62876cb64654a55e2dbd7003a8a409a0/?vgnextchannel=775ba38813180210VgnVCM100000c90da8c0RCRD&vgnextfmt=default&vgnextoid=3e3debb41f6e2410VgnVCM2000000c205a0aRCRD"
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
-        "relevantDocumentIds": [
-          "502fed5ea4873c13e5204a04"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
+        "relevantDocumentIds": ["502fed5ea4873c13e5204a04"],
         "relevanceGrades": {
           "502fed5ea4873c13e5204a04": 3
         },
-        "mustContainFacts": [
-          "El trámite corresponde al municipio de residencia"
-        ],
+        "mustContainFacts": ["El trámite corresponde al municipio de residencia"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3274,18 +2936,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Altas,+bajas+y+modificaciones/Altas+y+afiliacion+de+trabajadores/Alta_trabajo_autonomo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "cf8744f5fbfc2c514492e822"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["cf8744f5fbfc2c514492e822"],
         "relevanceGrades": {
           "cf8744f5fbfc2c514492e822": 3
         },
-        "mustContainFacts": [
-          "Alta en Seguridad Social"
-        ],
+        "mustContainFacts": ["Alta en Seguridad Social"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3309,18 +2965,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://administracion.gob.es/lectura-facil/como-realizar-tramites"
       },
       "expected": {
-        "relevantSourceIds": [
-          "administracion"
-        ],
-        "relevantDocumentIds": [
-          "b4bdf134e8022f019c857513"
-        ],
+        "relevantSourceIds": ["administracion"],
+        "relevantDocumentIds": ["b4bdf134e8022f019c857513"],
         "relevanceGrades": {
           "b4bdf134e8022f019c857513": 3
         },
-        "mustContainFacts": [
-          "La DGT no es el organismo del DNI"
-        ],
+        "mustContainFacts": ["La DGT no es el organismo del DNI"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3344,18 +2994,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/permisos-de-conducir/permiso-por-puntos/consulta-de-puntos/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "682cd262658f788b841894f0"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["682cd262658f788b841894f0"],
         "relevanceGrades": {
           "682cd262658f788b841894f0": 3
         },
-        "mustContainFacts": [
-          "Saldo de puntos del permiso de conducir"
-        ],
+        "mustContainFacts": ["Saldo de puntos del permiso de conducir"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3379,18 +3023,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
-        "mustContainFacts": [
-          "Informe de vida laboral"
-        ],
+        "mustContainFacts": ["Informe de vida laboral"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3414,18 +3052,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.madrid.es/portal/site/tramites/menuitem.62876cb64654a55e2dbd7003a8a409a0/?vgnextchannel=775ba38813180210VgnVCM100000c90da8c0RCRD&vgnextfmt=default&vgnextoid=3e3debb41f6e2410VgnVCM2000000c205a0aRCRD"
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
-        "relevantDocumentIds": [
-          "502fed5ea4873c13e5204a04"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
+        "relevantDocumentIds": ["502fed5ea4873c13e5204a04"],
         "relevanceGrades": {
           "502fed5ea4873c13e5204a04": 3
         },
-        "mustContainFacts": [
-          "Procedimiento municipal de empadronamiento"
-        ],
+        "mustContainFacts": ["Procedimiento municipal de empadronamiento"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3449,18 +3081,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.comunidad.madrid/empleo/oficina-empleo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
-        "relevantDocumentIds": [
-          "da96fa411fb3c2517df737b0"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
+        "relevantDocumentIds": ["da96fa411fb3c2517df737b0"],
         "relevanceGrades": {
           "da96fa411fb3c2517df737b0": 3
         },
-        "mustContainFacts": [
-          "Oficina de empleo de la Comunidad de Madrid"
-        ],
+        "mustContainFacts": ["Oficina de empleo de la Comunidad de Madrid"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3484,14 +3110,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
+        "relevantSourceIds": ["dgt"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Permiso de circulación y permiso de conducir son trámites distintos"
-        ],
+        "mustContainFacts": ["Permiso de circulación y permiso de conducir son trámites distintos"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3515,18 +3137,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www3.agenciatributaria.gob.es/Sede/procedimientoini/G304.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "adff07f353547d3545e03f2b"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["adff07f353547d3545e03f2b"],
         "relevanceGrades": {
           "adff07f353547d3545e03f2b": 3
         },
-        "mustContainFacts": [
-          "Certificado tributario"
-        ],
+        "mustContainFacts": ["Certificado tributario"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3550,18 +3166,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+de+tus+cotizaciones/Informe+de+bases+de+cotizacion"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "6307abe4ff327a3bf87f823f"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["6307abe4ff327a3bf87f823f"],
         "relevanceGrades": {
           "6307abe4ff327a3bf87f823f": 3
         },
-        "mustContainFacts": [
-          "Informe de bases de cotización"
-        ],
+        "mustContainFacts": ["Informe de bases de cotización"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3585,18 +3195,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/becas-y-ayudas/universidad-grado-master/que-necesitas.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "2c11c95e58dc8c008fce6277"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["2c11c95e58dc8c008fce6277"],
         "relevanceGrades": {
           "2c11c95e58dc8c008fce6277": 3
         },
-        "mustContainFacts": [
-          "Beca general del Ministerio"
-        ],
+        "mustContainFacts": ["Beca general del Ministerio"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3620,14 +3224,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
+        "relevantSourceIds": ["aeat"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Comprobar el procedimiento vigente modelo 036"
-        ],
+        "mustContainFacts": ["Comprobar el procedimiento vigente modelo 036"],
         "mustNotContainFacts": [
           "Los requisitos de otro municipio se aplican automáticamente en Madrid"
         ],
@@ -3867,14 +3467,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
+        "relevantSourceIds": ["aeat"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Comprobar la normativa vigente y el modelo 036"
-        ],
+        "mustContainFacts": ["Comprobar la normativa vigente y el modelo 036"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -3896,14 +3492,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
+        "relevantSourceIds": ["educacion"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Convocatoria del curso 2026/2027"
-        ],
+        "mustContainFacts": ["Convocatoria del curso 2026/2027"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -3925,18 +3517,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/Renta.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "f1909fecdfb5aa1b44e824a1"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["f1909fecdfb5aa1b44e824a1"],
         "relevanceGrades": {
           "f1909fecdfb5aa1b44e824a1": 3
         },
-        "mustContainFacts": [
-          "Distinguir ejercicio fiscal y campaña"
-        ],
+        "mustContainFacts": ["Distinguir ejercicio fiscal y campaña"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -3958,18 +3544,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/permisos-de-conducir/obtencion-y-gestion-de-permisos/renovacion-de-permiso-proximo-a-caducar/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "d99f04a065292dc7b86ad41e"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["d99f04a065292dc7b86ad41e"],
         "relevanceGrades": {
           "d99f04a065292dc7b86ad41e": 3
         },
-        "mustContainFacts": [
-          "Tasa vigente aplicable a la renovación"
-        ],
+        "mustContainFacts": ["Tasa vigente aplicable a la renovación"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -3991,14 +3571,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Cotización vigente para 2026"
-        ],
+        "mustContainFacts": ["Cotización vigente para 2026"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4020,14 +3596,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
+        "relevantSourceIds": ["sepe"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Distinguir regímenes anteriores y nuevos"
-        ],
+        "mustContainFacts": ["Distinguir regímenes anteriores y nuevos"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4049,18 +3621,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.boe.es/buscar/act.php?id=BOE-A-2015-10565"
       },
       "expected": {
-        "relevantSourceIds": [
-          "boe"
-        ],
-        "relevantDocumentIds": [
-          "3774dae991c9a95f1005f3a7"
-        ],
+        "relevantSourceIds": ["boe"],
+        "relevantDocumentIds": ["3774dae991c9a95f1005f3a7"],
         "relevanceGrades": {
           "3774dae991c9a95f1005f3a7": 3
         },
-        "mustContainFacts": [
-          "Consultar texto consolidado y modificaciones"
-        ],
+        "mustContainFacts": ["Consultar texto consolidado y modificaciones"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4082,14 +3648,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
+        "relevantSourceIds": ["educacion"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Comparar el plazo oficial con la fecha de consulta"
-        ],
+        "mustContainFacts": ["Comparar el plazo oficial con la fecha de consulta"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4111,18 +3673,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/becas-y-ayudas/universidad-grado-master/que-necesitas.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "2c11c95e58dc8c008fce6277"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["2c11c95e58dc8c008fce6277"],
         "relevanceGrades": {
           "2c11c95e58dc8c008fce6277": 3
         },
-        "mustContainFacts": [
-          "Umbrales de la convocatoria aplicable"
-        ],
+        "mustContainFacts": ["Umbrales de la convocatoria aplicable"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4144,18 +3700,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.comunidad.madrid/empleo/oficina-empleo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
-        "relevantDocumentIds": [
-          "da96fa411fb3c2517df737b0"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
+        "relevantDocumentIds": ["da96fa411fb3c2517df737b0"],
         "relevanceGrades": {
           "da96fa411fb3c2517df737b0": 3
         },
-        "mustContainFacts": [
-          "Revisar procedimiento vigente"
-        ],
+        "mustContainFacts": ["Revisar procedimiento vigente"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES-MD",
         "shouldAnswer": true
@@ -4177,13 +3727,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Altas,+bajas+y+modificaciones/Altas+y+afiliacion+de+trabajadores/Alta_trabajo_autonomo; https://sede.agenciatributaria.gob.es/Sede/procedimientos/G322.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "cf8744f5fbfc2c514492e822",
-          "4c31ecb32d1aaf6f4eacd7f2"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["cf8744f5fbfc2c514492e822", "4c31ecb32d1aaf6f4eacd7f2"],
         "relevanceGrades": {
           "cf8744f5fbfc2c514492e822": 3,
           "4c31ecb32d1aaf6f4eacd7f2": 3
@@ -4213,18 +3758,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.madrid.es/portal/site/tramites/menuitem.62876cb64654a55e2dbd7003a8a409a0/?vgnextchannel=775ba38813180210VgnVCM100000c90da8c0RCRD&vgnextfmt=default&vgnextoid=3e3debb41f6e2410VgnVCM2000000c205a0aRCRD"
       },
       "expected": {
-        "relevantSourceIds": [
-          "ayuntamiento-madrid"
-        ],
-        "relevantDocumentIds": [
-          "502fed5ea4873c13e5204a04"
-        ],
+        "relevantSourceIds": ["ayuntamiento-madrid"],
+        "relevantDocumentIds": ["502fed5ea4873c13e5204a04"],
         "relevanceGrades": {
           "502fed5ea4873c13e5204a04": 3
         },
-        "mustContainFacts": [
-          "Citar requisitos, documentación, canales y coste por separado"
-        ],
+        "mustContainFacts": ["Citar requisitos, documentación, canales y coste por separado"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES-MD-MADRID",
         "shouldAnswer": true
@@ -4246,12 +3785,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.sepe.es/HomeSepe/prestaciones-desempleo/prestacion-contributiva/prestacion-contributiva-mas-de-un-anyo.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "sepe"
-        ],
-        "relevantDocumentIds": [
-          "f8e93e70985fa57787f605bd"
-        ],
+        "relevantSourceIds": ["sepe"],
+        "relevantDocumentIds": ["f8e93e70985fa57787f605bd"],
         "relevanceGrades": {
           "f8e93e70985fa57787f605bd": 3
         },
@@ -4281,18 +3816,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.becaseducacion.gob.es/becas-y-ayudas/universidad-grado-master/que-necesitas.html"
       },
       "expected": {
-        "relevantSourceIds": [
-          "educacion"
-        ],
-        "relevantDocumentIds": [
-          "2c11c95e58dc8c008fce6277"
-        ],
+        "relevantSourceIds": ["educacion"],
+        "relevantDocumentIds": ["2c11c95e58dc8c008fce6277"],
         "relevanceGrades": {
           "2c11c95e58dc8c008fce6277": 3
         },
-        "mustContainFacts": [
-          "Cada importe debe estar sustentado en la convocatoria"
-        ],
+        "mustContainFacts": ["Cada importe debe estar sustentado en la convocatoria"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4314,18 +3843,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.dgt.gob.es/es/permisos-de-conducir/obtencion-y-gestion-de-permisos/renovacion-de-permiso-proximo-a-caducar/"
       },
       "expected": {
-        "relevantSourceIds": [
-          "dgt"
-        ],
-        "relevantDocumentIds": [
-          "d99f04a065292dc7b86ad41e"
-        ],
+        "relevantSourceIds": ["dgt"],
+        "relevantDocumentIds": ["d99f04a065292dc7b86ad41e"],
         "relevanceGrades": {
           "d99f04a065292dc7b86ad41e": 3
         },
-        "mustContainFacts": [
-          "Citar la tasa y la documentación exigida"
-        ],
+        "mustContainFacts": ["Citar la tasa y la documentación exigida"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4347,12 +3870,8 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+tu+vida+laboral"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "559435c4a335c54e330c6ca1"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["559435c4a335c54e330c6ca1"],
         "relevanceGrades": {
           "559435c4a335c54e330c6ca1": 3
         },
@@ -4381,20 +3900,13 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://www.sepe.es/HomeSepe/prestaciones-desempleo/prestacion-contributiva/prestacion-contributiva-mas-de-un-anyo.html; https://www.comunidad.madrid/empleo/oficina-empleo"
       },
       "expected": {
-        "relevantSourceIds": [
-          "comunidad-madrid"
-        ],
-        "relevantDocumentIds": [
-          "f8e93e70985fa57787f605bd",
-          "da96fa411fb3c2517df737b0"
-        ],
+        "relevantSourceIds": ["comunidad-madrid"],
+        "relevantDocumentIds": ["f8e93e70985fa57787f605bd", "da96fa411fb3c2517df737b0"],
         "relevanceGrades": {
           "f8e93e70985fa57787f605bd": 3,
           "da96fa411fb3c2517df737b0": 3
         },
-        "mustContainFacts": [
-          "Separar demanda autonómica y prestación estatal"
-        ],
+        "mustContainFacts": ["Separar demanda autonómica y prestación estatal"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES-MD",
         "shouldAnswer": true
@@ -4416,18 +3928,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://sede.agenciatributaria.gob.es/Sede/procedimientos/G322.shtml"
       },
       "expected": {
-        "relevantSourceIds": [
-          "aeat"
-        ],
-        "relevantDocumentIds": [
-          "4c31ecb32d1aaf6f4eacd7f2"
-        ],
+        "relevantSourceIds": ["aeat"],
+        "relevantDocumentIds": ["4c31ecb32d1aaf6f4eacd7f2"],
         "relevanceGrades": {
           "4c31ecb32d1aaf6f4eacd7f2": 3
         },
-        "mustContainFacts": [
-          "Censo de empresarios, profesionales y retenedores"
-        ],
+        "mustContainFacts": ["Censo de empresarios, profesionales y retenedores"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4449,18 +3955,12 @@
         "evidenceNotes": "Referencias propuestas tras inspección del corpus oficial, sin aprobación humana. Validar hechos, alcance y vigencia. https://portal.seg-social.gob.es/wps/portal/importass/importass/Categorias/Vida+laboral+e+informes/Informes+sobre+tu+situacion+laboral/Informe+de+situacion+laboral+actual"
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
-        "relevantDocumentIds": [
-          "878834836ff2359c80b8c910"
-        ],
+        "relevantSourceIds": ["seg-social"],
+        "relevantDocumentIds": ["878834836ff2359c80b8c910"],
         "relevanceGrades": {
           "878834836ff2359c80b8c910": 3
         },
-        "mustContainFacts": [
-          "Todos los ciudadanos, tengan o no NUSS"
-        ],
+        "mustContainFacts": ["Todos los ciudadanos, tengan o no NUSS"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true
@@ -4482,14 +3982,10 @@
         "evidenceNotes": "Candidato redactado por el agente. Requiere validación humana contra documento oficial vigente antes de aprobar."
       },
       "expected": {
-        "relevantSourceIds": [
-          "seg-social"
-        ],
+        "relevantSourceIds": ["seg-social"],
         "relevantDocumentIds": [],
         "relevanceGrades": {},
-        "mustContainFacts": [
-          "Datos de los últimos 12 meses y descarga en PDF certificado"
-        ],
+        "mustContainFacts": ["Datos de los últimos 12 meses y descarga en PDF certificado"],
         "mustNotContainFacts": [],
         "expectedJurisdiction": "ES",
         "shouldAnswer": true

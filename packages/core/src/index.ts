@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 export type Jurisdiction = string;
 export type Source = {
   id: string;
@@ -6,7 +6,7 @@ export type Source = {
   baseUrl: string;
   hosts: string[];
   organization: string;
-  jurisdictionType: "country" | "region" | "municipality";
+  jurisdictionType: 'country' | 'region' | 'municipality';
   jurisdictionValue: Jurisdiction;
   authorityScore: number;
   enabled: boolean;
@@ -41,14 +41,14 @@ export type QueryUnderstanding = {
   requestedYear?: number;
 };
 export const answerSchema = z.object({
-  status: z.enum(["answered", "insufficient_evidence", "needs_clarification"]),
+  status: z.enum(['answered', 'insufficient_evidence', 'needs_clarification']),
   answer: z.string().max(1800),
   claims: z
     .array(
       z.object({
         id: z.string(),
         text: z.string().max(900),
-        kind: z.enum(["step", "document", "cost", "deadline", "fact"]),
+        kind: z.enum(['step', 'document', 'cost', 'deadline', 'fact']),
       }),
     )
     .max(16),
@@ -67,22 +67,19 @@ export const answerSchema = z.object({
 });
 export type Answer = z.infer<typeof answerSchema>;
 export type VerifiedClaim = {
-  claim: Answer["claims"][number];
-  citations: Answer["citations"];
+  claim: Answer['claims'][number];
+  citations: Answer['citations'];
 };
 export const configSchema = z.object({
   finalEvidenceCount: z.number().int().min(1).max(12).default(8),
-  reasoningEffort: z
-    .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
-    .default("high"),
-  generationModel: z.string().default("openai/gpt-6-luna"),
-  judgeModel: z.string().default("openai/gpt-6-luna"),
-  promptVersion: z.enum(["evidence-v1", "evidence-v2"]).default("evidence-v2"),
+  reasoningEffort: z.enum(['none', 'minimal', 'low', 'medium', 'high', 'xhigh']).default('high'),
+  generationModel: z.string().default('openai/gpt-6-luna'),
+  judgeModel: z.string().default('openai/gpt-6-luna'),
+  promptVersion: z.enum(['evidence-v1', 'evidence-v2']).default('evidence-v2'),
 });
 export type SearchConfig = z.infer<typeof configSchema>;
 export const defaultConfig = configSchema.parse({});
-export type Stage =
-  "understandQuery" | "retrieval" | "generation" | "evaluation";
+export type Stage = 'understandQuery' | 'retrieval' | 'generation' | 'evaluation';
 export type SearchResult = {
   id: string;
   traceId: string;
@@ -91,7 +88,7 @@ export type SearchResult = {
   understanding: QueryUnderstanding;
   evidence: Evidence[];
   answer: Answer;
-  mode: "live" | "preview";
+  mode: 'live' | 'preview';
   latencyMs: number;
   tokens: number;
   costUsd: number | null;
@@ -106,24 +103,21 @@ export type SearchResult = {
 };
 export function normalizeText(text: string): string {
   return text
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
-export function compatibleJurisdiction(
-  document: string,
-  target?: string,
-): boolean {
-  if (!target) return document === "ES";
-  return document === target || target.startsWith(document + "-");
+export function compatibleJurisdiction(document: string, target?: string): boolean {
+  if (!target) return document === 'ES';
+  return document === target || target.startsWith(document + '-');
 }
 export const abstain = (
-  reason = "No tengo evidencia oficial suficiente para responder con seguridad. Concreta el trámite o consulta el organismo responsable.",
+  reason = 'No tengo evidencia oficial suficiente para responder con seguridad. Concreta el trámite o consulta el organismo responsable.',
 ): Answer => ({
-  status: "insufficient_evidence",
+  status: 'insufficient_evidence',
   answer: reason,
   claims: [],
   citations: [],
@@ -132,11 +126,11 @@ export const abstain = (
 /** Compare literal text without treating Markdown markup or NBSP as factual differences. */
 export function evidenceText(markdown: string): string {
   return markdown
-    .replace(/\[([^\]]+)\]\([^\n]*?\)/g, "$1")
-    .replace(/[*_`~]/g, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/^\s*[-+]\s+/gm, "")
-    .replace(/\s+/g, " ")
+    .replace(/\[([^\]]+)\]\([^\n]*?\)/g, '$1')
+    .replace(/[*_`~]/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/^\s*[-+]\s+/gm, '')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 export function quoteSupported(content: string, quote: string): boolean {
