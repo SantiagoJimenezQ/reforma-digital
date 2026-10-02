@@ -35,14 +35,16 @@ it('dispatches to the one matching page', () => {
 it('matches multi-path routes and exact paths only on their own origin', () => {
   const adapter = createSiteAdapter(
     {
-      ...config,
-      origins: undefined,
-      pathPrefix: undefined,
+      id: config.id,
+      name: config.name,
+      enabled: config.enabled,
+      homepage: config.homepage,
+      status: config.status,
       routes: [
         { origin: 'https://info.example.test', path: '/servicio' },
         { origin: 'https://app.example.test', pathPrefix: '/app/' },
       ],
-    } as unknown as Parameters<typeof createSiteAdapter>[0],
+    },
     [],
   );
   expect(matchesSite(adapter, new URL('https://info.example.test/servicio'))).toBe(true);
