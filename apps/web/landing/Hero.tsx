@@ -50,16 +50,14 @@ export default function Hero({ composer }: { composer?: ReactNode }) {
             Un buscador de trámites con fuentes oficiales. Una extensión para las webs donde los
             haces. Una iniciativa abierta para que las dos cosas lleguen a las sedes.
           </p>
-          <a className="hero-install" href={links.install}>
-            Descargar la extensión
-          </a>
         </div>
-        <div className="hero-aside">
-          <div className="hero-scene">
-            <div className="hero-photo" aria-hidden="true" />
-            {composer}
-          </div>
+        <div className="hero-scene">
+          <div className="hero-photo" aria-hidden="true" />
+          {composer}
         </div>
+        <a className="hero-install" href={links.install}>
+          Descargar la extensión
+        </a>
       </div>
     </section>
   );

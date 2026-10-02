@@ -153,8 +153,8 @@ export default function Landing({ composer }: { composer?: ReactNode }) {
     <>
       <ReadingProgress />
       <Banner />
+      <Hero composer={composer} />
       <div className="full-landing">
-        <Hero composer={composer} />
         <main id="main" className="full-article">
           <section id="resumen" aria-labelledby="resumen-title">
             <h2 id="resumen-title">Resumen</h2>
