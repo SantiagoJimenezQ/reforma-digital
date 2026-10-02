@@ -20,17 +20,17 @@ describe('pii protection', () => {
         finish = resolve;
       }),
     );
-    const { protectTexts } = await import('../apps/web/lib/pii');
+    const { protectMessages } = await import('../apps/web/lib/pii');
     const controller = new AbortController();
-    const pending = protectTexts(['Soy Ana', 'segunda pregunta'], controller.signal);
+    const pending = protectMessages(['Soy Ana', 'segunda pregunta'], controller.signal);
     const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
     await vi.waitFor(() => expect(createGuard).toHaveBeenCalledOnce());
     controller.abort();
     await rejected;
     const oldProtect = vi.fn(async (text: string) => ({ text }));
     createGuard.mockResolvedValue(guard(async (text) => ({ text })));
-    expect(await protectTexts(['Otra pregunta'], new AbortController().signal)).toEqual([
-      'Otra pregunta',
+    expect(await protectMessages(['Otra pregunta'], new AbortController().signal)).toMatchObject([
+      { text: 'Otra pregunta' },
     ]);
     finish(guard(oldProtect));
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -46,9 +46,9 @@ describe('pii protection', () => {
         }),
     );
     createGuard.mockResolvedValue(guard(inference));
-    const { protectTexts, PROTECTION_TIMEOUT_MS } = await import('../apps/web/lib/pii');
+    const { protectMessages, PROTECTION_TIMEOUT_MS } = await import('../apps/web/lib/pii');
     vi.useFakeTimers();
-    const pending = protectTexts(
+    const pending = protectMessages(
       ['Primera pregunta', 'segunda pregunta'],
       new AbortController().signal,
     );
@@ -59,14 +59,16 @@ describe('pii protection', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(inference).toHaveBeenCalledTimes(1);
     createGuard.mockResolvedValue(guard(async (text) => ({ text })));
-    expect(await protectTexts(['Reintento'], new AbortController().signal)).toEqual(['Reintento']);
+    expect(await protectMessages(['Reintento'], new AbortController().signal)).toMatchObject([
+      { text: 'Reintento' },
+    ]);
   });
 
   it('never initializes protection for an already cancelled request', async () => {
-    const { protectTexts } = await import('../apps/web/lib/pii');
+    const { protectMessages } = await import('../apps/web/lib/pii');
     const controller = new AbortController();
     controller.abort();
-    await expect(protectTexts(['Pregunta'], controller.signal)).rejects.toMatchObject({
+    await expect(protectMessages(['Pregunta'], controller.signal)).rejects.toMatchObject({
       name: 'AbortError',
     });
     expect(createGuard).not.toHaveBeenCalled();
@@ -80,17 +82,23 @@ describe('pii protection', () => {
         return { text: text.replace('Ana', '[GIVEN_NAME_1]') };
       }),
     );
-    const { protect } = await import('../apps/web/lib/pii');
-    expect(await protect('Soy Ana, DNI 12345678Z')).toBe('Soy [GIVEN_NAME_1], DNI [DNI omitido]');
+    const { protectMessages } = await import('../apps/web/lib/pii');
+    expect(
+      await protectMessages(['Soy Ana, DNI 12345678Z'], new AbortController().signal),
+    ).toMatchObject([{ text: 'Soy [GIVEN_NAME_1], DNI [DNI omitido]' }]);
     expect(seen).toEqual(['Soy Ana, DNI [DNI omitido]']);
   });
 
   it('fails closed when Rampart cannot load, then retries', async () => {
     createGuard.mockRejectedValueOnce(new Error('model unavailable'));
     createGuard.mockResolvedValue(guard(async (text) => ({ text })));
-    const { protect } = await import('../apps/web/lib/pii');
-    await expect(protect('Soy Ana')).rejects.toThrow('model unavailable');
-    expect(await protect('Soy Ana')).toBe('Soy Ana');
+    const { protectMessages } = await import('../apps/web/lib/pii');
+    await expect(protectMessages(['Soy Ana'], new AbortController().signal)).rejects.toThrow(
+      'model unavailable',
+    );
+    expect(await protectMessages(['Soy Ana'], new AbortController().signal)).toMatchObject([
+      { text: 'Soy Ana' },
+    ]);
   });
 
   it('fails closed when Rampart throws while protecting', async () => {
@@ -99,7 +107,9 @@ describe('pii protection', () => {
         throw new Error('inference failed');
       }),
     );
-    const { protect } = await import('../apps/web/lib/pii');
-    await expect(protect('Soy Ana')).rejects.toThrow('inference failed');
+    const { protectMessages } = await import('../apps/web/lib/pii');
+    await expect(protectMessages(['Soy Ana'], new AbortController().signal)).rejects.toThrow(
+      'inference failed',
+    );
   });
 });

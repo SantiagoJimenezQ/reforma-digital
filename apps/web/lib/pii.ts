@@ -12,9 +12,6 @@ export class ProtectionTimeoutError extends Error {
   }
 }
 // Browser only. Rejects if Rampart cannot load or run, so nothing is sent unprotected.
-export async function protect(text: string): Promise<string> {
-  return (await protectMessage(text)).text;
-}
 async function protectMessage(text: string): Promise<ProtectedText> {
   guard ??= import('@nationaldesignstudio/rampart').then((m) => m.createGuard());
   const current = guard;
@@ -31,9 +28,6 @@ async function protectMessage(text: string): Promise<ProtectedText> {
 }
 
 // Bound the whole batch, including model loading. Late results never reach fetch.
-export async function protectTexts(texts: string[], signal: AbortSignal): Promise<string[]> {
-  return (await protectMessages(texts, signal)).map((message) => message.text);
-}
 export async function protectMessages(
   texts: string[],
   signal: AbortSignal,
