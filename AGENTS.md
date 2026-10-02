@@ -42,7 +42,7 @@
 - Write commit and PR descriptions in Spanish, preserving technical identifiers. Example: `fix(chat): conserva la respuesta al cancelar la búsqueda`.
 - Keep one objective per PR and complete the [PR template](.github/pull_request_template.md). Link the relevant issue; use `Closes #N` only when the PR resolves it. Trivial changes do not require an issue solely for process.
 - Update the PR description when its scope changes. Identify material agent assistance and the verification performed.
-- Do not merge or deploy without authorization for that action. Respect GitHub's required checks and independent review; do not bypass them.
+- Do not merge or deploy without authorization for that action. Respect GitHub's required checks and any required reviews; do not bypass them.
 
 ## Delivery
 
