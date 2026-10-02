@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+  - sites/*
+allowBuilds:
+  esbuild: true
+  sharp: true
+  protobufjs: false
+  onnxruntime-node: false

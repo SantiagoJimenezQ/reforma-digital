@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "127.0.0.1:5442:5432"
+    environment:
+      POSTGRES_USER: gov
+      POSTGRES_PASSWORD: gov
+      POSTGRES_DB: gov
+    volumes:
+      - gov_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gov -d gov"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  gov_data:

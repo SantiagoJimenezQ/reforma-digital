@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@reforma-digital/bridge": "*",
-    "@reforma-digital/design": "*",
-    "@reforma-digital/react": "*",
-    "@reforma-digital/runtime": "*",
-    "@reforma-digital/site-dni": "*"
+    "@reforma-digital/bridge": "workspace:*",
+    "@reforma-digital/design": "workspace:*",
+    "@reforma-digital/react": "workspace:*",
+    "@reforma-digital/runtime": "workspace:*",
+    "@reforma-digital/site-dni": "workspace:*"
   }
 }

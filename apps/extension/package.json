@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@reforma-digital/design": "*",
-    "@reforma-digital/registry": "*",
-    "@reforma-digital/runtime": "*"
+    "@reforma-digital/design": "workspace:*",
+    "@reforma-digital/registry": "workspace:*",
+    "@reforma-digital/runtime": "workspace:*"
   }
 }

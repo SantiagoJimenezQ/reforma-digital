@@ -9,7 +9,8 @@ La extensión funciona localmente. Los formularios, las sesiones y las solicitud
 ```text
 apps/
   extension/                Extensión Chrome Manifest V3 y popup
-  landing/                  Web pública del proyecto (Astro)
+  web/                      Landing Next.js, /composer, API y evaluaciones
+  worker/                   Ingestión e indexación de fuentes oficiales
   playground/               Laboratorio local con datos ficticios
 packages/
   bridge/                   Conexiones con controles originales
@@ -24,7 +25,7 @@ sites/
   registro-asociaciones/    Consulta pública de asociaciones, experimental
 ```
 
-Cada portal es un workspace de npm y tiene la misma estructura:
+Cada portal es un workspace de pnpm y tiene la misma estructura:
 
 ```text
 sites/<portal>/
@@ -49,47 +50,58 @@ El build descubre `sites/*/site.config.json`. Solo incluye los portales con `ena
 
 ## Desarrollo
 
-Requiere Node.js 22.12 o posterior y npm. Desde la raíz:
+Requiere Node.js 22.18 o posterior y pnpm 11. Desde la raíz:
 
 ```sh
-npm ci
-npm run dev
+ppnpm install --frozen-lockfile
+pnpm dev:extension
 ```
 
 Abre el laboratorio en `http://127.0.0.1:4173`. Usa datos ficticios. Permite editar controles React y originales, comparar sus valores, restablecer el formulario y comprobar qué recibe el formulario original. No reserva citas.
 
 ```sh
-npm run check         # Tipos, estructura, pruebas y compilación
-npx playwright install chromium
-npm run test:e2e      # Pruebas de la extensión en Chromium
-npm run package      # ZIP instalable en artifacts/
+pnpm check         # Tipos, estructura, pruebas y compilación
+pnpm exec playwright install chromium
+pnpm test:e2e      # Pruebas de la extensión en Chromium
+pnpm package      # ZIP instalable en artifacts/
 ```
 
-La web pública del proyecto está en `apps/landing` (Astro, sin JavaScript de terceros ni fuentes remotas):
+La web pública y el buscador comparten una aplicación Next.js en `apps/web`. La portada presenta Reforma Digital como iniciativa y sus dos herramientas: un buscador de trámites y una extensión para mejorar las webs oficiales.
 
 ```sh
-npm run landing:dev     # http://127.0.0.1:4321
-npm run landing:build   # HTML estático en apps/landing/dist/
+pnpm dev               # http://localhost:3000
+pnpm landing:build     # Build de Next.js
+pnpm build:extension   # Extensión en dist/
 ```
+
+Rutas: `/` presenta la iniciativa, un composer compacto que se fija abajo al hacer scroll, y la extensión con una demo conmutable Original / Mejorada a su derecha, seguida de la participación. Al preguntar, el chat sustituye a la portada en la misma ruta; el logo vuelve al inicio y «Nueva conversación» abre un chat vacío. `/composer` conserva el mismo acceso por compatibilidad y `/chat` redirige a él. «Lee nuestra propuesta» baja a `/#iniciativa`; `/propuesta` redirige allí por compatibilidad. Las fuentes están en `/sources` y el laboratorio protegido en `/admin/evals`.
+
+El chat utiliza Web Search de OpenRouter con GPT-6 Luna y razonamiento high. Con `OPENROUTER_API_KEY` configurada, la web usa la búsqueda real; `SEARCH_MODE=preview` selecciona los ejemplos locales. PostgreSQL es opcional para feedback e informes. Consulta [la puesta en marcha, arquitectura y evaluaciones del buscador](docs/search.md). La extensión sigue funcionando localmente y no depende de estos servicios.
 
 Para trabajar con la web oficial real (ventana visible, un solo recorrido, nunca datos personales ni CAPTCHA):
 
 ```sh
-npm run site:live -- extranjeria      # Comprobaciones, capturas y fixtures desde la web real
-npm run site:record -- extranjeria    # Graba una visita para trabajar sin conexión
-npm run site:preview -- extranjeria   # Reproduce la grabación con la extensión y guarda capturas
+pnpm site:live -- extranjeria      # Comprobaciones, capturas y fixtures desde la web real
+pnpm site:record -- extranjeria    # Graba una visita para trabajar sin conexión
+pnpm site:preview -- extranjeria   # Reproduce la grabación con la extensión y guarda capturas
 ```
 
-Para cargarla en Chrome, ejecuta `npm run build`, abre `chrome://extensions`, activa el modo de desarrollador y elige **Cargar descomprimida** con la carpeta `dist/`. El build de pruebas `dist-test/` añade acceso al servidor local; no se distribuye.
+Para cargarla en Chrome, ejecuta `pnpm build`, abre `chrome://extensions`, activa el modo de desarrollador y elige **Cargar descomprimida** con la carpeta `dist/`. El build de pruebas `dist-test/` añade acceso al servidor local; no se distribuye.
 
 ## Añadir un portal
 
 ```sh
-npm run site:new -- nombre-del-portal
-npm install
+pnpm site:new -- nombre-del-portal
+pnpm install
 ```
 
 El generador crea un workspace completo y desactivado. También admite un dominio HTTPS exacto y un prefijo de ruta como segundo y tercer argumentos. Se desarrolla dentro de su carpeta y se activa en `site.config.json` cuando sus rutas y conexiones estén preparadas. Lee [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Migración local a Next.js
+
+La base de esta integración es `origin/main` (`d0807b5`). La landing de Astro se ha trasladado a componentes React en `apps/web/landing`; `/composer` conserva la interfaz del buscador. Los componentes interactivos mantienen los filtros y la selección compartida de la demo. El grupo `(search)` sirve la única portada y el buscador; la antigua página de propuesta se ha retirado.
+
+Validado: instalación con lockfile congelado, typecheck, 146 pruebas, build de Next.js y extensión, auditoría de bundle y revisión del navegador en escritorio y móvil, incluida una consulta real y su cita. El check de estructura heredado de `main` falla porque exige `sites/registro-asociaciones/src/components`, que no está versionado en esa base; no se ha modificado el check para ocultarlo. No se han ejecutado los E2E de la extensión en esta migración.
 
 ## Estado real
 

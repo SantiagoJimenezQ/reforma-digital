@@ -1,0 +1,7 @@
+{
+  "finalEvidenceCount": 8,
+  "generationModel": "openai/gpt-6-luna",
+  "judgeModel": "openai/gpt-6-luna",
+  "reasoningEffort": "high",
+  "promptVersion": "evidence-v2"
+}
