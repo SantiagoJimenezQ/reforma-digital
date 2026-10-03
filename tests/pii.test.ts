@@ -11,7 +11,10 @@ describe('pii protection', () => {
     vi.resetModules();
     createGuard.mockReset();
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   it('cancels a pending model load immediately and allows retry', async () => {
     let finish!: (value: unknown) => void;
@@ -96,6 +99,37 @@ describe('pii protection', () => {
     await expect(protectMessages(['Soy Ana'], new AbortController().signal)).rejects.toThrow(
       'model unavailable',
     );
+    expect(await protectMessages(['Soy Ana'], new AbortController().signal)).toMatchObject([
+      { text: 'Soy Ana' },
+    ]);
+  });
+
+  it('warms up once and reuses the loaded model on send', async () => {
+    createGuard.mockResolvedValue(guard(async (text) => ({ text })));
+    const { protectMessages, warm } = await import('../apps/web/lib/pii');
+    warm();
+    warm();
+    await protectMessages(['Soy Ana'], new AbortController().signal);
+    expect(createGuard).toHaveBeenCalledOnce();
+  });
+
+  it('does not warm up with data saver on, but still protects on send', async () => {
+    vi.stubGlobal('navigator', { connection: { saveData: true } });
+    createGuard.mockResolvedValue(guard(async (text) => ({ text })));
+    const { protectMessages, warm } = await import('../apps/web/lib/pii');
+    warm();
+    expect(createGuard).not.toHaveBeenCalled();
+    await protectMessages(['Soy Ana'], new AbortController().signal);
+    expect(createGuard).toHaveBeenCalledOnce();
+  });
+
+  it('retries on send after a failed warm-up', async () => {
+    createGuard.mockRejectedValueOnce(new Error('model unavailable'));
+    createGuard.mockResolvedValue(guard(async (text) => ({ text })));
+    const { protectMessages, warm } = await import('../apps/web/lib/pii');
+    warm();
+    await vi.waitFor(() => expect(createGuard).toHaveBeenCalledOnce());
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(await protectMessages(['Soy Ana'], new AbortController().signal)).toMatchObject([
       { text: 'Soy Ana' },
     ]);

@@ -6,6 +6,7 @@ import { ArrowDown, ArrowUp, ArrowUpRight, PanelsTopLeft, Search } from 'lucide-
 import { ProjectBrand } from './project-header';
 import { links } from '../landing/site';
 import Chat from './chat';
+import { warm } from '../lib/pii';
 import './explore-home.css';
 
 const organizations = [
@@ -124,7 +125,10 @@ export default function ExploreHome({ mode }: { mode: 'preview' | 'live' }) {
               aria-label="¿Qué necesitas hacer?"
               placeholder="Por ejemplo, ¿cómo me doy de alta como autónomo?"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                warm();
+                setQuery(event.target.value);
+              }}
               maxLength={1200}
               rows={2}
               onKeyDown={(event) => {
