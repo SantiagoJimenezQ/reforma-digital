@@ -76,7 +76,7 @@ body:has(.full-landing) {
 .full-hero h1 {
   margin: 0;
   font-family: var(--bg-font);
-  font-size: clamp(48px, 6vw, 88px);
+  font-size: clamp(40px, 5vw, 72px);
   font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.055em;
@@ -94,16 +94,17 @@ body:has(.full-landing) {
 }
 .hero-tagline {
   margin: 16px auto 0;
-  font-size: clamp(21px, 2.2vw, 32px);
+  font-size: clamp(18px, 1.8vw, 24px);
   line-height: 1.4;
   color: rgb(var(--bg-ink));
 }
 .hero-lead {
-  max-width: 860px;
-  margin: 24px auto 0;
+  position: relative;
+  max-width: 730px;
+  margin: 0 auto;
   font-size: 18px;
   line-height: 1.5;
-  color: rgb(var(--bg-ink-muted));
+  color: rgb(var(--bg-ink-inverse));
 }
 .hero-composer {
   display: grid;
@@ -113,7 +114,7 @@ body:has(.full-landing) {
   margin: 0;
   scroll-margin-top: 24px;
   padding: 8px 8px 8px 24px;
-  border: 1px solid rgb(var(--bg-ink));
+  border: 0;
   border-radius: 32px;
   background: rgb(var(--bg-surface));
 }
@@ -166,10 +167,14 @@ body:has(.full-landing) {
 }
 .hero-scene {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
   width: 100%;
   max-width: 1016px;
-  aspect-ratio: 2.5;
-  margin-top: 28px;
+  min-height: 406px;
+  margin-top: 40px;
   padding: 24px;
   overflow: hidden;
   border-radius: 32px;
@@ -177,11 +182,19 @@ body:has(.full-landing) {
 .hero-photo {
   position: absolute;
   inset: 0;
-  background: url('/madrid.jpg') center 52% / cover;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 15%,
+      rgb(var(--bg-ink) / 0.8) 50%,
+      rgb(var(--bg-ink) / 0.85)
+    ),
+    url('/madrid.jpg') center 52% / cover;
   filter: grayscale(1);
 }
 .hero-scene .hero-composer {
   position: relative;
+  width: 100%;
   max-width: 730px;
   margin: 0 auto;
   text-align: left;
@@ -418,7 +431,7 @@ body:has(.full-landing) {
     font-size: 16px;
   }
   .hero-scene {
-    aspect-ratio: 1.3;
+    min-height: 280px;
     padding: 12px;
     border-radius: 24px;
   }
