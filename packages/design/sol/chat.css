@@ -658,12 +658,6 @@
 .chat-source-list {
   margin-top: var(--e-32);
 }
-.chat-source > .chat-source-list {
-  margin-top: var(--e-32);
-}
-.chat-sheet-view > .chat-source-list:first-child {
-  margin-top: 0;
-}
 .chat-source-list h3 {
   margin: 0 0 var(--e-8);
   color: var(--tinta-2);

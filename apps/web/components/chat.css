@@ -71,7 +71,7 @@ html:has(.chat-page) {
 .chat-hidden-datum:focus-visible .chat-hidden-tooltip {
   visibility: visible;
 }
-.chat-user:has(.chat-hidden-datum:focus-visible)
+.chat-question:has(.chat-hidden-datum:focus-visible)
   .chat-hidden-datum:not(:focus-visible)
   .chat-hidden-tooltip {
   visibility: hidden;
@@ -139,16 +139,6 @@ html:has(.chat-page) {
 }
 .chat-bottom {
   height: calc(var(--chat-dock-height, 160px) + 24px);
-}
-.chat-assistant :where(img, video) {
-  max-width: 100%;
-  height: auto;
-}
-.chat-assistant :where(table),
-.chat-assistant :where(pre) {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
 }
 .chat-empty {
   padding-top: 80px;

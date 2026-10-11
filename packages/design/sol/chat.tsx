@@ -280,7 +280,7 @@ export function SourceChip({
 }
 
 /** Organisation monogram. Drawn locally, so no request reveals which sources were consulted. */
-export function Monogram({ name }: { name: string }) {
+function Monogram({ name }: { name: string }) {
   const initials =
     name
       .split(/\s+/)

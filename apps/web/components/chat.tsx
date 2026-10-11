@@ -370,7 +370,7 @@ export default function Chat({
     e?.preventDefault();
     send(input);
   }
-  function openCoverage(regionId: string | null = null) {
+  function openCoverage(regionId: string) {
     setCoverageRegionId(regionId);
     setCoverageOpened(true);
     coverageDialog.current?.showModal();
