@@ -1,7 +1,28 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defaultConfig } from '../packages/core/src/index';
-import { languageModel } from '../packages/ai/src/models';
+import { languageModel, streamElements } from '../packages/ai/src/models';
+import { segmentSchema } from '../packages/ai/src/stream-answer';
 import { recordUsage, usageContext, usageSummary } from '../packages/ai/src/usage';
+type JsonSchema = {
+  properties?: Record<string, JsonSchema>;
+  required?: string[];
+  items?: JsonSchema;
+};
+/** Object schemas whose keys are not all required, which OpenAI strict mode rejects. */
+function looseObjects(schema: JsonSchema, path = '$'): string[] {
+  const own =
+    schema.properties &&
+    Object.keys(schema.properties).some((key) => !schema.required?.includes(key))
+      ? [path]
+      : [];
+  return [
+    ...own,
+    ...Object.entries(schema.properties ?? {}).flatMap(([key, child]) =>
+      looseObjects(child, `${path}.${key}`),
+    ),
+    ...(schema.items ? looseObjects(schema.items, `${path}[]`) : []),
+  ];
+}
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
@@ -44,6 +65,29 @@ describe('OpenRouter transport', () => {
     expect(request.model).toBe('openai/gpt-6-luna');
     expect(request.reasoning).toEqual({ effort: 'high', exclude: true });
     expect(request.provider).toEqual({ require_parameters: true });
+  });
+  it('sends an answer block schema that OpenAI strict structured outputs accept', async () => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
+    let request: { response_format?: { json_schema?: { schema?: JsonSchema } } } = {};
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_input, init) => {
+        request = JSON.parse(init.body);
+        return Response.json({ error: { message: 'stop', code: 400 } }, { status: 400 });
+      }),
+    );
+    await streamElements(
+      segmentSchema,
+      'test',
+      {},
+      defaultConfig.generationModel,
+      async (items) => {
+        for await (const _ of items);
+      },
+    ).catch(() => {});
+    const schema = request.response_format?.json_schema?.schema;
+    expect(schema).toBeDefined();
+    expect(looseObjects(schema!)).toEqual([]);
   });
 });
 describe('OpenRouter accounting', () => {
