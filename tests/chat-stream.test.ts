@@ -21,6 +21,7 @@ const evidence: Evidence = {
 const segment: AnswerSegment = {
   kind: 'step',
   text: evidence.content,
+  figure: null,
   citations: [{ documentId: 'd1', chunkId: 'c1' }],
 };
 async function* elements(values: AnswerSegment[]) {

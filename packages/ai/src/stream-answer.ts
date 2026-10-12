@@ -16,7 +16,8 @@ import { trace } from './trace';
 export const segmentSchema = z.object({
   kind: z.enum([...claimKinds, 'insufficient_evidence', 'needs_clarification']),
   text: z.string().min(1).max(900),
-  figure: z.string().max(48).optional(),
+  // OpenAI strict structured outputs require every key; absence must be null, never optional.
+  figure: z.string().max(48).nullable(),
   citations: z.array(z.object({ documentId: z.string(), chunkId: z.string() })).max(6),
 });
 
@@ -28,7 +29,7 @@ const blockRules = `Cada bloque se muestra con un componente según su kind:
 - deadline: plazo destacado. Rellena figure con el plazo copiado literalmente del texto (por ejemplo «30 días hábiles»).
 - warning: aviso que la persona debe leer antes de actuar (requisito excluyente, plazo improrrogable, consecuencia de no hacerlo). Como máximo uno por respuesta.
 - fact: párrafo para cualquier otro dato.
-figure solo se usa en cost y deadline, debe aparecer tal cual dentro de text y nunca resume ni redondea. Si no hay una cifra literal, omite figure.`;
+figure solo se usa en cost y deadline, debe aparecer tal cual dentro de text y nunca resume ni redondea. En el resto de casos, o si no hay una cifra literal, figure es null.`;
 export type AnswerSegment = z.infer<typeof segmentSchema>;
 
 /** Publish only a completed, structurally valid and independently supported claim. */
@@ -70,7 +71,7 @@ export async function collectVerifiedClaims(
       segment.kind === 'warning' && answer.claims.some((c) => c.kind === 'warning')
         ? 'fact'
         : segment.kind;
-    const figure = verbatimFigure(kind, segment.text, segment.figure);
+    const figure = verbatimFigure(kind, segment.text, segment.figure ?? undefined);
     const claim = { id, kind, text: segment.text, ...(figure ? { figure } : {}) };
     const citations = resolveCitationText(
       segment.citations.map((c) => ({ ...c, claimId: id })),
