@@ -130,9 +130,6 @@ export function Contribution() {
             </div>
           </div>
         </form>
-        <div className="in-issue-pie">
-          <span>Ejemplo de una propuesta</span>
-        </div>
       </div>
     </div>
   );

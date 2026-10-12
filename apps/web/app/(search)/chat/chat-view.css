@@ -155,6 +155,10 @@
   .buscador .chat-page:has(.chat-empty) .chat-conversation {
     padding-top: var(--e-48);
   }
+  .buscador .bs-nueva {
+    width: 44px;
+    padding: 0;
+  }
   .bs-nueva span {
     position: absolute;
     width: 1px;
