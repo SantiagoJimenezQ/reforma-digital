@@ -5,8 +5,6 @@ import {
   IconBookOpenOutline18,
   IconCalendarOutline18,
   IconCheckOutline18,
-  IconChevronLeftOutline18,
-  IconChevronRightOutline18,
   IconCircleCompose2Outline18,
   IconCircleInfoOutline18,
   IconClipboardOutline18,
@@ -59,8 +57,6 @@ const arrow = (d: string) =>
 const iconos = {
   arrowUp: arrow('M9 15V3.5M4 8.25 9 3.25l5 5'),
   arrowUpRight: arrow('M5 13 13 5M6.5 5H13v6.5'),
-  chevronLeft: IconChevronLeftOutline18,
-  chevronRight: IconChevronRightOutline18,
   paperclip: IconPaperclipOutline18,
   detener: Detener,
   descargar: IconInboxArrowDownOutline18,
@@ -88,10 +84,13 @@ const iconos = {
   telefono: IconPhoneOutline18,
 } satisfies Record<string, Svg>;
 
-export type IconName = keyof typeof iconos | 'enviar' | 'abajo' | 'derecha';
+const pixelTurn = { derecha: 0, abajo: 90, izquierda: 180, enviar: -90 } as const;
+
+export type IconName = keyof typeof iconos | keyof typeof pixelTurn;
+const isPixel = (name: IconName): name is keyof typeof pixelTurn => name in pixelTurn;
 
 export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
-  if (name === 'enviar' || name === 'abajo' || name === 'derecha') {
+  if (isPixel(name)) {
     return (
       <svg
         className="icono"
@@ -103,7 +102,7 @@ export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
         aria-hidden="true"
       >
         <path
-          transform={`rotate(${name === 'abajo' ? 90 : name === 'enviar' ? -90 : 0} 8 8)`}
+          transform={`rotate(${pixelTurn[name]} 8 8)`}
           d="M4 0h3v3H4zM7 3h3v3H7zM10 6h3v3h-3zM7 9h3v3H7zM4 12h3v3H4z"
         />
       </svg>

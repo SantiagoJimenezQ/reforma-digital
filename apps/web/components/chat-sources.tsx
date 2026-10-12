@@ -35,7 +35,7 @@ export function Sources({
       key={e.chunkId}
       title={e.title}
       meta={`${host(e.canonicalUrl)} · Fragmento ${evidence.indexOf(e) + 1}`}
-      icon={<Icon name="chevronRight" size={16} />}
+      icon={<Icon name="derecha" size={14} />}
       onOpen={() => onSelect(e)}
     />
   );
@@ -48,7 +48,7 @@ export function Sources({
       back={
         selected && (
           <button type="button" className="chat-sheet-back" onClick={() => onSelect()}>
-            <Icon name="chevronLeft" size={14} />
+            <Icon name="izquierda" size={12} />
             Todas las fuentes
           </button>
         )
