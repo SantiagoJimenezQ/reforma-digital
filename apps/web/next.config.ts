@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { config as loadEnv } from 'dotenv';
 loadEnv({ path: fileURLToPath(new URL('../../.env', import.meta.url)), quiet: true });
 import type { NextConfig } from 'next';
+import { withBotId } from 'botid/next/config';
 const config: NextConfig = {
   transpilePackages: [
     '@reforma-digital/core',
@@ -13,6 +14,12 @@ const config: NextConfig = {
   ],
   serverExternalPackages: ['postgres', '@langfuse/otel', '@opentelemetry/sdk-node'],
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      new URL('https://avatars.githubusercontent.com/u/*?s=640'),
+      new URL('https://avatars.githubusercontent.com/u/*?s=160'),
+    ],
+  },
   redirects() {
     return [
       { source: '/explorar', destination: '/chat', permanent: true },
@@ -20,4 +27,4 @@ const config: NextConfig = {
     ];
   },
 };
-export default config;
+export default withBotId(config);
