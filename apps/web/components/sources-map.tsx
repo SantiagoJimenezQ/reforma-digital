@@ -1,7 +1,8 @@
 'use client';
 
+import { Button } from '@reforma-digital/design/sol';
 import { sources } from '@reforma-digital/government';
-import { ExternalLink } from '@reforma-digital/design';
+import { Icon } from './sol/icon';
 import { sourceBand, sourceCoverage } from '../lib/source-coverage';
 import './sources-map.css';
 
@@ -116,7 +117,15 @@ export default function SourcesMap({
                 <ul>
                   {selected.sources.map((source) => (
                     <li key={source.id}>
-                      <ExternalLink href={source.baseUrl}>{source.name}</ExternalLink>
+                      <a
+                        href={source.baseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="enlace"
+                      >
+                        {source.name} <Icon name="derecha" size={16} />
+                        <span className="sr-only"> (se abre en una pestaña nueva)</span>
+                      </a>
                     </li>
                   ))}
                 </ul>
@@ -133,9 +142,9 @@ export default function SourcesMap({
       <ul className="sources-map-list" aria-label="Comunidades y ciudades autónomas">
         {coverage.regions.map((region) => (
           <li key={region.id}>
-            <button
+            <Button
               type="button"
-              className="bg-btn bg-btn-secondary"
+              variant="ghost"
               aria-pressed={selectedId === region.id}
               aria-controls="sources-map-detail"
               onClick={() => onSelect(region.id)}
@@ -145,7 +154,7 @@ export default function SourcesMap({
                 {region.sources.length}
                 <span className="sr-only"> fuentes</span>
               </span>
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

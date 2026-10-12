@@ -15,9 +15,15 @@
       "types": "./postcss.d.ts",
       "default": "./postcss.js"
     },
-    "./themes/*": "./themes/*"
+    "./themes/*": "./themes/*",
+    "./sol": "./sol/components.tsx",
+    "./sol/*": "./sol/*",
+    "./sol/chat": "./sol/chat.tsx"
   },
   "peerDependencies": {
     "react": "19.2.8"
+  },
+  "dependencies": {
+    "streamdown": "2.7.0"
   }
 }
