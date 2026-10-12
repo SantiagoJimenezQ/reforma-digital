@@ -1,0 +1,78 @@
+.in-nav {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0;
+  padding: 0 max(0px, calc((100% - var(--ancho)) / 2));
+}
+.in-nav > a {
+  display: flex;
+  align-items: center;
+  padding: var(--e-12) var(--e-24);
+}
+.in-nav nav a {
+  padding-inline: var(--e-24);
+}
+.in-nav nav,
+.in-nav nav a,
+.in-enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--e-8);
+}
+.in-nav nav {
+  align-items: stretch;
+  gap: 0;
+}
+.in-nav a,
+.in-enlace {
+  min-height: 44px;
+}
+/* La acción es una píldora, no una celda. */
+.in-nav nav > .boton-claro {
+  flex: none;
+  align-self: center;
+  margin-inline-end: var(--e-24);
+  padding-inline: var(--e-20);
+}
+
+@media (max-width: 800px) {
+  .in-nav nav {
+    font-size: 14px;
+  }
+  .in-nav nav a {
+    padding-inline: var(--e-16);
+  }
+}
+@media (max-width: 480px) {
+  .in-nav {
+    position: relative;
+    flex-wrap: wrap;
+  }
+  .in-nav > a {
+    width: 100%;
+    padding: var(--e-12) var(--e-20);
+  }
+  .in-nav nav {
+    width: 100%;
+  }
+  .in-nav nav a {
+    flex: 1;
+    justify-content: center;
+    padding-inline: var(--e-8);
+  }
+  /* La píldora sube a la fila de la marca (36 px + 2 × 12 de relleno) y deja la segunda a los enlaces. */
+  .in-nav nav > .boton-claro {
+    position: absolute;
+    top: var(--e-8);
+    right: var(--e-20);
+    margin: 0;
+  }
+}
+@media (max-width: 360px) {
+  .in-nav nav a {
+    padding-inline: var(--e-4);
+  }
+}

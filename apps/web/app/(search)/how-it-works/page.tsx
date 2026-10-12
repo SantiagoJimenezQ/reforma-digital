@@ -1,9 +1,28 @@
 import type { Metadata } from 'next';
-import { PaginaInformativa } from '../../../components/sol/pagina-informativa';
-export const metadata: Metadata = { title: 'Cómo funciona · Reforma Digital' };
+import { InfoPage } from '../../../components/sol/info-page';
+import { JsonLd } from '../../../components/json-ld';
+import { breadcrumbs, pageMetadata, webPage } from '../../../lib/seo';
+
+const title = 'Cómo funciona el buscador de trámites · Reforma Digital';
+const description =
+  'De la pregunta al trámite: cómo buscamos evidencias en fuentes oficiales, citamos cada afirmación y te llevamos a la sede oficial para completar tu trámite.';
+
+export const metadata: Metadata = pageMetadata({
+  title,
+  description,
+  path: '/how-it-works',
+  og: 'como-funciona',
+});
+
+const graph = [
+  webPage({ name: title, description, path: '/how-it-works' }),
+  breadcrumbs('Cómo funciona', '/how-it-works'),
+];
+
 export default function How() {
   return (
-    <PaginaInformativa lectura>
+    <InfoPage narrow>
+      <JsonLd graph={graph} />
       <span className="t-etiqueta info-etiqueta">MENOS BUROCRACIA. MÁS CLARIDAD.</span>
       <h1>De la pregunta al trámite.</h1>
       <p className="info-entradilla">
@@ -46,6 +65,6 @@ export default function How() {
         información o explicamos la limitación. Una respuesta con IA puede contener errores:
         comprueba el documento oficial antes de presentar tu trámite.
       </p>
-    </PaginaInformativa>
+    </InfoPage>
   );
 }
