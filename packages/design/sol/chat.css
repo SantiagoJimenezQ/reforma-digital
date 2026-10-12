@@ -555,6 +555,9 @@
 .chat-sheet-bar > :last-child {
   margin-left: auto;
 }
+.chat-sheet-handle {
+  display: none;
+}
 .chat-sheet-back,
 .chat-sheet-close {
   display: inline-flex;
@@ -753,6 +756,21 @@
     .chat-sheet[open] {
       transform: translateY(100%);
     }
+  }
+  /* The bar is the drag area: the browser must not pan it, and the handle shows it can move. */
+  .chat-sheet-bar {
+    touch-action: none;
+    cursor: grab;
+  }
+  .chat-sheet-handle {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: calc(50% - 18px);
+    width: 36px;
+    height: 4px;
+    border-radius: var(--r-pildora);
+    background: var(--apagado);
   }
   .chat-sheet-inner {
     padding-bottom: max(var(--e-32), env(safe-area-inset-bottom));

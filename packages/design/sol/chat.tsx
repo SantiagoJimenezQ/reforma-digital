@@ -6,6 +6,7 @@ import {
   useState,
   type ComponentProps,
   type CSSProperties,
+  type PointerEvent,
   type ReactNode,
 } from 'react';
 import { Streamdown, type Components, type ExtraProps } from 'streamdown';
@@ -423,6 +424,52 @@ export function SourceSheet({
     if (open && !el?.open) el?.showModal();
     if (!open && el?.open) el.close();
   }, [open]);
+  // Bottom sheet only: dragging the top bar down closes it; content keeps its own scroll.
+  const drag = useRef<{ id: number; y: number; t: number; dy: number; moved: boolean } | null>(
+    null,
+  );
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (drag.current || !matchMedia('(max-width: 760px)').matches) return;
+    drag.current = {
+      id: event.pointerId,
+      y: event.clientY,
+      t: event.timeStamp,
+      dy: 0,
+      moved: false,
+    };
+    // Touch is captured implicitly; a mouse needs it to keep the drag once it leaves the bar.
+    // Buttons capture on the first move instead, so a plain press still reaches them.
+    if (event.target instanceof Element && !event.target.closest('button'))
+      event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const el = dialog.current;
+    if (!d || !el || event.pointerId !== d.id) return;
+    d.dy = event.clientY - d.y;
+    if (!d.moved) {
+      if (Math.abs(d.dy) < 4) return;
+      // Captured, the release lands on the bar, so a drag never also presses back or close.
+      d.moved = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      el.style.transition = 'none';
+    }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Down follows the finger; up meets growing resistance instead of a hard stop.
+    el.style.transform = `translateY(${d.dy > 0 ? d.dy : -3 * Math.sqrt(-d.dy)}px)`;
+  };
+  const onPointerEnd = (event: PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const el = dialog.current;
+    if (!d || event.pointerId !== d.id) return;
+    drag.current = null;
+    if (!el || !d.moved) return;
+    // A quick flick is enough; a slow drag has to cover a quarter of the sheet.
+    if (d.dy > el.offsetHeight / 4 || d.dy / (event.timeStamp - d.t) > 0.11) el.close();
+    // Cleared after close() so the transition runs from the finger to the closed or open state.
+    el.style.transform = '';
+    el.style.transition = '';
+  };
   return (
     <dialog
       ref={dialog}
@@ -435,7 +482,14 @@ export function SourceSheet({
       }}
     >
       <div className="chat-sheet-inner">
-        <div className="chat-sheet-bar">
+        <div
+          className="chat-sheet-bar"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+        >
+          <span className="chat-sheet-handle" aria-hidden="true" />
           {back}
           {close}
         </div>
