@@ -13,7 +13,6 @@ export const coreTeam = [
   { name: 'Leo', login: 'mrloldev', id: 65485999 },
   { name: 'Samu', login: 'samuelcorsan', id: 120322525 },
   { name: 'Pablo', login: 'pdepablocom', id: 262992558 },
-  { name: 'Alex Cerezo', login: 'alexcerezo', id: 92682715 },
   { name: 'Roger', login: 'rogerkernel', id: 45967941 },
 ];
 

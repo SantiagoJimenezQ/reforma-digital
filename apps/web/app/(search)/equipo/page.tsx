@@ -63,7 +63,7 @@ export default async function CoreTeamPage() {
                         src={`https://avatars.githubusercontent.com/u/${id}?s=640`}
                         width={640}
                         height={640}
-                        sizes="(max-width: 600px) 100vw, (max-width: 1200px) 20vw, 240px"
+                        sizes="(max-width: 600px) 100vw, (max-width: 1200px) 25vw, 300px"
                         alt=""
                         loading="eager"
                         fetchPriority={index === 0 ? 'high' : undefined}
