@@ -48,13 +48,23 @@
   margin-inline: auto;
   --foco: var(--tinta);
 }
+/* Píldora translúcida sobre el hero. La capa de hover suma un 30 %: queda en torno al 55 % de blanco. */
+.in-hero .in-hero-enlace {
+  background: color-mix(in oklch, var(--blanco) 35%, transparent);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.in-hero .in-hero-enlace::before {
+  background: color-mix(in oklch, var(--blanco) 30%, transparent);
+}
 .in-seccion {
   padding-block: var(--e-96) 0;
   scroll-margin-top: var(--e-24);
 }
 .in-etiqueta {
   margin-bottom: var(--e-20);
-  color: var(--tinta-2);
+  color: var(--rojo);
 }
 .in-manifiesto {
   display: grid;
@@ -109,13 +119,13 @@
 }
 .in-proyecto-tipo {
   justify-self: start;
-  font-family: var(--font-texto);
-  padding: var(--e-8) var(--e-12);
-  border-radius: var(--r-pildora);
-  background: color-mix(in oklch, var(--blanco) 70%, transparent);
-  font-size: 14px;
+  color: var(--rojo);
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .in-acciones {
   display: flex;
@@ -132,8 +142,8 @@
   font-weight: 500;
   line-height: 1.4;
 }
-/* Móvil: etiqueta, título, texto, acción y escena comparten el borde izquierdo; la etiqueta va
-   sin cápsula y la de «Coming soon» queda pegada a ella. */
+/* Móvil: etiqueta, título, texto, acción y escena comparten el borde izquierdo; la de «Coming
+   soon» queda pegada a la etiqueta. */
 @media (max-width: 959px) {
   .in-proyectos .rc-paso-texto {
     gap: var(--e-12);
@@ -143,10 +153,6 @@
   }
   .in-proyectos .rc-paso-texto > .in-acciones:first-child {
     column-gap: var(--e-12);
-  }
-  .in-proyecto-tipo {
-    padding: 0;
-    background: none;
   }
 }
 .in-elecciones {
@@ -199,7 +205,7 @@
 }
 .in-contribuir {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   align-items: center;
   gap: var(--e-64);
   margin-top: var(--e-48);
@@ -226,7 +232,6 @@
   color: var(--tinta-2);
 }
 .in-colaboracion {
-  position: relative;
   display: block;
   container-type: inline-size;
   overflow: hidden;
@@ -235,22 +240,12 @@
   color: var(--blanco);
   --foco: var(--rojo);
 }
-.in-colaboracion::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(color-mix(in oklch, var(--blanco) 12%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklch, var(--blanco) 12%, transparent) 1px, transparent 1px);
-  background-size: 64px 64px;
-}
 .in-colaboracion-composicion {
-  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 535px;
-  padding: var(--e-32);
+  min-height: 600px;
+  padding: var(--e-48);
 }
 .in-issue {
   --in-gh-tinta: #1f2328;
@@ -265,7 +260,7 @@
   box-shadow: var(--sombra-flota);
   color: var(--in-gh-tinta);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.5;
 }
 .in-issue-demo {
@@ -275,26 +270,26 @@
   display: flex;
   align-items: center;
   gap: var(--e-8);
-  padding: var(--e-8) var(--e-16);
+  padding: var(--e-12) var(--e-24);
   border-bottom: 1px solid var(--in-gh-linea);
   background: var(--in-gh-fondo);
 }
 .in-issue-repo .t-dato {
   margin-left: auto;
   color: var(--in-gh-gris);
-  font-size: 11px;
+  font-size: 12px;
 }
 .in-issue-formulario {
   position: relative;
   display: grid;
-  gap: var(--e-12);
-  padding: var(--e-16);
+  gap: var(--e-16);
+  padding: var(--e-24);
 }
 .in-issue-titulo {
   display: flex;
   align-items: center;
   gap: var(--e-8);
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -361,7 +356,7 @@
   margin-left: auto;
 }
 .in-issue-editor > .in-issue-descripcion {
-  min-height: 110px;
+  min-height: 140px;
   padding: var(--e-12);
   resize: vertical;
 }
@@ -412,20 +407,6 @@
   bottom: var(--e-20);
   opacity: 0;
   pointer-events: none;
-}
-.in-issue-pie {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-8);
-  margin-top: var(--e-8);
-  font-size: 12px;
-}
-.in-issue-pie > span {
-  padding: var(--e-4) var(--e-8);
-  border-radius: var(--r-12);
-  background: var(--blanco);
-  color: var(--tinta);
 }
 @media (prefers-reduced-motion: no-preference) {
   .in-issue-demo[data-animada] .in-issue-escritura {
