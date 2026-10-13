@@ -1,3 +1,4 @@
+import { Button } from '@reforma-digital/design/ui/button';
 import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
 import { useBridge } from '@reforma-digital/react';
 import type { SitePage } from '@reforma-digital/registry';
@@ -10,7 +11,7 @@ import {
   SecondaryAction,
   SectionTitle,
 } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { aeatLayout } from '../../components/panels';
 import { OUT_OF_SCOPE_FROM, STEPS } from '../../components/steps';
 import { asistenciaBindings, type AsistenciaBindings } from './bindings';
@@ -38,7 +39,7 @@ export const asistenciaPage: SitePage = {
       title: 'Asistencia y Cita',
       description: 'Agencia Tributaria · Tipo de cita',
       page: 'asistencia',
-      pageStyles,
+      pageClassName,
       slots: [],
       ...aeatLayout(bindings.title, bindings.description, bridge, () => (
         <Asistencia bindings={bindings} restore={restore} />
@@ -89,16 +90,31 @@ function Asistencia({ bindings, restore }: { bindings: AsistenciaBindings; resto
               key={option.label}
               className="flex flex-col rounded-control border border-line p-4"
             >
-              <p className="bg-h3">{option.label}</p>
-              {option.access && <p className="bg-hint mt-1 flex-1">{ACCESS[option.access]}</p>}
-              <button
+              <p
+                className={
+                  'bg-h3 [font-size:17px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))]'
+                }
+              >
+                {option.label}
+              </p>
+              {option.access && (
+                <p
+                  className={
+                    'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-1 flex-1'
+                  }
+                >
+                  {ACCESS[option.access]}
+                </p>
+              )}
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => go(`gestion${i}`)}
-                className="bg-btn bg-btn-secondary mt-4 w-full"
+                className={'mt-4 w-full'}
               >
                 Continuar
                 <span aria-hidden="true">→</span>
-              </button>
+              </Button>
               {option.help && (
                 <p className="mt-2 text-[14px]">
                   <ExternalLink href={option.help.href}>Tutorial oficial</ExternalLink>

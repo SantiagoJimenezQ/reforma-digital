@@ -1,5 +1,14 @@
-import { Surface, Disclosure, Button, Tabs, Field } from '@reforma-digital/design/sol';
-import { Icon } from '../sol/icon';
+import { cn } from '@reforma-digital/design/lib/utils';
+import { Card } from '@reforma-digital/design/ui/card';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@reforma-digital/design/ui/collapsible';
+import { buttonVariants, Button } from '@reforma-digital/design/ui/button';
+import { Input } from '@reforma-digital/design/ui/input';
+
+import { Icon } from '../brand/icon';
 import {
   quotesSchema,
   proposalsSchema,
@@ -52,7 +61,11 @@ export async function Explore({
           ]}
         />
         <AI>
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {week.citas.map((c, i) => (
               <blockquote key={i}>
                 «{c.cita}»
@@ -70,17 +83,29 @@ export async function Explore({
           <Votes votes={data.votaciones.filter((v) => week.votaciones.includes(v.id))} />
         </Section>
         <Section title="Otras semanas">
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {weeks
               .slice()
               .reverse()
               .map((w) => (
-                <Surface asChild key={w.id}>
-                  <Link className="cg-card" href={href(`semana/${w.id}`)}>
-                    <time dateTime={w.desde}>{date(w.desde)}</time>
-                    <h3>{w.titular}</h3>
-                  </Link>
-                </Surface>
+                <Card
+                  key={w.id}
+                  render={
+                    <Link
+                      className={
+                        'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                      }
+                      href={href(`semana/${w.id}`)}
+                    />
+                  }
+                >
+                  <time dateTime={w.desde}>{date(w.desde)}</time>
+                  <h3>{w.titular}</h3>
+                </Card>
               ))}
           </div>
         </Section>
@@ -108,16 +133,39 @@ export async function Explore({
     );
     content = (
       <>
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {lines.slice((page - 1) * 24, page * 24).map((line, i) => (
-            <Surface asChild key={i}>
-              <article className="cg-card">
-                <span className="t-etiqueta">
-                  {line.topic} · {line.group}
-                </span>
-                <h3>{line.titulo}</h3>
-                <p>{line.n} menciones</p>
-                <Disclosure title="Ejemplos en los Diarios" icon={<Icon name="abajo" size={16} />}>
+            <Card
+              key={i}
+              render={
+                <article
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                />
+              }
+            >
+              <span
+                className={
+                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                }
+              >
+                {line.topic} · {line.group}
+              </span>
+              <h3>{line.titulo}</h3>
+              <p>{line.n} menciones</p>
+              <Collapsible>
+                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                  <span>{'Ejemplos en los Diarios'}</span>
+                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                    {<Icon name="abajo" size={16} />}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
                   {line.ejemplos.map(([text, speaker, session, day], j) => (
                     <blockquote key={j}>
                       {text}
@@ -129,9 +177,9 @@ export async function Explore({
                       </footer>
                     </blockquote>
                   ))}
-                </Disclosure>
-              </article>
-            </Surface>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
           ))}
         </div>
         <Pagination page={page} total={lines.length} params={{ q: query, vista: selected }} />
@@ -140,22 +188,47 @@ export async function Explore({
   } else if (selected === 'contesta') {
     const data = await read('explora-contesta.json', responsesSchema);
     content = (
-      <div className="cg-grid">
+      <div
+        className={
+          'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+        }
+      >
         {data.ministros
           .filter((m) => `${m.orador} ${m.rol}`.toLowerCase().includes(query.toLowerCase()))
           .map((m) => (
-            <Surface asChild key={m.orador}>
-              <article className="cg-card">
-                <span className="t-etiqueta">{m.rol}</span>
-                <h3>{m.orador}</h3>
-                <Stats
-                  items={[
-                    [m.si, 'Contesta'],
-                    [m.parcial, 'Parcialmente'],
-                    [m.no, 'No contesta'],
-                  ]}
+            <Card
+              key={m.orador}
+              render={
+                <article
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
                 />
-                <Disclosure title="Consultar los casos" icon={<Icon name="abajo" size={16} />}>
+              }
+            >
+              <span
+                className={
+                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                }
+              >
+                {m.rol}
+              </span>
+              <h3>{m.orador}</h3>
+              <Stats
+                items={[
+                  [m.si, 'Contesta'],
+                  [m.parcial, 'Parcialmente'],
+                  [m.no, 'No contesta'],
+                ]}
+              />
+              <Collapsible>
+                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                  <span>{'Consultar los casos'}</span>
+                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                    {<Icon name="abajo" size={16} />}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
                   {m.casos.map(([day, session, response, reason], i) => (
                     <p key={i}>
                       <b>{response}</b> · {reason}{' '}
@@ -164,9 +237,9 @@ export async function Explore({
                       </Link>
                     </p>
                   ))}
-                </Disclosure>
-              </article>
-            </Surface>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
           ))}
       </div>
     );
@@ -177,27 +250,56 @@ export async function Explore({
       .sort(([, a], [, b]) => b.n - a.n);
     content = (
       <>
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {topics.slice((page - 1) * 24, page * 24).map(([id, t]) => (
-            <Surface asChild key={id}>
-              <article className="cg-card">
-                <h3>{t.tema}</h3>
-                <p>
-                  {t.n} menciones · desde {date(t.primera)}
-                </p>
-                <div className="cg-spark" role="img" aria-label={`${t.n} menciones, por semanas`}>
-                  {t.serie.map((n, i) => (
+            <Card
+              key={id}
+              render={
+                <article
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                />
+              }
+            >
+              <h3>{t.tema}</h3>
+              <p>
+                {t.n} menciones · desde {date(t.primera)}
+              </p>
+              <div
+                className={
+                  'cg-spark h-16 flex items-end [gap:1px] [&_>_span]:[flex:1] [&_>_span]:[background:var(--brand)]'
+                }
+                role="img"
+                aria-label={`${t.n} menciones, por semanas`}
+              >
+                {t.serie.map((n, i) => (
+                  <span
+                    key={i}
+                    style={{ height: `${Math.max(2, (n / Math.max(1, ...t.serie)) * 100)}%` }}
+                  >
                     <span
-                      key={i}
-                      style={{ height: `${Math.max(2, (n / Math.max(1, ...t.serie)) * 100)}%` }}
+                      className={
+                        'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+                      }
                     >
-                      <span className="sr-only">
-                        Semana {i + 1}: {n}
-                      </span>
+                      Semana {i + 1}: {n}
                     </span>
-                  ))}
-                </div>
-                <Disclosure title="Recuentos por semana" icon={<Icon name="abajo" size={16} />}>
+                  </span>
+                ))}
+              </div>
+              <Collapsible>
+                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                  <span>{'Recuentos por semana'}</span>
+                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                    {<Icon name="abajo" size={16} />}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
                   <ol>
                     {t.serie.map((n, i) => (
                       <li key={i}>
@@ -205,9 +307,9 @@ export async function Explore({
                       </li>
                     ))}
                   </ol>
-                </Disclosure>
-              </article>
-            </Surface>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
           ))}
         </div>
         <Pagination page={page} total={topics.length} params={{ q: query, vista: selected }} />
@@ -219,21 +321,32 @@ export async function Explore({
     );
     content = (
       <>
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {quotes
             .slice((page - 1) * 24, page * 24)
             .map(([text, speaker, group, session, day], i) => (
-              <Surface asChild key={i}>
-                <blockquote className="cg-card">
-                  «{text}»
-                  <footer>
-                    {speaker} · {group} ·{' '}
-                    <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                      {date(day)}
-                    </Link>
-                  </footer>
-                </blockquote>
-              </Surface>
+              <Card
+                key={i}
+                render={
+                  <blockquote
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                «{text}»
+                <footer>
+                  {speaker} · {group} ·{' '}
+                  <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                    {date(day)}
+                  </Link>
+                </footer>
+              </Card>
             ))}
         </div>
         <Pagination page={page} total={quotes.length} params={{ q: query, vista: selected }} />
@@ -242,22 +355,35 @@ export async function Explore({
   }
   return (
     <>
-      <Tabs label="Explorar">
+      <nav
+        aria-label={'Explorar'}
+        className="flex flex-wrap items-center gap-3 mb-6 [&_[aria-current=page]]:bg-primary [&_[aria-current=page]]:text-primary-foreground"
+      >
         {tabs.map(([id, name]) => (
-          <Button asChild variant="ghost" key={id}>
-            <Link href={`?vista=${id}`} aria-current={selected === id ? 'page' : undefined}>
-              {name}
-            </Link>
-          </Button>
+          <Link
+            key={id}
+            href={`?vista=${id}`}
+            aria-current={selected === id ? 'page' : undefined}
+            data-slot="button"
+            data-variant="ghost"
+            className={cn(buttonVariants({ variant: 'ghost' }))}
+          >
+            {name}
+          </Link>
         ))}
-      </Tabs>
-      <form className="cg-filters" action={href('explora')}>
+      </nav>
+      <form
+        className={
+          'cg-filters flex items-end flex-wrap gap-4 [margin:24px_0] [&_label]:[flex:1] [&_label]:[min-width:180px] [&_label]:[max-width:400px] [&_label]:grid [&_label]:gap-2 [&_label]:text-sm'
+        }
+        action={href('explora')}
+      >
         <input type="hidden" name="vista" value={selected} />
         <label>
           Buscar
-          <Field type="search" name="q" defaultValue={query} maxLength={200} />
+          <Input type="search" name="q" defaultValue={query} maxLength={200} />
         </label>
-        <Button type="submit" variant="secondary">
+        <Button type="submit" variant="outline">
           Buscar
         </Button>
       </form>

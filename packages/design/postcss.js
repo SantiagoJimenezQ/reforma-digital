@@ -1,11 +1,7 @@
-import tailwindcss from 'tailwindcss';
-import preset from './tailwind-preset.js';
+import tailwindcss from '@tailwindcss/postcss';
+import postcss from 'postcss';
 
-/**
- * Las webs oficiales fijan `html { font-size: 14px }`. Dentro del Shadow DOM las
- * unidades `rem` siguen tomando como referencia el <html> de la página, así que
- * convertimos rem → px (base 16) para que la interfaz no dependa del CSS oficial.
- */
+// Los rem del Shadow DOM dependen del HTML del portal oficial; mantenemos una base de 16 px.
 const remToPx = () => ({
   postcssPlugin: 'rem-to-px',
   Declaration(decl) {
@@ -16,11 +12,16 @@ const remToPx = () => ({
 });
 remToPx.postcss = true;
 
-/**
- * Plugins de PostCSS del sistema de diseño.
- * @param {{ content: string[] }} opts  Ficheros donde Tailwind busca clases usadas
- *   (el sistema de diseño + el adaptador o app que se está compilando).
- */
 export function designPostcss({ content }) {
-  return [tailwindcss({ presets: [preset], content }), remToPx()];
+  return [
+    {
+      postcssPlugin: 'reforma-tailwind-sources',
+      Once(root) {
+        for (const file of content)
+          root.prepend(postcss.atRule({ name: 'source', params: JSON.stringify(file) }));
+      },
+    },
+    tailwindcss(),
+    remToPx(),
+  ];
 }

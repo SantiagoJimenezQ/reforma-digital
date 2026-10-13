@@ -1,10 +1,10 @@
+import '@reforma-digital/design/web.css';
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
-import { fuentesSol } from '../components/sol/fuentes';
+import { fuentesSol } from '../components/brand/fuentes';
 import { RouteFocus } from '../components/route-focus';
 import { pageMetadata } from '../lib/seo';
 import { siteUrl } from '../lib/site';
-import './(search)/globals.css';
 
 // Valores por defecto para las páginas sin metadatos propios. Sin canonical: cada página declara
 // el suyo, y heredarlo haría que una 404 apuntara a la portada.
@@ -27,9 +27,19 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#df1717' };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" data-bg-landing="" data-scroll-behavior="smooth">
-      <body className={`sol-raiz ${fuentesSol}`}>
-        <a className="sol-salto" href="#main">
+    <html
+      lang="es"
+      className={`${fuentesSol} motion-safe:[&::view-transition-new(.equipo-entra)]:[animation:sol-pagina-entra_200ms_var(--ease-brand)_both] motion-safe:[&::view-transition-old(.equipo-sale)]:[animation:sol-pagina-sale_160ms_var(--ease-brand)_both] motion-reduce:[&::view-transition-new(.equipo-entra)]:animate-none motion-reduce:[&::view-transition-old(.equipo-sale)]:animate-none`}
+      data-bg-landing=""
+      data-scroll-behavior="smooth"
+    >
+      <body className="bg-background font-sans text-base leading-[1.55] text-foreground antialiased [font-synthesis:none] [:where(&)_h1]:font-heading [:where(&)_h1]:font-normal [:where(&)_h2]:font-heading [:where(&)_h2]:font-normal [&_:is(h1,h2,h3,h4,dt)]:text-balance [&_:is(p,li,dd,figcaption,small)]:text-pretty selection:bg-brand-yellow selection:text-foreground [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-ring [&_:focus-visible]:outline-offset-2 [&_main:focus]:outline-none [&_.cg-voto-si]:[background:#237647] [&_.cg-voto-si]:[fill:#237647] [&_.cg-voto-no]:[background:var(--brand)] [&_.cg-voto-no]:[fill:var(--brand)] [&_.cg-voto-abst]:[background:var(--brand-yellow)] [&_.cg-voto-abst]:[fill:var(--brand-yellow)] [&_.cg-voto-ausente]:[background:var(--disabled)] [&_.cg-voto-ausente]:[fill:var(--disabled)]">
+        <a
+          className={
+            'sol-salto fixed top-2 left-2 [z-index:100] inline-flex items-center min-h-11 [padding:0_16px] [border-radius:12px] [background:var(--foreground)] [color:var(--background)] [font-size:15px] font-medium no-underline [transform:translateY(calc(-100%_-_16px))] [&:focus-visible]:[transform:none]'
+          }
+          href="#main"
+        >
           Saltar al contenido
         </a>
         <RouteFocus />

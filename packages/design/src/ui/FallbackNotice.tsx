@@ -1,3 +1,6 @@
+import { Card } from '../../ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
+import { Button } from '../../ui/button';
 /**
  * Aviso discreto y no bloqueante cuando un adaptador no puede aplicarse
  * (DESIGN.md §3 · Aviso de fallback). La web oficial queda como la sirve la Administración.
@@ -12,22 +15,34 @@ export function FallbackNotice({
   onClose: () => void;
 }) {
   return (
-    <div
+    <Card
       role="status"
-      className="bg-card bg-text fixed bottom-3 left-3 right-3 z-[2147483646] max-w-sm p-4 text-[14px] shadow-raised sm:right-auto"
+      className={
+        'bg-card [background-color:rgb(var(--bg-surface))] border-0 [border-radius:var(--bg-radius-card)] [box-shadow:var(--bg-shadow-card)] bg-text [font-family:var(--bg-font)] text-base [line-height:1.6] [color:rgb(var(--bg-ink))] fixed bottom-3 left-3 right-3 z-[2147483646] max-w-sm p-4 text-[14px] shadow-raised sm:right-auto'
+      }
     >
-      <p className="bg-eyebrow">Reforma Digital · web original</p>
+      <p
+        className={
+          'bg-eyebrow text-xs [line-height:1.4] font-semibold [letter-spacing:0.06em] uppercase [color:rgb(var(--bg-ink-subtle))]'
+        }
+      >
+        Reforma Digital · web original
+      </p>
       <p className="mt-1.5">
         La mejora «{adapterName}» no es compatible con esta versión de la página, así que se muestra
         la web oficial sin cambios.
       </p>
-      <details className="bg-small mt-2">
-        <summary className="cursor-pointer">Detalle técnico</summary>
-        <p className="mt-1 break-words">{reason}</p>
-      </details>
-      <button type="button" onClick={onClose} className="bg-btn bg-btn-secondary mt-3">
+      <Collapsible
+        className={'bg-small text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-2'}
+      >
+        <CollapsibleTrigger className="cursor-pointer">Detalle técnico</CollapsibleTrigger>
+        <CollapsibleContent>
+          <p className="mt-1 break-words">{reason}</p>
+        </CollapsibleContent>
+      </Collapsible>
+      <Button variant="outline" type="button" onClick={onClose} className={'mt-3'}>
         Cerrar aviso
-      </button>
-    </div>
+      </Button>
+    </Card>
   );
 }

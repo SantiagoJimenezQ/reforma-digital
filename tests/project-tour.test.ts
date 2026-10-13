@@ -2,7 +2,7 @@
 import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { expect, it, vi } from 'vitest';
-import { ProjectTour } from '../apps/web/components/sol/project-tour';
+import { ProjectTour } from '../apps/web/components/brand/project-tour';
 
 it('acompaña el scroll en ambos sentidos y conserva los enlaces de cada proyecto', async () => {
   const observados: Element[] = [];

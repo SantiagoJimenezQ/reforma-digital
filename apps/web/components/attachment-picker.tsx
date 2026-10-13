@@ -1,6 +1,8 @@
 'use client';
+import { Button } from '@reforma-digital/design/ui/button';
+
 import { useRef } from 'react';
-import { Icon } from './sol/icon';
+import { Icon } from './brand/icon';
 import { readPdfContext, type PdfContext } from '../lib/attachment';
 export function AttachmentPicker({
   busy,
@@ -40,16 +42,18 @@ export function AttachmentPicker({
           }
         }}
       />
-      <button
+      <Button
         type="button"
-        className="chat-icon chat-attach"
+        className={
+          "chat-icon border-0 [background:transparent] [color:inherit] inline-flex justify-center items-center w-11 h-11 shrink-0 [border-radius:50%] p-0 [transition:background-color_160ms_ease,_color_160ms_ease,_transform_160ms_var(--ease-brand)] [&:not(:disabled):active]:[transform:scale(0.96)] [@media(hover:_hover)_and_(pointer:_fine)]:[&:hover]:[background:rgb(var(--bg-brand-100))] [&[aria-pressed='true']]:[background:rgb(var(--bg-brand-100))] [&[aria-pressed='true']]:[color:rgb(var(--bg-brand-600))] [&[aria-pressed='true']_.icono]:[animation:chat-pulse_320ms_var(--ease-brand)] [@media(prefers-reduced-motion:_reduce)]:[&[aria-pressed='true']_.icono]:[animation:none] chat-attach"
+        }
         disabled={disabled || busy}
         onClick={() => input.current?.click()}
         aria-label="Adjuntar PDF"
         title="Adjuntar PDF · Hasta 5 MB y 20 páginas"
       >
         <Icon name="paperclip" size={20} />
-      </button>
+      </Button>
     </>
   );
 }

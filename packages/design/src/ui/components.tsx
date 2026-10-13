@@ -1,3 +1,9 @@
+import { RadioGroupItem } from '../../ui/radio-group';
+import { cn } from '../../lib/utils';
+import { Input } from '../../ui/input';
+import { Button } from '../../ui/button';
+import { Badge } from '../../ui/badge';
+import { Card } from '../../ui/card';
 import { useId, type ReactNode } from 'react';
 
 /**
@@ -5,17 +11,15 @@ import { useId, type ReactNode } from 'react';
  * clases del preset (bg-*): ningún adaptador debe definir estilos propios.
  */
 
-const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
-
 /** Etiqueta obligatoria en toda mejora: deja claro quién hace qué. */
 export function CommunityBadge({ host }: { host: string }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <span className="bg-badge">
+      <Badge variant="outline">
         <ShieldIcon />
         Interfaz comunitaria · sitio oficial
-      </span>
-      <span className="bg-small">
+      </Badge>
+      <span className={'bg-small text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))]'}>
         Estás en <strong className="font-semibold text-ink [overflow-wrap:anywhere]">{host}</strong>
         , la web oficial del trámite. Los datos y envíos los gestiona esa web.
       </span>
@@ -41,7 +45,11 @@ export function ProgressSteps({
   const outIndex = outOfScopeFrom ? steps.findIndex((s) => s.id === outOfScopeFrom) : -1;
   return (
     <nav aria-label="Progreso del trámite" className="mt-5">
-      <p className="bg-eyebrow mb-2">
+      <p
+        className={
+          'bg-eyebrow text-xs [line-height:1.4] font-semibold [letter-spacing:0.06em] uppercase [color:rgb(var(--bg-ink-subtle))] mb-2'
+        }
+      >
         Paso {currentIndex + 1} de {steps.length}
         <span className="normal-case tracking-normal text-ink sm:hidden">
           {' '}
@@ -53,7 +61,7 @@ export function ProgressSteps({
         {steps.map((step, i) => (
           <span
             key={step.id}
-            className={cx(
+            className={cn(
               'h-1.5 flex-1 rounded-full',
               i <= currentIndex ? 'bg-brand-600' : 'bg-line',
             )}
@@ -68,14 +76,21 @@ export function ProgressSteps({
             <li
               key={step.id}
               aria-current={state === 'current' ? 'step' : undefined}
-              className={cx(
-                'bg-step',
-                state === 'current' && 'bg-step-current',
-                state === 'done' && 'bg-step-done',
-                state === 'todo' && 'bg-step-todo',
+              className={cn(
+                'bg-step flex flex-col items-start gap-2 [padding:10px_12px] [border-radius:var(--bg-radius-control)] [font-size:13px] [line-height:1.4] [color:rgb(var(--bg-ink-muted))]',
+                state === 'current' &&
+                  'bg-step-current [background-color:rgb(var(--bg-brand-100))] [color:rgb(var(--bg-ink))] font-semibold [&_.bg-step-num]:[background-color:rgb(var(--bg-brand-600))] [&_.bg-step-num]:[color:rgb(var(--bg-ink-inverse))]',
+                state === 'done' &&
+                  'bg-step-done [&_.bg-step-num]:[background-color:rgb(var(--bg-success-bg))] [&_.bg-step-num]:[color:rgb(var(--bg-success-fg))]',
+                state === 'todo' && 'bg-step-todo [color:rgb(var(--bg-ink-subtle))]',
               )}
             >
-              <span aria-hidden="true" className="bg-step-num">
+              <span
+                aria-hidden="true"
+                className={
+                  'bg-step-num flex items-center justify-center w-6 h-6 shrink-0 [border-radius:999px] text-xs font-bold [background-color:rgb(var(--bg-surface-muted))] [color:rgb(var(--bg-ink-subtle))]'
+                }
+              >
                 {state === 'done' ? '✓' : i + 1}
               </span>
               <span>
@@ -118,15 +133,28 @@ export function Panel({
 }) {
   const titleId = useId();
   return (
-    <section aria-labelledby={titleId} className="bg-card bg-text my-4 p-4 sm:p-6">
+    <Card render={<section />} aria-labelledby={titleId} className="my-4 p-4 sm:p-6">
       {/* h2 en el HTML (la web oficial ya tiene su h1); tamaño visual de h1. */}
-      <h2 id={titleId} className="bg-h1">
+      <h2
+        id={titleId}
+        className={
+          'bg-h1 [font-size:28px] [line-height:1.2] font-medium [color:rgb(var(--bg-ink))] [letter-spacing:-0.035em] [@media(max-width:_639px)]:text-2xl'
+        }
+      >
         {title}
       </h2>
-      {lead && <div className="bg-lead mt-2 max-w-[70ch]">{lead}</div>}
+      {lead && (
+        <div
+          className={
+            'bg-lead [font-size:17px] [line-height:1.6] [color:rgb(var(--bg-ink-muted))] mt-2 max-w-[70ch]'
+          }
+        >
+          {lead}
+        </div>
+      )}
       {progress}
       <div className="mt-6 space-y-6">{children}</div>
-    </section>
+    </Card>
   );
 }
 
@@ -146,18 +174,24 @@ export function PrimaryAction({
   const hintId = useId();
   return (
     <div className="flex flex-col items-start gap-1.5">
-      <button
+      <Button
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-describedby={hint ? hintId : undefined}
-        className={cx('bg-btn bg-btn-primary', large && 'bg-btn-lg')}
+        className={cn(
+          'min-h-12',
+          large && 'bg-btn-lg min-h-13 [padding:14px_22px] [font-size:17px]',
+        )}
       >
         {children}
         <span aria-hidden="true">→</span>
-      </button>
+      </Button>
       {hint && (
-        <p id={hintId} className="bg-hint">
+        <p
+          id={hintId}
+          className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))]'}
+        >
           {hint}
         </p>
       )}
@@ -173,9 +207,9 @@ export function SecondaryAction({
   onClick: () => void;
 }) {
   return (
-    <button type="button" onClick={onClick} className="bg-btn bg-btn-secondary">
+    <Button type="button" onClick={onClick} variant="outline" className="min-h-12">
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -188,15 +222,22 @@ export function Actions({ children }: { children: ReactNode }) {
 
 export function LinkButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="bg-link text-left">
+    <Button type="button" onClick={onClick} variant="link" className="justify-start text-left">
       {children}
-    </button>
+    </Button>
   );
 }
 
 export function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="bg-link">
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={
+        'bg-link [color:rgb(var(--bg-brand-600))] [text-decoration-line:underline] [text-decoration-thickness:1px] [text-underline-offset:3px] [text-decoration-color:rgb(var(--bg-brand-600)_/_0.4)] font-medium cursor-pointer [&:hover]:[color:rgb(var(--bg-brand-700))] [&:hover]:[text-decoration-color:currentColor] [&:hover]:[text-decoration-thickness:2px] [&:focus-visible]:[outline:3px_solid_rgb(var(--bg-brand-600))] [&:focus-visible]:[outline-offset:2px] [&:focus-visible]:[border-radius:2px]'
+      }
+    >
       {children}
       <span className="sr-only"> (se abre en una pestaña nueva)</span>
       <span aria-hidden="true"> ↗</span>
@@ -228,7 +269,7 @@ export function Callout({
 }) {
   return (
     <div role={role} className={CALLOUT_TONES[tone]}>
-      {title && <p className="bg-callout-title">{title}</p>}
+      {title && <p className={'bg-callout-title font-semibold mb-1'}>{title}</p>}
       <div>{children}</div>
     </div>
   );
@@ -236,7 +277,12 @@ export function Callout({
 
 export function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
   return (
-    <h3 id={id} className="bg-h2">
+    <h3
+      id={id}
+      className={
+        'bg-h2 [font-size:20px] [line-height:1.3] [font-weight:650] [color:rgb(var(--bg-ink))]'
+      }
+    >
       {children}
     </h3>
   );
@@ -258,39 +304,46 @@ export function SearchField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="bg-label">
+      <label
+        htmlFor={id}
+        className={
+          'bg-label block [font-size:15px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))] [margin-bottom:6px]'
+        }
+      >
         {label}
       </label>
-      <input
+      <Input
         id={id}
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
-        className="bg-field bg-field-search"
+        className={'bg-field-search [border-radius:999px] [padding-left:18px] [padding-right:18px]'}
       />
     </div>
   );
 }
 
-/** Opción seleccionable: radio nativo dentro de label (DESIGN.md §3). */
+/** Opción seleccionable dentro de RadioGroup (DESIGN.md §3). */
 export function Choice({
-  name,
   value,
   checked,
-  onChange,
   children,
 }: {
-  name: string;
   value: string;
   checked: boolean;
-  onChange: () => void;
   children: ReactNode;
 }) {
   return (
-    <label className={cx('bg-choice', checked && 'bg-choice-checked')}>
-      <input type="radio" name={name} value={value} checked={checked} onChange={onChange} />
+    <label
+      className={cn(
+        'bg-choice flex items-start [gap:10px] min-h-11 [padding:10px_14px] [border:1px_solid_rgb(var(--bg-line-strong))] [border-radius:var(--bg-radius-control)] [background-color:rgb(var(--bg-surface))] [color:rgb(var(--bg-ink))] [font-size:15px] [line-height:1.4] cursor-pointer [&:hover]:[border-color:rgb(var(--bg-line-control))] [&:focus-within]:[border-color:rgb(var(--bg-brand-600))] [&:focus-within]:[box-shadow:0_0_0_3px_rgb(var(--bg-brand-200))] [&_input]:[margin-top:2px] [&_input]:[width:18px] [&_input]:[height:18px] [&_input]:shrink-0 [&_input]:[accent-color:rgb(var(--bg-brand-600))]',
+        checked &&
+          'bg-choice-checked [border-color:rgb(var(--bg-brand-600))] [background-color:rgb(var(--bg-brand-100))] [color:rgb(var(--bg-brand-900))] font-semibold',
+      )}
+    >
+      <RadioGroupItem value={value} className="mt-0.5 shrink-0" />
       <span>{children}</span>
     </label>
   );
@@ -299,8 +352,18 @@ export function Choice({
 /** Separa el panel del contenido oficial que sigue debajo (DESIGN.md §3 · Bloque oficial). */
 export function OfficialDivider({ children }: { children?: ReactNode }) {
   return (
-    <div className="bg-text mb-2 flex items-center gap-3">
-      <span className="bg-eyebrow whitespace-nowrap">Información oficial de esta página</span>
+    <div
+      className={
+        'bg-text [font-family:var(--bg-font)] text-base [line-height:1.6] [color:rgb(var(--bg-ink))] mb-2 flex items-center gap-3'
+      }
+    >
+      <span
+        className={
+          'bg-eyebrow text-xs [line-height:1.4] font-semibold [letter-spacing:0.06em] uppercase [color:rgb(var(--bg-ink-subtle))] whitespace-nowrap'
+        }
+      >
+        Información oficial de esta página
+      </span>
       <span aria-hidden="true" className="h-px flex-1 bg-line" />
       {children}
     </div>

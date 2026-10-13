@@ -39,7 +39,8 @@ test('catalogue: search, filters and the official request button', async ({ exte
   await open(page, `${base}/wlpl/TOCP-MUTE/ServiciosAsocCat`);
   await page.getByLabel('Buscar servicio').fill('clave');
   await expect(page.locator('[data-bg-host] h3', { hasText: /^Registro en Cl@ve$/ })).toBeVisible();
-  await page.getByLabel('Canal', { exact: true }).selectOption('Videollamada');
+  await page.getByRole('combobox', { name: 'Canal', exact: true }).click();
+  await page.getByRole('option', { name: 'Videollamada', exact: true }).click();
   await expect(page.locator('[data-bg-host] h3', { hasText: /^Registro en Cl@ve$/ })).toBeVisible();
   await page.evaluate(() =>
     document

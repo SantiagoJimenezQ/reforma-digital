@@ -5,6 +5,7 @@ import type { NextConfig } from 'next';
 import { withBotId } from 'botid/next/config';
 const config: NextConfig = {
   transpilePackages: [
+    '@reforma-digital/design',
     '@reforma-digital/core',
     '@reforma-digital/government',
     '@reforma-digital/db',

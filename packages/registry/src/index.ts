@@ -22,7 +22,8 @@ export interface Enhancement {
   description: string;
   /** Screen id, exposed as data-bg-page on <html> so page styles can target one screen. */
   page?: string;
-  pageStyles?: string;
+  /** Tailwind utilities applied to the original HTML only while this adapter is active. */
+  pageClassName?: string;
   health: () => boolean;
 }
 

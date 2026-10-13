@@ -1,12 +1,15 @@
+import { cn } from '@reforma-digital/design/lib/utils';
+import { buttonVariants } from '@reforma-digital/design/ui/button';
+
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { sources } from '@reforma-digital/government';
-import { Button } from '@reforma-digital/design/sol';
-import { Icon } from '../../components/sol/icon';
-import { Header } from '../../components/sol/header';
-import { Footer } from '../../components/sol/footer';
-import { ProjectScene } from '../../components/sol/project-scene';
-import { ProjectTour } from '../../components/sol/project-tour';
+
+import { Icon } from '../../components/brand/icon';
+import { Header } from '../../components/brand/header';
+import { Footer } from '../../components/brand/footer';
+import { ProjectScene } from '../../components/brand/project-scene';
+import { ProjectTour } from '../../components/brand/project-tour';
 import { links } from '../../lib/site';
 import { congressBase } from '../../lib/congreso/routes';
 import {
@@ -18,8 +21,7 @@ import {
   websiteId,
 } from '../../lib/seo';
 import { JsonLd } from '../../components/json-ld';
-import { Contribution } from '../../components/sol/contribution';
-import '../../components/sol/iniciativa.css';
+import { Contribution } from '../../components/brand/contribution';
 
 const title = 'Reforma Digital · Lo público, a la altura de las personas';
 const description =
@@ -73,34 +75,89 @@ export default function HomePage() {
     <div className="iniciativa">
       <JsonLd graph={graph} />
       <main id="main" tabIndex={-1}>
-        <section className="in-hero" aria-labelledby="in-titulo">
+        <section
+          className={
+            'in-hero relative flex flex-col min-h-172 m-2 [border-radius:28px] [background:var(--brand-gradient)] [color:var(--background)] [--logo-color:currentColor] [--ring:var(--background)] [&_h1]:[max-width:25ch] [&_h1]:[margin:0_auto_32px] [&_h1]:[font-family:var(--font-brand-heading)] [&_h1]:[font-size:clamp(36px,_5vw,_72px)] [&_h1]:font-normal [&_h1]:[line-height:1.08] [&_.in-hero-enlace]:[background:color-mix(in_oklch,_var(--background)_35%,_transparent)] [&_.in-hero-enlace]:[box-shadow:none] [&_.in-hero-enlace]:[-webkit-backdrop-filter:blur(16px)] [&_.in-hero-enlace]:[backdrop-filter:blur(16px)] [&_.in-hero-enlace::before]:[background:color-mix(in_oklch,_var(--background)_30%,_transparent)] [@media(max-width:_480px)]:[background-size:100%_560px] [@media(max-width:_480px)]:[background-position:center_bottom] [@media(max-width:_480px)]:[background-repeat:no-repeat]'
+          }
+          aria-labelledby="in-titulo"
+        >
           <Header />
-          <div className="in-hero-interior">
-            <h1 id="in-titulo" className="t-titular-xl">
+          <div
+            className={
+              'in-hero-interior [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] flex flex-col justify-center [flex:1] w-full pt-10 [padding-bottom:calc(80px_+_44px)] text-center'
+            }
+          >
+            <h1
+              id="in-titulo"
+              className={
+                't-titular-xl m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(44px,_6.4vw,_92px)] [line-height:1] [letter-spacing:-0.03em]'
+              }
+            >
               Lo público, a la altura de las personas.
             </h1>
-            <p className="t-texto-l in-hero-texto">
+            <p
+              className={
+                't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty in-hero-texto [max-width:64ch] [margin:0_auto_16px] [font-size:clamp(16px,_1.2vw,_17px)]'
+              }
+            >
               Hacer un trámite no debería exigir entender cómo funciona toda la Administración.
               Creamos herramientas y propuestas para que relacionarnos con ella sea más claro,
               accesible y sencillo. Lo hacemos en comunidad y con código abierto.
             </p>
-            <Button variant="secondary" className="in-hero-enlace" href="#proyectos">
+            <a
+              href="#proyectos"
+              data-slot="button"
+              data-variant="outline"
+              className={cn(
+                buttonVariants({
+                  variant: 'outline',
+                  className:
+                    'in-hero-enlace absolute bottom-6 [inset-inline:0] [width:fit-content] [margin-inline:auto] [--ring:var(--foreground)]',
+                }),
+              )}
+            >
               Conoce los proyectos <Icon name="abajo" size={16} />
-            </Button>
+            </a>
           </div>
         </section>
 
-        <section id="iniciativa" className="in-seccion in-manifiesto" aria-labelledby="in-idea">
+        <section
+          id="iniciativa"
+          className={
+            'in-seccion [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] [padding-block:96px_0] [scroll-margin-top:24px] [@media(max-width:_480px)]:pt-16 in-manifiesto grid [grid-template-columns:1fr_1fr] gap-16 [&_h2]:[max-width:17ch] [&_.in-enlace]:[width:fit-content] [&_.in-enlace]:mt-6 [@media(max-width:_800px)]:[grid-template-columns:minmax(0,_1fr)] [@media(max-width:_800px)]:gap-8'
+          }
+          aria-labelledby="in-idea"
+        >
           <div>
-            <p className="t-etiqueta in-etiqueta">La iniciativa</p>
-            <h2 id="in-idea" className="t-titular-m">
+            <p
+              className={
+                't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase in-etiqueta mb-5 [color:var(--brand)]'
+              }
+            >
+              La iniciativa
+            </p>
+            <h2
+              id="in-idea"
+              className={
+                't-titular-m m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(32px,_4vw,_52px)] [line-height:1.05] [letter-spacing:-0.02em]'
+              }
+            >
               Que hacer un trámite no sea otro trámite.
             </h2>
-            <Link className="in-enlace" href="/equipo">
+            <Link
+              className={
+                'in-enlace flex items-center gap-2 min-h-11 [width:fit-content] [text-decoration:underline] [text-underline-offset:0.25em]'
+              }
+              href="/equipo"
+            >
               Conoce al equipo <Icon name="derecha" size={16} />
             </Link>
           </div>
-          <div className="in-lectura t-texto-l">
+          <div
+            className={
+              'in-lectura grid gap-6 [color:var(--text-secondary)] t-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+            }
+          >
             <p>
               Pedir una cita, buscar una ayuda o responder a una notificación empieza, muchas veces,
               con una pantalla que cuesta entender. Queremos que las webs públicas acompañen a quien
@@ -114,19 +171,43 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div id="proyectos" className="in-proyectos">
+        <div
+          id="proyectos"
+          className={
+            'in-proyectos [&_.rc]:[padding-bottom:0] [&_.rc]:[scroll-margin-top:24px] [&_.rc-paso-texto]:gap-5 [&_.rc-paso-texto_>_:is([data-slot=button][data-variant=default],_.in-enlace)]:[justify-self:start] [@media(max-width:_959px)]:[&_.rc-paso-texto]:gap-3 [@media(max-width:_959px)]:[&_.rc-paso-texto_>_p_+_*]:mt-2'
+          }
+        >
           <ProjectTour
             titleId="in-proyectos-titulo"
             unit="Proyecto"
             header={
-              <header className="in-seccion-cabecera">
+              <header
+                className={
+                  'in-seccion-cabecera grid [justify-items:center] gap-6 mb-10 text-center [&_>_p]:[max-width:64ch] [&_>_p]:[color:var(--text-secondary)]'
+                }
+              >
                 <div>
-                  <p className="t-etiqueta in-etiqueta">Los proyectos</p>
-                  <h2 id="in-proyectos-titulo" className="t-titular-m">
+                  <p
+                    className={
+                      't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase in-etiqueta mb-5 [color:var(--brand)]'
+                    }
+                  >
+                    Los proyectos
+                  </p>
+                  <h2
+                    id="in-proyectos-titulo"
+                    className={
+                      't-titular-m m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(32px,_4vw,_52px)] [line-height:1.05] [letter-spacing:-0.02em]'
+                    }
+                  >
                     La idea, puesta en práctica.
                   </h2>
                 </div>
-                <p className="t-texto-l">
+                <p
+                  className={
+                    't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+                  }
+                >
                   Creamos proyectos para hacer más clara, accesible y sencilla nuestra relación con
                   lo público. Estas son algunas de las herramientas que estamos construyendo, y un
                   adelanto de lo que viene.
@@ -136,10 +217,22 @@ export default function HomePage() {
             steps={[
               {
                 title: 'Encuentra por dónde empezar.',
-                label: <span className="in-proyecto-tipo">01 · Buscador de trámites</span>,
+                label: (
+                  <span
+                    className={
+                      'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                    }
+                  >
+                    01 · Buscador de trámites
+                  </span>
+                ),
                 text: (
                   <>
-                    <p className="t-texto-l">
+                    <p
+                      className={
+                        't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+                      }
+                    >
                       Pregunta con tus palabras. El buscador te orienta con respuestas, enlaces y
                       fragmentos de fuentes oficiales que puedes consultar.
                     </p>
@@ -152,48 +245,112 @@ export default function HomePage() {
               },
               {
                 title: 'La web oficial, más fácil de usar.',
-                label: <span className="in-proyecto-tipo">02 · Extensión para Chrome</span>,
+                label: (
+                  <span
+                    className={
+                      'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                    }
+                  >
+                    02 · Extensión para Chrome
+                  </span>
+                ),
                 text: (
                   <>
-                    <p className="t-texto-l">
+                    <p
+                      className={
+                        't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+                      }
+                    >
                       Prueba otra interfaz en pantallas de DNI, Extranjería, Hacienda y Registro de
                       asociaciones. Los formularios y los envíos siguen en la sede oficial.
                     </p>
-                    <div className="in-acciones">
-                      <Button href={links.install}>
+                    <div className={'in-acciones flex items-center flex-wrap [gap:8px_24px]'}>
+                      <a
+                        href={links.install}
+                        data-slot="button"
+                        data-variant="default"
+                        className={cn(buttonVariants({ variant: 'default' }))}
+                      >
                         Descargar la extensión <Icon name="descargar" size={16} />
-                      </Button>
+                      </a>
                     </div>
                   </>
                 ),
                 scene: (
-                  <div className="rc-pieza in-proyecto-sol">
+                  <div
+                    className={
+                      'rc-pieza absolute [inset:0] in-proyecto-sol [background:radial-gradient(_100%_100%_at_100%_0%,_color-mix(in_oklch,_var(--brand-yellow),_var(--background)_60%)_0%,_transparent_70%_),_linear-gradient(_150deg,_var(--brand-yellow)_35%,_color-mix(in_oklch,_var(--brand-yellow),_var(--brand-orange)_55%)_100%_)]'
+                    }
+                  >
                     <ProjectScene project="extension" />
                   </div>
                 ),
               },
               {
                 title: 'La información tiene un origen.',
-                label: <span className="in-proyecto-tipo">03 · Mapa de fuentes</span>,
+                label: (
+                  <span
+                    className={
+                      'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                    }
+                  >
+                    03 · Mapa de fuentes
+                  </span>
+                ),
                 text: (
                   <>
-                    <p className="t-texto-l">
+                    <p
+                      className={
+                        't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+                      }
+                    >
                       Explora los organismos oficiales que consulta el buscador y accede a sus webs.
                       Un punto de partida para conocer su cobertura y comprobar la información.
                     </p>
-                    <Link className="in-enlace" href="/sources">
+                    <Link
+                      className={
+                        'in-enlace flex items-center gap-2 min-h-11 [width:fit-content] [text-decoration:underline] [text-underline-offset:0.25em]'
+                      }
+                      href="/sources"
+                    >
                       Explorar las fuentes <Icon name="derecha" size={16} />
                     </Link>
                   </>
                 ),
                 scene: (
-                  <div className="rc-pieza rc-sobre-sol" aria-hidden="true">
-                    <div className="rc-respuesta caja-flota">
-                      <span className="t-etiqueta">Fuentes oficiales</span>
+                  <div
+                    className={
+                      'rc-pieza absolute [inset:0] rc-sobre-sol flex items-center justify-center [padding:6cqi]'
+                    }
+                    aria-hidden="true"
+                  >
+                    <div
+                      className={
+                        'rc-respuesta caja-flota [background:var(--background)] [box-shadow:var(--shadow-overlay)]'
+                      }
+                    >
+                      <span
+                        className={
+                          't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                        }
+                      >
+                        Fuentes oficiales
+                      </span>
                       {sources.slice(0, 3).map((source) => (
-                        <span className="in-fuente" key={source.id}>
+                        <span
+                          className={
+                            'in-fuente grid gap-1 py-3 [border-top:1px_solid_var(--border)] [&_.t-dato]:text-sm [&_.t-dato]:[overflow-wrap:anywhere]'
+                          }
+                          key={source.id}
+                        >
                           <strong>{source.name}</strong>
-                          <span className="t-dato">{new URL(source.baseUrl).hostname}</span>
+                          <span
+                            className={
+                              't-dato [font-family:var(--font-brand-mono)] [font-variant-numeric:tabular-nums] [letter-spacing:0]'
+                            }
+                          >
+                            {new URL(source.baseUrl).hostname}
+                          </span>
                         </span>
                       ))}
                       <span className="rc-abrir">
@@ -205,10 +362,22 @@ export default function HomePage() {
               },
               {
                 title: 'Participar empieza por entender.',
-                label: <span className="in-proyecto-tipo">04 · El Congreso</span>,
+                label: (
+                  <span
+                    className={
+                      'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                    }
+                  >
+                    04 · El Congreso
+                  </span>
+                ),
                 text: (
                   <>
-                    <p className="t-texto-l">
+                    <p
+                      className={
+                        't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+                      }
+                    >
                       Consulta qué se debate, cómo se vota y quién te representa. Actividad del
                       Congreso y datos electorales con enlaces a las fuentes oficiales.
                     </p>
@@ -218,53 +387,76 @@ export default function HomePage() {
                   </>
                 ),
                 scene: (
-                  <div className="rc-pieza in-elecciones" aria-hidden="true">
-                    <p className="in-elecciones-lema">Lo público también se elige.</p>
+                  <div
+                    className={
+                      'rc-pieza absolute [inset:0] in-elecciones [background:var(--brand-gradient)] [color:var(--background)] [&_svg]:absolute [&_svg]:[bottom:0] [&_svg]:w-full [&_svg]:[height:80%]'
+                    }
+                    aria-hidden="true"
+                  >
+                    <p
+                      className={
+                        'in-elecciones-lema absolute [top:7cqi] [inset-inline:6cqi] m-0 [font-family:var(--font-brand-heading)] [font-size:clamp(28px,_6cqi,_42px)] [line-height:1.1] text-center'
+                      }
+                    >
+                      Lo público también se elige.
+                    </p>
                     <svg viewBox="120 40 390 430" fill="none" aria-hidden="true">
                       <ellipse
                         cx="315"
                         cy="438"
                         rx="148"
                         ry="18"
-                        fill="var(--doblez)"
+                        fill={'var(--brand-dark)'}
                         opacity=".2"
                       />
                       <path
                         d="M170 245 330 200 460 265 300 315Z"
-                        fill="var(--blanco)"
+                        fill={'var(--background)'}
                         fillOpacity=".9"
                       />
                       <path
                         d="M170 245 300 315V445L170 375Z"
-                        fill="var(--blanco)"
+                        fill={'var(--background)'}
                         fillOpacity=".7"
                       />
                       <path
                         d="M300 315 460 265V392L300 445Z"
-                        fill="var(--blanco)"
+                        fill={'var(--background)'}
                         fillOpacity=".4"
                       />
                       <path
                         d="M170 245 300 315 460 265M300 315V445"
-                        stroke="var(--blanco)"
+                        stroke={'var(--background)'}
                         strokeOpacity=".6"
                         strokeWidth="2"
                       />
-                      <path d="M246 261 353 232 372 242 265 272Z" fill="var(--doblez)" />
-                      <path d="M250 90 368 120 338 238 220 208Z" fill="var(--blanco)" />
-                      <path d="M250 90 368 120 309 153Z" fill="var(--superficie)" />
-                      <path d="M220 208 285 174 338 238" stroke="var(--linea)" strokeWidth="2" />
-                      <circle cx="292" cy="174" r="24" fill="var(--rojo)" />
+                      <path d="M246 261 353 232 372 242 265 272Z" fill={'var(--brand-dark)'} />
+                      <path d="M250 90 368 120 338 238 220 208Z" fill={'var(--background)'} />
+                      <path d="M250 90 368 120 309 153Z" fill={'var(--muted)'} />
+                      <path d="M220 208 285 174 338 238" stroke={'var(--border)'} strokeWidth="2" />
+                      <circle cx="292" cy="174" r="24" fill={'var(--brand)'} />
                       <path
                         d="m281 173 8 9 16-16"
-                        stroke="var(--blanco)"
+                        stroke={'var(--background)'}
                         strokeWidth="4"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-                      <path d="m352 342 15 8v24l-15-8Z" fill="var(--blanco)" fillOpacity=".6" />
-                      <path d="m376 331 15 8v24l-15-8Z" fill="var(--blanco)" fillOpacity=".3" />
-                      <path d="m400 320 15 8v24l-15-8Z" fill="var(--blanco)" fillOpacity=".3" />
+                      <path
+                        d="m352 342 15 8v24l-15-8Z"
+                        fill={'var(--background)'}
+                        fillOpacity=".6"
+                      />
+                      <path
+                        d="m376 331 15 8v24l-15-8Z"
+                        fill={'var(--background)'}
+                        fillOpacity=".3"
+                      />
+                      <path
+                        d="m400 320 15 8v24l-15-8Z"
+                        fill={'var(--background)'}
+                        fillOpacity=".3"
+                      />
                     </svg>
                   </div>
                 ),
@@ -275,62 +467,136 @@ export default function HomePage() {
 
         <section
           id="participar"
-          className="in-seccion in-comunidad"
+          className={
+            'in-seccion [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] [padding-block:96px_0] [scroll-margin-top:24px] [@media(max-width:_480px)]:pt-16 in-comunidad pb-24 text-center [&_h2]:[max-width:24ch] [&_h2]:[margin-inline:auto] [&_>_.t-texto-l]:[max-width:60ch] [&_>_.t-texto-l]:[margin:24px_auto] [&_>_.t-texto-l]:[color:var(--text-secondary)] [@media(max-width:_480px)]:pb-16'
+          }
           aria-labelledby="in-comunidad-titulo"
         >
-          <p className="t-etiqueta in-etiqueta">Cómo contribuir</p>
-          <h2 id="in-comunidad-titulo" className="t-titular-m">
+          <p
+            className={
+              't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase in-etiqueta mb-5 [color:var(--brand)]'
+            }
+          >
+            Cómo contribuir
+          </p>
+          <h2
+            id="in-comunidad-titulo"
+            className={
+              't-titular-m m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(32px,_4vw,_52px)] [line-height:1.05] [letter-spacing:-0.02em]'
+            }
+          >
             Tu experiencia puede ser el próximo cambio.
           </h2>
-          <p className="t-texto-l">
+          <p
+            className={
+              't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
+            }
+          >
             No necesitas programar para aportar. Una idea, un texto más claro o una revisión de
             accesibilidad también ayudan. Nos organizamos en GitHub: ahí compartimos propuestas y
             construimos las mejoras en comunidad.
           </p>
-          <div className="in-contribuir">
-            <ol className="in-contribuir-pasos" role="list">
+          <div
+            className={
+              'in-contribuir grid [grid-template-columns:minmax(0,_5fr)_minmax(0,_7fr)] items-center gap-16 mt-12 text-left [@media(max-width:_800px)]:[grid-template-columns:minmax(0,_1fr)] [@media(max-width:_800px)]:gap-10'
+            }
+          >
+            <ol
+              className={
+                'in-contribuir-pasos grid gap-8 m-0 p-0 list-none [&_li]:grid [&_li]:[grid-template-columns:auto_1fr] [&_li]:gap-5 [&_li_>_span]:pt-2 [&_li_>_span]:[color:var(--muted-foreground)] [&_p]:[margin-block:12px_8px] [&_p]:[color:var(--text-secondary)]'
+              }
+              role="list"
+            >
               <li>
-                <span className="t-dato" aria-hidden="true">
+                <span
+                  className={
+                    't-dato [font-family:var(--font-brand-mono)] [font-variant-numeric:tabular-nums] [letter-spacing:0]'
+                  }
+                  aria-hidden="true"
+                >
                   01
                 </span>
                 <div>
-                  <h3 className="t-titular-s">Entra en GitHub.</h3>
+                  <h3
+                    className={
+                      't-titular-s m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(24px,_2.4vw,_30px)] [line-height:1.15] [letter-spacing:-0.01em]'
+                    }
+                  >
+                    Entra en GitHub.
+                  </h3>
                   <p>
                     Crea una cuenta o inicia sesión y abre el repositorio. En el README puedes
                     conocer los proyectos y cómo se organizan.
                   </p>
-                  <a className="in-enlace" href={links.repo}>
+                  <a
+                    className={
+                      'in-enlace flex items-center gap-2 min-h-11 [width:fit-content] [text-decoration:underline] [text-underline-offset:0.25em]'
+                    }
+                    href={links.repo}
+                  >
                     Abrir el repositorio <Icon name="externo" size={16} />
                   </a>
                 </div>
               </li>
               <li>
-                <span className="t-dato" aria-hidden="true">
+                <span
+                  className={
+                    't-dato [font-family:var(--font-brand-mono)] [font-variant-numeric:tabular-nums] [letter-spacing:0]'
+                  }
+                  aria-hidden="true"
+                >
                   02
                 </span>
                 <div>
-                  <h3 className="t-titular-s">Comparte lo que mejorarías.</h3>
+                  <h3
+                    className={
+                      't-titular-s m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(24px,_2.4vw,_30px)] [line-height:1.15] [letter-spacing:-0.01em]'
+                    }
+                  >
+                    Comparte lo que mejorarías.
+                  </h3>
                   <p>
                     Busca en Issues si alguien ya ha planteado tu idea. Si no, abre una issue:
                     cuenta qué ocurre, dónde y qué te gustaría que cambiara.
                   </p>
-                  <a className="in-enlace" href={`${links.repo}/issues`}>
+                  <a
+                    className={
+                      'in-enlace flex items-center gap-2 min-h-11 [width:fit-content] [text-decoration:underline] [text-underline-offset:0.25em]'
+                    }
+                    href={`${links.repo}/issues`}
+                  >
                     Ver ideas y propuestas <Icon name="externo" size={16} />
                   </a>
                 </div>
               </li>
               <li>
-                <span className="t-dato" aria-hidden="true">
+                <span
+                  className={
+                    't-dato [font-family:var(--font-brand-mono)] [font-variant-numeric:tabular-nums] [letter-spacing:0]'
+                  }
+                  aria-hidden="true"
+                >
                   03
                 </span>
                 <div>
-                  <h3 className="t-titular-s">Dale forma a una propuesta.</h3>
+                  <h3
+                    className={
+                      't-titular-s m-0 [font-family:var(--font-brand-heading)] font-normal [font-kerning:normal] text-balance [font-size:clamp(24px,_2.4vw,_30px)] [line-height:1.15] [letter-spacing:-0.01em]'
+                    }
+                  >
+                    Dale forma a una propuesta.
+                  </h3>
                   <p>
                     Aporta diseño, textos, accesibilidad o código. Para cambiar el código, lee la
                     guía, haz un fork, crea una rama y envía una pull request para revisarla en
                     comunidad.
                   </p>
-                  <a className="in-enlace" href={links.contributing}>
+                  <a
+                    className={
+                      'in-enlace flex items-center gap-2 min-h-11 [width:fit-content] [text-decoration:underline] [text-underline-offset:0.25em]'
+                    }
+                    href={links.contributing}
+                  >
                     Leer la guía de contribución <Icon name="externo" size={16} />
                   </a>
                 </div>

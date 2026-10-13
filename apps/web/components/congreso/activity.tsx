@@ -1,5 +1,19 @@
-import { Disclosure, Surface } from '@reforma-digital/design/sol';
-import { Icon } from '../sol/icon';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@reforma-digital/design/ui/table';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@reforma-digital/design/ui/collapsible';
+import { Card } from '@reforma-digital/design/ui/card';
+
+import { Icon } from '../brand/icon';
 import { topicSchema, rawQuestionSchema, rawSessionSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -31,32 +45,55 @@ export function Interventions({
   interventions: (Intervention & { item: string })[];
 }) {
   return interventions.length ? (
-    <div className="cg-grid">
+    <div
+      className={
+        'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+      }
+    >
       {interventions.map((iv, i) => (
-        <Surface asChild key={`${iv.s}-${i}`}>
-          <article className="cg-card">
-            <span className="t-etiqueta">
-              {iv.g} · {iv.tono}
-            </span>
-            <h3>{iv.orador}</h3>
-            <p className="cg-muted">{iv.item}</p>
-            <AI>
-              <p>{iv.frase || iv.resumen || 'El resumen está en la ficha de la sesión.'}</p>
-            </AI>
-            {iv.cita && <blockquote>«{iv.cita}»</blockquote>}
-            {iv.ia && (
-              <Disclosure title="Cómo se generó" icon={<Icon name="abajo" size={16} />}>
+        <Card
+          key={`${iv.s}-${i}`}
+          render={
+            <article
+              className={
+                'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+              }
+            />
+          }
+        >
+          <span
+            className={
+              't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+            }
+          >
+            {iv.g} · {iv.tono}
+          </span>
+          <h3>{iv.orador}</h3>
+          <p className={'cg-muted [color:var(--muted-foreground)] text-sm'}>{iv.item}</p>
+          <AI>
+            <p>{iv.frase || iv.resumen || 'El resumen está en la ficha de la sesión.'}</p>
+          </AI>
+          {iv.cita && <blockquote>«{iv.cita}»</blockquote>}
+          {iv.ia && (
+            <Collapsible>
+              <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                <span>{'Cómo se generó'}</span>
+                <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                  {<Icon name="abajo" size={16} />}
+                </span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
                 <p>
                   Modelo: {iv.ia.model}. Prompt: {iv.ia.prompt}.{' '}
                   {iv.ia.provider === 'cache-importada'
                     ? 'Análisis conservado del histórico de Escaño Abierto.'
                     : 'Generado en Reforma Digital con Helmcode.'}
                 </p>
-              </Disclosure>
-            )}
-            <Link href={href(`sesion/${iv.s.toLowerCase()}`)}>Ver la sesión</Link>
-          </article>
-        </Surface>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+          <Link href={href(`sesion/${iv.s.toLowerCase()}`)}>Ver la sesión</Link>
+        </Card>
       ))}
     </div>
   ) : (
@@ -65,20 +102,35 @@ export function Interventions({
 }
 function Laws({ laws, legislature }: { laws: Law[]; legislature: string }) {
   return laws.length ? (
-    <div className="cg-grid">
+    <div
+      className={
+        'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+      }
+    >
       {laws.map((law) => (
-        <Surface asChild key={law.exp}>
-          <article className="cg-card">
-            <span className="t-etiqueta">
-              {law.tipo} · {law.estado}
-            </span>
-            <h3>
-              <Link href={href(`iniciativa/${law.exp.replace('/', '-')}`)}>{law.titulo}</Link>
-            </h3>
-            <p>{law.situacion}</p>
-            <Source url={congressUrl(law.exp, legislature)}>Expediente {law.exp}</Source>
-          </article>
-        </Surface>
+        <Card
+          key={law.exp}
+          render={
+            <article
+              className={
+                'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+              }
+            />
+          }
+        >
+          <span
+            className={
+              't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+            }
+          >
+            {law.tipo} · {law.estado}
+          </span>
+          <h3>
+            <Link href={href(`iniciativa/${law.exp.replace('/', '-')}`)}>{law.titulo}</Link>
+          </h3>
+          <p>{law.situacion}</p>
+          <Source url={congressUrl(law.exp, legislature)}>Expediente {law.exp}</Source>
+        </Card>
       ))}
     </div>
   ) : (
@@ -120,20 +172,35 @@ export async function Activity({
           ]}
         />
         <Filters action={href('preguntas')} query={query} />
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {questions.map(({ content: question }) => (
-            <Surface asChild key={question.exp}>
-              <article className="cg-card">
-                <span className="t-etiqueta">
-                  {question.estado} · {date(question.presentada)}
-                </span>
-                <h3>{question.titulo}</h3>
-                <p>{question.autores.map(([name]) => name).join(', ')}</p>
-                <Source url={congressUrl(question.exp, index.meta.legislatura)}>
-                  Expediente {question.exp}
-                </Source>
-              </article>
-            </Surface>
+            <Card
+              key={question.exp}
+              render={
+                <article
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                />
+              }
+            >
+              <span
+                className={
+                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                }
+              >
+                {question.estado} · {date(question.presentada)}
+              </span>
+              <h3>{question.titulo}</h3>
+              <p>{question.autores.map(([name]) => name).join(', ')}</p>
+              <Source url={congressUrl(question.exp, index.meta.legislatura)}>
+                Expediente {question.exp}
+              </Source>
+            </Card>
           ))}
         </div>
         {!questions.length && <Empty />}
@@ -160,7 +227,11 @@ export async function Activity({
           />
           <Source url={congressUrl(law.exp, index.meta.legislatura)}>Expediente completo</Source>
           <Section title="Tramitación">
-            <ol className="cg-timeline">
+            <ol
+              className={
+                'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+              }
+            >
               {law.fases.map(([organ, phase, from, to], i) => (
                 <li key={i}>
                   <h3>{phase}</h3>
@@ -187,15 +258,26 @@ export async function Activity({
         <Laws laws={laws.slice((page - 1) * 24, page * 24)} legislature={index.meta.legislatura} />
         <Pagination page={page} total={laws.length} params={{ q: query }} />
         <Section title="Leyes publicadas">
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {data.aprobadas.map((law, i) => (
-              <Surface asChild key={`${law.pdf}-${i}`}>
-                <article className="cg-card">
-                  <h3>{law.titulo}</h3>
-                  <p>{date(law.fecha)}</p>
-                  <Source url={law.pdf}>Publicación oficial</Source>
-                </article>
-              </Surface>
+              <Card
+                key={`${law.pdf}-${i}`}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <h3>{law.titulo}</h3>
+                <p>{date(law.fecha)}</p>
+                <Source url={law.pdf}>Publicación oficial</Source>
+              </Card>
             ))}
           </div>
         </Section>
@@ -207,17 +289,29 @@ export async function Activity({
     if (section === 'temas')
       return (
         <>
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {Object.entries(topics).map(([id, topic]) => (
-              <Surface asChild key={id}>
-                <Link href={href(`tema/${id}`)} className="cg-card">
-                  <h2>{topic.nombre}</h2>
-                  <p>
-                    {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
-                    {number(topic.preguntas)} preguntas
-                  </p>
-                </Link>
-              </Surface>
+              <Card
+                key={id}
+                render={
+                  <Link
+                    href={href(`tema/${id}`)}
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <h2>{topic.nombre}</h2>
+                <p>
+                  {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
+                  {number(topic.preguntas)} preguntas
+                </p>
+              </Card>
             ))}
           </div>
         </>
@@ -277,31 +371,35 @@ export async function Activity({
         <Hemicycle index={index} vote={vote} />
         {vote.json && <Source url={vote.json}>Votación oficial</Source>}
         <Section title="El voto de cada diputado">
-          <div className="cg-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Diputado</th>
-                  <th>Grupo en la votación</th>
-                  <th>Voto</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div
+            className={
+              'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
+            }
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Diputado</TableHead>
+                  <TableHead>Grupo en la votación</TableHead>
+                  <TableHead>Voto</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {index.diputados.map(
                   (d, i) =>
                     vote.v.charAt(i) &&
                     vote.v.charAt(i) !== '-' && (
-                      <tr key={d.nombre}>
-                        <td>
+                      <TableRow key={d.nombre}>
+                        <TableCell>
                           <Link href={href(`diputado/${slug(d.nombre)}`)}>{d.nombre}</Link>
-                        </td>
-                        <td>{vote.cg?.[String(i)] || d.grupo}</td>
-                        <td>{names[vote.v.charAt(i)]}</td>
-                      </tr>
+                        </TableCell>
+                        <TableCell>{vote.cg?.[String(i)] || d.grupo}</TableCell>
+                        <TableCell>{names[vote.v.charAt(i)]}</TableCell>
+                      </TableRow>
                     ),
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </Section>
       </>
@@ -326,7 +424,11 @@ export async function Activity({
         )}
         {session.ds && <Source url={session.ds}>Diario de Sesiones</Source>}
         <Section title="Orden del día">
-          <ol className="cg-timeline">
+          <ol
+            className={
+              'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+            }
+          >
             {session.puntos.map((p, i) => (
               <li key={i}>
                 <h3>{p.titulo}</h3>
@@ -351,18 +453,28 @@ export async function Activity({
               Texto extraído del PDF oficial; consulta el original para comprobar la transcripción.
             </p>
             {raw.intervenciones.map((iv, i) => (
-              <Disclosure
-                className="cg-transcript"
-                key={i}
-                title={
-                  <>
-                    {iv.orador} · {iv.grupo} · {iv.item || 'Turno de palabra'}
-                  </>
+              <Collapsible
+                className={
+                  'cg-transcript [padding:16px_0] [border-bottom:1px_solid_var(--border)] [&_summary]:cursor-pointer [&_summary]:font-medium [&_p]:[max-width:80ch] [&_p]:[white-space:pre-line]'
                 }
-                icon={<Icon name="abajo" size={16} />}
+                key={i}
               >
-                <p>{iv.texto}</p>
-              </Disclosure>
+                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                  <span>
+                    {
+                      <>
+                        {iv.orador} · {iv.grupo} · {iv.item || 'Turno de palabra'}
+                      </>
+                    }
+                  </span>
+                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                    {<Icon name="abajo" size={16} />}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <p>{iv.texto}</p>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </Section>
         )}

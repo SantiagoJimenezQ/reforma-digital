@@ -45,7 +45,7 @@ function sol(nombre, ancho, alto, radioX, radioY) {
   cabecera.writeUInt32BE(ancho, 0);
   cabecera.writeUInt32BE(alto, 4);
   cabecera.set([8, 6, 0, 0, 0], 8); // 8 bits por canal, RGBA
-  const destino = new URL(`../components/congreso/${nombre}.png`, import.meta.url);
+  const destino = new URL(`../public/congreso/${nombre}.png`, import.meta.url);
   writeFileSync(
     destino,
     Buffer.concat([

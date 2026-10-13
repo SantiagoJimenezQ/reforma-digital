@@ -1,5 +1,7 @@
-import { Icon } from '../sol/icon';
-import { Button, Actions } from '@reforma-digital/design/sol';
+import { cn } from '@reforma-digital/design/lib/utils';
+import { buttonVariants } from '@reforma-digital/design/ui/button';
+import { Icon } from '../brand/icon';
+
 import { Intro, Section, Source } from './common';
 
 export function Information({ section, title }: { section: string; title: string }) {
@@ -25,7 +27,11 @@ export function Information({ section, title }: { section: string; title: string
     <>
       <Intro title={title} />
       {section === 'glosario' ? (
-        <dl className="cg-glossary">
+        <dl
+          className={
+            'cg-glossary [&_div]:[padding:24px_0] [&_div]:[border-bottom:1px_solid_var(--border)] [&_dt]:[font-size:20px] [&_dt]:font-semibold [&_dd]:[margin:8px_0_0] [&_dd]:[max-width:70ch]'
+          }
+        >
           {terms.map(([term, definition]) => (
             <div key={term}>
               <dt>{term}</dt>
@@ -35,7 +41,11 @@ export function Information({ section, title }: { section: string; title: string
         </dl>
       ) : section === 'como-ley' ? (
         <>
-          <ol className="cg-timeline">
+          <ol
+            className={
+              'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+            }
+          >
             {[
               'Presentación y admisión a trámite',
               'Debate y enmiendas en el Congreso',
@@ -78,21 +88,42 @@ export function Information({ section, title }: { section: string; title: string
               código del recolector se ha adaptado de Escaño Abierto, con licencia MIT y su
               atribución.
             </p>
-            <Actions>
-              <Button href="/api/congreso">Consultar la API</Button>
-              <Button href="/api/congreso/descarga" variant="secondary">
+            <div className={'flex flex-wrap items-center gap-3'}>
+              <a
+                href="/api/congreso"
+                data-slot="button"
+                data-variant="default"
+                className={cn(buttonVariants({ variant: 'default' }))}
+              >
+                Consultar la API
+              </a>
+              <a
+                href="/api/congreso/descarga"
+                data-slot="button"
+                data-variant="outline"
+                className={cn(buttonVariants({ variant: 'outline' }))}
+              >
                 Descargar el histórico
-              </Button>
-              <Button
-                variant="ghost"
+              </a>
+              <a
                 href="https://github.com/jorgegarcelan/escano-abierto"
                 target="_blank"
                 rel="noopener noreferrer"
+                data-slot="button"
+                data-variant="ghost"
+                className={cn(buttonVariants({ variant: 'ghost' }))}
               >
                 Código de origen <Icon name="externo" size={16} />
-                <span className="sr-only"> (se abre en otra pestaña)</span>
-              </Button>
-            </Actions>
+                <span
+                  className={
+                    'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+                  }
+                >
+                  {' '}
+                  (se abre en otra pestaña)
+                </span>
+              </a>
+            </div>
           </Section>
         </>
       )}

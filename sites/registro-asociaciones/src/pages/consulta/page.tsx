@@ -2,7 +2,7 @@ import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
 import { BoundField, BridgeProvider, useBoundField, useDomValue } from '@reforma-digital/react';
 import type { SitePage } from '@reforma-digital/registry';
 import { Callout, ExternalLink, LinkButton, OfficialDivider, Panel } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { consultaBindings, consultaState, RESULTS_TABLE, type ConsultaBindings } from './bindings';
 
 const SEDE = 'https://sede.interior.gob.es';
@@ -34,7 +34,7 @@ export const consultaPage: SitePage = {
       title: 'Consulta asociaciones',
       description: 'Fichero de Denominaciones de Asociaciones',
       page: 'consulta',
-      pageStyles,
+      pageClassName,
       shell: { anchor: bindings.title, position: 'beforebegin' },
       panels: [
         {
@@ -104,7 +104,7 @@ function Consulta({ bindings }: { bindings: ConsultaBindings }) {
           búsqueda la hace la web oficial.
         </Callout>
       )}
-      <p className="bg-hint">
+      <p className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))]'}>
         Información del procedimiento:{' '}
         <ExternalLink href={FICHA}>ficha oficial en la Sede</ExternalLink>
       </p>

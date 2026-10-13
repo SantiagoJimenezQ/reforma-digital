@@ -1,0 +1,6 @@
+@import 'tailwindcss' source(none);
+@import 'tw-animate-css';
+@import './theme.css';
+@source '../../../apps/web/**/*.{ts,tsx}';
+@source '../ui/**/*.{ts,tsx}';
+@source '../chat.tsx';

@@ -1,13 +1,3 @@
-@import '@reforma-digital/design/tokens.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  width: 340px;
-  margin: 0;
-  background: rgb(var(--bg-surface));
-  font-family: var(--bg-font);
-  color: rgb(var(--bg-ink));
-}
+@import 'tailwindcss' source(none);
+@import '@reforma-digital/design/theme.css';
+@source '../../../packages/design/ui/**/*.{ts,tsx}';

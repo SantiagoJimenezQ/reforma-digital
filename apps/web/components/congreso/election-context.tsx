@@ -1,4 +1,13 @@
-import { Surface } from '@reforma-digital/design/sol';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@reforma-digital/design/ui/table';
+import { Card } from '@reforma-digital/design/ui/card';
+
 import {
   balanceSchema,
   metricsSchema,
@@ -57,36 +66,62 @@ export async function ElectionContext({
           ]}
         />
         <Filters action={href('elecciones/caducan')} query={query} />
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {laws
             .slice((page - 1) * 24, page * 24)
             .map(([exp, title, type, , authors, presented, , extensions, days, commission]) => (
-              <Surface asChild key={exp}>
-                <article className="cg-card">
-                  <span className="t-etiqueta">
-                    {type} · {authors.join(', ')}
-                  </span>
-                  <h3>{title}</h3>
-                  <p>
-                    Presentada el {date(presented)} · {days} días · {extensions} ampliaciones
-                  </p>
-                  <p>{commission}</p>
-                  <Source url={congressUrl(exp, 'XV')}>Expediente</Source>
-                </article>
-              </Surface>
+              <Card
+                key={exp}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <span
+                  className={
+                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                  }
+                >
+                  {type} · {authors.join(', ')}
+                </span>
+                <h3>{title}</h3>
+                <p>
+                  Presentada el {date(presented)} · {days} días · {extensions} ampliaciones
+                </p>
+                <p>{commission}</p>
+                <Source url={congressUrl(exp, 'XV')}>Expediente</Source>
+              </Card>
             ))}
         </div>
         <Pagination page={page} total={laws.length} params={{ q: query }} />
         <Section title="Decretos pendientes de convalidar">
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {source.convalidar.map((d) => (
-              <Surface asChild key={d.numero}>
-                <article className="cg-card">
-                  <h3>{d.titulo}</h3>
-                  <p>Plazo aproximado: {date(d.limite_aprox)}</p>
-                  <Source url={d.pdf}>Texto oficial</Source>
-                </article>
-              </Surface>
+              <Card
+                key={d.numero}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <h3>{d.titulo}</h3>
+                <p>Plazo aproximado: {date(d.limite_aprox)}</p>
+                <Source url={d.pdf}>Texto oficial</Source>
+              </Card>
             ))}
           </div>
         </Section>
@@ -139,27 +174,38 @@ export async function ElectionContext({
         <Intro title="Elecciones, comparadas">
           <p>Participación y métricas calculadas a partir de los resultados oficiales.</p>
         </Intro>
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {history.elecciones
             .slice()
             .reverse()
             .map((e) => (
-              <Surface asChild key={e.id}>
-                <article className="cg-card">
-                  <h2>
-                    <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
-                  </h2>
-                  <Stats
-                    items={[
-                      [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
-                      ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
-                        n === null ? '—' : number(n),
-                        labels[k] || k.replaceAll('_', ' '),
-                      ]),
-                    ]}
+              <Card
+                key={e.id}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
                   />
-                </article>
-              </Surface>
+                }
+              >
+                <h2>
+                  <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
+                </h2>
+                <Stats
+                  items={[
+                    [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
+                    ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
+                      n === null ? '—' : number(n),
+                      labels[k] || k.replaceAll('_', ' '),
+                    ]),
+                  ]}
+                />
+              </Card>
             ))}
         </div>
       </>
@@ -185,29 +231,35 @@ export async function ElectionContext({
           </p>
         </Intro>
         <Filters action={href('elecciones/mapa')} query={query} />
-        <div className="cg-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Municipio</th>
-                <th>Participación</th>
+        <div
+          className={
+            'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
+          }
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Municipio</TableHead>
+                <TableHead>Participación</TableHead>
                 {votes.orden.map((p) => (
-                  <th key={p}>{p}</th>
+                  <TableHead key={p}>{p}</TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {places.slice((page - 1) * 24, page * 24).map(([id, row]) => (
-                <tr key={id}>
-                  <th>{String(names.m[id]?.[0] || id)}</th>
-                  <td>{row[0] ? `${(((row[1] ?? 0) / row[0]) * 100).toFixed(1)} %` : '—'}</td>
+                <TableRow key={id}>
+                  <TableHead>{String(names.m[id]?.[0] || id)}</TableHead>
+                  <TableCell>
+                    {row[0] ? `${(((row[1] ?? 0) / row[0]) * 100).toFixed(1)} %` : '—'}
+                  </TableCell>
                   {votes.orden.map((p, i) => (
-                    <td key={p}>{number(row[i + 2] ?? 0)}</td>
+                    <TableCell key={p}>{number(row[i + 2] ?? 0)}</TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
         <Pagination page={page} total={places.length} params={{ q: query }} />
         <Source url="https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/">
@@ -230,32 +282,55 @@ export async function ElectionContext({
         </Intro>
         <Section title="Voto por edad">
           <p>{age.fuente}. Estimaciones ajustadas al resultado, no recuentos individuales.</p>
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {age.edades.map((label, i) => (
-              <Surface asChild key={label}>
-                <article className="cg-card">
-                  <h3>{label}</h3>
-                  <Stats
-                    items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
+              <Card
+                key={label}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
                   />
-                </article>
-              </Surface>
+                }
+              >
+                <h3>{label}</h3>
+                <Stats
+                  items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
+                />
+              </Card>
             ))}
           </div>
           <Source url={age.url}>Estudio de origen</Source>
         </Section>
         <Section title="El territorio">
-          <div className="cg-grid">
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {Object.entries(geography.provincias).map(([id, p]) => (
-              <Surface asChild key={id}>
-                <Link className="cg-card" href={href(`geografia/${id}`)}>
-                  <h3>{p.n}</h3>
-                  <p>
-                    {number(p.renta)} € por persona · {p.edad} años de edad media · {p.dens}{' '}
-                    habitantes/km²
-                  </p>
-                </Link>
-              </Surface>
+              <Card
+                key={id}
+                render={
+                  <Link
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                    href={href(`geografia/${id}`)}
+                  />
+                }
+              >
+                <h3>{p.n}</h3>
+                <p>
+                  {number(p.renta)} € por persona · {p.edad} años de edad media · {p.dens}{' '}
+                  habitantes/km²
+                </p>
+              </Card>
             ))}
           </div>
         </Section>

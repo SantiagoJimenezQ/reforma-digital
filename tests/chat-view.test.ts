@@ -14,6 +14,11 @@ vi.mock('../apps/web/lib/pii', () => ({
 it('usa el chat real y al empezar de nuevo borra la conversación y cancela la consulta pendiente', async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  );
+
+  vi.stubGlobal(
     'ResizeObserver',
     class {
       observe() {}
@@ -22,11 +27,6 @@ it('usa el chat real y al empezar de nuevo borra la conversación y cancela la c
   );
   const scrollIntoView = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
   Object.defineProperty(Element.prototype, 'scrollIntoView', {
-    configurable: true,
-    value: vi.fn(),
-  });
-  const close = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
-  Object.defineProperty(HTMLDialogElement.prototype, 'close', {
     configurable: true,
     value: vi.fn(),
   });
@@ -79,8 +79,6 @@ it('usa el chat real y al empezar de nuevo borra la conversación y cancela la c
     container.remove();
     if (scrollIntoView) Object.defineProperty(Element.prototype, 'scrollIntoView', scrollIntoView);
     else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
-    if (close) Object.defineProperty(HTMLDialogElement.prototype, 'close', close);
-    else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   }

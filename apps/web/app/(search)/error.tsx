@@ -1,12 +1,21 @@
 'use client';
-import { Button } from '@reforma-digital/design/sol';
-import { InfoPage } from '../../components/sol/info-page';
+import { Button } from '@reforma-digital/design/ui/button';
+
+import { InfoPage } from '../../components/brand/info-page';
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <InfoPage narrow>
       <h1>No hemos podido cargar esta página.</h1>
-      <p className="info-entradilla">Inténtalo de nuevo en un momento.</p>
-      <Button onClick={reset}>Volver a intentar</Button>
+      <p
+        className={
+          'info-entradilla [max-width:65ch] mb-10 [color:var(--text-secondary)] text-lg [line-height:1.6]'
+        }
+      >
+        Inténtalo de nuevo en un momento.
+      </p>
+      <Button onClick={reset} variant="default">
+        Volver a intentar
+      </Button>
     </InfoPage>
   );
 }

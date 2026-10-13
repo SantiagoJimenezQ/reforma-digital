@@ -62,8 +62,12 @@ describe('carga del Congreso', () => {
     });
     const reader = (await renderToReadableStream(page)).getReader();
     try {
-      const first = await reader.read();
-      const html = new TextDecoder().decode(first.value);
+      let html = '';
+      while (!html.includes('Cargando datos del Congreso')) {
+        const chunk = await reader.read();
+        if (chunk.done) throw new Error('No se emitió el contenido antes de resolver los datos');
+        html += new TextDecoder().decode(chunk.value);
+      }
       expect(html).toContain(title);
       expect(html).toContain('Cargando datos del Congreso');
       expect(html).not.toContain('Snapshot generado');

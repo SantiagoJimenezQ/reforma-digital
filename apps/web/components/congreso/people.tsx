@@ -1,5 +1,11 @@
-import { Surface, Disclosure } from '@reforma-digital/design/sol';
-import { Icon } from '../sol/icon';
+import { Card } from '@reforma-digital/design/ui/card';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@reforma-digital/design/ui/collapsible';
+
+import { Icon } from '../brand/icon';
 import { extraSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -59,7 +65,11 @@ export async function People({
         <>
           <Intro label={cargo.ministerio} title={cargo.cargo} />
           <Section title="Quién ha ocupado el cargo">
-            <ol className="cg-timeline">
+            <ol
+              className={
+                'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+              }
+            >
               {cargo.mandatos.map((m, i) => (
                 <li key={i}>
                   <h3>{m.persona}</h3>
@@ -89,15 +99,33 @@ export async function People({
           ]}
         />
         <Filters action={href('organigrama')} query={query} />
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {cargos.slice((page - 1) * 24, page * 24).map(([id, cargo]) => (
-            <Surface asChild key={id}>
-              <Link className="cg-card" href={href(`cargo/${id}`)}>
-                <span className="t-etiqueta">{cargo.ministerio}</span>
-                <h3>{cargo.cargo}</h3>
-                <p>{cargo.mandatos.find((m) => !m.hasta)?.persona || 'Vacante'}</p>
-              </Link>
-            </Surface>
+            <Card
+              key={id}
+              render={
+                <Link
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                  href={href(`cargo/${id}`)}
+                />
+              }
+            >
+              <span
+                className={
+                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                }
+              >
+                {cargo.ministerio}
+              </span>
+              <h3>{cargo.cargo}</h3>
+              <p>{cargo.mandatos.find((m) => !m.hasta)?.persona || 'Vacante'}</p>
+            </Card>
           ))}
         </div>
         <Pagination page={page} total={cargos.length} params={{ q: query }} />
@@ -144,7 +172,11 @@ export async function People({
               <p>{extra.bio}</p>
             </Section>
             <Section title="Comisiones">
-              <ul className="cg-list">
+              <ul
+                className={
+                  'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+                }
+              >
                 {extra.comisiones.map(([commission, role]) => (
                   <li key={`${commission}-${role}`}>
                     <b>{commission}</b>
@@ -157,31 +189,43 @@ export async function People({
               <Section title="Declaración de intereses">
                 <p>Información del registro público del Congreso.</p>
                 {Object.entries(extra.intereses).map(([label, value]) => (
-                  <Disclosure
-                    className="cg-transcript"
+                  <Collapsible
+                    className={
+                      'cg-transcript [padding:16px_0] [border-bottom:1px_solid_var(--border)] [&_summary]:cursor-pointer [&_summary]:font-medium [&_p]:[max-width:80ch] [&_p]:[white-space:pre-line]'
+                    }
                     key={label}
-                    title={<>{label.replaceAll('_', ' ')}</>}
-                    icon={<Icon name="abajo" size={16} />}
                   >
-                    {typeof value === 'string' ? (
-                      <p>{value}</p>
-                    ) : (
-                      <ul>
-                        {value.map((row, j) => (
-                          <li key={j}>
-                            {typeof row === 'string' ? row : row.filter(Boolean).join(' · ')}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </Disclosure>
+                    <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                      <span>{<>{label.replaceAll('_', ' ')}</>}</span>
+                      <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                        {<Icon name="abajo" size={16} />}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      {typeof value === 'string' ? (
+                        <p>{value}</p>
+                      ) : (
+                        <ul>
+                          {value.map((row, j) => (
+                            <li key={j}>
+                              {typeof row === 'string' ? row : row.filter(Boolean).join(' · ')}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
                 ))}
               </Section>
             )}
           </>
         )}
         <Section title="Cómo votó">
-          <div className="cg-list">
+          <div
+            className={
+              'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+            }
+          >
             {votes.slice((page - 1) * 24, page * 24).map((vote) => (
               <article key={vote.id}>
                 <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>
@@ -205,32 +249,56 @@ export async function People({
     return (
       <>
         <Hemicycle index={index} />
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {Object.entries(index.grupos)
             .filter(([, g]) => g.escanos)
             .map(([id, g]) => (
-              <Surface asChild key={id}>
-                <article className="cg-card">
-                  <span className="cg-group">
-                    <i style={{ background: g.color }} />
-                    {id}
-                  </span>
-                  <h2>{g.nombre}</h2>
-                  <Stats
-                    items={[
-                      [g.escanos, 'Escaños'],
-                      [
-                        data.intervenciones.filter((iv) => iv.g === id).length,
-                        'Intervenciones analizadas',
-                      ],
-                    ]}
+              <Card
+                key={id}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
                   />
-                  <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
-                  <Disclosure
-                    title="Voto mayoritario del grupo"
-                    icon={<Icon name="abajo" size={16} />}
-                  >
-                    <ul className="cg-list">
+                }
+              >
+                <span
+                  className={
+                    'cg-group [&_i]:w-2 [&_i]:h-2 [&_i]:inline-block [&_i]:[border-radius:50%] flex items-center flex-wrap gap-3 text-sm'
+                  }
+                >
+                  <i style={{ background: g.color }} />
+                  {id}
+                </span>
+                <h2>{g.nombre}</h2>
+                <Stats
+                  items={[
+                    [g.escanos, 'Escaños'],
+                    [
+                      data.intervenciones.filter((iv) => iv.g === id).length,
+                      'Intervenciones analizadas',
+                    ],
+                  ]}
+                />
+                <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                    <span>{'Voto mayoritario del grupo'}</span>
+                    <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                      {<Icon name="abajo" size={16} />}
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul
+                      className={
+                        'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+                      }
+                    >
                       {data.votaciones.slice(0, 12).map((v) => (
                         <li key={v.id}>
                           <Link href={href(`votacion/${v.id}`, v.fecha.slice(0, 7))}>
@@ -244,9 +312,9 @@ export async function People({
                         </li>
                       ))}
                     </ul>
-                  </Disclosure>
-                </article>
-              </Surface>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
             ))}
         </div>
       </>

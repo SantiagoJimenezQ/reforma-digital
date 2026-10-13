@@ -81,8 +81,8 @@ sequenceDiagram
 ## Estilos
 
 ```
-DESIGN.md → packages/design/src/tokens.css        variables --bg-*
-          → packages/design/tailwind-preset.js     colores semánticos + componentes bg-btn, bg-field, bg-callout…
+DESIGN.md → packages/design/styles/theme.css        variables --bg-*
+          → packages/design/ui                    primitivas shadcn/Base UI + Tailwind v4
                 ├→ src/shadow.css                  base de las interfaces en Shadow DOM (runtime)
                 ├→ src/ui/*.tsx                    componentes React (Panel, Choice, Callout…)
                 ├→ packages/react                  BoundField con las mismas clases

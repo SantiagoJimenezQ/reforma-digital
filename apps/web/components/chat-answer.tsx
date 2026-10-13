@@ -1,7 +1,11 @@
 'use client';
+import { cn } from '@reforma-digital/design/lib/utils';
+
+import { buttonVariants } from '@reforma-digital/design/ui/button';
+
 import { Fragment, type ReactNode } from 'react';
 import type { ClaimKind, Evidence, VerifiedClaim } from '@reforma-digital/core';
-import { Button } from '@reforma-digital/design/sol';
+
 import {
   Answer,
   DetailCard,
@@ -14,8 +18,8 @@ import {
   StepList,
   WhereCard,
   withCitations,
-} from '@reforma-digital/design/sol/chat';
-import { Icon } from './sol/icon';
+} from '@reforma-digital/design/chat';
+import { Icon } from './brand/icon';
 import type { ChatMessage } from '../lib/chat-message';
 import type { HiddenRange } from '../lib/pii-display';
 
@@ -210,13 +214,35 @@ export function AnswerBlocks({
         <WhereCard
           label="Dónde se hace"
           title={`${where.title} · ${where.organization}`}
-          description={<span className="t-dato">{new URL(where.canonicalUrl).hostname}</span>}
+          description={
+            <span
+              className={
+                't-dato [font-family:var(--font-brand-mono)] [font-variant-numeric:tabular-nums] [letter-spacing:0]'
+              }
+            >
+              {new URL(where.canonicalUrl).hostname}
+            </span>
+          }
           action={
-            <Button href={where.canonicalUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={where.canonicalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-slot="button"
+              data-variant="default"
+              className={cn(buttonVariants({ variant: 'default' }))}
+            >
               Abrir la web oficial
-              <span className="sr-only"> (se abre en una pestaña nueva)</span>
+              <span
+                className={
+                  'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+                }
+              >
+                {' '}
+                (se abre en una pestaña nueva)
+              </span>
               <Icon name="arrowUpRight" size={16} />
-            </Button>
+            </a>
           }
         />
       )}

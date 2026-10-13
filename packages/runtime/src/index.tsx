@@ -1,3 +1,5 @@
+import { Button } from '@reforma-digital/design/ui/button';
+import { PortalContainerContext } from '@reforma-digital/design/lib/portal';
 import { Component, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
@@ -9,6 +11,7 @@ import {
 } from '@reforma-digital/registry';
 import { CommunityBadge, FallbackNotice } from '@reforma-digital/design';
 import uiStyles from '@reforma-digital/design/shadow.css?inline';
+import portalStyles from '@reforma-digital/design/portal.css?inline';
 
 export type RuntimeState = 'active' | 'original' | 'unsupported' | 'disabled';
 export interface RuntimeController {
@@ -50,7 +53,11 @@ function Shell({
 }) {
   return (
     <section
-      className={inline ? 'bg-card bg-text my-3' : 'bg-text border-b border-line bg-surface'}
+      className={
+        inline
+          ? 'bg-card [background-color:rgb(var(--bg-surface))] border-0 [border-radius:var(--bg-radius-card)] [box-shadow:var(--bg-shadow-card)] bg-text [font-family:var(--bg-font)] text-base [line-height:1.6] [color:rgb(var(--bg-ink))] my-3'
+          : 'bg-text [font-family:var(--bg-font)] text-base [line-height:1.6] [color:rgb(var(--bg-ink))] border-b border-line bg-surface'
+      }
       aria-label="Reforma Digital"
     >
       <div
@@ -63,22 +70,39 @@ function Shell({
         <div className="min-w-0 flex-1">
           <CommunityBadge host={host} />
         </div>
-        <button
+        <Button
+          variant="outline"
           type="button"
-          className="bg-btn bg-btn-secondary min-h-[36px] px-3 py-1.5 text-[14px] print:hidden"
+          className={'min-h-[36px] px-3 py-1.5 text-[14px] print:hidden'}
           onClick={restore}
         >
           Ver original
-        </button>
+        </Button>
       </div>
       {enhancement.panels?.length ? null : (
         <div className="mx-auto max-w-content px-4 pb-4">
-          <h1 className="bg-h1">{enhancement.title}</h1>
-          <p className="bg-lead mt-1">{enhancement.description}</p>
+          <h1
+            className={
+              'bg-h1 [font-size:28px] [line-height:1.2] font-medium [color:rgb(var(--bg-ink))] [letter-spacing:-0.035em] [@media(max-width:_639px)]:text-2xl'
+            }
+          >
+            {enhancement.title}
+          </h1>
+          <p
+            className={
+              'bg-lead [font-size:17px] [line-height:1.6] [color:rgb(var(--bg-ink-muted))] mt-1'
+            }
+          >
+            {enhancement.description}
+          </p>
         </div>
       )}
       {demo ? (
-        <p className="bg-small mx-auto max-w-content px-4 pb-3">
+        <p
+          className={
+            'bg-small text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mx-auto max-w-content px-4 pb-3'
+          }
+        >
           Prueba local con datos ficticios. No reserva citas.
         </p>
       ) : null}
@@ -102,6 +126,7 @@ export function mountAdapter(
   let observer: MutationObserver | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
   let pageStyle: HTMLStyleElement | undefined;
+  let addedClasses: string[] = [];
   const initialURL = location.href;
   const oldSite = document.body.getAttribute('data-bg-site');
   const root = document.documentElement;
@@ -130,6 +155,8 @@ export function mountAdapter(
     for (const root of roots) root.unmount();
     for (const host of hosts) host.remove();
     pageStyle?.remove();
+    root.classList.remove(...addedClasses);
+    addedClasses = [];
     if (oldSite === null) document.body.removeAttribute('data-bg-site');
     else document.body.setAttribute('data-bg-site', oldSite);
     if (oldRootSite === null) root.removeAttribute('data-bg-site');
@@ -189,7 +216,13 @@ export function mountAdapter(
     hosts.push(host);
     const root = createRoot(mount);
     roots.push(root);
-    flushSync(() => root.render(<RenderBoundary restore={restore}>{content}</RenderBoundary>));
+    flushSync(() =>
+      root.render(
+        <PortalContainerContext value={mount}>
+          <RenderBoundary restore={restore}>{content}</RenderBoundary>
+        </PortalContainerContext>,
+      ),
+    );
   }
   try {
     makeHost(
@@ -229,7 +262,13 @@ export function mountAdapter(
       slot.source.setAttribute('data-bg-source', '');
     }
     pageStyle = document.createElement('style');
-    pageStyle.textContent = `[data-bg-source], [data-bg-label] { display: none !important; }\n${captured.pageStyles ?? ''}`;
+    pageStyle.textContent = portalStyles;
+    const classes =
+      `[&_[data-bg-source]]:hidden! [&_[data-bg-label]]:hidden! ${captured.pageClassName ?? ''}`
+        .split(/\s+/)
+        .filter(Boolean);
+    addedClasses = classes.filter((value) => !root.classList.contains(value));
+    root.classList.add(...addedClasses);
     document.head.append(pageStyle);
     document.body.setAttribute('data-bg-site', adapter.id);
     root.setAttribute('data-bg-site', adapter.id);

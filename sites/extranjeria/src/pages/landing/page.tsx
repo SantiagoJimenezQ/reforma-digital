@@ -10,7 +10,7 @@ import {
   ProgressSteps,
   SectionTitle,
 } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { communityBar, screenPanels } from '../../components/panels';
 import { OUT_OF_SCOPE_FROM, STEPS } from '../../components/steps';
 import { landingBindings, type LandingBindings } from './bindings';
@@ -33,7 +33,7 @@ export const landingPage: SitePage = {
       title: 'Cita previa de Extranjería',
       description: 'Información del trámite',
       page: 'landing',
-      pageStyles,
+      pageClassName,
       slots: [],
       shell: communityBar(bindings.header),
       panels: screenPanels(bindings.header, bindings.content, bridge, () => (
@@ -99,7 +99,7 @@ function Landing({ bindings, restore }: { bindings: LandingBindings; restore: ()
       {bindings.whoRequests.length > 0 && (
         <div>
           <SectionTitle>Quién debe pedir la cita</SectionTitle>
-          <p className="bg-hint mt-1">
+          <p className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-1'}>
             Resumen de las «Instrucciones del procedimiento» de la página oficial.
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
