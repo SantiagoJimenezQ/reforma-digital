@@ -1,5 +1,6 @@
 import { cn } from '@reforma-digital/design/lib/utils';
 import { buttonVariants } from '@reforma-digital/design/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@reforma-digital/design/ui/card';
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -74,14 +75,14 @@ export default function HomePage() {
   return (
     <div className="iniciativa">
       <JsonLd graph={graph} />
+      <Header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md" />
       <main id="main" tabIndex={-1}>
         <section
           className={
-            'in-hero relative flex flex-col min-h-172 m-2 [border-radius:28px] [background:var(--brand-gradient)] [color:var(--background)] [--logo-color:currentColor] [--ring:var(--background)] [&_h1]:[max-width:25ch] [&_h1]:[margin:0_auto_32px] [&_h1]:[font-family:var(--font-brand-heading)] [&_h1]:[font-size:clamp(36px,_5vw,_72px)] [&_h1]:font-normal [&_h1]:[line-height:1.08] [&_.in-hero-enlace]:[background:color-mix(in_oklch,_var(--background)_35%,_transparent)] [&_.in-hero-enlace]:[box-shadow:none] [&_.in-hero-enlace]:[-webkit-backdrop-filter:blur(16px)] [&_.in-hero-enlace]:[backdrop-filter:blur(16px)] [&_.in-hero-enlace::before]:[background:color-mix(in_oklch,_var(--background)_30%,_transparent)] [@media(max-width:_480px)]:[background-size:100%_560px] [@media(max-width:_480px)]:[background-position:center_bottom] [@media(max-width:_480px)]:[background-repeat:no-repeat]'
+            'in-hero relative flex flex-col min-h-152 m-2 [border-radius:28px] [background:var(--brand-gradient)] [color:var(--background)] [--logo-color:currentColor] [--ring:var(--background)] [&_h1]:[max-width:25ch] [&_h1]:[margin:0_auto_32px] [&_h1]:[font-family:var(--font-brand-heading)] [&_h1]:[font-size:clamp(36px,_5vw,_72px)] [&_h1]:font-normal [&_h1]:[line-height:1.08] [@media(max-width:_480px)]:[background-size:100%_560px] [@media(max-width:_480px)]:[background-position:center_bottom] [@media(max-width:_480px)]:[background-repeat:no-repeat]'
           }
           aria-labelledby="in-titulo"
         >
-          <Header />
           <div
             className={
               'in-hero-interior [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] flex flex-col justify-center [flex:1] w-full pt-10 [padding-bottom:calc(80px_+_44px)] text-center'
@@ -107,12 +108,13 @@ export default function HomePage() {
             <a
               href="#proyectos"
               data-slot="button"
-              data-variant="outline"
+              data-variant="secondary"
               className={cn(
                 buttonVariants({
-                  variant: 'outline',
+                  variant: 'secondary',
+                  size: 'lg',
                   className:
-                    'in-hero-enlace absolute bottom-6 [inset-inline:0] [margin-inline:auto] [--ring:var(--foreground)]',
+                    'in-hero-enlace absolute bottom-6 w-fit rounded-full px-5 [inset-inline:0] [margin-inline:auto] [--ring:var(--foreground)]',
                 }),
               )}
             >
@@ -124,7 +126,7 @@ export default function HomePage() {
         <section
           id="iniciativa"
           className={
-            'in-seccion [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] [padding-block:96px_0] [scroll-margin-top:24px] [@media(max-width:_480px)]:pt-16 in-manifiesto grid [grid-template-columns:1fr_1fr] gap-16 [&_h2]:[max-width:17ch] [&_.in-enlace]:[width:fit-content] [&_.in-enlace]:mt-6 [@media(max-width:_800px)]:[grid-template-columns:minmax(0,_1fr)] [@media(max-width:_800px)]:gap-8'
+            'in-seccion [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] [padding-block:96px_0] scroll-mt-24 [@media(max-width:_480px)]:pt-16 in-manifiesto grid [grid-template-columns:1fr_1fr] gap-16 [&_h2]:[max-width:17ch] [&_.in-enlace]:[width:fit-content] [&_.in-enlace]:mt-6 [@media(max-width:_800px)]:[grid-template-columns:minmax(0,_1fr)] [@media(max-width:_800px)]:gap-8'
           }
           aria-labelledby="in-idea"
         >
@@ -174,7 +176,7 @@ export default function HomePage() {
         <div
           id="proyectos"
           className={
-            'in-proyectos [&_.rc]:[padding-bottom:0] [&_.rc]:[scroll-margin-top:24px] [&_.rc-paso-texto]:gap-5 [&_.rc-paso-texto_>_:is([data-slot=button][data-variant=default],_.in-enlace)]:[justify-self:start] [@media(max-width:_959px)]:[&_.rc-paso-texto]:gap-3 [@media(max-width:_959px)]:[&_.rc-paso-texto_>_p_+_*]:mt-2'
+            'in-proyectos scroll-mt-24 [&_.rc]:[padding-bottom:0] [&_.rc]:scroll-mt-24 [&_.rc-paso-texto]:gap-5 [&_.rc-paso-texto_>_:is([data-slot=button][data-variant=default],_.in-enlace)]:[justify-self:start] [@media(max-width:_959px)]:[&_.rc-paso-texto]:gap-3 [@media(max-width:_959px)]:[&_.rc-paso-texto_>_p_+_*]:mt-2'
           }
         >
           <ProjectTour
@@ -236,7 +238,12 @@ export default function HomePage() {
                       Pregunta con tus palabras. El buscador te orienta con respuestas, enlaces y
                       fragmentos de fuentes oficiales que puedes consultar.
                     </p>
-                    <Link className="boton" href="/chat">
+                    <Link
+                      className={cn(buttonVariants())}
+                      data-slot="button"
+                      data-variant="default"
+                      href="/chat"
+                    >
                       Abrir el buscador <Icon name="derecha" size={16} />
                     </Link>
                   </>
@@ -324,39 +331,27 @@ export default function HomePage() {
                     }
                     aria-hidden="true"
                   >
-                    <div
-                      className={
-                        'rc-respuesta caja-flota [background:var(--background)] [box-shadow:var(--shadow-overlay)]'
-                      }
-                    >
-                      <span
-                        className={
-                          't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                        }
-                      >
-                        Fuentes oficiales
-                      </span>
-                      {sources.slice(0, 3).map((source) => (
-                        <span
-                          className={
-                            'in-fuente grid gap-1 py-3 [border-top:1px_solid_var(--border)] [&_.t-dato]:text-sm [&_.t-dato]:[overflow-wrap:anywhere]'
-                          }
-                          key={source.id}
-                        >
-                          <strong>{source.name}</strong>
-                          <span
-                            className={
-                              't-dato [font-family:var(--font-brand-mono)] [font-variant-numeric:tabular-nums] [letter-spacing:0]'
-                            }
-                          >
-                            {new URL(source.baseUrl).hostname}
-                          </span>
+                    <Card className="rc-respuesta w-full max-w-sm [box-shadow:var(--shadow-overlay)]">
+                      <CardHeader>
+                        <span className="font-mono text-xs font-medium tracking-wider uppercase">
+                          Fuentes oficiales
                         </span>
-                      ))}
-                      <span className="rc-abrir">
-                        Consulta el origen de cada dato <Icon name="fuentes" size={16} />
-                      </span>
-                    </div>
+                      </CardHeader>
+                      <CardContent className="divide-y divide-border">
+                        {sources.slice(0, 3).map((source) => (
+                          <div className="grid gap-1 py-3 first:pt-0 last:pb-0" key={source.id}>
+                            <strong>{source.name}</strong>
+                            <span className="font-mono text-xs break-all">
+                              {new URL(source.baseUrl).hostname}
+                            </span>
+                          </div>
+                        ))}
+                      </CardContent>
+                      <CardFooter className="gap-2 border-border text-xs">
+                        <span>Consulta el origen de cada dato</span>
+                        <Icon name="fuentes" size={16} />
+                      </CardFooter>
+                    </Card>
                   </div>
                 ),
               },
@@ -381,7 +376,12 @@ export default function HomePage() {
                       Consulta qué se debate, cómo se vota y quién te representa. Actividad del
                       Congreso y datos electorales con enlaces a las fuentes oficiales.
                     </p>
-                    <Link className="boton" href={congressBase}>
+                    <Link
+                      className={cn(buttonVariants())}
+                      data-slot="button"
+                      data-variant="default"
+                      href={congressBase}
+                    >
                       Abrir El Congreso <Icon name="derecha" size={16} />
                     </Link>
                   </>
@@ -468,7 +468,7 @@ export default function HomePage() {
         <section
           id="participar"
           className={
-            'in-seccion [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] [padding-block:96px_0] [scroll-margin-top:24px] [@media(max-width:_480px)]:pt-16 in-comunidad pb-24 text-center [&_h2]:[max-width:24ch] [&_h2]:[margin-inline:auto] [&_>_.t-texto-l]:[max-width:60ch] [&_>_.t-texto-l]:[margin:24px_auto] [&_>_.t-texto-l]:[color:var(--text-secondary)] [@media(max-width:_480px)]:pb-16'
+            'in-seccion [max-width:var(--container-content)] [margin-inline:auto] [padding-inline:var(--page-gutter)] [padding-block:96px_0] scroll-mt-24 [@media(max-width:_480px)]:pt-16 in-comunidad pb-24 text-center [&_h2]:[max-width:24ch] [&_h2]:[margin-inline:auto] [&_>_.t-texto-l]:[max-width:60ch] [&_>_.t-texto-l]:[margin:24px_auto] [&_>_.t-texto-l]:[color:var(--text-secondary)] [@media(max-width:_480px)]:pb-16'
           }
           aria-labelledby="in-comunidad-titulo"
         >
