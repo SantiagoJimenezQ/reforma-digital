@@ -180,3 +180,18 @@ Todas las secciones usan `max-width: var(--ancho)` (1200 px, con el margen dentr
 - Los cuatro tokens de movimiento viven en `:root` (no en `.sol-raiz`) para que lleguen a los `::view-transition-*`, que cuelgan de `<html>`. Transición de página de `/equipo` (entre documentos, activada en `layout.tsx`): solo se anima su contenido; entra con opacidad 0 → 1 y `translateY(8px)` → 0 en `--t-medio` y sale con opacidad 1 → 0 en `--t-rapido`, ambas con `--curva-salida`; el resto cambia al instante. Con `prefers-reduced-motion: reduce` no hay transición.
 - Sombras: solo `--sombra-suave` o `--sombra-flota` (marrón cálido, por capas). Listas y tablas se separan con `--linea`; las tarjetas se elevan con sombra.
 - Capturas oficiales: `outline: 1px solid rgba(0,0,0,.1); outline-offset: -1px`. Nunca se recolorean.
+
+### Controles de El Congreso
+
+Se importan de `@reforma-digital/design/sol`, igual que `Button` y `Field`:
+
+- `Button asChild`: envuelve un único `next/link` y conserva la navegación de Next. `variant` usa las variantes existentes.
+- `Select`: recibe `name`, `label`, `defaultValue`, `options` (`value`/`label`) e iconos de apertura y selección. Usa Radix Select; el valor enviado al formulario admite la cadena vacía.
+- `Checkbox`: recibe `checked`, `onCheckedChange`, el icono y el texto como hijos. Usa Radix Checkbox.
+- `Actions`: fila de acciones que se adapta al ancho disponible.
+- `Tabs`: navegación de vistas con `label`; sus enlaces son botones `ghost` y el actual lleva `aria-current="page"`.
+- `Surface asChild`: aplica `.caja-plana` al hijo; `tone="muted"` usa `.caja-gris`. Conserva elementos semánticos como `article`, `blockquote` y enlaces.
+- `Disclosure`: conserva `details`/`summary`, recibe `title` e `icon`; funciona sin JavaScript.
+- `TextLink`: aplica `.enlace` a un enlace de texto.
+
+Los iconos proceden de `components/sol/icon`; no se añade otra biblioteca de iconos. Los estilos de una sección solo resuelven su composición y representación de datos, sin sobrescribir estos controles.

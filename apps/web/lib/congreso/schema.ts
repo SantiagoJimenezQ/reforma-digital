@@ -193,21 +193,6 @@ export const weeksSchema = z.array(
     ),
   }),
 );
-export const quizSchema = z.record(
-  z.string(),
-  z.array(
-    z.object({
-      c: z.tuple([
-        z.string(),
-        z.string(),
-        z.string(),
-        z.string().regex(/^DSCD-\d+-(PL|CO)-\d+$/),
-        date,
-      ]),
-      grupos: z.array(z.string()),
-    }),
-  ),
-);
 export const geographySchema = z.object({
   fuentes: z.record(z.string(), z.union([z.number(), z.string()])),
   provincias: z.record(
@@ -276,7 +261,6 @@ export const datasetSchemas = new Map<string, z.ZodType>([
   ['preguntas.json', questionsSchema],
   ['organigrama.json', organsSchema],
   ['semanas.json', weeksSchema],
-  ['explora-retos.json', quizSchema],
   ['geografia/territorios.json', geographySchema],
   ['elecciones/elecciones.json', electionsSchema],
   ['encuestas/encuestas.json', pollsSchema],

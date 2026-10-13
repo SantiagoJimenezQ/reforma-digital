@@ -1,6 +1,18 @@
 .cg {
   color: var(--tinta);
 }
+.cg-loading-line {
+  height: var(--e-16);
+  margin-block: var(--e-16);
+  border-radius: var(--r-12);
+  background: var(--superficie);
+}
+.cg-loading-line:first-child {
+  width: 40%;
+}
+.cg-loading-line:last-child {
+  width: 75%;
+}
 .cg-nav {
   max-width: var(--ancho);
   margin: auto;
@@ -19,60 +31,128 @@
 .cg-nav details {
   position: relative;
 }
-.cg-nav summary {
-  cursor: pointer;
-  font-size: 14px;
-}
 .cg-nav ul {
   position: absolute;
   z-index: 10;
   top: 100%;
   right: 0;
   min-width: 220px;
-  padding: var(--e-12);
   margin-top: var(--e-12);
-  background: var(--blanco);
-  border: 1px solid var(--linea);
-  border-radius: var(--r-16);
-  box-shadow: var(--sombra-flota);
   list-style: none;
 }
-.cg-nav li a {
-  display: block;
-  padding: var(--e-8);
-  border-radius: var(--r-12);
+.cg-nav li a,
+.cg-lateral a {
+  width: 100%;
+  justify-content: flex-start;
 }
-.cg-nav li a:hover {
+.cg :is(.cg-nav, .cg-lateral) [aria-current='page'] {
   background: var(--superficie);
 }
+/* Desde 1100 px, las vistas van en una columna a la izquierda, todas a la vista y sin desplegables; el
+   contenido ocupa el resto. Por debajo se queda la barra con desplegables (DESIGN.md §8.7). */
+.cg {
+  --cg-ancho: calc(
+    var(--ancho) + 264px
+  ); /* la columna (232) y su hueco (32), además de la retícula */
+}
+.cg-lateral {
+  display: none;
+}
+.cg .in-nav [aria-current='page'] {
+  background: var(--superficie);
+}
+@media (min-width: 1100px) {
+  .cg-nav {
+    display: none;
+  }
+  /* La cabecera de Sol se alinea con la columna */
+  .cg .in-nav {
+    --ancho: var(--cg-ancho);
+  }
+  .cg-marco {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    column-gap: var(--e-32);
+    align-items: start;
+    max-width: var(--cg-ancho);
+    margin: auto;
+    padding-inline: var(--margen);
+  }
+  .cg-lateral {
+    display: block;
+    position: sticky;
+    top: var(--e-16);
+    max-height: calc(100dvh - var(--e-32));
+    overflow-y: auto;
+  }
+  .cg-lateral ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .cg-lateral h2 {
+    margin: var(--e-16) 0 var(--e-4);
+    padding-inline: var(--e-12);
+    font-size: 11px;
+    color: var(--tinta-3);
+  }
+  .cg-marco .cg-hero {
+    margin-inline: 0;
+  }
+  .cg-marco .cg-body {
+    padding-inline: 0;
+  }
+}
+/* Portada: la silueta del hero de Sol, en blanco. El atardecer sube tramado en celdas desde el borde de
+   abajo y el relleno inferior le reserva su alto: el texto nunca queda encima (DESIGN.md §8.7). */
 .cg-hero {
-  padding: var(--e-96) var(--margen) var(--e-64);
+  --celda: 8px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0 var(--e-8);
+  padding: var(--e-96) var(--margen) calc(32 * var(--celda) + var(--e-24));
+  border-radius: var(--r-28);
+  box-shadow: inset 0 0 0 1px var(--linea);
   text-align: center;
-  background: var(--atardecer);
-  background-size: 100% 180px;
-  background-position: bottom;
-  background-repeat: no-repeat;
-  color: var(--blanco);
+}
+.cg-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: auto 0 0;
+  height: calc(32 * var(--celda));
+  background: url('./sol-horizonte.png') 50% 100% / calc(360 * var(--celda)) 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 .cg-hero h1 {
-  font-size: clamp(44px, 6.4vw, 92px);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  max-width: 19ch;
+  font-size: clamp(36px, 5vw, 72px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  max-width: 25ch;
   margin: var(--e-24) auto;
 }
 .cg-hero p {
   max-width: 62ch;
+  margin: 0 auto;
+  color: var(--tinta-2);
   font-size: 18px;
-  margin: 0 auto var(--e-40);
+}
+/* Sobre el rojo del sol, centrado sin transform (el botón lo usa al pulsar). */
+.cg-hero .boton-claro {
+  position: absolute;
+  inset: auto 0 var(--e-24);
+  width: fit-content;
+  margin-inline: auto;
+  box-shadow: var(--sombra-flota);
 }
 .cg-body {
   max-width: var(--ancho);
   margin: auto;
   padding: var(--e-32) var(--margen) var(--e-80);
 }
-.cg-period,
-.cg-tabs {
+.cg-period {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -82,14 +162,8 @@
 .cg-period .campo {
   width: auto;
 }
-.cg-tabs a {
-  padding: var(--e-8) var(--e-12);
-  background: var(--superficie);
-  border-radius: var(--r-pildora);
-}
-.cg-tabs [aria-current='page'] {
-  background: var(--tinta);
-  color: var(--blanco);
+.cg-body .sol-tabs {
+  margin-bottom: var(--e-24);
 }
 .cg-intro {
   margin: var(--e-32) 0;
@@ -104,6 +178,60 @@
   max-width: 70ch;
   color: var(--tinta-2);
   font-size: 18px;
+}
+/* Cabecera de cada vista: una pieza blanca con su anillo y el sol asomando abajo a la derecha. El texto no
+   pasa del 52 % del ancho, así que nunca queda encima (DESIGN.md §8.7). La de la portada, con h2, no la lleva:
+   allí el sol ya está en el hero. */
+.cg-intro:has(> h1) {
+  --celda: 4px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 300px;
+  padding: clamp(32px, 5vw, 64px) clamp(24px, 4.5vw, 56px);
+  border-radius: var(--r-28);
+  box-shadow: inset 0 0 0 1px var(--linea);
+}
+.cg-intro:has(> h1) > * {
+  max-width: min(62ch, 52%);
+}
+.cg-intro:has(> h1)::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: clamp(0px, 4%, 56px);
+  bottom: 0;
+  width: calc(120 * var(--celda));
+  height: calc(44 * var(--celda));
+  background: url('./sol-disco.png') 50% 100% / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+/* Los cortes van con el ancho de la columna de contenido, no con el de la ventana: con la columna de vistas
+   al lado, la cabecera es más estrecha que la pantalla. */
+.cg-body {
+  container-type: inline-size;
+}
+@container (max-width: 1090px) {
+  .cg-intro:has(> h1) {
+    --celda: 3px;
+  }
+}
+/* Donde el texto ya no cabe al lado: ocupa todo el ancho y el sol baja, centrado, a un hueco reservado. */
+@container (max-width: 820px) {
+  .cg-intro:has(> h1) {
+    min-height: 0;
+    padding-bottom: calc(44 * var(--celda) + var(--e-16));
+  }
+  .cg-intro:has(> h1) > * {
+    max-width: none;
+  }
+  .cg-intro:has(> h1)::after {
+    right: calc(50% - 60 * var(--celda));
+  }
 }
 .cg-section {
   margin: var(--e-48) 0;
@@ -152,10 +280,6 @@
   gap: var(--e-20);
 }
 .cg-card {
-  padding: var(--e-24);
-  border: 1px solid var(--linea);
-  border-radius: var(--r-20);
-  background: var(--blanco);
   overflow-wrap: anywhere;
 }
 .cg-card h2 {
@@ -179,7 +303,7 @@
 .cg-card .cg-stats dt {
   max-width: 14ch;
 }
-.cg a:not(.boton, .boton-claro, .cg-card):hover {
+.cg-body a:not(.boton, .boton-claro, .boton-fantasma, .boton-icono, .boton-enviar, .cg-card):hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -187,11 +311,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--e-20);
-}
-.cg-vote {
-  padding: var(--e-24);
-  border: 1px solid var(--linea);
-  border-radius: var(--r-20);
 }
 .cg-vote h3 {
   font-size: 21px;
@@ -285,11 +404,6 @@
   margin-top: var(--e-8);
   color: var(--tinta-2);
 }
-.cg-hemicycle {
-  padding: var(--e-32);
-  border-radius: var(--r-20);
-  background: var(--superficie);
-}
 .cg-hemicycle svg {
   width: 100%;
   max-height: 360px;
@@ -346,16 +460,10 @@
   gap: var(--e-16);
   margin: var(--e-32) 0;
 }
-.cg-empty {
-  padding: var(--e-32);
-  background: var(--superficie);
-  border-radius: var(--r-20);
-}
 .cg-source {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--azul);
   margin: var(--e-12) 0;
 }
 .cg-muted,
@@ -438,32 +546,8 @@
   font-size: 14px;
   color: var(--tinta-3);
 }
-.cg-quiz {
-  max-width: 780px;
-  margin: auto;
-  padding: var(--e-40);
-  background: var(--superficie);
-  border-radius: var(--r-28);
-}
-.cg-quiz blockquote {
-  font-size: clamp(28px, 3.2vw, 42px);
-}
-.cg-quiz-answers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-12);
-  margin: var(--e-24) 0;
-}
 .cg-coalition {
-  background: var(--superficie);
-  border-radius: var(--r-20);
-  padding: var(--e-24);
   margin: var(--e-32) 0;
-}
-.cg-coalition label {
-  display: flex;
-  align-items: center;
-  gap: var(--e-8);
 }
 .cg-coalition .cg-grid label {
   display: grid;
@@ -475,7 +559,7 @@
   gap: var(--e-48);
   margin: var(--e-32) 0;
 }
-.cg-geo-hero svg {
+.cg-geo-hero > svg {
   width: 100%;
   max-height: 420px;
 }
@@ -544,7 +628,8 @@
     grid-template-columns: 1fr;
   }
   .cg-hero {
-    padding-block: var(--e-64) var(--e-48);
+    --celda: 6px;
+    padding-top: var(--e-64);
   }
   .cg-hero p {
     font-size: 16px;
@@ -555,10 +640,6 @@
   }
   .cg-section-title {
     flex-wrap: wrap;
-  }
-  .cg-hemicycle,
-  .cg-quiz {
-    padding: var(--e-20);
   }
   .cg-stats {
     gap: var(--e-24);

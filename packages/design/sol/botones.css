@@ -186,6 +186,37 @@
   }
 }
 
+.sol-actions,
+.sol-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--e-12);
+}
+.sol-tabs > [aria-current='page'] {
+  background: var(--tinta);
+  color: var(--blanco);
+}
+.sol-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-12);
+  min-height: 44px;
+  list-style: none;
+  cursor: pointer;
+}
+.sol-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.sol-disclosure-chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.sol-disclosure[open] > summary .sol-disclosure-chevron {
+  transform: rotate(180deg);
+}
+
 /* Sin movimiento: el atardecer aparece en su sitio, solo con opacity. */
 @media (prefers-reduced-motion: reduce) {
   :is(.boton, .boton-enviar)::before {

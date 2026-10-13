@@ -8,6 +8,7 @@ import { Footer } from '../../components/sol/footer';
 import { ProjectScene } from '../../components/sol/project-scene';
 import { ProjectTour } from '../../components/sol/project-tour';
 import { links } from '../../lib/site';
+import { congressBase } from '../../lib/congreso/routes';
 import {
   absolute,
   organization,
@@ -204,19 +205,17 @@ export default function HomePage() {
               },
               {
                 title: 'Participar empieza por entender.',
-                label: (
-                  <div className="in-acciones">
-                    <span className="in-proyecto-tipo">04 · Elecciones</span>
-                    <span className="in-proximo" lang="en">
-                      Coming soon
-                    </span>
-                  </div>
-                ),
+                label: <span className="in-proyecto-tipo">04 · El Congreso</span>,
                 text: (
-                  <p className="t-texto-l">
-                    Elegir también requiere información clara. Estamos preparando nuevos proyectos
-                    para acercar las elecciones a las personas. Pronto te contaremos más.
-                  </p>
+                  <>
+                    <p className="t-texto-l">
+                      Consulta qué se debate, cómo se vota y quién te representa. Actividad del
+                      Congreso y datos electorales con enlaces a las fuentes oficiales.
+                    </p>
+                    <Link className="boton" href={congressBase}>
+                      Abrir El Congreso <Icon name="derecha" size={16} />
+                    </Link>
+                  </>
                 ),
                 scene: (
                   <div className="rc-pieza in-elecciones" aria-hidden="true">

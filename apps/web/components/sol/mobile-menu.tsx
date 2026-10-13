@@ -53,9 +53,11 @@ export function MobileMenu({ links }: { links: readonly MenuLink[] }) {
             </Link>
           ))}
         </nav>
-        <Link className="boton in-menu-participar" href="/#participar" onClick={close}>
-          Participar <Icon name="derecha" size={16} />
-        </Link>
+        <Button asChild className="in-menu-participar">
+          <Link href="/#participar" onClick={close}>
+            Participar <Icon name="derecha" size={16} />
+          </Link>
+        </Button>
       </dialog>
     </>
   );

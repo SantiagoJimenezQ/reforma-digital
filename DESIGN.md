@@ -179,7 +179,7 @@ Si un panel ofrece un control sincronizado con uno oficial (el desplegable de pr
 
 ## 8. Web pública: sistema Sol
 
-Sol es el diseño definitivo de `apps/web`, no una variante de portada. Las rutas públicas son `/` (iniciativa y proyectos), `/chat` (buscador), `/equipo`, `/sources`, `/how-it-works` y `/privacy`. Las evaluaciones conservan su acceso interno en `/admin/evals`. Las páginas de error usan el mismo sistema. No se mantienen catálogos de variantes ni demos de chat con respuestas simuladas.
+Sol es el diseño definitivo de `apps/web`, no una variante de portada. Las rutas públicas son `/` (iniciativa y proyectos), `/chat` (buscador), `/congreso` (actividad parlamentaria y datos electorales), `/equipo`, `/sources`, `/how-it-works` y `/privacy`. Las evaluaciones conservan su acceso interno en `/admin/evals`. Las páginas de error usan el mismo sistema. No se mantienen catálogos de variantes ni demos de chat con respuestas simuladas.
 
 | Fuente de verdad                                                                | Archivo                                                                                                                                                                                                               |
 | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -235,8 +235,23 @@ El paquete guarda los cimientos de Sol y `apps/web` solo los consume: `app/(sear
 ### 8.5 Tailwind y componentes React
 
 - `apps/web` usa Tailwind v4 sin preflight. `sol/tailwind.css` nombra los tokens de Sol en un `@theme inline reference`: `bg-rojo` compila a `background-color: var(--rojo)`, así que los valores siguen estando una sola vez en `sol/tokens.css` y el CSS existente sigue usando `var(--rojo)`. La paleta, las familias, los radios, las sombras y las curvas por defecto de Tailwind se vacían; el espaciado (4 px por paso) y los puntos de corte se mantienen. El preset de Tailwind v3 de la extensión no cambia.
-- `Button` (`variant`: `primary`, `secondary`, `ghost`, `icon`, `send`) y `Field` solo ponen la clase de Sol y pasan las props y la ref al elemento nativo. `Button` con `href` es un `<a>`; sin él, un `<button>`.
+- `Button` (`variant`: `primary`, `secondary`, `ghost`, `icon`, `send`) y `Field` solo ponen la clase de Sol y pasan las props y la ref al elemento nativo. `Button` con `href` es un `<a>`; sin él, un `<button>`. Con `asChild`, aplica el estilo al hijo (por ejemplo, `next/link`) mediante Radix Slot y conserva su navegación y eventos.
+- `Select` y `Checkbox` usan los controles accesibles de Radix y los tokens de Sol. El select permite valores vacíos («Todos») y envía el valor real con un campo oculto en los formularios GET. `Actions`, `Tabs`, `Surface` y `Disclosure` comparten la composición de acciones, navegación, tarjetas y desplegables; no se duplican sus estilos en cada sección.
 
 ### 8.6 Cambios posteriores
 
 Antes de añadir otro valor o componente, consulta `GUIA.md` y reutiliza los tokens y piezas existentes. Documenta aquí las decisiones de sistema y en la guía los detalles de uso. Comprueba móvil, teclado, contraste y reducción de movimiento. Incluye capturas comparables antes/después cuando cambies una pantalla existente.
+
+### 8.7 El Congreso
+
+El Congreso (`/congreso`) es una sección pública de Reforma Digital y usa Sol sin tokens propios. Conserva el diseño de Pablo de la PR #127. Sus estilos están en [`congreso.css`](apps/web/components/congreso/congreso.css). Aquí solo se recoge lo que decide por su cuenta.
+
+- La página es blanca de arriba abajo, también la portada. El rojo a caja completa (`--atardecer` como fondo de un hero) queda para la portada de Reforma Digital (`/`).
+- La portada conserva la silueta del hero de Sol (8 px de margen, radio 28, titular centrado de 36–72 px), en blanco y con un anillo de 1 px en `--linea`. La cabecera y la barra de la sección van encima, no dentro.
+- El sol pixelado es el atardecer de Sol tramado en celdas cuadradas. Usa `--rojo`, `--naranja` y `--amarillo`, de dentro afuera, con tramado ordenado de Bayer 4 × 4 entre tintas vecinas, y es transparente fuera. Las imágenes guardan una celda por píxel y se amplían con `image-rendering: pixelated`; la celda (`--celda`) mide siempre un número entero de píxeles, porque con decimales la trama se emborrona.
+- Hay dos dibujos. `sol-horizonte.png` (360 × 32 celdas) es un arco bajo y ancho, solo para la portada: celda de 8 px, y de 6 px hasta 560 px de ancho. `sol-disco.png` (120 × 44 celdas) es un sol que asoma, para la cabecera de cada vista: celda de 4 px, y de 3 px cuando la columna de contenido mide menos de 1090 px.
+- El sol va pegado al borde inferior de su pieza y recortado por su radio: centrado en la portada y a la derecha en las cabeceras. Nunca lleva texto encima. En la portada, el relleno inferior reserva su alto; en las cabeceras, el texto no pasa del 52 % del ancho y, cuando la columna mide menos de 820 px, ocupa todo el ancho con el sol debajo, centrado, en un hueco reservado. Encima solo van piezas opacas, como el botón claro con `--sombra-flota`. Hay uno por pantalla, no se anima y no se usa como textura de tarjetas.
+- La cabecera de cada vista (`Intro` con `h1`) es una pieza blanca de radio 28 con el mismo anillo. La de la portada, con `h2`, no lleva pieza ni sol: allí ya está el horizonte.
+- Para cambiarlo se editan los números de [`sol-pixel.mjs`](apps/web/scripts/sol-pixel.mjs) y se ejecuta `node apps/web/scripts/sol-pixel.mjs`. El PNG no se retoca a mano.
+- La cabecera de Reforma Digital lleva «El Congreso» como un enlace más, marcado como actual dentro de la sección. Desde 1100 px, las vistas van en una columna a la izquierda de 232 px, agrupadas y todas a la vista, con la actual sobre `--superficie`; se queda pegada al bajar y una ficha mantiene marcada la vista de la que sale. Por debajo de 1100 px, las vistas están en una barra con desplegables bajo la cabecera.
+- Los colores de un hemiciclo o de un resultado son datos (sí, no, abstención). Detrás no va el sol ni otro fondo de color.

@@ -1,6 +1,6 @@
+import { Surface, TextLink, Field, Button, Select } from '@reforma-digital/design/sol';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Button } from '@reforma-digital/design/sol';
 import type { CongressIndex, Session, Vote } from '../../lib/congreso/schema';
 import { congressBase } from '../../lib/congreso/routes';
 import { deputyName, slug } from '../../lib/congreso/data';
@@ -15,7 +15,7 @@ export const date = (value: string) =>
     timeZone: 'UTC',
   }).format(new Date(`${value}T12:00:00Z`));
 export const href = (path: string, month?: string) =>
-  `${congressBase}/${path}${month ? `?periodo=${month}` : ''}`;
+  `${congressBase}${path ? `/${path}` : ''}${month ? `?periodo=${month}` : ''}`;
 
 export function Intro({
   label = 'El Congreso',
@@ -74,9 +74,11 @@ export function Empty({
   children?: ReactNode;
 }) {
   return (
-    <p className="cg-empty" role="status">
-      {children}
-    </p>
+    <Surface asChild tone="muted">
+      <p className="cg-empty" role="status">
+        {children}
+      </p>
+    </Surface>
   );
 }
 export function Source({
@@ -87,11 +89,11 @@ export function Source({
   children?: ReactNode;
 }) {
   return (
-    <a className="cg-source" href={url} target="_blank" rel="noopener noreferrer">
+    <TextLink className="cg-source" href={url} target="_blank" rel="noopener noreferrer">
       {children}
       <Icon name="externo" size={16} />
       <span className="sr-only"> (se abre en otra pestaña)</span>
-    </a>
+    </TextLink>
   );
 }
 export function AI({
@@ -113,16 +115,18 @@ export function Votes({ votes }: { votes: Vote[] }) {
   return (
     <div className="cg-votes">
       {votes.map((vote) => (
-        <article className="cg-vote" key={vote.id}>
-          <div className="cg-vote-meta">
-            <time dateTime={vote.fecha}>{date(vote.fecha)}</time>
-            <span>{vote.tipo}</span>
-          </div>
-          <h3>
-            <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>{vote.titulo}</Link>
-          </h3>
-          <VoteCount vote={vote} />
-        </article>
+        <Surface asChild key={vote.id}>
+          <article className="cg-vote">
+            <div className="cg-vote-meta">
+              <time dateTime={vote.fecha}>{date(vote.fecha)}</time>
+              <span>{vote.tipo}</span>
+            </div>
+            <h3>
+              <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>{vote.titulo}</Link>
+            </h3>
+            <VoteCount vote={vote} />
+          </article>
+        </Surface>
       ))}
     </div>
   );
@@ -198,68 +202,72 @@ export function Hemicycle({
       return ballot && ballot !== '-' ? [{ deputy, ballot }] : [];
     });
     return ballots.length ? (
-      <div className="cg-hemicycle">
-        <p>
-          El voto de cada diputado. La posición de los puntos no representa su asiento histórico.
-        </p>
-        <svg
-          viewBox="0 0 300 180"
-          role="img"
-          aria-label="Votos individuales; detalle accesible en la tabla de diputados"
-        >
-          {ballots.map(({ deputy, ballot }, i) => (
-            <circle
-              key={deputy.nombre}
-              cx={6 + (i % 25) * 12}
-              cy={6 + Math.floor(i / 25) * 12}
-              r={4}
-              className={`cg-voto-${{ S: 'si', N: 'no', A: 'abst', X: 'ausente' }[ballot]}`}
-            >
-              <title>{`${deputyName(deputy.nombre)} · ${voteNames[ballot]}`}</title>
-            </circle>
-          ))}
-        </svg>
-      </div>
+      <Surface asChild tone="muted">
+        <div className="cg-hemicycle">
+          <p>
+            El voto de cada diputado. La posición de los puntos no representa su asiento histórico.
+          </p>
+          <svg
+            viewBox="0 0 300 180"
+            role="img"
+            aria-label="Votos individuales; detalle accesible en la tabla de diputados"
+          >
+            {ballots.map(({ deputy, ballot }, i) => (
+              <circle
+                key={deputy.nombre}
+                cx={6 + (i % 25) * 12}
+                cy={6 + Math.floor(i / 25) * 12}
+                r={4}
+                className={`cg-voto-${{ S: 'si', N: 'no', A: 'abst', X: 'ausente' }[ballot]}`}
+              >
+                <title>{`${deputyName(deputy.nombre)} · ${voteNames[ballot]}`}</title>
+              </circle>
+            ))}
+          </svg>
+        </div>
+      </Surface>
     ) : (
       <Empty>La fuente ofrece el recuento agregado, sin el voto individual.</Empty>
     );
   }
   return (
-    <div className="cg-hemicycle">
-      <svg
-        viewBox={`-8 -8 ${index.hemiciclo.ancho + 16} ${index.hemiciclo.alto + 16}`}
-        role="img"
-        aria-label="Distribución actual de diputados en el hemiciclo; detalle en la lista de diputados"
-      >
-        {index.diputados.map(
-          (deputy) =>
-            deputy.x !== null &&
-            deputy.y !== null &&
-            !deputy.baja && (
-              <circle
-                key={deputy.nombre}
-                cx={deputy.x}
-                cy={deputy.y}
-                r={4.2}
-                fill={index.grupos[deputy.grupo]?.color}
-                opacity={province && deputy.provincia !== province ? 0.15 : 1}
-              >
-                <title>{`${deputyName(deputy.nombre)} · ${deputy.grupo}`}</title>
-              </circle>
-            ),
-        )}
-      </svg>
-      <div className="cg-legend">
-        {Object.entries(index.grupos)
-          .filter(([, g]) => g.escanos)
-          .map(([id, g]) => (
-            <span key={id}>
-              <i style={{ background: g.color }} />
-              {id} <b>{g.escanos}</b>
-            </span>
-          ))}
+    <Surface asChild tone="muted">
+      <div className="cg-hemicycle">
+        <svg
+          viewBox={`-8 -8 ${index.hemiciclo.ancho + 16} ${index.hemiciclo.alto + 16}`}
+          role="img"
+          aria-label="Distribución actual de diputados en el hemiciclo; detalle en la lista de diputados"
+        >
+          {index.diputados.map(
+            (deputy) =>
+              deputy.x !== null &&
+              deputy.y !== null &&
+              !deputy.baja && (
+                <circle
+                  key={deputy.nombre}
+                  cx={deputy.x}
+                  cy={deputy.y}
+                  r={4.2}
+                  fill={index.grupos[deputy.grupo]?.color}
+                  opacity={province && deputy.provincia !== province ? 0.15 : 1}
+                >
+                  <title>{`${deputyName(deputy.nombre)} · ${deputy.grupo}`}</title>
+                </circle>
+              ),
+          )}
+        </svg>
+        <div className="cg-legend">
+          {Object.entries(index.grupos)
+            .filter(([, g]) => g.escanos)
+            .map(([id, g]) => (
+              <span key={id}>
+                <i style={{ background: g.color }} />
+                {id} <b>{g.escanos}</b>
+              </span>
+            ))}
+        </div>
       </div>
-    </div>
+    </Surface>
   );
 }
 export function Deputies({
@@ -273,26 +281,24 @@ export function Deputies({
   return (
     <div className="cg-grid">
       {deputies.map((deputy) => (
-        <Link
-          className="cg-card cg-deputy"
-          href={href(`diputado/${slug(deputy.nombre)}`)}
-          key={deputy.nombre}
-        >
-          <span className="cg-avatar" style={{ borderColor: index.grupos[deputy.grupo]?.color }}>
-            {deputyName(deputy.nombre)
-              .split(' ')
-              .map((part) => part.charAt(0))
-              .slice(0, 2)
-              .join('')}
-          </span>
-          <h3>{deputyName(deputy.nombre)}</h3>
-          <p>{deputy.provincia}</p>
-          <span className="cg-group">
-            <i style={{ background: index.grupos[deputy.grupo]?.color }} />
-            {deputy.grupo}
-            {deputy.baja ? ' · De baja' : ''}
-          </span>
-        </Link>
+        <Surface asChild key={deputy.nombre}>
+          <Link className="cg-card cg-deputy" href={href(`diputado/${slug(deputy.nombre)}`)}>
+            <span className="cg-avatar" style={{ borderColor: index.grupos[deputy.grupo]?.color }}>
+              {deputyName(deputy.nombre)
+                .split(' ')
+                .map((part) => part.charAt(0))
+                .slice(0, 2)
+                .join('')}
+            </span>
+            <h3>{deputyName(deputy.nombre)}</h3>
+            <p>{deputy.provincia}</p>
+            <span className="cg-group">
+              <i style={{ background: index.grupos[deputy.grupo]?.color }} />
+              {deputy.grupo}
+              {deputy.baja ? ' · De baja' : ''}
+            </span>
+          </Link>
+        </Surface>
       ))}
     </div>
   );
@@ -317,8 +323,7 @@ export function Filters({
       {period && <input type="hidden" name="periodo" value={period} />}
       <label>
         Buscar
-        <input
-          className="campo"
+        <Field
           name="q"
           defaultValue={query}
           type="search"
@@ -329,28 +334,38 @@ export function Filters({
       {group !== undefined && index && (
         <label>
           Grupo
-          <select className="campo" name="grupo" defaultValue={group}>
-            <option value="">Todos</option>
-            {Object.entries(index.grupos)
-              .filter(([, g]) => g.escanos)
-              .map(([id]) => (
-                <option key={id}>{id}</option>
-              ))}
-          </select>
+          <Select
+            name="grupo"
+            label="Grupo"
+            defaultValue={group}
+            options={[
+              { value: '', label: 'Todos' },
+              ...Object.entries(index.grupos)
+                .filter(([, g]) => g.escanos)
+                .map(([id]) => ({ value: id, label: id })),
+            ]}
+            icon={<Icon name="abajo" size={16} />}
+            selectedIcon={<Icon name="hecho" size={16} />}
+          />
         </label>
       )}
       {province !== undefined && index && (
         <label>
           Provincia
-          <select className="campo" name="provincia" defaultValue={province}>
-            <option value="">Todas</option>
-            {[...new Set(index.diputados.map((d) => d.provincia))]
-              .filter(Boolean)
-              .sort((a, b) => a.localeCompare(b, 'es'))
-              .map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-          </select>
+          <Select
+            name="provincia"
+            label="Provincia"
+            defaultValue={province}
+            options={[
+              { value: '', label: 'Todas' },
+              ...[...new Set(index.diputados.map((d) => d.provincia))]
+                .filter(Boolean)
+                .sort((a, b) => a.localeCompare(b, 'es'))
+                .map((p) => ({ value: p, label: p })),
+            ]}
+            icon={<Icon name="abajo" size={16} />}
+            selectedIcon={<Icon name="hecho" size={16} />}
+          />
         </label>
       )}
       <Button type="submit" variant="secondary">
@@ -374,19 +389,23 @@ export function Pagination({
     pages > 1 && (
       <nav className="cg-pagination" aria-label="Paginación">
         {page > 1 && (
-          <Link className="boton-claro" href={url(page - 1)}>
-            <Icon name="izquierda" size={16} />
-            Anterior
-          </Link>
+          <Button asChild variant="secondary">
+            <Link href={url(page - 1)}>
+              <Icon name="izquierda" size={16} />
+              Anterior
+            </Link>
+          </Button>
         )}
         <span>
           Página {page} de {pages}
         </span>
         {page < pages && (
-          <Link className="boton-claro" href={url(page + 1)}>
-            Siguiente
-            <Icon name="derecha" size={16} />
-          </Link>
+          <Button asChild variant="secondary">
+            <Link href={url(page + 1)}>
+              Siguiente
+              <Icon name="derecha" size={16} />
+            </Link>
+          </Button>
         )}
       </nav>
     )

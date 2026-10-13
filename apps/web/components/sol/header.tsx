@@ -1,3 +1,4 @@
+import { Button } from '@reforma-digital/design/sol';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Icon } from './icon';
@@ -9,6 +10,7 @@ export function Header({ current, action }: { current?: string; action?: ReactNo
   const links = [
     { href: '/#iniciativa', text: 'La iniciativa', current: false },
     { href: '/#proyectos', text: 'Proyectos', current: false },
+    { href: '/congreso', text: 'El Congreso', current: current === '/congreso' },
     { href: '/equipo', text: 'Equipo', current: current === '/equipo' },
   ];
 
@@ -19,19 +21,18 @@ export function Header({ current, action }: { current?: string; action?: ReactNo
       </Link>
       <nav aria-label="Navegación principal">
         {links.map((link) => (
-          <Link
-            key={link.href}
-            className="boton-fantasma"
-            href={link.href}
-            aria-current={link.current ? 'page' : undefined}
-          >
-            {link.text}
-          </Link>
+          <Button asChild variant="ghost" key={link.href}>
+            <Link href={link.href} aria-current={link.current ? 'page' : undefined}>
+              {link.text}
+            </Link>
+          </Button>
         ))}
         {!action && (
-          <Link className="boton-claro" href="/#participar">
-            Participar <Icon name="derecha" size={16} />
-          </Link>
+          <Button asChild variant="secondary">
+            <Link href="/#participar">
+              Participar <Icon name="derecha" size={16} />
+            </Link>
+          </Button>
         )}
       </nav>
       {action}

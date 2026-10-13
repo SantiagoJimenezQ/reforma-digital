@@ -1,3 +1,4 @@
+import { Surface } from '@reforma-digital/design/sol';
 import {
   balanceSchema,
   metricsSchema,
@@ -60,28 +61,32 @@ export async function ElectionContext({
           {laws
             .slice((page - 1) * 24, page * 24)
             .map(([exp, title, type, , authors, presented, , extensions, days, commission]) => (
-              <article className="cg-card" key={exp}>
-                <span className="t-etiqueta">
-                  {type} · {authors.join(', ')}
-                </span>
-                <h3>{title}</h3>
-                <p>
-                  Presentada el {date(presented)} · {days} días · {extensions} ampliaciones
-                </p>
-                <p>{commission}</p>
-                <Source url={congressUrl(exp, 'XV')}>Expediente</Source>
-              </article>
+              <Surface asChild key={exp}>
+                <article className="cg-card">
+                  <span className="t-etiqueta">
+                    {type} · {authors.join(', ')}
+                  </span>
+                  <h3>{title}</h3>
+                  <p>
+                    Presentada el {date(presented)} · {days} días · {extensions} ampliaciones
+                  </p>
+                  <p>{commission}</p>
+                  <Source url={congressUrl(exp, 'XV')}>Expediente</Source>
+                </article>
+              </Surface>
             ))}
         </div>
         <Pagination page={page} total={laws.length} params={{ q: query }} />
         <Section title="Decretos pendientes de convalidar">
           <div className="cg-grid">
             {source.convalidar.map((d) => (
-              <article className="cg-card" key={d.numero}>
-                <h3>{d.titulo}</h3>
-                <p>Plazo aproximado: {date(d.limite_aprox)}</p>
-                <Source url={d.pdf}>Texto oficial</Source>
-              </article>
+              <Surface asChild key={d.numero}>
+                <article className="cg-card">
+                  <h3>{d.titulo}</h3>
+                  <p>Plazo aproximado: {date(d.limite_aprox)}</p>
+                  <Source url={d.pdf}>Texto oficial</Source>
+                </article>
+              </Surface>
             ))}
           </div>
         </Section>
@@ -139,20 +144,22 @@ export async function ElectionContext({
             .slice()
             .reverse()
             .map((e) => (
-              <article className="cg-card" key={e.id}>
-                <h2>
-                  <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
-                </h2>
-                <Stats
-                  items={[
-                    [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
-                    ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
-                      n === null ? '—' : number(n),
-                      labels[k] || k.replaceAll('_', ' '),
-                    ]),
-                  ]}
-                />
-              </article>
+              <Surface asChild key={e.id}>
+                <article className="cg-card">
+                  <h2>
+                    <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
+                  </h2>
+                  <Stats
+                    items={[
+                      [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
+                      ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
+                        n === null ? '—' : number(n),
+                        labels[k] || k.replaceAll('_', ' '),
+                      ]),
+                    ]}
+                  />
+                </article>
+              </Surface>
             ))}
         </div>
       </>
@@ -225,12 +232,14 @@ export async function ElectionContext({
           <p>{age.fuente}. Estimaciones ajustadas al resultado, no recuentos individuales.</p>
           <div className="cg-grid">
             {age.edades.map((label, i) => (
-              <article className="cg-card" key={label}>
-                <h3>{label}</h3>
-                <Stats
-                  items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
-                />
-              </article>
+              <Surface asChild key={label}>
+                <article className="cg-card">
+                  <h3>{label}</h3>
+                  <Stats
+                    items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
+                  />
+                </article>
+              </Surface>
             ))}
           </div>
           <Source url={age.url}>Estudio de origen</Source>
@@ -238,13 +247,15 @@ export async function ElectionContext({
         <Section title="El territorio">
           <div className="cg-grid">
             {Object.entries(geography.provincias).map(([id, p]) => (
-              <Link className="cg-card" href={href(`geografia/${id}`)} key={id}>
-                <h3>{p.n}</h3>
-                <p>
-                  {number(p.renta)} € por persona · {p.edad} años de edad media · {p.dens}{' '}
-                  habitantes/km²
-                </p>
-              </Link>
+              <Surface asChild key={id}>
+                <Link className="cg-card" href={href(`geografia/${id}`)}>
+                  <h3>{p.n}</h3>
+                  <p>
+                    {number(p.renta)} € por persona · {p.edad} años de edad media · {p.dens}{' '}
+                    habitantes/km²
+                  </p>
+                </Link>
+              </Surface>
             ))}
           </div>
         </Section>

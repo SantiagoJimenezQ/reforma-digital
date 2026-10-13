@@ -1,5 +1,5 @@
 """Lo que se saca de juntar los análisis de toda la legislatura: por qué vota cada grupo, si el Gobierno contesta,
-qué se dice de cada territorio, de qué se habla cada semana, qué propone cada grupo y citas para el juego.
+qué se dice de cada territorio, de qué se habla cada semana, qué propone cada grupo y citas para explorar la legislatura.
 
 Todo se calcula a partir de lo ya analizado, sin llamar a la API. Las pasadas de IA que unifican etiquetas,
 lugares y propuestas viven en normalizar.py y dejan su resultado en data/; aquí solo se leen.
@@ -97,20 +97,10 @@ def contesta(sesiones: list[dict], ivs: list[dict], min_respuestas: int = 20) ->
                           if sum(c.values()) >= min_respuestas}}
 
 
-# Palabras que delatan al grupo del orador en su propia cita (el juego sería trivial).
-DELATAN = {
-    "PP": ("popular", "feijóo", "feijoo"), "PSOE": ("socialista", "sánchez", "psoe"), "VOX": ("vox", "abascal"),
-    "SUMAR": ("sumar", "podemos", "yolanda díaz"), "ERC": ("esquerra", "republicana", "erc"),
-    "JUNTS": ("junts", "puigdemont"), "BILDU": ("bildu", "euskal herria"), "PNV": ("pnv", "euzko", "jeltzale"),
-    "MIXTO": ("mixto",), "GOB": ("gobierno de españa", "este gobierno", "mi gobierno", "mi ministerio"),
-}
-GRUPOS_JUEGO = ("PSOE", "PP", "VOX", "SUMAR", "ERC", "JUNTS", "BILDU", "PNV", "GOB")
+def citas(sesiones: list[dict], ivs: list[dict], por_grupo: int = 300) -> list[list]:
+    """Citas verificadas para explorar la legislatura: [cita, orador, grupo, sesión, fecha].
 
-
-def citas_juego(sesiones: list[dict], ivs: list[dict], por_grupo: int = 300) -> list[list]:
-    """Citas verificadas para «¿Quién lo dijo?»: [cita, orador, grupo, sesión, fecha].
-
-    Mismo número por grupo, sin las que delatan al grupo, y elegidas por un hash del texto: la muestra es
+    Hasta por_grupo citas de cada grupo, elegidas por un hash del texto: la muestra es
     estable de un día a otro (no reescribe el fichero entero cada mañana).
     """
     import hashlib
@@ -118,122 +108,13 @@ def citas_juego(sesiones: list[dict], ivs: list[dict], por_grupo: int = 300) -> 
     candidatas = defaultdict(list)
     for i in ivs:
         c, g = i.get("cita"), i["g"]
-        if not c or g not in GRUPOS_JUEGO or not 60 <= len(c) <= 220:
-            continue
-        if any(p in c.lower() for p in DELATAN.get(g, ())):
+        if not c or not 60 <= len(c) <= 220:
             continue
         candidatas[g].append((hashlib.sha1(c.encode()).hexdigest(), [c, i["orador"], g, i["s"], fecha.get(i["s"], "")]))
     salida = []
-    for g in GRUPOS_JUEGO:
+    for g in sorted(candidatas):
         salida += [x for _, x in sorted(candidatas[g])[:por_grupo]]
     return salida
-
-
-def _sin_tildes(t: str) -> str:
-    import unicodedata
-    t = "".join(c for c in unicodedata.normalize("NFD", t) if unicodedata.category(c) != "Mn")
-    return " ".join(t.lower().split())
-
-
-def nombres_oradores(citas: list[list], diputados: list[list]) -> dict:
-    """Orador del Diario -> nombre completo, cuando sus apellidos identifican a un solo diputado (como en la web)."""
-    por_apellidos = defaultdict(list)
-    for d in diputados:
-        por_apellidos[_sin_tildes(d[0].partition(", ")[0])].append(d[0])
-    nombres = {}
-    for o in {c[1] for c in citas}:
-        ds = por_apellidos.get(_sin_tildes(o), [])
-        if len(ds) == 1:
-            apellidos, _, nombre = ds[0].partition(", ")
-            nombres[o] = f"{nombre} {apellidos}".strip()
-    return nombres
-
-
-def reto(citas: list[list], nombres: dict, fecha: str, n: int = 10, pool: list[list] | None = None) -> list[dict]:
-    """El reto de «¿Quién lo dijo?» de un día: n citas de n personas distintas (dos como mucho por grupo), con las
-    cuatro opciones de grupo y las tres de persona. La misma fecha da siempre el mismo reto con las mismas citas.
-
-    pool: las citas de las que se sacan las frases, si no son todas (un reto temático); las opciones de persona
-    salen siempre de todas."""
-    import random
-    az = random.Random(f"qld-{fecha}")
-    # Una persona, una clave: el Diario a veces escribe el mismo nombre de dos formas («Álvaro Vidal» y «Alvaro
-    # Vidal», «Madrenas i Mir» y «Marta Madrenas i Mir»).
-    clave = lambda o: _sin_tildes(nombres.get(o, o))
-    personas = defaultdict(dict)
-    for c in citas + (pool or []):
-        personas[c[2]].setdefault(clave(c[1]), c[1])
-    orden = list(pool if pool is not None else citas)
-    az.shuffle(orden)
-    rondas, vistos, por_grupo = [], set(), Counter()
-    for c in orden:
-        if len(rondas) == n:
-            break
-        if clave(c[1]) in vistos or por_grupo[c[2]] >= 2:
-            continue
-        vistos.add(clave(c[1]))
-        por_grupo[c[2]] += 1
-        grupos = [c[2], *az.sample([g for g in GRUPOS_JUEGO if g != c[2]], 3)]
-        otros = [o for k, o in personas[c[2]].items() if k != clave(c[1])]
-        quienes = [c[1], *az.sample(otros, min(2, len(otros)))]
-        az.shuffle(grupos)
-        az.shuffle(quienes)
-        rondas.append({"c": c, "grupos": grupos, "personas": quienes})
-    return rondas
-
-
-def citas_de_tema(tema: str, carpeta) -> list[list]:
-    """Las citas comprobadas de toda la legislatura que tratan de un tema fijo (temas.py, por palabras clave sobre
-    la propia frase), con los mismos filtros que las del juego: [cita, orador, grupo, sesión, fecha]."""
-    import json
-    from .temas import temas_de
-    salida, vistas = [], set()
-    for f in sorted(carpeta.glob("20[0-9][0-9]-[0-9][0-9].json")):
-        mes = json.loads(f.read_text())
-        fecha = {x["id"]: x["fecha"] for x in mes["sesiones"]}
-        for i in mes["intervenciones"]:
-            c, g = i.get("cita"), i["g"]
-            if not c or c in vistas or g not in GRUPOS_JUEGO or not 60 <= len(c) <= 220:
-                continue
-            if any(p in c.lower() for p in DELATAN.get(g, ())) or tema not in temas_de(c):
-                continue
-            vistas.add(c)
-            salida.append([c, i["orador"], g, i["s"], fecha.get(i["s"], "")])
-    return salida
-
-
-def reto_tematico(fecha: str, tema: str, citas: list[list], diputados: list[list], carpeta) -> dict:
-    """Un reto especial: las diez frases de un tema (vivienda, sanidad…). Se guarda como {"tema", "nombre",
-    "rondas"} en lugar de la lista de rondas; la web enseña «Especial vivienda»."""
-    from .temas import NOMBRE
-    pool = citas_de_tema(tema, carpeta)
-    nombres = nombres_oradores(citas + pool, diputados)
-    rondas = reto(citas, nombres, f"{fecha}-{tema}", pool=pool)
-    if len(rondas) < 10:
-        raise SystemExit(f"Solo hay frases para {len(rondas)} rondas sobre {tema}.")
-    return {"tema": tema, "nombre": NOMBRE[tema], "rondas": rondas}
-
-
-def retos(citas: list[list], diputados: list[list], previos: dict, hoy, antes: int = 2,
-          despues: int = 14) -> tuple[dict, dict]:
-    """Fija los retos del día de antemano: (todos, ventana).
-
-    Un reto ya calculado no se vuelve a tocar, aunque cambien las citas (cada mañana entran frases nuevas): así es
-    el mismo para quien juega de madrugada y para quien juega después de la actualización. Solo se calculan los
-    días que faltan. La ventana (de `antes` días atrás a `despues` días adelante) es lo que se publica en la web:
-    cubre a quien tiene otra hora en su dispositivo y los días sin actualización.
-    """
-    from datetime import timedelta
-    nombres = nombres_oradores(citas, diputados)
-    todos = dict(previos)
-    ventana = {}
-    for k in range(-antes, despues + 1):
-        fecha = (hoy + timedelta(days=k)).isoformat()
-        if fecha not in todos and citas:
-            todos[fecha] = reto(citas, nombres, fecha)
-        if fecha in todos:
-            ventana[fecha] = todos[fecha]
-    return dict(sorted(todos.items())), ventana
 
 
 # ---------------------------------------------------------------- radar de temas

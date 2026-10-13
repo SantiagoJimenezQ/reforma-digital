@@ -1,3 +1,5 @@
+import { Surface, Disclosure, Button, Tabs, Field } from '@reforma-digital/design/sol';
+import { Icon } from '../sol/icon';
 import {
   quotesSchema,
   proposalsSchema,
@@ -73,10 +75,12 @@ export async function Explore({
               .slice()
               .reverse()
               .map((w) => (
-                <Link className="cg-card" href={href(`semana/${w.id}`)} key={w.id}>
-                  <time dateTime={w.desde}>{date(w.desde)}</time>
-                  <h3>{w.titular}</h3>
-                </Link>
+                <Surface asChild key={w.id}>
+                  <Link className="cg-card" href={href(`semana/${w.id}`)}>
+                    <time dateTime={w.desde}>{date(w.desde)}</time>
+                    <h3>{w.titular}</h3>
+                  </Link>
+                </Surface>
               ))}
           </div>
         </Section>
@@ -106,27 +110,28 @@ export async function Explore({
       <>
         <div className="cg-grid">
           {lines.slice((page - 1) * 24, page * 24).map((line, i) => (
-            <article className="cg-card" key={i}>
-              <span className="t-etiqueta">
-                {line.topic} · {line.group}
-              </span>
-              <h3>{line.titulo}</h3>
-              <p>{line.n} menciones</p>
-              <details>
-                <summary>Ejemplos en los Diarios</summary>
-                {line.ejemplos.map(([text, speaker, session, day], j) => (
-                  <blockquote key={j}>
-                    {text}
-                    <footer>
-                      {speaker} ·{' '}
-                      <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                        {date(day)}
-                      </Link>
-                    </footer>
-                  </blockquote>
-                ))}
-              </details>
-            </article>
+            <Surface asChild key={i}>
+              <article className="cg-card">
+                <span className="t-etiqueta">
+                  {line.topic} · {line.group}
+                </span>
+                <h3>{line.titulo}</h3>
+                <p>{line.n} menciones</p>
+                <Disclosure title="Ejemplos en los Diarios" icon={<Icon name="abajo" size={16} />}>
+                  {line.ejemplos.map(([text, speaker, session, day], j) => (
+                    <blockquote key={j}>
+                      {text}
+                      <footer>
+                        {speaker} ·{' '}
+                        <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                          {date(day)}
+                        </Link>
+                      </footer>
+                    </blockquote>
+                  ))}
+                </Disclosure>
+              </article>
+            </Surface>
           ))}
         </div>
         <Pagination page={page} total={lines.length} params={{ q: query, vista: selected }} />
@@ -139,28 +144,29 @@ export async function Explore({
         {data.ministros
           .filter((m) => `${m.orador} ${m.rol}`.toLowerCase().includes(query.toLowerCase()))
           .map((m) => (
-            <article className="cg-card" key={m.orador}>
-              <span className="t-etiqueta">{m.rol}</span>
-              <h3>{m.orador}</h3>
-              <Stats
-                items={[
-                  [m.si, 'Contesta'],
-                  [m.parcial, 'Parcialmente'],
-                  [m.no, 'No contesta'],
-                ]}
-              />
-              <details>
-                <summary>Consultar los casos</summary>
-                {m.casos.map(([day, session, response, reason], i) => (
-                  <p key={i}>
-                    <b>{response}</b> · {reason}{' '}
-                    <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                      {date(day)}
-                    </Link>
-                  </p>
-                ))}
-              </details>
-            </article>
+            <Surface asChild key={m.orador}>
+              <article className="cg-card">
+                <span className="t-etiqueta">{m.rol}</span>
+                <h3>{m.orador}</h3>
+                <Stats
+                  items={[
+                    [m.si, 'Contesta'],
+                    [m.parcial, 'Parcialmente'],
+                    [m.no, 'No contesta'],
+                  ]}
+                />
+                <Disclosure title="Consultar los casos" icon={<Icon name="abajo" size={16} />}>
+                  {m.casos.map(([day, session, response, reason], i) => (
+                    <p key={i}>
+                      <b>{response}</b> · {reason}{' '}
+                      <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                        {date(day)}
+                      </Link>
+                    </p>
+                  ))}
+                </Disclosure>
+              </article>
+            </Surface>
           ))}
       </div>
     );
@@ -173,34 +179,35 @@ export async function Explore({
       <>
         <div className="cg-grid">
           {topics.slice((page - 1) * 24, page * 24).map(([id, t]) => (
-            <article className="cg-card" key={id}>
-              <h3>{t.tema}</h3>
-              <p>
-                {t.n} menciones · desde {date(t.primera)}
-              </p>
-              <div className="cg-spark" role="img" aria-label={`${t.n} menciones, por semanas`}>
-                {t.serie.map((n, i) => (
-                  <span
-                    key={i}
-                    style={{ height: `${Math.max(2, (n / Math.max(1, ...t.serie)) * 100)}%` }}
-                  >
-                    <span className="sr-only">
-                      Semana {i + 1}: {n}
-                    </span>
-                  </span>
-                ))}
-              </div>
-              <details>
-                <summary>Recuentos por semana</summary>
-                <ol>
+            <Surface asChild key={id}>
+              <article className="cg-card">
+                <h3>{t.tema}</h3>
+                <p>
+                  {t.n} menciones · desde {date(t.primera)}
+                </p>
+                <div className="cg-spark" role="img" aria-label={`${t.n} menciones, por semanas`}>
                   {t.serie.map((n, i) => (
-                    <li key={i}>
-                      Semana {i + 1}: {n}
-                    </li>
+                    <span
+                      key={i}
+                      style={{ height: `${Math.max(2, (n / Math.max(1, ...t.serie)) * 100)}%` }}
+                    >
+                      <span className="sr-only">
+                        Semana {i + 1}: {n}
+                      </span>
+                    </span>
                   ))}
-                </ol>
-              </details>
-            </article>
+                </div>
+                <Disclosure title="Recuentos por semana" icon={<Icon name="abajo" size={16} />}>
+                  <ol>
+                    {t.serie.map((n, i) => (
+                      <li key={i}>
+                        Semana {i + 1}: {n}
+                      </li>
+                    ))}
+                  </ol>
+                </Disclosure>
+              </article>
+            </Surface>
           ))}
         </div>
         <Pagination page={page} total={topics.length} params={{ q: query, vista: selected }} />
@@ -216,15 +223,17 @@ export async function Explore({
           {quotes
             .slice((page - 1) * 24, page * 24)
             .map(([text, speaker, group, session, day], i) => (
-              <blockquote className="cg-card" key={i}>
-                «{text}»
-                <footer>
-                  {speaker} · {group} ·{' '}
-                  <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                    {date(day)}
-                  </Link>
-                </footer>
-              </blockquote>
+              <Surface asChild key={i}>
+                <blockquote className="cg-card">
+                  «{text}»
+                  <footer>
+                    {speaker} · {group} ·{' '}
+                    <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                      {date(day)}
+                    </Link>
+                  </footer>
+                </blockquote>
+              </Surface>
             ))}
         </div>
         <Pagination page={page} total={quotes.length} params={{ q: query, vista: selected }} />
@@ -233,25 +242,24 @@ export async function Explore({
   }
   return (
     <>
-      <Intro title="Explora la legislatura">
-        <p>Citas, propuestas y respuestas, con su contexto para comprobarlas.</p>
-      </Intro>
-      <nav className="cg-tabs" aria-label="Explorar">
+      <Tabs label="Explorar">
         {tabs.map(([id, name]) => (
-          <Link href={`?vista=${id}`} key={id} aria-current={selected === id ? 'page' : undefined}>
-            {name}
-          </Link>
+          <Button asChild variant="ghost" key={id}>
+            <Link href={`?vista=${id}`} aria-current={selected === id ? 'page' : undefined}>
+              {name}
+            </Link>
+          </Button>
         ))}
-      </nav>
+      </Tabs>
       <form className="cg-filters" action={href('explora')}>
         <input type="hidden" name="vista" value={selected} />
         <label>
           Buscar
-          <input className="campo" type="search" name="q" defaultValue={query} maxLength={200} />
+          <Field type="search" name="q" defaultValue={query} maxLength={200} />
         </label>
-        <button className="boton-claro" type="submit">
+        <Button type="submit" variant="secondary">
           Buscar
-        </button>
+        </Button>
       </form>
       <AI>{content}</AI>
     </>

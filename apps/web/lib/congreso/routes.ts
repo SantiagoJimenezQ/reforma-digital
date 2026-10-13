@@ -1,4 +1,4 @@
-export const congressBase = '/new-escanoabierto/web';
+export const congressBase = '/congreso';
 export const congressSections = [
   {
     title: 'Portada y pestañas',
@@ -6,7 +6,6 @@ export const congressSections = [
       ['Inicio', ''],
       ['Elecciones', 'elecciones'],
       ['Geografía', 'geografia'],
-      ['¿Quién lo dijo?', 'quien-lo-dijo'],
       ['Método', 'metodo'],
     ],
   },

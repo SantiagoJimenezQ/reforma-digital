@@ -8,7 +8,6 @@ import {
   questionsSchema,
   organsSchema,
   weeksSchema,
-  quizSchema,
   geographySchema,
   electionsSchema,
   pollsSchema,
@@ -36,7 +35,6 @@ export const getLaws = cache(() => read('leyes.json', lawsSchema));
 export const getQuestions = cache(() => read('preguntas.json', questionsSchema));
 export const getOrgans = cache(() => read('organigrama.json', organsSchema));
 export const getWeeks = cache(() => read('semanas.json', weeksSchema));
-export const getQuiz = cache(() => read('explora-retos.json', quizSchema));
 export const getGeography = cache(() => read('geografia/territorios.json', geographySchema));
 export const getElections = cache(() => read('elecciones/elecciones.json', electionsSchema));
 export const getPolls = cache(() => read('encuestas/encuestas.json', pollsSchema));

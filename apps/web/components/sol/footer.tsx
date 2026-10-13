@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@reforma-digital/design/sol';
 import { links } from '../../lib/site';
+import { congressBase } from '../../lib/congreso/routes';
 import { Icon } from './icon';
 import { Logo } from './logo';
 import './footer.css';
@@ -8,6 +9,7 @@ import './footer.css';
 const secciones = [
   ['La iniciativa', '/#iniciativa'],
   ['Buscador', '/chat'],
+  ['El Congreso', congressBase],
   ['Equipo', '/equipo'],
   ['Cómo funciona', '/how-it-works'],
   ['Fuentes oficiales', '/sources'],

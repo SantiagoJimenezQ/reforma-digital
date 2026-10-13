@@ -1,3 +1,5 @@
+import { Disclosure, Surface } from '@reforma-digital/design/sol';
+import { Icon } from '../sol/icon';
 import { topicSchema, rawQuestionSchema, rawSessionSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -31,29 +33,30 @@ export function Interventions({
   return interventions.length ? (
     <div className="cg-grid">
       {interventions.map((iv, i) => (
-        <article className="cg-card" key={`${iv.s}-${i}`}>
-          <span className="t-etiqueta">
-            {iv.g} · {iv.tono}
-          </span>
-          <h3>{iv.orador}</h3>
-          <p className="cg-muted">{iv.item}</p>
-          <AI>
-            <p>{iv.frase || iv.resumen || 'El resumen está en la ficha de la sesión.'}</p>
-          </AI>
-          {iv.cita && <blockquote>«{iv.cita}»</blockquote>}
-          {iv.ia && (
-            <details>
-              <summary>Cómo se generó</summary>
-              <p>
-                Modelo: {iv.ia.model}. Prompt: {iv.ia.prompt}.{' '}
-                {iv.ia.provider === 'cache-importada'
-                  ? 'Análisis conservado del histórico de Escaño Abierto.'
-                  : 'Generado en Reforma Digital con Helmcode.'}
-              </p>
-            </details>
-          )}
-          <Link href={href(`sesion/${iv.s.toLowerCase()}`)}>Ver la sesión</Link>
-        </article>
+        <Surface asChild key={`${iv.s}-${i}`}>
+          <article className="cg-card">
+            <span className="t-etiqueta">
+              {iv.g} · {iv.tono}
+            </span>
+            <h3>{iv.orador}</h3>
+            <p className="cg-muted">{iv.item}</p>
+            <AI>
+              <p>{iv.frase || iv.resumen || 'El resumen está en la ficha de la sesión.'}</p>
+            </AI>
+            {iv.cita && <blockquote>«{iv.cita}»</blockquote>}
+            {iv.ia && (
+              <Disclosure title="Cómo se generó" icon={<Icon name="abajo" size={16} />}>
+                <p>
+                  Modelo: {iv.ia.model}. Prompt: {iv.ia.prompt}.{' '}
+                  {iv.ia.provider === 'cache-importada'
+                    ? 'Análisis conservado del histórico de Escaño Abierto.'
+                    : 'Generado en Reforma Digital con Helmcode.'}
+                </p>
+              </Disclosure>
+            )}
+            <Link href={href(`sesion/${iv.s.toLowerCase()}`)}>Ver la sesión</Link>
+          </article>
+        </Surface>
       ))}
     </div>
   ) : (
@@ -64,16 +67,18 @@ function Laws({ laws, legislature }: { laws: Law[]; legislature: string }) {
   return laws.length ? (
     <div className="cg-grid">
       {laws.map((law) => (
-        <article className="cg-card" key={law.exp}>
-          <span className="t-etiqueta">
-            {law.tipo} · {law.estado}
-          </span>
-          <h3>
-            <Link href={href(`iniciativa/${law.exp.replace('/', '-')}`)}>{law.titulo}</Link>
-          </h3>
-          <p>{law.situacion}</p>
-          <Source url={congressUrl(law.exp, legislature)}>Expediente {law.exp}</Source>
-        </article>
+        <Surface asChild key={law.exp}>
+          <article className="cg-card">
+            <span className="t-etiqueta">
+              {law.tipo} · {law.estado}
+            </span>
+            <h3>
+              <Link href={href(`iniciativa/${law.exp.replace('/', '-')}`)}>{law.titulo}</Link>
+            </h3>
+            <p>{law.situacion}</p>
+            <Source url={congressUrl(law.exp, legislature)}>Expediente {law.exp}</Source>
+          </article>
+        </Surface>
       ))}
     </div>
   ) : (
@@ -107,9 +112,6 @@ export async function Activity({
     const questions = z.array(z.object({ content: rawQuestionSchema })).parse(rows);
     return (
       <>
-        <Intro title="Preguntas al Gobierno">
-          <p>Lo que los diputados preguntan por escrito y las respuestas pendientes.</p>
-        </Intro>
         <Stats
           items={[
             [summary.total, 'Preguntas registradas'],
@@ -120,16 +122,18 @@ export async function Activity({
         <Filters action={href('preguntas')} query={query} />
         <div className="cg-grid">
           {questions.map(({ content: question }) => (
-            <article className="cg-card" key={question.exp}>
-              <span className="t-etiqueta">
-                {question.estado} · {date(question.presentada)}
-              </span>
-              <h3>{question.titulo}</h3>
-              <p>{question.autores.map(([name]) => name).join(', ')}</p>
-              <Source url={congressUrl(question.exp, index.meta.legislatura)}>
-                Expediente {question.exp}
-              </Source>
-            </article>
+            <Surface asChild key={question.exp}>
+              <article className="cg-card">
+                <span className="t-etiqueta">
+                  {question.estado} · {date(question.presentada)}
+                </span>
+                <h3>{question.titulo}</h3>
+                <p>{question.autores.map(([name]) => name).join(', ')}</p>
+                <Source url={congressUrl(question.exp, index.meta.legislatura)}>
+                  Expediente {question.exp}
+                </Source>
+              </article>
+            </Surface>
           ))}
         </div>
         {!questions.length && <Empty />}
@@ -179,20 +183,19 @@ export async function Activity({
     );
     return (
       <>
-        <Intro title="Cómo avanza cada ley">
-          <p>Desde la presentación hasta su aprobación, con el expediente oficial a un clic.</p>
-        </Intro>
         <Filters action={href('leyes')} query={query} />
         <Laws laws={laws.slice((page - 1) * 24, page * 24)} legislature={index.meta.legislatura} />
         <Pagination page={page} total={laws.length} params={{ q: query }} />
         <Section title="Leyes publicadas">
           <div className="cg-grid">
-            {data.aprobadas.map((law) => (
-              <article className="cg-card" key={law.pdf}>
-                <h3>{law.titulo}</h3>
-                <p>{date(law.fecha)}</p>
-                <Source url={law.pdf}>Publicación oficial</Source>
-              </article>
+            {data.aprobadas.map((law, i) => (
+              <Surface asChild key={`${law.pdf}-${i}`}>
+                <article className="cg-card">
+                  <h3>{law.titulo}</h3>
+                  <p>{date(law.fecha)}</p>
+                  <Source url={law.pdf}>Publicación oficial</Source>
+                </article>
+              </Surface>
             ))}
           </div>
         </Section>
@@ -204,16 +207,17 @@ export async function Activity({
     if (section === 'temas')
       return (
         <>
-          <Intro title="El Congreso, por temas" />
           <div className="cg-grid">
             {Object.entries(topics).map(([id, topic]) => (
-              <Link href={href(`tema/${id}`)} className="cg-card" key={id}>
-                <h2>{topic.nombre}</h2>
-                <p>
-                  {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
-                  {number(topic.preguntas)} preguntas
-                </p>
-              </Link>
+              <Surface asChild key={id}>
+                <Link href={href(`tema/${id}`)} className="cg-card">
+                  <h2>{topic.nombre}</h2>
+                  <p>
+                    {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
+                    {number(topic.preguntas)} preguntas
+                  </p>
+                </Link>
+              </Surface>
             ))}
           </div>
         </>
@@ -347,12 +351,18 @@ export async function Activity({
               Texto extraído del PDF oficial; consulta el original para comprobar la transcripción.
             </p>
             {raw.intervenciones.map((iv, i) => (
-              <details className="cg-transcript" key={i}>
-                <summary>
-                  {iv.orador} · {iv.grupo} · {iv.item || 'Turno de palabra'}
-                </summary>
+              <Disclosure
+                className="cg-transcript"
+                key={i}
+                title={
+                  <>
+                    {iv.orador} · {iv.grupo} · {iv.item || 'Turno de palabra'}
+                  </>
+                }
+                icon={<Icon name="abajo" size={16} />}
+              >
                 <p>{iv.texto}</p>
-              </details>
+              </Disclosure>
             ))}
           </Section>
         )}
@@ -365,7 +375,6 @@ export async function Activity({
   if (section === 'votaciones')
     return (
       <>
-        <Intro title="Cada voto, a la vista" />
         <Filters action={href('votaciones')} query={query} period={period} />
         <Votes votes={votes.slice((page - 1) * 24, page * 24)} />
         <Pagination page={page} total={votes.length} params={{ q: query, periodo: period }} />
@@ -376,9 +385,6 @@ export async function Activity({
   );
   return (
     <>
-      <Intro title="Por día">
-        <p>Plenos y comisiones, con el debate y las votaciones de cada sesión.</p>
-      </Intro>
       <Filters action={href('dias')} query={query} period={period} />
       <Sessions sessions={sessions.slice((page - 1) * 24, page * 24)} />
       <Pagination page={page} total={sessions.length} params={{ q: query, periodo: period }} />
