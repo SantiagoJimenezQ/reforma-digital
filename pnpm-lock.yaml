@@ -84,6 +84,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/runtime
 
+  apps/ingestion: {}
+
   apps/playground:
     dependencies:
       '@reforma-digital/bridge':

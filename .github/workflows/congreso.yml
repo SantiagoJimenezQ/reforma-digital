@@ -1,0 +1,62 @@
+name: Actualizar los datos del Congreso
+on:
+  schedule:
+    - cron: '17 5 * * 1-6'
+    - cron: '40 6,19 * * *'
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Trabajo (bootstrap solo en una instalación vacía)
+        type: choice
+        options:
+          [update, polls, bootstrap, reanalyze, rebuild, geography, elections, promises, reparse]
+        default: update
+      limit:
+        description: Máximo de llamadas a Helmcode (1–5000)
+        default: '100'
+      since:
+        description: Reanalizar desde esta fecha (AAAA-MM-DD; vacío para todo)
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: congreso-ingestion
+  cancel-in-progress: false
+jobs:
+  ingest:
+    if: github.event_name == 'workflow_dispatch' || vars.CONGRESS_INGESTION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      DATABASE_URL: ${{ secrets.CONGRESS_DATABASE_URL }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      HELMCODE_API_KEY: ${{ secrets.HELMCODE_API_KEY }}
+      HELMCODE_MODEL: ${{ vars.HELMCODE_MODEL || 'deepseek-v4-flash' }}
+      CONGRESS_WORKDIR: ${{ runner.temp }}/congreso
+      COMMAND: ${{ inputs.command || (github.event.schedule == '17 5 * * 1-6' && 'update' || 'polls') }}
+      LIMIT: ${{ inputs.limit || '100' }}
+      SINCE: ${{ inputs.since }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: apps/ingestion/requirements.txt
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - run: pnpm install --frozen-lockfile
+      - run: python -m pip install -r apps/ingestion/requirements.txt
+      - name: Comprobar credenciales sin mostrarlas
+        run: |
+          test -n "$DATABASE_URL"
+          test -n "$BLOB_READ_WRITE_TOKEN"
+      - name: Recoger, analizar y publicar en Postgres y Blob
+        run: |
+          args=("$COMMAND" --limit "$LIMIT")
+          if [ -n "$SINCE" ]; then args+=(--since "$SINCE"); fi
+          python apps/ingestion/run.py "${args[@]}"

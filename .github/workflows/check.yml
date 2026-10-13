@@ -16,6 +16,13 @@ jobs:
         with:
           node-version: '24'
           cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: apps/ingestion/requirements.txt
+      - run: python -m pip install -r apps/ingestion/requirements.txt
+      - run: python -m pytest -p no:cacheprovider apps/ingestion/tests
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm check
