@@ -73,13 +73,13 @@ function Compositor() {
       </label>
       <span
         className={
-          'rc-compositor flex items-center gap-3 [width:min(100%,_440px)] min-h-16 [padding:5px_5px_5px_20px] [border:1px_solid_var(--foreground)] [border-radius:999px] [background:var(--background)] [box-shadow:var(--shadow-overlay)] [color:var(--foreground)] text-left [pointer-events:auto] [&:has(.rc-compositor-texto:focus-visible)]:[outline:2px_solid_var(--ring)] [&:has(.rc-compositor-texto:focus-visible)]:[outline-offset:2px] [&_[data-slot=button][data-size=icon-lg]]:[--ring:var(--foreground)]'
+          'rc-compositor flex items-center gap-3 [width:min(100%,_440px)] min-h-16 [padding:5px_5px_5px_20px] [border:1px_solid_var(--foreground)] [border-radius:999px] [background:var(--background)] [box-shadow:var(--shadow-overlay)] [color:var(--foreground)] text-left [pointer-events:auto] [&:has(.rc-compositor-texto:focus-visible)]:[outline:2px_solid_var(--ring)] [&:has(.rc-compositor-texto:focus-visible)]:[outline-offset:2px]'
         }
       >
         <Input
           id={id}
           className={
-            'rc-compositor-texto [flex:1] [align-self:stretch] [min-width:0] [text-overflow:ellipsis] [user-select:text]'
+            'rc-compositor-texto flex-1 self-stretch h-auto min-w-0 rounded-none border-0 p-0 text-base md:text-base focus-visible:ring-0 [text-overflow:ellipsis] [user-select:text]'
           }
           type="text"
           autoComplete="off"
@@ -93,6 +93,7 @@ function Compositor() {
           disabled={texto.trim().length < 4}
           size="icon-lg"
           variant="default"
+          className="size-13 rounded-full [--ring:var(--foreground)]"
         >
           <Icon name="enviar" size={20} />
         </Button>
