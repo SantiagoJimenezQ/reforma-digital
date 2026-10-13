@@ -1,10 +1,9 @@
 'use client';
 
-import { PortalContainerContext } from '../lib/portal';
-
 import * as React from 'react';
+import { PortalContainerContext } from '../lib/portal';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
-import { cn } from '../lib/utils';
+import { cn } from 'cn';
 
 import { Button } from './button';
 import { XIcon } from 'lucide-react';
@@ -22,7 +21,8 @@ function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
+  const container = React.useContext(PortalContainerContext);
+  return <SheetPrimitive.Portal container={container} data-slot="sheet-portal" {...props} />;
 }
 
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
@@ -48,9 +48,8 @@ function SheetContent({
   side?: 'top' | 'right' | 'bottom' | 'left';
   showCloseButton?: boolean;
 }) {
-  const container = React.useContext(PortalContainerContext);
   return (
-    <SheetPortal container={container}>
+    <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
@@ -100,7 +99,7 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn('font-heading text-base font-medium text-foreground', className)}
+      className={cn('text-base font-medium text-foreground', className)}
       {...props}
     />
   );

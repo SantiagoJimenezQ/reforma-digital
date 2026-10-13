@@ -18,7 +18,7 @@ export function Header({ current, action }: { current?: string; action?: ReactNo
   return (
     <header
       className={
-        'in-nav flex items-center gap-4 min-h-20 [padding:16px_max(var(--page-gutter),_calc((100%_-_var(--container-content))_/_2_+_var(--page-gutter)))] [&_>_a]:flex [&_>_a]:items-center [&_>_a]:[margin-right:auto] [&_nav]:flex [&_nav]:items-center [&_nav]:gap-2 [&_nav]:gap-1 [@media(hover:_hover)_and_(pointer:_fine)]:[&_[data-slot=button][data-variant=ghost]:hover::before]:[opacity:0.16] [&_a]:min-h-11 [@media(max-width:_800px)]:[&_nav_>_*]:px-3 [@media(max-width:_800px)]:[&_nav_>_*]:text-sm [&_.in-menu-boton]:hidden [@media(max-width:_640px)]:[&_nav]:hidden [@media(max-width:_640px)]:[&_.in-menu-boton]:inline-flex [view-transition-name:sol-cabecera]'
+        'in-nav flex items-center gap-4 min-h-20 [padding:16px_max(var(--page-gutter),_calc((100%_-_var(--container-content))_/_2_+_var(--page-gutter)))] [&_>_a]:flex [&_>_a]:items-center [&_>_a]:[margin-right:auto] [&_nav]:flex [&_nav]:items-center [&_nav]:gap-1 [&_.in-menu-boton]:hidden [@media(max-width:_640px)]:[&_nav]:hidden [@media(max-width:_640px)]:[&_.in-menu-boton]:inline-flex [view-transition-name:sol-cabecera]'
       }
     >
       <Link href="/" aria-label="Reforma Digital, portada de la iniciativa">
@@ -42,7 +42,7 @@ export function Header({ current, action }: { current?: string; action?: ReactNo
             href="/#participar"
             data-slot="button"
             data-variant="outline"
-            className={cn(buttonVariants({ variant: 'outline' }))}
+            className={cn(buttonVariants({ variant: 'outline', className: 'text-foreground' }))}
           >
             Participar <Icon name="derecha" size={16} />
           </Link>

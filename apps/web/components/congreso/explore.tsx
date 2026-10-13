@@ -1,5 +1,5 @@
 import { cn } from '@reforma-digital/design/lib/utils';
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -103,8 +103,10 @@ export async function Explore({
                     />
                   }
                 >
-                  <time dateTime={w.desde}>{date(w.desde)}</time>
-                  <h3>{w.titular}</h3>
+                  <CardContent>
+                    <time dateTime={w.desde}>{date(w.desde)}</time>
+                    <h3>{w.titular}</h3>
+                  </CardContent>
                 </Card>
               ))}
           </div>
@@ -149,36 +151,38 @@ export async function Explore({
                 />
               }
             >
-              <span
-                className={
-                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                }
-              >
-                {line.topic} · {line.group}
-              </span>
-              <h3>{line.titulo}</h3>
-              <p>{line.n} menciones</p>
-              <Collapsible>
-                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
-                  <span>{'Ejemplos en los Diarios'}</span>
-                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
-                    {<Icon name="abajo" size={16} />}
-                  </span>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  {line.ejemplos.map(([text, speaker, session, day], j) => (
-                    <blockquote key={j}>
-                      {text}
-                      <footer>
-                        {speaker} ·{' '}
-                        <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                          {date(day)}
-                        </Link>
-                      </footer>
-                    </blockquote>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+              <CardContent>
+                <span
+                  className={
+                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                  }
+                >
+                  {line.topic} · {line.group}
+                </span>
+                <h3>{line.titulo}</h3>
+                <p>{line.n} menciones</p>
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                    <span>{'Ejemplos en los Diarios'}</span>
+                    <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                      {<Icon name="abajo" size={16} />}
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {line.ejemplos.map(([text, speaker, session, day], j) => (
+                      <blockquote key={j}>
+                        {text}
+                        <footer>
+                          {speaker} ·{' '}
+                          <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                            {date(day)}
+                          </Link>
+                        </footer>
+                      </blockquote>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -206,39 +210,41 @@ export async function Explore({
                 />
               }
             >
-              <span
-                className={
-                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                }
-              >
-                {m.rol}
-              </span>
-              <h3>{m.orador}</h3>
-              <Stats
-                items={[
-                  [m.si, 'Contesta'],
-                  [m.parcial, 'Parcialmente'],
-                  [m.no, 'No contesta'],
-                ]}
-              />
-              <Collapsible>
-                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
-                  <span>{'Consultar los casos'}</span>
-                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
-                    {<Icon name="abajo" size={16} />}
-                  </span>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  {m.casos.map(([day, session, response, reason], i) => (
-                    <p key={i}>
-                      <b>{response}</b> · {reason}{' '}
-                      <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                        {date(day)}
-                      </Link>
-                    </p>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+              <CardContent>
+                <span
+                  className={
+                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                  }
+                >
+                  {m.rol}
+                </span>
+                <h3>{m.orador}</h3>
+                <Stats
+                  items={[
+                    [m.si, 'Contesta'],
+                    [m.parcial, 'Parcialmente'],
+                    [m.no, 'No contesta'],
+                  ]}
+                />
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                    <span>{'Consultar los casos'}</span>
+                    <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                      {<Icon name="abajo" size={16} />}
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {m.casos.map(([day, session, response, reason], i) => (
+                      <p key={i}>
+                        <b>{response}</b> · {reason}{' '}
+                        <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                          {date(day)}
+                        </Link>
+                      </p>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
             </Card>
           ))}
       </div>
@@ -266,49 +272,51 @@ export async function Explore({
                 />
               }
             >
-              <h3>{t.tema}</h3>
-              <p>
-                {t.n} menciones · desde {date(t.primera)}
-              </p>
-              <div
-                className={
-                  'cg-spark h-16 flex items-end [gap:1px] [&_>_span]:[flex:1] [&_>_span]:[background:var(--brand)]'
-                }
-                role="img"
-                aria-label={`${t.n} menciones, por semanas`}
-              >
-                {t.serie.map((n, i) => (
-                  <span
-                    key={i}
-                    style={{ height: `${Math.max(2, (n / Math.max(1, ...t.serie)) * 100)}%` }}
-                  >
+              <CardContent>
+                <h3>{t.tema}</h3>
+                <p>
+                  {t.n} menciones · desde {date(t.primera)}
+                </p>
+                <div
+                  className={
+                    'cg-spark h-16 flex items-end [gap:1px] [&_>_span]:[flex:1] [&_>_span]:[background:var(--brand)]'
+                  }
+                  role="img"
+                  aria-label={`${t.n} menciones, por semanas`}
+                >
+                  {t.serie.map((n, i) => (
                     <span
-                      className={
-                        'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
-                      }
+                      key={i}
+                      style={{ height: `${Math.max(2, (n / Math.max(1, ...t.serie)) * 100)}%` }}
                     >
-                      Semana {i + 1}: {n}
-                    </span>
-                  </span>
-                ))}
-              </div>
-              <Collapsible>
-                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
-                  <span>{'Recuentos por semana'}</span>
-                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
-                    {<Icon name="abajo" size={16} />}
-                  </span>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <ol>
-                    {t.serie.map((n, i) => (
-                      <li key={i}>
+                      <span
+                        className={
+                          'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+                        }
+                      >
                         Semana {i + 1}: {n}
-                      </li>
-                    ))}
-                  </ol>
-                </CollapsibleContent>
-              </Collapsible>
+                      </span>
+                    </span>
+                  ))}
+                </div>
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                    <span>{'Recuentos por semana'}</span>
+                    <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                      {<Icon name="abajo" size={16} />}
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ol>
+                      {t.serie.map((n, i) => (
+                        <li key={i}>
+                          Semana {i + 1}: {n}
+                        </li>
+                      ))}
+                    </ol>
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -339,13 +347,15 @@ export async function Explore({
                   />
                 }
               >
-                «{text}»
-                <footer>
-                  {speaker} · {group} ·{' '}
-                  <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                    {date(day)}
-                  </Link>
-                </footer>
+                <CardContent>
+                  «{text}»
+                  <footer>
+                    {speaker} · {group} ·{' '}
+                    <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                      {date(day)}
+                    </Link>
+                  </footer>
+                </CardContent>
               </Card>
             ))}
         </div>

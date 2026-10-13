@@ -1,10 +1,9 @@
 'use client';
 
-import { PortalContainerContext } from '../lib/portal';
-
 import * as React from 'react';
+import { PortalContainerContext } from '../lib/portal';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
-import { cn } from '../lib/utils';
+import { cn } from 'cn';
 
 import { Button } from './button';
 import { XIcon } from 'lucide-react';
@@ -18,7 +17,8 @@ function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+  const container = React.useContext(PortalContainerContext);
+  return <DialogPrimitive.Portal container={container} data-slot="dialog-portal" {...props} />;
 }
 
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
@@ -46,9 +46,8 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
 }) {
-  const container = React.useContext(PortalContainerContext);
   return (
-    <DialogPortal container={container}>
+    <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
@@ -108,7 +107,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('font-heading text-base leading-none font-medium', className)}
+      className={cn('text-base leading-none font-medium', className)}
       {...props}
     />
   );

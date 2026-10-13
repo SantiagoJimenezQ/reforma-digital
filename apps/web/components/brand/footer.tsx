@@ -37,7 +37,7 @@ export function Footer() {
         </h2>
         <div
           className={
-            'pie-acciones flex flex-wrap gap-3 [&_:is([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline])]:min-h-11 [&_:is([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline])]:px-4 [&_:is([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline])]:text-sm [&_[data-slot=button][data-variant=outline]]:[box-shadow:var(--shadow-soft)] [@media(max-width:_720px)]:[&_:is([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline])]:w-full'
+            'pie-acciones flex flex-wrap gap-3 [@media(max-width:_720px)]:[&_:is([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline])]:w-full'
           }
         >
           <a

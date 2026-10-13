@@ -79,7 +79,7 @@ function Compositor() {
         <Input
           id={id}
           className={
-            'rc-compositor-texto [flex:1] [align-self:stretch] [min-width:0] p-0 border-0 [background:none] [color:inherit] [font:inherit] text-base [text-overflow:ellipsis] [user-select:text] [&::placeholder]:[color:var(--text-secondary)] [&::placeholder]:[opacity:1] [&:focus-visible]:outline-none'
+            'rc-compositor-texto [flex:1] [align-self:stretch] [min-width:0] [text-overflow:ellipsis] [user-select:text]'
           }
           type="text"
           autoComplete="off"

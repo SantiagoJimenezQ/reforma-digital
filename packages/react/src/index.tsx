@@ -96,7 +96,7 @@ export function BoundField({
             aria-labelledby={`${id}-label`}
             aria-describedby={common['aria-describedby']}
             aria-invalid={common['aria-invalid']}
-            className="w-full min-h-12"
+            className={'w-full'}
           >
             <SelectValue />
           </SelectTrigger>
@@ -123,10 +123,7 @@ export function BoundField({
           onChange={(event) => bridge.setValue(binding, event.currentTarget.value)}
         />
       ) : checkable ? (
-        <label
-          className={`bg-choice flex items-start [gap:10px] min-h-11 [padding:10px_14px] [border:1px_solid_rgb(var(--bg-line-strong))] [border-radius:var(--bg-radius-control)] [background-color:rgb(var(--bg-surface))] [color:rgb(var(--bg-ink))] [font-size:15px] [line-height:1.4] cursor-pointer [&:hover]:[border-color:rgb(var(--bg-line-control))] [&:focus-within]:[border-color:rgb(var(--bg-brand-600))] [&:focus-within]:[box-shadow:0_0_0_3px_rgb(var(--bg-brand-200))] [&_input]:[margin-top:2px] [&_input]:[width:18px] [&_input]:[height:18px] [&_input]:shrink-0 [&_input]:[accent-color:rgb(var(--bg-brand-600))]${state.checked ? ' bg-choice-checked [border-color:rgb(var(--bg-brand-600))] [background-color:rgb(var(--bg-brand-100))] [color:rgb(var(--bg-brand-900))] font-semibold' : ''}`}
-          htmlFor={id}
-        >
+        <label className="flex min-h-11 items-center gap-2" htmlFor={id}>
           {state.type === 'checkbox' ? (
             <Checkbox
               id={id}

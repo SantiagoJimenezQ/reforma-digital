@@ -1,4 +1,4 @@
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -116,15 +116,17 @@ export async function People({
                 />
               }
             >
-              <span
-                className={
-                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                }
-              >
-                {cargo.ministerio}
-              </span>
-              <h3>{cargo.cargo}</h3>
-              <p>{cargo.mandatos.find((m) => !m.hasta)?.persona || 'Vacante'}</p>
+              <CardContent>
+                <span
+                  className={
+                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                  }
+                >
+                  {cargo.ministerio}
+                </span>
+                <h3>{cargo.cargo}</h3>
+                <p>{cargo.mandatos.find((m) => !m.hasta)?.persona || 'Vacante'}</p>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -267,53 +269,55 @@ export async function People({
                   />
                 }
               >
-                <span
-                  className={
-                    'cg-group [&_i]:w-2 [&_i]:h-2 [&_i]:inline-block [&_i]:[border-radius:50%] flex items-center flex-wrap gap-3 text-sm'
-                  }
-                >
-                  <i style={{ background: g.color }} />
-                  {id}
-                </span>
-                <h2>{g.nombre}</h2>
-                <Stats
-                  items={[
-                    [g.escanos, 'Escaños'],
-                    [
-                      data.intervenciones.filter((iv) => iv.g === id).length,
-                      'Intervenciones analizadas',
-                    ],
-                  ]}
-                />
-                <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
-                <Collapsible>
-                  <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
-                    <span>{'Voto mayoritario del grupo'}</span>
-                    <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
-                      {<Icon name="abajo" size={16} />}
-                    </span>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <ul
-                      className={
-                        'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
-                      }
-                    >
-                      {data.votaciones.slice(0, 12).map((v) => (
-                        <li key={v.id}>
-                          <Link href={href(`votacion/${v.id}`, v.fecha.slice(0, 7))}>
-                            {v.titulo}
-                          </Link>
-                          <b>
-                            {{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[
-                              v.grupos[id] || ''
-                            ] || 'Voto dividido'}
-                          </b>
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
+                <CardContent>
+                  <span
+                    className={
+                      'cg-group [&_i]:w-2 [&_i]:h-2 [&_i]:inline-block [&_i]:[border-radius:50%] flex items-center flex-wrap gap-3 text-sm'
+                    }
+                  >
+                    <i style={{ background: g.color }} />
+                    {id}
+                  </span>
+                  <h2>{g.nombre}</h2>
+                  <Stats
+                    items={[
+                      [g.escanos, 'Escaños'],
+                      [
+                        data.intervenciones.filter((iv) => iv.g === id).length,
+                        'Intervenciones analizadas',
+                      ],
+                    ]}
+                  />
+                  <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
+                  <Collapsible>
+                    <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                      <span>{'Voto mayoritario del grupo'}</span>
+                      <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                        {<Icon name="abajo" size={16} />}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <ul
+                        className={
+                          'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+                        }
+                      >
+                        {data.votaciones.slice(0, 12).map((v) => (
+                          <li key={v.id}>
+                            <Link href={href(`votacion/${v.id}`, v.fecha.slice(0, 7))}>
+                              {v.titulo}
+                            </Link>
+                            <b>
+                              {{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[
+                                v.grupos[id] || ''
+                              ] || 'Voto dividido'}
+                            </b>
+                          </li>
+                        ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </CardContent>
               </Card>
             ))}
         </div>

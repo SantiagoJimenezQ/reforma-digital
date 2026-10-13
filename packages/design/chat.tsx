@@ -467,7 +467,7 @@ export function SourceChip({
     <Button
       type="button"
       className={
-        "chat-source-chip inline-flex items-center [gap:6px] relative [margin-left:2px] [padding:2px_10px_2px_12px] border-0 [border-radius:999px] [background:var(--muted)] [color:var(--foreground)] text-sm [line-height:22px] whitespace-nowrap [vertical-align:2px] cursor-pointer [transition:background-color_160ms_ease,_transform_160ms_var(--ease-brand)] [&::after]:[content:''] [&::after]:absolute [&::after]:[inset:-9px_-2px] [&:active]:[transform:scale(0.96)] [@media(hover:_hover)_and_(pointer:_fine)]:[:is(&,_.chat-sources-button,_.chat-sheet-back,_.chat-sheet-close):hover]:[background:var(--disabled)]"
+        "chat-source-chip inline-flex items-center [gap:6px] relative [margin-left:2px] whitespace-nowrap [vertical-align:2px] [&::after]:[content:''] [&::after]:absolute [&::after]:[inset:-9px_-2px]"
       }
       title={title}
       onClick={onOpen}
@@ -512,9 +512,7 @@ export function SourcesButton({
   return (
     <Button
       type="button"
-      className={
-        'chat-sources-button inline-flex items-center gap-2 min-h-11 [padding:0_16px_0_8px] border-0 [border-radius:999px] [background:var(--muted)] [color:var(--foreground)] text-base cursor-pointer [transition:background-color_160ms_ease,_transform_160ms_var(--ease-brand)] [&:active]:[transform:scale(0.96)]'
-      }
+      className={'chat-sources-button inline-flex items-center gap-2'}
       onClick={onOpen}
     >
       <Monogram name={organization} />
@@ -545,7 +543,7 @@ export function Suggestion({
     <Button
       type="button"
       className={
-        'chat-suggestion inline-flex items-center gap-3 [max-width:100%] min-h-12 [padding:0_20px] [border:1px_solid_var(--border)] [border-radius:999px] [background:var(--background)] [color:var(--foreground)] text-base text-left cursor-pointer [animation:chat-enter_360ms_calc(var(--index,_0)_*_50ms_+_120ms)_var(--ease-brand)_both] [transition:background-color_160ms_ease,_transform_160ms_var(--ease-brand)] [&_.icono]:shrink-0 [&_.icono]:[transition:transform_200ms_var(--ease-brand)] [&:active]:[transform:scale(0.96)] [@media(hover:_hover)_and_(pointer:_fine)]:[&:hover]:[background:var(--muted)] [@media(hover:_hover)_and_(pointer:_fine)]:[&:hover_.icono]:[transform:translateY(-2px)] [@media(prefers-reduced-motion:_reduce)]:[:is(_____&,_____.chat-source-chip,_____.chat-sources-button,_____.chat-sheet-back,_____.chat-sheet-close,_____.chat-source-card___):active]:[transform:none]'
+        'chat-suggestion inline-flex items-center gap-3 [max-width:100%] text-left [animation:chat-enter_360ms_calc(var(--index,_0)_*_50ms_+_120ms)_var(--ease-brand)_both]'
       }
       style={{ '--index': index } as CSSProperties}
       onClick={() => onSelect(children)}
@@ -588,7 +586,7 @@ export function JumpButton({
     <Button
       type="button"
       className={
-        "chat-jump absolute -top-8 [left:calc(50%_-_22px)] grid [place-items:center] w-11 h-11 p-0 border-0 [border-radius:50%] [background:var(--background)] [color:var(--foreground)] [box-shadow:var(--shadow-soft)] cursor-pointer [transition:opacity_200ms_var(--ease-brand),_transform_200ms_var(--ease-brand)] [&[data-visible='false']]:[opacity:0] [&[data-visible='false']]:[transform:translateY(6px)_scale(0.9)] [&[data-visible='false']]:pointer-events-none [@media(prefers-reduced-motion:_reduce)]:[&[data-visible='false']]:[transform:none]"
+        "chat-jump absolute -top-8 [left:calc(50%_-_22px)] grid [place-items:center] [&[data-visible='false']]:pointer-events-none"
       }
       data-visible={visible}
       tabIndex={visible ? 0 : -1}
@@ -637,7 +635,7 @@ export function SourceSheet({
       swipeDirection={mobile ? 'down' : 'right'}
       showSwipeHandle={mobile}
     >
-      <DrawerContent className="m-2 max-h-[calc(100dvh-16px)] rounded-[28px] bg-background text-base motion-reduce:transition-none">
+      <DrawerContent className="m-2 max-h-[calc(100dvh-16px)] motion-reduce:transition-none">
         <DrawerTitle className="sr-only">{title}</DrawerTitle>
         <div className="flex items-center justify-between gap-3 px-6 pt-4 pb-3">
           {back}
@@ -674,11 +672,7 @@ export function SourceDetail({
   children?: ReactNode;
 }) {
   return (
-    <article
-      className={
-        'chat-source [&_[data-slot=button][data-variant=default]]:w-full [&_[data-slot=button][data-variant=default]]:min-h-12 [&_[data-slot=button][data-variant=default]]:[font-size:15px]'
-      }
-    >
+    <article className={'chat-source [&_[data-slot=button][data-variant=default]]:w-full'}>
       <p className={'chat-source-eyebrow [margin:0_0_12px] [color:var(--brand)] [font-size:13px]'}>
         {eyebrow}
       </p>
@@ -751,7 +745,7 @@ export function SourceCard({
       <Button
         type="button"
         className={
-          'chat-source-card flex items-center justify-between gap-3 w-full min-h-14 [padding:12px_16px] [border:1px_solid_var(--border)] [border-radius:12px] [background:var(--background)] [color:var(--foreground)] text-left cursor-pointer [transition:background-color_160ms_ease,_transform_160ms_var(--ease-brand)] [&:active]:[transform:scale(0.98)] [&_strong]:block [&_strong]:text-sm [&_strong]:font-medium [&_small]:block [&_small]:[color:var(--text-secondary)] [&_small]:text-xs [@media(hover:_hover)_and_(pointer:_fine)]:[&:hover]:[background:var(--muted)]'
+          'chat-source-card flex items-center justify-between gap-3 w-full text-left [&_strong]:block [&_small]:block'
         }
         onClick={onOpen}
       >

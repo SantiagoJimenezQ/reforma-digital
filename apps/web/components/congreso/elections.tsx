@@ -8,7 +8,7 @@ import {
 } from '@reforma-digital/design/ui/table';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { buttonVariants } from '@reforma-digital/design/ui/button';
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -196,18 +196,20 @@ export async function Geography({
               />
             }
           >
-            <h2>
-              <Link href={href(`geografia/${id}`)}>{p.n}</Link>
-            </h2>
-            <Stats
-              items={[
-                [p.pob, 'Habitantes'],
-                [p.esc, 'Escaños'],
-                [`${number(p.renta)} €`, 'Renta por persona'],
-                [p.edad, 'Edad media'],
-                [p.dens, 'Habitantes / km²'],
-              ]}
-            />
+            <CardContent>
+              <h2>
+                <Link href={href(`geografia/${id}`)}>{p.n}</Link>
+              </h2>
+              <Stats
+                items={[
+                  [p.pob, 'Habitantes'],
+                  [p.esc, 'Escaños'],
+                  [`${number(p.renta)} €`, 'Renta por persona'],
+                  [p.edad, 'Edad media'],
+                  [p.dens, 'Habitantes / km²'],
+                ]}
+              />
+            </CardContent>
           </Card>
         ))}
       </div>
@@ -315,12 +317,14 @@ export async function Elections({
                     />
                   }
                 >
-                  <h3>{geography.provincias[id]?.n || id}</h3>
-                  <p>
-                    {Object.entries(seats)
-                      .map(([p, n]) => `${p}: ${n}`)
-                      .join(' · ')}
-                  </p>
+                  <CardContent>
+                    <h3>{geography.provincias[id]?.n || id}</h3>
+                    <p>
+                      {Object.entries(seats)
+                        .map(([p, n]) => `${p}: ${n}`)
+                        .join(' · ')}
+                    </p>
+                  </CardContent>
                 </Card>
               ))}
             </div>
@@ -352,11 +356,13 @@ export async function Elections({
                   />
                 }
               >
-                <h2>{market.pregunta}</h2>
-                <Stats
-                  items={market.opciones.map((o) => [`${(o.p * 100).toFixed(1)} %`, o.nombre])}
-                />
-                <Source url={market.url}>Polymarket</Source>
+                <CardContent>
+                  <h2>{market.pregunta}</h2>
+                  <Stats
+                    items={market.opciones.map((o) => [`${(o.p * 100).toFixed(1)} %`, o.nombre])}
+                  />
+                  <Source url={market.url}>Polymarket</Source>
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -385,32 +391,34 @@ export async function Elections({
                   />
                 }
               >
-                <h2>{e.nombre}</h2>
-                <p>Error absoluto medio: {e.media_mae} puntos</p>
-                <div
-                  className={
-                    'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
-                  }
-                >
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Partido</TableHead>
-                        <TableHead>Media</TableHead>
-                        <TableHead>Resultado</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Object.entries(e.resultado).map(([p, n]) => (
-                        <TableRow key={p}>
-                          <TableHead>{p}</TableHead>
-                          <TableCell>{e.media[p]} %</TableCell>
-                          <TableCell>{n} %</TableCell>
+                <CardContent>
+                  <h2>{e.nombre}</h2>
+                  <p>Error absoluto medio: {e.media_mae} puntos</p>
+                  <div
+                    className={
+                      'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
+                    }
+                  >
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Partido</TableHead>
+                          <TableHead>Media</TableHead>
+                          <TableHead>Resultado</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.entries(e.resultado).map(([p, n]) => (
+                          <TableRow key={p}>
+                            <TableHead>{p}</TableHead>
+                            <TableCell>{e.media[p]} %</TableCell>
+                            <TableCell>{n} %</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -447,31 +455,33 @@ export async function Elections({
                 />
               }
             >
-              <h3>{e.empresa}</h3>
-              <p>
-                {date(e.ini)} → {date(e.fin)} · muestra {e.n ?? 'no publicada'}
-              </p>
-              <dl
-                className={
-                  'cg-poll [&_>_div]:flex [&_>_div]:gap-3 [&_>_div]:items-center [&_>_div]:text-sm [&_dt]:w-16 [&_dd]:relative [&_dd]:[flex:1] [&_dd]:[text-align:right] [&_dd]:m-0 [&_dd_>_span]:absolute [&_dd_>_span]:[left:0] [&_dd_>_span]:[bottom:3px] [&_dd_>_span]:[top:3px] [&_dd_>_span]:[max-width:75%] [&_dd_>_span]:[border-radius:4px]'
-                }
-              >
-                {Object.entries(e.v).map(([p, n]) => (
-                  <div key={p}>
-                    <dt>{p}</dt>
-                    <dd>
-                      <span
-                        style={{
-                          width: `${n * 2}%`,
-                          background: polls.partidos.find((party) => party.id === p)?.color,
-                        }}
-                        aria-hidden="true"
-                      />
-                      {n} %
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <CardContent>
+                <h3>{e.empresa}</h3>
+                <p>
+                  {date(e.ini)} → {date(e.fin)} · muestra {e.n ?? 'no publicada'}
+                </p>
+                <dl
+                  className={
+                    'cg-poll [&_>_div]:flex [&_>_div]:gap-3 [&_>_div]:items-center [&_>_div]:text-sm [&_dt]:w-16 [&_dd]:relative [&_dd]:[flex:1] [&_dd]:[text-align:right] [&_dd]:m-0 [&_dd_>_span]:absolute [&_dd_>_span]:[left:0] [&_dd_>_span]:[bottom:3px] [&_dd_>_span]:[top:3px] [&_dd_>_span]:[max-width:75%] [&_dd_>_span]:[border-radius:4px]'
+                  }
+                >
+                  {Object.entries(e.v).map(([p, n]) => (
+                    <div key={p}>
+                      <dt>{p}</dt>
+                      <dd>
+                        <span
+                          style={{
+                            width: `${n * 2}%`,
+                            background: polls.partidos.find((party) => party.id === p)?.color,
+                          }}
+                          aria-hidden="true"
+                        />
+                        {n} %
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -501,9 +511,11 @@ export async function Elections({
                 />
               }
             >
-              <h2>{geography.provincias[id]?.n || id}</h2>
-              <Stats items={[[n, 'Escaños']]} />
-              <Link href={href(`geografia/${id}`)}>Ver la provincia</Link>
+              <CardContent>
+                <h2>{geography.provincias[id]?.n || id}</h2>
+                <Stats items={[[n, 'Escaños']]} />
+                <Link href={href(`geografia/${id}`)}>Ver la provincia</Link>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -575,28 +587,30 @@ export async function Elections({
                     />
                   }
                 >
-                  <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
-                    <span>
-                      {
-                        <>
-                          {geography.provincias[id]?.n || id} · {p.e} escaños
-                        </>
-                      }
-                    </span>
-                    <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
-                      {<Icon name="abajo" size={16} />}
-                    </span>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <p>{number(p.sin_escano)} votos a candidaturas sin escaño</p>
-                    <ul>
-                      {p.c.map(([name, , votes, seats]) => (
-                        <li key={name}>
-                          {name}: {number(votes)} votos · {seats} escaños
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
+                  <CardContent>
+                    <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                      <span>
+                        {
+                          <>
+                            {geography.provincias[id]?.n || id} · {p.e} escaños
+                          </>
+                        }
+                      </span>
+                      <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                        {<Icon name="abajo" size={16} />}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <p>{number(p.sin_escano)} votos a candidaturas sin escaño</p>
+                      <ul>
+                        {p.c.map(([name, , votes, seats]) => (
+                          <li key={name}>
+                            {name}: {number(votes)} votos · {seats} escaños
+                          </li>
+                        ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </CardContent>
                 </Card>
               ))}
             </div>
@@ -628,13 +642,15 @@ export async function Elections({
                   />
                 }
               >
-                <h2>{date(e.fecha)}</h2>
-                <Stats
-                  items={[
-                    [e.votantes, 'Votantes'],
-                    [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
-                  ]}
-                />
+                <CardContent>
+                  <h2>{date(e.fecha)}</h2>
+                  <Stats
+                    items={[
+                      [e.votantes, 'Votantes'],
+                      [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
+                    ]}
+                  />
+                </CardContent>
               </Card>
             ))}
         </div>
@@ -686,8 +702,10 @@ export async function Elections({
                 />
               }
             >
-              <h2>{title}</h2>
-              <span>Consultar →</span>
+              <CardContent>
+                <h2>{title}</h2>
+                <span>Consultar →</span>
+              </CardContent>
             </Card>
           ))}
         </div>

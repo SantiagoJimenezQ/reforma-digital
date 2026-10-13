@@ -1,4 +1,4 @@
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 
 export function DataLoading() {
   return (
@@ -27,21 +27,23 @@ export function DataLoading() {
               />
             }
           >
-            <div
-              className={
-                'cg-loading-line h-4 my-4 [border-radius:12px] [background:var(--muted)] [&:first-child]:[width:40%] [&:last-child]:[width:75%]'
-              }
-            />
-            <div
-              className={
-                'cg-loading-line h-4 my-4 [border-radius:12px] [background:var(--muted)] [&:first-child]:[width:40%] [&:last-child]:[width:75%]'
-              }
-            />
-            <div
-              className={
-                'cg-loading-line h-4 my-4 [border-radius:12px] [background:var(--muted)] [&:first-child]:[width:40%] [&:last-child]:[width:75%]'
-              }
-            />
+            <CardContent>
+              <div
+                className={
+                  'cg-loading-line h-4 my-4 [border-radius:12px] [background:var(--muted)] [&:first-child]:[width:40%] [&:last-child]:[width:75%]'
+                }
+              />
+              <div
+                className={
+                  'cg-loading-line h-4 my-4 [border-radius:12px] [background:var(--muted)] [&:first-child]:[width:40%] [&:last-child]:[width:75%]'
+                }
+              />
+              <div
+                className={
+                  'cg-loading-line h-4 my-4 [border-radius:12px] [background:var(--muted)] [&:first-child]:[width:40%] [&:last-child]:[width:75%]'
+                }
+              />
+            </CardContent>
           </Card>
         ))}
       </div>

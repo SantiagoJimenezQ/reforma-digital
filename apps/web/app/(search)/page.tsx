@@ -112,7 +112,7 @@ export default function HomePage() {
                 buttonVariants({
                   variant: 'outline',
                   className:
-                    'in-hero-enlace absolute bottom-6 [inset-inline:0] [width:fit-content] [margin-inline:auto] [--ring:var(--foreground)]',
+                    'in-hero-enlace absolute bottom-6 [inset-inline:0] [margin-inline:auto] [--ring:var(--foreground)]',
                 }),
               )}
             >

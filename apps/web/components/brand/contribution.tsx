@@ -86,7 +86,7 @@ export function Contribution() {
               </strong>
               <div
                 className={
-                  'in-issue-campo grid gap-1 [&_>_label]:font-semibold [&_>_label_b]:[color:var(--brand-dark)] [&_>_div]:overflow-hidden [&_>_div]:[border:1px_solid_var(--in-gh-linea)] [&_>_div]:[border-radius:6px] [&_:is(input,_textarea)]:block [&_:is(input,_textarea)]:w-full [&_:is(input,_textarea)]:min-h-11 [&_:is(input,_textarea)]:[padding:8px_12px] [&_:is(input,_textarea)]:border-0 [&_:is(input,_textarea)]:[background:transparent] [&_:is(input,_textarea)]:[color:inherit] [&_:is(input,_textarea)]:[font:inherit] [&_:is(input,_textarea):focus-visible]:[outline-offset:-2px] [&_::placeholder]:[color:var(--in-gh-gris)] [&_::placeholder]:[opacity:1]'
+                  'in-issue-campo grid gap-1 [&_>_label]:font-semibold [&_>_label_b]:[color:var(--brand-dark)] [&_>_div]:overflow-hidden [&_>_div]:[border:1px_solid_var(--in-gh-linea)] [&_>_div]:[border-radius:6px] [&_:is(input,_textarea)]:block [&_:is(input,_textarea)]:w-full [&_:is(input,_textarea)]:[padding:8px_12px] [&_::placeholder]:[color:var(--in-gh-gris)] [&_::placeholder]:[opacity:1]'
                 }
               >
                 <label htmlFor={`${id}-title`}>
@@ -107,7 +107,7 @@ export function Contribution() {
               </div>
               <div
                 className={
-                  'in-issue-campo grid gap-1 [&_>_label]:font-semibold [&_>_label_b]:[color:var(--brand-dark)] [&_>_div]:overflow-hidden [&_>_div]:[border:1px_solid_var(--in-gh-linea)] [&_>_div]:[border-radius:6px] [&_:is(input,_textarea)]:block [&_:is(input,_textarea)]:w-full [&_:is(input,_textarea)]:min-h-11 [&_:is(input,_textarea)]:[padding:8px_12px] [&_:is(input,_textarea)]:border-0 [&_:is(input,_textarea)]:[background:transparent] [&_:is(input,_textarea)]:[color:inherit] [&_:is(input,_textarea)]:[font:inherit] [&_:is(input,_textarea):focus-visible]:[outline-offset:-2px] [&_::placeholder]:[color:var(--in-gh-gris)] [&_::placeholder]:[opacity:1]'
+                  'in-issue-campo grid gap-1 [&_>_label]:font-semibold [&_>_label_b]:[color:var(--brand-dark)] [&_>_div]:overflow-hidden [&_>_div]:[border:1px_solid_var(--in-gh-linea)] [&_>_div]:[border-radius:6px] [&_:is(input,_textarea)]:block [&_:is(input,_textarea)]:w-full [&_:is(input,_textarea)]:[padding:8px_12px] [&_::placeholder]:[color:var(--in-gh-gris)] [&_::placeholder]:[opacity:1]'
                 }
               >
                 <label htmlFor={`${id}-body`}>Añade una descripción</label>

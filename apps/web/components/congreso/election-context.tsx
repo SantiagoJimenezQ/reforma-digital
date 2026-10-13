@@ -6,7 +6,7 @@ import {
   TableBody,
   TableCell,
 } from '@reforma-digital/design/ui/table';
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 
 import {
   balanceSchema,
@@ -84,19 +84,21 @@ export async function ElectionContext({
                   />
                 }
               >
-                <span
-                  className={
-                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                  }
-                >
-                  {type} · {authors.join(', ')}
-                </span>
-                <h3>{title}</h3>
-                <p>
-                  Presentada el {date(presented)} · {days} días · {extensions} ampliaciones
-                </p>
-                <p>{commission}</p>
-                <Source url={congressUrl(exp, 'XV')}>Expediente</Source>
+                <CardContent>
+                  <span
+                    className={
+                      't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                    }
+                  >
+                    {type} · {authors.join(', ')}
+                  </span>
+                  <h3>{title}</h3>
+                  <p>
+                    Presentada el {date(presented)} · {days} días · {extensions} ampliaciones
+                  </p>
+                  <p>{commission}</p>
+                  <Source url={congressUrl(exp, 'XV')}>Expediente</Source>
+                </CardContent>
               </Card>
             ))}
         </div>
@@ -118,9 +120,11 @@ export async function ElectionContext({
                   />
                 }
               >
-                <h3>{d.titulo}</h3>
-                <p>Plazo aproximado: {date(d.limite_aprox)}</p>
-                <Source url={d.pdf}>Texto oficial</Source>
+                <CardContent>
+                  <h3>{d.titulo}</h3>
+                  <p>Plazo aproximado: {date(d.limite_aprox)}</p>
+                  <Source url={d.pdf}>Texto oficial</Source>
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -193,18 +197,20 @@ export async function ElectionContext({
                   />
                 }
               >
-                <h2>
-                  <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
-                </h2>
-                <Stats
-                  items={[
-                    [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
-                    ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
-                      n === null ? '—' : number(n),
-                      labels[k] || k.replaceAll('_', ' '),
-                    ]),
-                  ]}
-                />
+                <CardContent>
+                  <h2>
+                    <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
+                  </h2>
+                  <Stats
+                    items={[
+                      [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
+                      ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
+                        n === null ? '—' : number(n),
+                        labels[k] || k.replaceAll('_', ' '),
+                      ]),
+                    ]}
+                  />
+                </CardContent>
               </Card>
             ))}
         </div>
@@ -298,10 +304,12 @@ export async function ElectionContext({
                   />
                 }
               >
-                <h3>{label}</h3>
-                <Stats
-                  items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
-                />
+                <CardContent>
+                  <h3>{label}</h3>
+                  <Stats
+                    items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
+                  />
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -325,11 +333,13 @@ export async function ElectionContext({
                   />
                 }
               >
-                <h3>{p.n}</h3>
-                <p>
-                  {number(p.renta)} € por persona · {p.edad} años de edad media · {p.dens}{' '}
-                  habitantes/km²
-                </p>
+                <CardContent>
+                  <h3>{p.n}</h3>
+                  <p>
+                    {number(p.renta)} € por persona · {p.edad} años de edad media · {p.dens}{' '}
+                    habitantes/km²
+                  </p>
+                </CardContent>
               </Card>
             ))}
           </div>

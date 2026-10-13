@@ -4,9 +4,10 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
+  SelectGroup,
   SelectItem,
 } from '@reforma-digital/design/ui/select';
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 import { Input } from '@reforma-digital/design/ui/input';
 import { Button, buttonVariants } from '@reforma-digital/design/ui/button';
 
@@ -185,16 +186,20 @@ export function Votes({ votes }: { votes: Vote[] }) {
             />
           }
         >
-          <div
-            className={'cg-vote-meta flex flex-wrap gap-3 [color:var(--muted-foreground)] text-sm'}
-          >
-            <time dateTime={vote.fecha}>{date(vote.fecha)}</time>
-            <span>{vote.tipo}</span>
-          </div>
-          <h3>
-            <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>{vote.titulo}</Link>
-          </h3>
-          <VoteCount vote={vote} />
+          <CardContent>
+            <div
+              className={
+                'cg-vote-meta flex flex-wrap gap-3 [color:var(--muted-foreground)] text-sm'
+              }
+            >
+              <time dateTime={vote.fecha}>{date(vote.fecha)}</time>
+              <span>{vote.tipo}</span>
+            </div>
+            <h3>
+              <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>{vote.titulo}</Link>
+            </h3>
+            <VoteCount vote={vote} />
+          </CardContent>
         </Card>
       ))}
     </div>
@@ -396,29 +401,31 @@ export function Deputies({
             />
           }
         >
-          <span
-            className={
-              'cg-avatar grid [place-items:center] w-14 h-14 [border:2px_solid] [border-radius:50%] [background:var(--muted)] [font-family:var(--font-brand-mono)]'
-            }
-            style={{ borderColor: index.grupos[deputy.grupo]?.color }}
-          >
-            {deputyName(deputy.nombre)
-              .split(' ')
-              .map((part) => part.charAt(0))
-              .slice(0, 2)
-              .join('')}
-          </span>
-          <h3>{deputyName(deputy.nombre)}</h3>
-          <p>{deputy.provincia}</p>
-          <span
-            className={
-              'cg-group [&_i]:w-2 [&_i]:h-2 [&_i]:inline-block [&_i]:[border-radius:50%] flex items-center flex-wrap gap-3 text-sm'
-            }
-          >
-            <i style={{ background: index.grupos[deputy.grupo]?.color }} />
-            {deputy.grupo}
-            {deputy.baja ? ' · De baja' : ''}
-          </span>
+          <CardContent>
+            <span
+              className={
+                'cg-avatar grid [place-items:center] w-14 h-14 [border:2px_solid] [border-radius:50%] [background:var(--muted)] [font-family:var(--font-brand-mono)]'
+              }
+              style={{ borderColor: index.grupos[deputy.grupo]?.color }}
+            >
+              {deputyName(deputy.nombre)
+                .split(' ')
+                .map((part) => part.charAt(0))
+                .slice(0, 2)
+                .join('')}
+            </span>
+            <h3>{deputyName(deputy.nombre)}</h3>
+            <p>{deputy.provincia}</p>
+            <span
+              className={
+                'cg-group [&_i]:w-2 [&_i]:h-2 [&_i]:inline-block [&_i]:[border-radius:50%] flex items-center flex-wrap gap-3 text-sm'
+              }
+            >
+              <i style={{ background: index.grupos[deputy.grupo]?.color }} />
+              {deputy.grupo}
+              {deputy.baja ? ' · De baja' : ''}
+            </span>
+          </CardContent>
         </Card>
       ))}
     </div>
@@ -562,11 +569,13 @@ export function FilterSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
+        <SelectGroup>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </SelectContent>
     </Select>
   );

@@ -2,7 +2,7 @@
 
 Versión 3.0 · 2026‑10‑13
 
-Toda la UI propia de la web, extensión y playground usa shadcn/ui con Base UI (`base-nova`) y Tailwind v4. Se conserva la referencia visual de este documento: fuentes, paleta, composición e identidad de las sedes.
+Toda la UI propia de la web, extensión y playground usa shadcn/ui con Base UI (`base-nova`) y Tailwind v4. La marca y la composición conservan su identidad. Las primitivas usan los estilos generados por el CLI, con el tema neutral de shadcn; no se retocan globalmente para reproducir Sol.
 
 | Qué                             | Fuente de verdad                                                                 |
 | ------------------------------- | -------------------------------------------------------------------------------- |
@@ -225,6 +225,8 @@ Las primitivas viven en `packages/design/ui`, los bloques del chat en `packages/
 
 ### 8.5 Tailwind y componentes React
 
+- Sigue [la instalación de monorrepo](https://ui.shadcn.com/docs/monorepo) y [la instalación manual](https://ui.shadcn.com/docs/installation/manual). Ejecuta `pnpm --filter @reforma-digital/design exec shadcn add <componente> --cwd ../../apps/web`. El tema compartido importa `shadcn/tailwind.css`; `dark` depende de la clase `.dark`, no del modo del sistema.
+- No alteres colores, radios o tamaños de las primitivas generadas. Usa sus variantes y tamaños. Las clases de los usos se limitan a composición; una excepción visual debe resolver un caso concreto, como contraste en un hero o información semántica.
 - Toda la UI usa Tailwind v4 y shadcn/Base UI. `Button` admite `default`, `outline`, `secondary`, `ghost`, `destructive` y `link`; los tamaños incluyen `icon` e `icon-lg`.
 - Para navegar, usa un enlace o `next/link` con `cn(buttonVariants(...))`. No uses Button renderizado como enlace: conserva la semántica de navegación.
 - Usa `Input`, `Textarea`, `Select`, `Checkbox`, `RadioGroup`, `Card`, `Collapsible`, `Dialog`, `Sheet`, `Drawer` y `Table` desde `@reforma-digital/design/ui/*`. Los selects de formularios conservan `name`, valores reales y la opción vacía.

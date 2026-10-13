@@ -70,12 +70,7 @@ function Shell({
         <div className="min-w-0 flex-1">
           <CommunityBadge host={host} />
         </div>
-        <Button
-          variant="outline"
-          type="button"
-          className={'min-h-[36px] px-3 py-1.5 text-[14px] print:hidden'}
-          onClick={restore}
-        >
+        <Button variant="outline" type="button" className={'print:hidden'} onClick={restore}>
           Ver original
         </Button>
       </div>

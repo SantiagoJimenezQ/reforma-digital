@@ -53,9 +53,7 @@ export function Sources({
         selected && (
           <Button
             type="button"
-            className={
-              'chat-sheet-back inline-flex items-center justify-center [gap:6px] min-h-9 border-0 [border-radius:999px] [background:var(--muted)] [color:var(--foreground)] text-sm cursor-pointer [transition:background-color_160ms_ease,_transform_160ms_var(--ease-brand)] [padding:0_16px_0_12px] [:is(&,_.chat-sheet-close):active]:[transform:scale(0.96)]'
-            }
+            className={'chat-sheet-back inline-flex items-center justify-center [gap:6px]'}
             onClick={() => onSelect()}
           >
             <Icon name="izquierda" size={12} />
@@ -66,9 +64,7 @@ export function Sources({
       close={
         <Button
           type="button"
-          className={
-            'chat-sheet-close inline-flex items-center justify-center [gap:6px] min-h-9 border-0 [border-radius:999px] [background:var(--muted)] [color:var(--foreground)] text-sm cursor-pointer [transition:background-color_160ms_ease,_transform_160ms_var(--ease-brand)] w-9'
-          }
+          className={'chat-sheet-close inline-flex items-center justify-center [gap:6px]'}
           onClick={onClose}
           aria-label="Cerrar fuentes"
         >

@@ -230,12 +230,7 @@ function Tramites({ bindings, restore }: { bindings: TramitesBindings; restore: 
                 <ul className="max-h-[360px] space-y-2 overflow-y-auto p-1">
                   {options.map((o) => (
                     <li key={o.value}>
-                      <Choice
-                        value={`${g.index}:${o.value}`}
-                        checked={selected === g && g.field.value === o.value}
-                      >
-                        {o.label}
-                      </Choice>
+                      <Choice value={`${g.index}:${o.value}`}>{o.label}</Choice>
                     </li>
                   ))}
                   {options.length === 0 && (

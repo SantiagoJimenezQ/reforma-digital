@@ -118,7 +118,7 @@ function Provincias({ bindings, restore }: { bindings: ProvinciasBindings; resto
           className="grid max-h-[380px] grid-cols-2 gap-2 overflow-y-auto p-1 sm:grid-cols-3 lg:grid-cols-4"
         >
           {filtered.map((p) => (
-            <Choice key={p.value} value={p.value} checked={p.value === field.value}>
+            <Choice key={p.value} value={p.value}>
               {p.label}
             </Choice>
           ))}

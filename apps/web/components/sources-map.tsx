@@ -205,7 +205,7 @@ export default function SourcesMap({
 
       <ul
         className={
-          "sources-map-list grid [grid-template-columns:repeat(4,_minmax(0,_1fr))] gap-2 p-0 [margin:24px_0_0] list-none [&_button]:justify-between [&_button]:gap-2 [&_button]:w-full [&_button]:min-h-11 [&_button]:h-auto [&_button]:text-left [&_button]:[white-space:normal] [&_button]:[border-radius:var(--bg-radius-control)] [&_button[aria-pressed='true']]:[border-color:rgb(var(--bg-brand-600))] [&_button[aria-pressed='true']]:[background:rgb(var(--bg-brand-100))] [&_button[aria-pressed='true']]:font-semibold [&_button:focus-visible]:[outline:3px_solid_rgb(var(--bg-brand-600))] [&_button:focus-visible]:[outline-offset:2px] [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))]"
+          'sources-map-list grid [grid-template-columns:repeat(4,_minmax(0,_1fr))] gap-2 p-0 [margin:24px_0_0] list-none [&_button]:justify-between [&_button]:gap-2 [&_button]:w-full [&_button]:h-auto [&_button]:text-left [&_button]:[white-space:normal] [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))]'
         }
         aria-label="Comunidades y ciudades autónomas"
       >
@@ -216,7 +216,7 @@ export default function SourcesMap({
               aria-pressed={selectedId === region.id}
               aria-controls="sources-map-detail"
               onClick={() => onSelect(region.id)}
-              variant="ghost"
+              variant={selectedId === region.id ? 'secondary' : 'ghost'}
             >
               <span>{region.name}</span>
               <span>

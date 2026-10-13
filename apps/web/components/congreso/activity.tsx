@@ -11,7 +11,7 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from '@reforma-digital/design/ui/collapsible';
-import { Card } from '@reforma-digital/design/ui/card';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
 
 import { Icon } from '../brand/icon';
 import { topicSchema, rawQuestionSchema, rawSessionSchema } from '../../lib/congreso/schema';
@@ -61,38 +61,40 @@ export function Interventions({
             />
           }
         >
-          <span
-            className={
-              't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-            }
-          >
-            {iv.g} · {iv.tono}
-          </span>
-          <h3>{iv.orador}</h3>
-          <p className={'cg-muted [color:var(--muted-foreground)] text-sm'}>{iv.item}</p>
-          <AI>
-            <p>{iv.frase || iv.resumen || 'El resumen está en la ficha de la sesión.'}</p>
-          </AI>
-          {iv.cita && <blockquote>«{iv.cita}»</blockquote>}
-          {iv.ia && (
-            <Collapsible>
-              <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
-                <span>{'Cómo se generó'}</span>
-                <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
-                  {<Icon name="abajo" size={16} />}
-                </span>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <p>
-                  Modelo: {iv.ia.model}. Prompt: {iv.ia.prompt}.{' '}
-                  {iv.ia.provider === 'cache-importada'
-                    ? 'Análisis conservado del histórico de Escaño Abierto.'
-                    : 'Generado en Reforma Digital con Helmcode.'}
-                </p>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
-          <Link href={href(`sesion/${iv.s.toLowerCase()}`)}>Ver la sesión</Link>
+          <CardContent>
+            <span
+              className={
+                't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+              }
+            >
+              {iv.g} · {iv.tono}
+            </span>
+            <h3>{iv.orador}</h3>
+            <p className={'cg-muted [color:var(--muted-foreground)] text-sm'}>{iv.item}</p>
+            <AI>
+              <p>{iv.frase || iv.resumen || 'El resumen está en la ficha de la sesión.'}</p>
+            </AI>
+            {iv.cita && <blockquote>«{iv.cita}»</blockquote>}
+            {iv.ia && (
+              <Collapsible>
+                <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                  <span>{'Cómo se generó'}</span>
+                  <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                    {<Icon name="abajo" size={16} />}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <p>
+                    Modelo: {iv.ia.model}. Prompt: {iv.ia.prompt}.{' '}
+                    {iv.ia.provider === 'cache-importada'
+                      ? 'Análisis conservado del histórico de Escaño Abierto.'
+                      : 'Generado en Reforma Digital con Helmcode.'}
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+            <Link href={href(`sesion/${iv.s.toLowerCase()}`)}>Ver la sesión</Link>
+          </CardContent>
         </Card>
       ))}
     </div>
@@ -118,18 +120,20 @@ function Laws({ laws, legislature }: { laws: Law[]; legislature: string }) {
             />
           }
         >
-          <span
-            className={
-              't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-            }
-          >
-            {law.tipo} · {law.estado}
-          </span>
-          <h3>
-            <Link href={href(`iniciativa/${law.exp.replace('/', '-')}`)}>{law.titulo}</Link>
-          </h3>
-          <p>{law.situacion}</p>
-          <Source url={congressUrl(law.exp, legislature)}>Expediente {law.exp}</Source>
+          <CardContent>
+            <span
+              className={
+                't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+              }
+            >
+              {law.tipo} · {law.estado}
+            </span>
+            <h3>
+              <Link href={href(`iniciativa/${law.exp.replace('/', '-')}`)}>{law.titulo}</Link>
+            </h3>
+            <p>{law.situacion}</p>
+            <Source url={congressUrl(law.exp, legislature)}>Expediente {law.exp}</Source>
+          </CardContent>
         </Card>
       ))}
     </div>
@@ -188,18 +192,20 @@ export async function Activity({
                 />
               }
             >
-              <span
-                className={
-                  't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                }
-              >
-                {question.estado} · {date(question.presentada)}
-              </span>
-              <h3>{question.titulo}</h3>
-              <p>{question.autores.map(([name]) => name).join(', ')}</p>
-              <Source url={congressUrl(question.exp, index.meta.legislatura)}>
-                Expediente {question.exp}
-              </Source>
+              <CardContent>
+                <span
+                  className={
+                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                  }
+                >
+                  {question.estado} · {date(question.presentada)}
+                </span>
+                <h3>{question.titulo}</h3>
+                <p>{question.autores.map(([name]) => name).join(', ')}</p>
+                <Source url={congressUrl(question.exp, index.meta.legislatura)}>
+                  Expediente {question.exp}
+                </Source>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -274,9 +280,11 @@ export async function Activity({
                   />
                 }
               >
-                <h3>{law.titulo}</h3>
-                <p>{date(law.fecha)}</p>
-                <Source url={law.pdf}>Publicación oficial</Source>
+                <CardContent>
+                  <h3>{law.titulo}</h3>
+                  <p>{date(law.fecha)}</p>
+                  <Source url={law.pdf}>Publicación oficial</Source>
+                </CardContent>
               </Card>
             ))}
           </div>
@@ -306,11 +314,13 @@ export async function Activity({
                   />
                 }
               >
-                <h2>{topic.nombre}</h2>
-                <p>
-                  {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
-                  {number(topic.preguntas)} preguntas
-                </p>
+                <CardContent>
+                  <h2>{topic.nombre}</h2>
+                  <p>
+                    {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
+                    {number(topic.preguntas)} preguntas
+                  </p>
+                </CardContent>
               </Card>
             ))}
           </div>
