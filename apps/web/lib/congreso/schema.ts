@@ -215,8 +215,16 @@ export const electionsSchema = z.object({
   convocatoria: date,
   votacion: date,
   decreto: z.object({ rd: z.string(), boe: z.string() }),
-  calendario: z.array(z.object({ fecha: date, hito: z.string(), detalle: z.string().optional() })),
+  calendario: z.array(
+    z.object({
+      fecha: date,
+      hasta: date.optional(),
+      hito: z.string(),
+      detalle: z.string().optional(),
+    }),
+  ),
   escanos: z.record(z.string(), count),
+  escanos_cambian: z.array(z.tuple([z.string(), count, count])),
 });
 export const pollsSchema = z.object({
   actualizado: date,
@@ -237,13 +245,23 @@ export const pollsSchema = z.object({
   ),
 });
 export const historySchema = z.object({
+  familias: z.array(
+    z.object({ id: z.string(), nombre: z.string(), color: z.string().regex(/^#[\da-f]{6}$/i) }),
+  ),
   elecciones: z.array(
     z.object({
       id: z.string(),
       fecha: date,
       censo: count,
       votantes: count,
+      validos: count,
+      fam: z.record(z.string(), z.tuple([count, count])),
       partidos: z.array(z.tuple([z.string(), z.string(), z.string(), count, count])),
+      prov: z.record(
+        z.string(),
+        z.object({ e: count, censo: count, votantes: count, validos: count }),
+      ),
+      metricas: z.object({ nep_votos: z.number() }),
     }),
   ),
 });
@@ -379,6 +397,7 @@ export const projectionSchema = z.object({
   central: z.record(z.string(), z.number()),
   media: z.record(z.string(), z.number()),
   provincias: z.record(z.string(), z.record(z.string(), z.number())),
+  bloques: z.record(z.string(), z.array(z.string())),
 });
 
 export const marketsSchema = z.object({
@@ -408,7 +427,17 @@ export const accuracySchema = z.object({
 export const mapSchema = z.object({
   ancho: z.number(),
   alto: z.number(),
-  provincias: z.record(z.string(), z.object({ n: z.string(), d: z.string() })),
+  canarias: z.string(),
+  provincias: z.record(
+    z.string(),
+    z.object({
+      n: z.string(),
+      d: z.string(),
+      c: z.tuple([z.number(), z.number()]),
+      circ: z.string(),
+      corto: z.string(),
+    }),
+  ),
 });
 
 export const historicalProvinceSchema = z.object({
@@ -421,6 +450,7 @@ export const historicalProvinceSchema = z.object({
       blancos: z.number(),
       sin_escano: z.number(),
       c: z.array(z.tuple([z.string(), z.string(), z.number(), z.number()])),
+      ultimo: z.object({ gana: z.string(), segundo: z.string(), faltan: z.number() }).optional(),
     }),
   ),
 });
@@ -457,11 +487,13 @@ export const balanceSchema = z.object({
     decretos_ley: z.number(),
     preguntas: z.number(),
     sin_respuesta: z.number(),
+    mas_ajustada: z.object({ si: z.number(), no: z.number() }).optional(),
   }),
   caducan: z.object({
     total: z.number(),
     proyectos: z.number(),
     proposiciones: z.number(),
+    por_origen: z.record(z.string(), z.number()),
     lista: z.array(
       z.tuple([
         z.string(),

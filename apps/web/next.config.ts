@@ -25,6 +25,8 @@ const config: NextConfig = {
     return [
       { source: '/explorar', destination: '/chat', permanent: true },
       { source: '/propuesta', destination: '/#iniciativa', permanent: true },
+      { source: '/congreso/elecciones/calendario', destination: '/elecciones', permanent: true },
+      { source: '/congreso/elecciones/:path*', destination: '/elecciones/:path*', permanent: true },
     ];
   },
 };

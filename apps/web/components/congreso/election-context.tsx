@@ -16,19 +16,10 @@ import {
   ageSchema,
 } from '../../lib/congreso/schema';
 import Link from 'next/link';
+import { electionsHref } from '../../lib/elecciones/pages';
+import { ReportIntro, ReportSection, ReportStats } from '../elecciones/report';
 import { getElections, read, congressUrl, getGeography } from '../../lib/congreso/data';
-import {
-  Intro,
-  Section,
-  Stats,
-  Source,
-  Empty,
-  Filters,
-  Pagination,
-  date,
-  href,
-  number,
-} from './common';
+import { Source, Empty, Filters, Pagination, date, href, number } from './common';
 
 export async function ElectionContext({
   detail,
@@ -41,31 +32,25 @@ export async function ElectionContext({
 }) {
   const election = await getElections();
   const source = await read('elecciones/elecciones.json', balanceSchema);
-  const nav = (
-    <p>
-      <Link href={href('elecciones')}>← Todos los apartados de las elecciones</Link>
-    </p>
-  );
   if (detail === 'caducan') {
     const laws = source.caducan.lista.filter((law) =>
       law[1].toLowerCase().includes(query.toLowerCase()),
     );
     return (
       <>
-        {nav}
-        <Intro title="Lo que queda a medio camino">
+        <ReportIntro title="Lo que queda a medio camino">
           <p>
             Iniciativas que la disolución deja pendientes, según el registro de la convocatoria.
           </p>
-        </Intro>
-        <Stats
+        </ReportIntro>
+        <ReportStats
           items={[
             [source.caducan.total, 'Iniciativas'],
             [source.caducan.proyectos, 'Proyectos de ley'],
             [source.caducan.proposiciones, 'Proposiciones de ley'],
           ]}
         />
-        <Filters action={href('elecciones/caducan')} query={query} />
+        <Filters action={electionsHref('caducan')} query={query} />
         <div
           className={
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -103,7 +88,7 @@ export async function ElectionContext({
             ))}
         </div>
         <Pagination page={page} total={laws.length} params={{ q: query }} />
-        <Section title="Decretos pendientes de convalidar">
+        <ReportSection title="Decretos pendientes de convalidar">
           <div
             className={
               'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -128,7 +113,7 @@ export async function ElectionContext({
               </Card>
             ))}
           </div>
-        </Section>
+        </ReportSection>
       </>
     );
   }
@@ -136,13 +121,12 @@ export async function ElectionContext({
     const b = source.balance;
     return (
       <>
-        {nav}
-        <Intro title="La legislatura en cifras">
+        <ReportIntro title="La legislatura en cifras">
           <p>
             {date(b.desde)} → {date(b.hasta)}
           </p>
-        </Intro>
-        <Stats
+        </ReportIntro>
+        <ReportStats
           items={[
             [b.plenos, 'Plenos'],
             [b.sesiones, 'Sesiones'],
@@ -174,10 +158,9 @@ export async function ElectionContext({
     };
     return (
       <>
-        {nav}
-        <Intro title="Elecciones, comparadas">
+        <ReportIntro title="Elecciones, comparadas">
           <p>Participación y métricas calculadas a partir de los resultados oficiales.</p>
-        </Intro>
+        </ReportIntro>
         <div
           className={
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -199,9 +182,9 @@ export async function ElectionContext({
               >
                 <CardContent>
                   <h2>
-                    <Link href={href(`elecciones/${e.id}`)}>{date(e.fecha)}</Link>
+                    <Link href={electionsHref(e.id)}>{date(e.fecha)}</Link>
                   </h2>
-                  <Stats
+                  <ReportStats
                     items={[
                       [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
                       ...Object.entries(e.metricas).map(([k, n]): [number | string, string] => [
@@ -229,14 +212,13 @@ export async function ElectionContext({
     );
     return (
       <>
-        {nav}
-        <Intro title="El voto, municipio a municipio">
+        <ReportIntro title="El voto, municipio a municipio">
           <p>
             Resultados de 2023 por familias de candidaturas. Los grupos se explican en el método; no
             representan partidos idénticos a través del tiempo.
           </p>
-        </Intro>
-        <Filters action={href('elecciones/mapa')} query={query} />
+        </ReportIntro>
+        <Filters action={electionsHref('mapa')} query={query} />
         <div
           className={
             'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
@@ -279,14 +261,13 @@ export async function ElectionContext({
     const geography = await getGeography();
     return (
       <>
-        {nav}
-        <Intro title="La geografía del voto">
+        <ReportIntro title="La geografía del voto">
           <p>
             La edad, la renta y el territorio ayudan a describir agregados; no permiten inferir el
             voto de una persona.
           </p>
-        </Intro>
-        <Section title="Voto por edad">
+        </ReportIntro>
+        <ReportSection title="Voto por edad">
           <p>{age.fuente}. Estimaciones ajustadas al resultado, no recuentos individuales.</p>
           <div
             className={
@@ -306,7 +287,7 @@ export async function ElectionContext({
               >
                 <CardContent>
                   <h3>{label}</h3>
-                  <Stats
+                  <ReportStats
                     items={Object.entries(age.ajustado[i] || {}).map(([p, n]) => [`${n} %`, p])}
                   />
                 </CardContent>
@@ -314,8 +295,8 @@ export async function ElectionContext({
             ))}
           </div>
           <Source url={age.url}>Estudio de origen</Source>
-        </Section>
-        <Section title="El territorio">
+        </ReportSection>
+        <ReportSection title="El territorio">
           <div
             className={
               'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -343,33 +324,19 @@ export async function ElectionContext({
               </Card>
             ))}
           </div>
-        </Section>
+        </ReportSection>
       </>
     );
   }
-  if (detail === 'repite')
-    return (
-      <>
-        {nav}
-        <Intro title="Quién vuelve a presentarse" />
-        <Empty>
-          {source.hay.candidaturas
-            ? 'Las listas están disponibles en los conjuntos públicos de la convocatoria.'
-            : `Todavía no se han incorporado candidaturas para la convocatoria del ${date(election.votacion)}.`}
-        </Empty>
-        <Source url="https://www.boe.es/">Publicaciones oficiales en el BOE</Source>
-      </>
-    );
   return (
     <>
-      {nav}
-      <Intro title="La noche electoral" />
+      <ReportIntro title="Quién vuelve a presentarse" />
       <Empty>
-        {source.hay.resultados
-          ? 'Los resultados incorporados están disponibles en la API de datos de la convocatoria.'
-          : 'El último snapshot no contiene resultados de esta convocatoria.'}
+        {source.hay.candidaturas
+          ? 'Las listas están disponibles en los conjuntos públicos de la convocatoria.'
+          : `Todavía no se han incorporado candidaturas para la convocatoria del ${date(election.votacion)}.`}
       </Empty>
-      <Source url="https://infoelectoral.interior.gob.es/">Información electoral oficial</Source>
+      <Source url="https://www.boe.es/">Publicaciones oficiales en el BOE</Source>
     </>
   );
 }

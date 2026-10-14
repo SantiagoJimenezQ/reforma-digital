@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { links } from '../../lib/site';
 import { congressBase } from '../../lib/congreso/routes';
+import { electionsBase } from '../../lib/elecciones/pages';
 import { Icon } from './icon';
 import { Logo } from './logo';
 
@@ -11,6 +12,7 @@ const secciones = [
   ['La iniciativa', '/#iniciativa'],
   ['Buscador', '/chat'],
   ['El Congreso', congressBase],
+  ['Elecciones', electionsBase],
   ['Equipo', '/equipo'],
   ['Cómo funciona', '/how-it-works'],
   ['Fuentes oficiales', '/sources'],

@@ -20,6 +20,7 @@ export function Header({
     { href: '/#iniciativa', text: 'La iniciativa', current: false },
     { href: '/#proyectos', text: 'Proyectos', current: false },
     { href: '/congreso', text: 'El Congreso', current: current === '/congreso' },
+    { href: '/elecciones', text: 'Elecciones', current: current === '/elecciones' },
     { href: '/api', text: 'API', current: current === '/api' },
     { href: '/equipo', text: 'Equipo', current: current === '/equipo' },
   ];
@@ -27,7 +28,7 @@ export function Header({
   return (
     <header
       className={cn(
-        'in-nav flex items-center gap-4 min-h-20 [padding:16px_max(var(--page-gutter),_calc((100%_-_var(--container-content))_/_2_+_var(--page-gutter)))] [&_>_a]:flex [&_>_a]:items-center [&_>_a]:[margin-right:auto] [&_nav]:flex [&_nav]:items-center [&_nav]:gap-1 [&_.in-menu-boton]:hidden [@media(max-width:_640px)]:[&_nav]:hidden [@media(max-width:_640px)]:[&_.in-menu-boton]:inline-flex [view-transition-name:sol-cabecera]',
+        'in-nav flex items-center gap-4 min-h-20 [padding:16px_max(var(--page-gutter),_calc((100%_-_var(--container-content))_/_2_+_var(--page-gutter)))] [&_>_a]:flex [&_>_a]:items-center [&_>_a]:[margin-right:auto] [&_nav]:flex [&_nav]:items-center [&_nav]:gap-1 [&_.in-menu-boton]:hidden [@media(max-width:_800px)]:[&_nav]:hidden [@media(max-width:_800px)]:[&_.in-menu-boton]:inline-flex [view-transition-name:sol-cabecera]',
         className,
       )}
     >

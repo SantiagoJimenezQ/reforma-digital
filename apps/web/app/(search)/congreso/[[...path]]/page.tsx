@@ -28,7 +28,7 @@ import {
 import { Activity } from '../../../../components/congreso/activity';
 import { People } from '../../../../components/congreso/people';
 import { Explore } from '../../../../components/congreso/explore';
-import { Geography, Elections } from '../../../../components/congreso/elections';
+import { Geography } from '../../../../components/congreso/elections';
 import { Information } from '../../../../components/congreso/information';
 import { StaticIntro } from '../../../../components/congreso/intro';
 import { DataLoading } from '../../../../components/congreso/loading';
@@ -102,8 +102,6 @@ export default async function Page({ params, searchParams }: Props) {
       >
         {information ? (
           <Information section={section} title={route.title} />
-        ) : section === 'elecciones' && detail === 'escano' ? (
-          <Elections detail={detail} query={parsed.data.q} page={parsed.data.pagina} />
         ) : (
           <>
             <StaticIntro section={section} detail={detail} province={parsed.data.provincia} />
@@ -177,8 +175,6 @@ async function Data({
     content = <Explore section={section} detail={detail} query={q} page={pagina} tab={vista} />;
   } else if (section === 'geografia')
     content = <Geography detail={detail} query={q} page={pagina} />;
-  else if (section === 'elecciones')
-    content = <Elections detail={detail} query={q} page={pagina} />;
   else {
     const data = await getPeriod(periodo);
     content = (
