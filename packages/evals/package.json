@@ -14,7 +14,6 @@
     "@reforma-digital/government": "workspace:*",
     "@reforma-digital/db": "workspace:*",
     "@reforma-digital/ai": "workspace:*",
-    "zod": "^4.1.0",
-    "@langfuse/client": "^5.11.1"
+    "zod": "^4.1.0"
   }
 }

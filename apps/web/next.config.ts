@@ -13,7 +13,7 @@ const config: NextConfig = {
     '@reforma-digital/ai',
     '@reforma-digital/evals',
   ],
-  serverExternalPackages: ['postgres', '@langfuse/otel', '@opentelemetry/sdk-node'],
+  serverExternalPackages: ['postgres'],
   poweredByHeader: false,
   images: {
     remotePatterns: [

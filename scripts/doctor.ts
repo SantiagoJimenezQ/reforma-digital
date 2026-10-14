@@ -1,4 +1,4 @@
-import { search, shutdownTracing } from '../packages/ai/src/index';
+import { search } from '../packages/ai/src/index';
 import { connection, closeDb } from '../packages/db/src/index';
 
 try {
@@ -19,5 +19,4 @@ try {
   process.exitCode = 1;
 } finally {
   await closeDb();
-  await shutdownTracing();
 }
