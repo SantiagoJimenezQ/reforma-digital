@@ -2,9 +2,16 @@ import { connection } from '@reforma-digital/db';
 import { z } from 'zod';
 import { jsonSchema, schemaForDataset } from '../../../../lib/congreso/schema';
 import { pollsHidden } from '../../../../lib/congreso/polls';
+import { dataset } from '../../../../lib/congreso/data';
 
 export const runtime = 'nodejs';
 const headers = { 'Access-Control-Allow-Origin': '*', 'X-Content-Type-Options': 'nosniff' };
+// Los datos cambian unas pocas veces al día: el CDN responde a las peticiones repetidas sin
+// llegar a la función ni a Postgres. Las encuestas siguen sin caché por la veda.
+const cached = {
+  ...headers,
+  'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600',
+};
 const querySchema = z.object({
   pagina: z.coerce.number().int().min(1).max(100000).default(1),
   limite: z.coerce.number().int().min(1).max(100).default(24),
@@ -60,7 +67,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
             'descarga',
           ],
         },
-        { headers: { ...headers, 'Cache-Control': 'public,max-age=60' } },
+        { headers: cached },
       );
     }
     if (path[0] === 'datasets') {
@@ -69,17 +76,14 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
         return error(400, 'Ruta de datos inválida');
       if (file.startsWith('encuestas/') && (await embargo()))
         return error(451, 'Encuestas ocultas durante el periodo de publicación restringida');
-      const rows =
-        await sql`SELECT content,sha256,publication_id FROM congreso_datasets WHERE path=${file}`;
-      const row = rows[0];
+      const row = await dataset(file);
       if (!row) return error(404, 'Conjunto desconocido');
       schemaForDataset(file).parse(row.content);
       const etag = `"${row.sha256}"`;
       const responseHeaders = {
-        ...headers,
+        ...(file.startsWith('encuestas/') ? { ...headers, 'Cache-Control': 'no-store' } : cached),
         ETag: etag,
         'X-Congreso-Publication': row.publication_id,
-        'Cache-Control': file.startsWith('encuestas/') ? 'no-store' : 'public,max-age=60',
       };
       if (request.headers.get('if-none-match') === etag)
         return new Response(null, { status: 304, headers: responseHeaders });
@@ -125,7 +129,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
           WHERE b.legislature=v.legislature AND b.vote_id=v.id),'[]'::jsonb) AS votos
         FROM congreso_votes v WHERE v.legislature=${legislatura} AND v.id=${id}`;
       return rows[0]
-        ? Response.json(jsonSchema.parse(rows[0]), { headers })
+        ? Response.json(jsonSchema.parse(rows[0]), { headers: cached })
         : error(404, 'Votación desconocida');
     }
     if (path.length === 2) {
@@ -134,7 +138,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
       const rows =
         await sql`SELECT content FROM congreso_sessions WHERE legislature=${legislatura} AND id=${path[1]}`;
       return rows[0]
-        ? Response.json(jsonSchema.parse(rows[0]?.content), { headers })
+        ? Response.json(jsonSchema.parse(rows[0]?.content), { headers: cached })
         : error(404, 'Sesión desconocida');
     }
     // COUNT y página pertenecen a la misma instantánea de la transacción.
@@ -172,7 +176,7 @@ export async function GET(request: Request, context: { params: Promise<{ path?: 
         FROM congreso_sessions WHERE ${filter} ORDER BY date DESC NULLS LAST,id LIMIT ${limite} OFFSET ${offset}`;
       return { total: z.number().parse(count[0]?.total), resultados: rows };
     });
-    return Response.json({ pagina, limite, ...result }, { headers });
+    return Response.json({ pagina, limite, ...result }, { headers: cached });
   } catch {
     return error(503, 'Los datos del Congreso no están disponibles temporalmente');
   }

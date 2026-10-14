@@ -5,7 +5,7 @@ Recolector Python adaptado de [Escaño Abierto](https://github.com/jorgegarcelan
 ## Dónde vive cada cosa
 
 - Git: código, esquema SQL y workflows. Ningún histórico descargado.
-- Postgres: conjuntos JSON publicados, diputados históricos, votaciones, votos individuales, **todas** las preguntas escritas y sesiones completas con su texto extraído. Las proyecciones JSON conservan los contratos originales; las tablas permiten búsquedas y paginación.
+- Postgres: conjuntos JSON publicados, diputados históricos, votaciones, votos individuales, **todas** las preguntas escritas y sesiones completas con su texto extraído. Las proyecciones JSON conservan los contratos originales; las tablas permiten búsquedas y paginación. Un trigger expande cada fichero mensual en `congreso_month_sessions`, `congreso_month_votes` y `congreso_interventions` dentro de la misma transacción que lo publica: la web consulta esas filas y recorta en SQL los documentos grandes en lugar de descargarlos enteros.
 - Un **Vercel Blob privado**: originales descargados por hash, checkpoint de procesamiento y archivo descargable. La API de Next autentica las descargas; el navegador nunca recibe la clave de escritura.
 - Directorio `CONGRESS_WORKDIR` (por defecto `apps/ingestion/.cache`): trabajo temporal, ignorado por Git.
 

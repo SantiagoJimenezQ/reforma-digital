@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import { getIndex, getOrgans } from '../../lib/congreso/data';
+import { getIndex } from '../../lib/congreso/data';
+import { organsSummary } from '../../lib/congreso/queries';
 import { Intro, date } from './common';
 
 const titles: Record<string, [string, string?]> = {
@@ -34,7 +35,7 @@ const titles: Record<string, [string, string?]> = {
 
 async function Caption({ section }: { section: string }) {
   if (section === 'organigrama')
-    return <>Actualizado el {date((await getOrgans()).actualizado)}.</>;
+    return <>Actualizado el {date((await organsSummary()).actualizado)}.</>;
   return (
     <>Miembros actuales e históricos de la legislatura {(await getIndex()).meta.legislatura}.</>
   );

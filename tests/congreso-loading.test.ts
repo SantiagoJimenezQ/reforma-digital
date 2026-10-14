@@ -4,10 +4,15 @@ import Page from '../apps/web/app/(search)/congreso/[[...path]]/page';
 import ElectionsPage from '../apps/web/app/(search)/elecciones/[[...path]]/page';
 import { indexSchema } from '../apps/web/lib/congreso/schema';
 
-const data = vi.hoisted(() => ({ getIndex: vi.fn(), getPeriod: vi.fn() }));
+const data = vi.hoisted(() => ({ getIndex: vi.fn() }));
 vi.mock('../apps/web/lib/congreso/data', async (original) => ({
   ...(await original<typeof import('../apps/web/lib/congreso/data')>()),
   ...data,
+}));
+const queries = vi.hoisted(() => ({ periodCounts: vi.fn(), sessions: vi.fn(), votes: vi.fn() }));
+vi.mock('../apps/web/lib/congreso/queries', async (original) => ({
+  ...(await original<typeof import('../apps/web/lib/congreso/queries')>()),
+  ...queries,
 }));
 
 const index = indexSchema.parse({
@@ -26,9 +31,11 @@ const index = indexSchema.parse({
 
 beforeEach(() => {
   data.getIndex.mockReset();
-  data.getPeriod
+  queries.periodCounts
     .mockReset()
-    .mockResolvedValue({ sesiones: [], votaciones: [], intervenciones: [] });
+    .mockResolvedValue({ sesiones: 0, votaciones: 0, intervenciones: 0 });
+  queries.sessions.mockReset().mockResolvedValue({ total: 0, rows: [] });
+  queries.votes.mockReset().mockResolvedValue({ total: 0, rows: [] });
 });
 
 describe('carga del Congreso', () => {
@@ -47,7 +54,8 @@ describe('carga del Congreso', () => {
     expect(html).toContain(title);
     expect(html).not.toContain('Cargando datos');
     expect(data.getIndex).not.toHaveBeenCalled();
-    expect(data.getPeriod).not.toHaveBeenCalled();
+    expect(queries.sessions).not.toHaveBeenCalled();
+    expect(queries.votes).not.toHaveBeenCalled();
   });
 
   it('muestra el simulador de /elecciones/escano aunque los datos no estén disponibles', async () => {

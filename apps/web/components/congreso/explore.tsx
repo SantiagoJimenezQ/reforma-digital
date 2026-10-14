@@ -9,14 +9,18 @@ import { buttonVariants, Button } from '@reforma-digital/design/ui/button';
 import { Input } from '@reforma-digital/design/ui/input';
 
 import { Icon } from '../brand/icon';
-import {
-  quotesSchema,
-  proposalsSchema,
-  responsesSchema,
-  radarSchema,
-} from '../../lib/congreso/schema';
+import { responsesSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
-import { read, getWeeks, getPeriod } from '../../lib/congreso/data';
+import { read } from '../../lib/congreso/data';
+import {
+  findWeek,
+  proposals,
+  quotes,
+  radar,
+  sessions,
+  votes,
+  weeks,
+} from '../../lib/congreso/queries';
 import { notFound } from 'next/navigation';
 import {
   Intro,
@@ -45,11 +49,13 @@ export async function Explore({
   tab: string;
 }) {
   if (section === 'semana') {
-    const weeks = await getWeeks();
-    const week = detail ? weeks.find((w) => w.id === detail) : weeks[weeks.length - 1];
+    const [week, others] = await Promise.all([findWeek(detail), weeks()]);
     if (detail && !week) notFound();
     if (!week) return <Empty>No hay semanas disponibles.</Empty>;
-    const data = await getPeriod('todo');
+    const [weekSessions, weekVotes] = await Promise.all([
+      sessions({ ids: week.sesiones }, 1, null),
+      votes({ ids: week.votaciones }, 1, null),
+    ]);
     return (
       <>
         <Intro label={`${date(week.desde)} → ${date(week.hasta)}`} title={week.titular} />
@@ -77,10 +83,10 @@ export async function Explore({
           </div>
         </AI>
         <Section title="Sesiones">
-          <Sessions sessions={data.sesiones.filter((s) => week.sesiones.includes(s.id))} />
+          <Sessions sessions={weekSessions.rows} />
         </Section>
         <Section title="Votaciones">
-          <Votes votes={data.votaciones.filter((v) => week.votaciones.includes(v.id))} />
+          <Votes votes={weekVotes.rows} />
         </Section>
         <Section title="Otras semanas">
           <div
@@ -88,7 +94,7 @@ export async function Explore({
               'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
             }
           >
-            {weeks
+            {others
               .slice()
               .reverse()
               .map((w) => (
@@ -123,16 +129,7 @@ export async function Explore({
   const selected = tabs.some(([id]) => id === tab) ? tab : 'citas';
   let content;
   if (selected === 'propuestas') {
-    const proposals = await read('explora-propuestas.json', proposalsSchema);
-    const lines = Object.entries(proposals).flatMap(([topic, groups]) =>
-      Object.entries(groups).flatMap(([group, data]) =>
-        data.lineas
-          .filter((line) =>
-            `${line.titulo} ${topic} ${group}`.toLowerCase().includes(query.toLowerCase()),
-          )
-          .map((line) => ({ topic, group, ...line })),
-      ),
-    );
+    const lines = await proposals(query, page);
     content = (
       <>
         <div
@@ -140,7 +137,7 @@ export async function Explore({
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
           }
         >
-          {lines.slice((page - 1) * 24, page * 24).map((line, i) => (
+          {lines.rows.map((line, i) => (
             <Card
               key={i}
               render={
@@ -186,7 +183,7 @@ export async function Explore({
             </Card>
           ))}
         </div>
-        <Pagination page={page} total={lines.length} params={{ q: query, vista: selected }} />
+        <Pagination page={page} total={lines.total} params={{ q: query, vista: selected }} />
       </>
     );
   } else if (selected === 'contesta') {
@@ -250,10 +247,7 @@ export async function Explore({
       </div>
     );
   } else if (selected === 'radar') {
-    const data = await read('explora-radar.json', radarSchema);
-    const topics = Object.entries(data.temas)
-      .filter(([, t]) => t.tema.toLowerCase().includes(query.toLowerCase()))
-      .sort(([, a], [, b]) => b.n - a.n);
+    const topics = await radar(query, page);
     content = (
       <>
         <div
@@ -261,7 +255,7 @@ export async function Explore({
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
           }
         >
-          {topics.slice((page - 1) * 24, page * 24).map(([id, t]) => (
+          {topics.rows.map(([id, t]) => (
             <Card
               key={id}
               render={
@@ -320,13 +314,11 @@ export async function Explore({
             </Card>
           ))}
         </div>
-        <Pagination page={page} total={topics.length} params={{ q: query, vista: selected }} />
+        <Pagination page={page} total={topics.total} params={{ q: query, vista: selected }} />
       </>
     );
   } else {
-    const quotes = (await read('explora-citas.json', quotesSchema)).filter((c) =>
-      `${c[0]} ${c[1]} ${c[2]}`.toLowerCase().includes(query.toLowerCase()),
-    );
+    const found = await quotes(query, page);
     content = (
       <>
         <div
@@ -334,32 +326,30 @@ export async function Explore({
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
           }
         >
-          {quotes
-            .slice((page - 1) * 24, page * 24)
-            .map(([text, speaker, group, session, day], i) => (
-              <Card
-                key={i}
-                render={
-                  <blockquote
-                    className={
-                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
-                    }
-                  />
-                }
-              >
-                <CardContent>
-                  «{text}»
-                  <footer>
-                    {speaker} · {group} ·{' '}
-                    <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
-                      {date(day)}
-                    </Link>
-                  </footer>
-                </CardContent>
-              </Card>
-            ))}
+          {found.rows.map(([text, speaker, group, session, day], i) => (
+            <Card
+              key={i}
+              render={
+                <blockquote
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                />
+              }
+            >
+              <CardContent>
+                «{text}»
+                <footer>
+                  {speaker} · {group} ·{' '}
+                  <Link href={href(`sesion/${session.toLowerCase()}`, day.slice(0, 7))}>
+                    {date(day)}
+                  </Link>
+                </footer>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        <Pagination page={page} total={quotes.length} params={{ q: query, vista: selected }} />
+        <Pagination page={page} total={found.total} params={{ q: query, vista: selected }} />
       </>
     );
   }
