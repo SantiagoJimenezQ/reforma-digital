@@ -292,9 +292,6 @@ export default function Api() {
         </nav>
         <main id="main" tabIndex={-1} className="min-w-0 max-w-[820px] pt-16 pb-20">
           <section id="introduccion" className="scroll-mt-24 pb-12">
-            <Badge variant="outline" className="mb-6 font-mono uppercase tracking-wider">
-              v1
-            </Badge>
             <h1 className="mb-6 font-heading text-[clamp(36px,4.5vw,60px)] leading-[1.1] tracking-tight">
               {title}
             </h1>
@@ -304,13 +301,6 @@ export default function Api() {
               parlamentarias, los Diarios de Sesiones y los datasets que alimentan la web. Es una
               API REST de solo lectura que responde en JSON.
             </p>
-            <ul className="mb-8 flex flex-wrap gap-2">
-              {['REST', 'JSON', 'Sin autenticación', 'CORS abierto', 'CC BY 4.0'].map((text) => (
-                <li key={text}>
-                  <Badge variant="secondary">{text}</Badge>
-                </li>
-              ))}
-            </ul>
             <CodeBlock samples={[{ label: 'URL base', lang: 'text', code: base }]} />
           </section>
 
