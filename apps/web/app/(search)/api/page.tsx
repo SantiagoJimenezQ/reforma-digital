@@ -11,14 +11,14 @@ import {
 } from '@reforma-digital/design/ui/table';
 import { Header } from '../../../components/brand/header';
 import { Footer } from '../../../components/brand/footer';
-import { CodeBlock } from '../../../components/code-block';
+import { CodeBlock, type Sample } from '../../../components/code-block';
 import { JsonLd } from '../../../components/json-ld';
 import { breadcrumbs, pageMetadata, webPage } from '../../../lib/seo';
 import { siteUrl } from '../../../lib/site';
 
-const title = 'API abierta del Congreso · Reforma Digital';
+const title = 'API de Reforma Digital';
 const description =
-  'Votaciones, preguntas, Diarios de Sesiones y conjuntos de datos del Congreso en JSON. Sin claves, con CORS abierto y licencia CC BY 4.0 para que los uses en tus proyectos.';
+  'La API de Reforma Digital sirve de forma abierta los datos del Congreso de los Diputados: votaciones, preguntas, Diarios de Sesiones y conjuntos de datos en JSON, sin autenticación y con licencia CC BY 4.0.';
 
 export const metadata: Metadata = pageMetadata({ title, description, path: '/api', og: 'fuentes' });
 
@@ -26,15 +26,35 @@ const graph = [webPage({ name: title, description, path: '/api' }), breadcrumbs(
 
 const base = new URL('/api/congreso', siteUrl).href;
 
-type Param = [name: string, text: string, value?: string];
+function request(path: string): Sample[] {
+  const url = `${base}${path}`;
+  return [
+    { label: 'curl', lang: 'bash', code: `curl "${url}"` },
+    {
+      label: 'JavaScript',
+      lang: 'javascript',
+      code: `const res = await fetch('${url}');\nconst datos = await res.json();`,
+    },
+    {
+      label: 'Python',
+      lang: 'python',
+      code: `import requests\n\ndatos = requests.get('${url}').json()`,
+    },
+  ];
+}
+
+const response = (code: string): Sample[] => [{ label: 'Respuesta 200', lang: 'json', code }];
+
+type Param = [name: string, type: string, text: string, value?: string];
 const listParams: Param[] = [
-  ['pagina', 'Página de resultados, desde 1.', '1'],
-  ['limite', 'Resultados por página, de 1 a 100.', '24'],
-  ['legislatura', 'Número romano de la legislatura.', 'XV'],
-  ['desde', 'Fecha mínima, AAAA-MM-DD.'],
-  ['hasta', 'Fecha máxima, AAAA-MM-DD.'],
+  ['pagina', 'entero', 'Número de página, empezando por 1.', '1'],
+  ['limite', 'entero', 'Resultados por página, entre 1 y 100.', '24'],
+  ['legislatura', 'texto', 'Legislatura en números romanos.', 'XV'],
+  ['desde', 'fecha', 'Fecha mínima en formato AAAA-MM-DD.'],
+  ['hasta', 'fecha', 'Fecha máxima en formato AAAA-MM-DD.'],
 ];
-const legislature: Param[] = [['legislatura', 'Número romano de la legislatura.', 'XV']];
+const search: Param = ['q', 'texto', 'Filtra por el título, hasta 200 caracteres.'];
+const legislature: Param[] = [['legislatura', 'texto', 'Legislatura en números romanos.', 'XV']];
 
 // Forma de cada respuesta según las consultas de app/api/congreso; los valores son ilustrativos.
 const endpoints: {
@@ -43,31 +63,31 @@ const endpoints: {
   title: string;
   text: ReactNode;
   params?: Param[];
-  example: string;
-  response?: string;
+  request: Sample[];
+  response?: Sample[];
 }[] = [
   {
     id: 'indice',
     path: '',
-    title: 'Índice',
-    text: 'La última publicación, los conjuntos disponibles con su hash y la atribución que debes citar.',
-    example: '',
-    response: `{
+    title: 'Obtener el índice',
+    text: 'Devuelve la versión de la API, la última publicación de datos, los conjuntos disponibles con su hash SHA-256 y la atribución que debe acompañar a cualquier uso de los datos.',
+    request: request(''),
+    response: response(`{
   "version": 1,
   "atribucion": { "origen": "Escaño Abierto", "licencia": "CC BY 4.0", … },
   "publicacion": { "id": "…", "created_at": "…", "counts": { … } },
   "conjuntos": [{ "path": "leyes.json", "sha256": "…", "updated_at": "…" }],
   "endpoints": ["datasets/<ruta.json>", "votaciones", …]
-}`,
+}`),
   },
   {
     id: 'votaciones',
     path: '/votaciones',
-    title: 'Votaciones',
-    text: 'Votaciones del Pleno, de la más reciente a la más antigua, con el recuento de cada sentido.',
-    params: [...listParams, ['q', 'Busca en el título, hasta 200 caracteres.']],
-    example: '/votaciones?q=vivienda&limite=5',
-    response: `{
+    title: 'Listar votaciones',
+    text: 'Devuelve las votaciones del Pleno ordenadas de la más reciente a la más antigua, con el recuento de votos de cada sentido.',
+    params: [...listParams, search],
+    request: request('/votaciones?q=vivienda&limite=5'),
+    response: response(`{
   "pagina": 1, "limite": 5, "total": 42,
   "resultados": [{
     "id": "…", "legislature": "XV", "date": "2025-03-12",
@@ -75,103 +95,110 @@ const endpoints: {
     "yes_count": 172, "no_count": 170, "abstention_count": 1,
     "absent_count": 7, "topics": […]
   }]
-}`,
+}`),
   },
   {
     id: 'votacion',
     path: '/votaciones/<id>',
-    title: 'Una votación',
+    title: 'Obtener una votación',
     text: (
       <>
-        La votación y el voto de cada diputado: <code>S</code> sí, <code>N</code> no, <code>A</code>{' '}
-        abstención y <code>X</code> no vota.
+        Devuelve una votación y el voto individual de cada diputado. El campo <code>voto</code> toma
+        los valores <code>S</code> (sí), <code>N</code> (no), <code>A</code> (abstención) y{' '}
+        <code>X</code> (no vota).
       </>
     ),
     params: legislature,
-    example: '/votaciones/<id>',
-    response: `{
+    request: request('/votaciones/<id>'),
+    response: response(`{
   "votacion": { "id": "…", "title": "…", "yes_count": 172, … },
   "votos": [{ "diputado": "…", "grupo": "…", "voto": "S" }]
-}`,
+}`),
   },
   {
     id: 'preguntas',
     path: '/preguntas',
-    title: 'Preguntas',
-    text: 'Preguntas parlamentarias con su expediente, autores y estado de tramitación.',
+    title: 'Listar preguntas',
+    text: 'Devuelve las preguntas parlamentarias con su número de expediente, sus autores y su estado de tramitación.',
     params: [
       ...listParams,
-      ['q', 'Busca en el título, hasta 200 caracteres.'],
-      ['estado', 'Estado exacto de la pregunta.'],
+      search,
+      ['estado', 'texto', 'Filtra por el estado exacto de la pregunta.'],
     ],
-    example: '/preguntas?q=sanidad',
-    response: `{
+    request: request('/preguntas?q=sanidad'),
+    response: response(`{
   "pagina": 1, "limite": 24, "total": 318,
   "resultados": [{
     "exp": "…", "presentada": "2025-02-03", "titulo": "…",
     "estado": "…", "autores": [["…", "…"]]
   }]
-}`,
+}`),
   },
   {
     id: 'sesiones',
     path: '/sesiones',
-    title: 'Sesiones',
-    text: 'Diarios de Sesiones del Pleno y las comisiones, con el número de intervenciones.',
-    params: [...listParams, ['q', 'Busca en el nombre del órgano.']],
-    example: '/sesiones?q=pleno&desde=2025-01-01',
-    response: `{
+    title: 'Listar sesiones',
+    text: 'Devuelve los Diarios de Sesiones del Pleno y de las comisiones, con el número de intervenciones de cada uno.',
+    params: [...listParams, ['q', 'texto', 'Filtra por el nombre del órgano.']],
+    request: request('/sesiones?q=pleno&desde=2025-01-01'),
+    response: response(`{
   "pagina": 1, "limite": 24, "total": 96,
   "resultados": [{
     "id": "DSCD-15-PL-1", "date": "2023-08-17",
     "organo": "Pleno", "intervenciones": 84
   }]
-}`,
+}`),
   },
   {
     id: 'sesion',
     path: '/sesiones/<id>',
-    title: 'Una sesión',
+    title: 'Obtener una sesión',
     text: (
       <>
-        Una sesión completa con todas sus intervenciones. El identificador tiene la forma{' '}
-        <code>DSCD-15-PL-1</code> (PL para el Pleno, CO para comisiones).
+        Devuelve una sesión con todas sus intervenciones. El identificador tiene la forma{' '}
+        <code>DSCD-15-PL-1</code>, donde <code>PL</code> identifica el Pleno y <code>CO</code> las
+        comisiones.
       </>
     ),
     params: legislature,
-    example: '/sesiones/DSCD-15-PL-1',
-    response: `{
+    request: request('/sesiones/DSCD-15-PL-1'),
+    response: response(`{
   "id": "DSCD-15-PL-1", "fecha": "2023-08-17", "ds": "https://…",
   "intervenciones": [{ "orador": "…", "grupo": "…", "texto": "…", "item": "…" }]
-}`,
+}`),
   },
   {
     id: 'datasets',
     path: '/datasets/<ruta.json>',
-    title: 'Conjuntos de datos',
+    title: 'Obtener un conjunto de datos',
     text: (
       <>
-        Los archivos originales que alimentan la web: <code>leyes.json</code>,{' '}
-        <code>temas.json</code>, <code>elecciones/historico.json</code> y el resto de rutas del
-        índice. Devuelven <code>ETag</code>.
+        Devuelve uno de los archivos originales que alimentan la web, como <code>leyes.json</code>,{' '}
+        <code>temas.json</code> o <code>elecciones/historico.json</code>. La lista completa de rutas
+        está en el campo <code>conjuntos</code> del índice. Las respuestas incluyen{' '}
+        <code>ETag</code>.
       </>
     ),
-    example: '/datasets/leyes.json',
+    request: request('/datasets/leyes.json'),
   },
   {
     id: 'descarga',
     path: '/descarga',
-    title: 'Descarga completa',
-    text: 'El histórico entero en un archivo .tar.gz. Úsalo si necesitas todos los datos en lugar de recorrer la API.',
-    example: '/descarga',
+    title: 'Descargar el histórico completo',
+    text: 'Devuelve el histórico completo en un único archivo .tar.gz. Es la forma recomendada de obtener todos los datos en lugar de recorrer los listados.',
+    request: [{ label: 'curl', lang: 'bash', code: `curl -o congreso.tar.gz "${base}/descarga"` }],
   },
 ];
 
 const errors = [
-  ['400', 'Un filtro, ruta o identificador no tiene un formato válido.'],
-  ['404', 'El endpoint o el recurso no existe.'],
-  ['451', 'Encuestas y descarga completa, ocultas durante el periodo legal de veda.'],
-  ['503', 'Los datos no están disponibles temporalmente.'],
+  ['400', 'Un parámetro, una ruta o un identificador no tiene un formato válido.'],
+  ['404', 'El endpoint o el recurso solicitado no existe.'],
+  [
+    '451',
+    'Las encuestas y la descarga completa no están disponibles durante el periodo de veda electoral.',
+  ],
+  ['502', 'El archivo de la descarga completa no está disponible en este momento.'],
+  ['503', 'Los datos no están disponibles temporalmente. Reintenta más tarde.'],
 ];
 
 const nav = [
@@ -179,7 +206,8 @@ const nav = [
     'Empezar',
     [
       ['introduccion', 'Introducción'],
-      ['primeros-pasos', 'Primeros pasos'],
+      ['autenticacion', 'Autenticación'],
+      ['paginacion', 'Paginación'],
     ],
   ],
   ['Endpoints', endpoints.map(({ id, title }) => [id, title])],
@@ -206,10 +234,11 @@ function Params({ params }: { params: Param[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {params.map(([name, text, value]) => (
+        {params.map(([name, type, text, value]) => (
           <TableRow key={name}>
             <TableCell>
-              <code className={mono}>{name}</code>
+              <code className={mono}>{name}</code>{' '}
+              <span className="text-xs text-muted-foreground">{type}</span>
             </TableCell>
             <TableCell className="whitespace-normal">{text}</TableCell>
             <TableCell>{value ? <code className={mono}>{value}</code> : '—'}</TableCell>
@@ -219,6 +248,8 @@ function Params({ params }: { params: Param[] }) {
     </Table>
   );
 }
+
+const subheading = 'mt-8 mb-3 text-sm font-semibold';
 
 function Doc({ id, title, children }: { id: string; title: ReactNode; children: ReactNode }) {
   return (
@@ -262,42 +293,54 @@ export default function Api() {
         <main id="main" tabIndex={-1} className="min-w-0 max-w-[820px] pt-16 pb-20">
           <section id="introduccion" className="scroll-mt-24 pb-12">
             <Badge variant="outline" className="mb-6 font-mono uppercase tracking-wider">
-              API pública · v1
+              v1
             </Badge>
             <h1 className="mb-6 font-heading text-[clamp(36px,4.5vw,60px)] leading-[1.1] tracking-tight">
-              Los datos del Congreso, para tus proyectos.
+              {title}
             </h1>
             <p className="mb-8 max-w-[65ch] text-lg leading-relaxed text-muted-foreground">
-              Votaciones, preguntas, Diarios de Sesiones y los conjuntos originales que usa la web,
-              en JSON. Sin claves ni registro: llama a la API desde tu servidor o directamente desde
-              el navegador.
+              La API de Reforma Digital sirve de forma abierta los datos del Congreso de los
+              Diputados: las votaciones del Pleno con el voto de cada diputado, las preguntas
+              parlamentarias, los Diarios de Sesiones y los conjuntos de datos que alimentan la web.
+              Es una API REST de solo lectura que responde en JSON.
             </p>
             <ul className="mb-8 flex flex-wrap gap-2">
-              {['Sin autenticación', 'CORS abierto', 'JSON', 'CC BY 4.0'].map((text) => (
+              {['REST', 'JSON', 'Sin autenticación', 'CORS abierto', 'CC BY 4.0'].map((text) => (
                 <li key={text}>
                   <Badge variant="secondary">{text}</Badge>
                 </li>
               ))}
             </ul>
-            <CodeBlock label="URL base" code={base} />
+            <CodeBlock samples={[{ label: 'URL base', lang: 'text', code: base }]} />
           </section>
 
-          <Doc id="primeros-pasos" title="Primeros pasos">
+          <Doc id="autenticacion" title="Autenticación">
             <p className="text-muted-foreground">
-              Todas las peticiones son <code className={mono}>GET</code>. Empieza por el índice para
-              ver qué hay publicado y luego pide los listados que necesites.
+              La API no requiere autenticación ni claves de acceso. Todas las peticiones son{' '}
+              <code className={mono}>GET</code> y las respuestas incluyen{' '}
+              <code className={mono}>Access-Control-Allow-Origin: *</code>, así que puede consumirse
+              desde un servidor o directamente desde el navegador.
             </p>
-            <CodeBlock label="curl" code={`curl "${base}/votaciones?q=vivienda&limite=5"`} />
+            <CodeBlock samples={request('/votaciones?q=vivienda&limite=5')} />
+          </Doc>
+
+          <Doc id="paginacion" title="Paginación">
+            <p className="text-muted-foreground">
+              Los endpoints de listado se paginan con los parámetros{' '}
+              <code className={mono}>pagina</code> y <code className={mono}>limite</code>. Cada
+              respuesta indica la página devuelta y el número total de resultados.
+            </p>
             <CodeBlock
-              label="JavaScript"
-              code={`const res = await fetch('${base}/votaciones?q=vivienda&limite=5');
-const { total, resultados } = await res.json();`}
+              samples={response(`{
+  "pagina": 1,
+  "limite": 24,
+  "total": 318,
+  "resultados": [ … ]
+}`)}
             />
             <p className="text-muted-foreground">
-              Los listados devuelven{' '}
-              <code className={mono}>{'{ pagina, limite, total, resultados }'}</code>. Para
-              recorrerlos, aumenta <code className={mono}>pagina</code> hasta que hayas leído{' '}
-              <code className={mono}>total</code> resultados.
+              Para recorrer un listado completo, incrementa <code className={mono}>pagina</code>{' '}
+              hasta haber leído <code className={mono}>total</code> resultados.
             </p>
           </Doc>
 
@@ -308,22 +351,33 @@ const { total, resultados } = await res.json();`}
                 <code className="font-mono text-sm break-all">/api/congreso{endpoint.path}</code>
               </p>
               <p className="text-muted-foreground">{endpoint.text}</p>
-              {endpoint.params && <Params params={endpoint.params} />}
-              <CodeBlock label="Petición" code={`curl "${base}${endpoint.example}"`} />
-              {endpoint.response && <CodeBlock label="Respuesta" code={endpoint.response} />}
+              {endpoint.params && (
+                <>
+                  <h3 className={subheading}>Parámetros de consulta</h3>
+                  <Params params={endpoint.params} />
+                </>
+              )}
+              <h3 className={subheading}>Petición</h3>
+              <CodeBlock samples={endpoint.request} />
+              {endpoint.response && (
+                <>
+                  <h3 className={subheading}>Respuesta</h3>
+                  <CodeBlock samples={endpoint.response} />
+                </>
+              )}
             </Doc>
           ))}
 
           <Doc id="errores" title="Errores">
             <p className="text-muted-foreground">
-              Los errores responden con su código HTTP y un cuerpo{' '}
-              <code className={mono}>{'{ "error": "…" }'}</code> que explica el motivo.
+              La API usa los códigos de estado HTTP habituales. Las respuestas de error incluyen un
+              cuerpo <code className={mono}>{'{ "error": "…" }'}</code> que describe el motivo.
             </p>
             <Table className="my-4">
               <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
-                  <TableHead>Cuándo</TableHead>
+                  <TableHead>Descripción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -341,25 +395,31 @@ const { total, resultados } = await res.json();`}
 
           <Doc id="cache" title="Caché">
             <p className="text-muted-foreground">
-              Los conjuntos incluyen <code className={mono}>ETag</code>. Envíalo en{' '}
-              <code className={mono}>If-None-Match</code> y recibirás un{' '}
-              <code className={mono}>304</code> sin cuerpo si no ha cambiado. Guarda las respuestas
-              en caché y usa la descarga completa si vas a leerlo todo.
+              Los conjuntos de datos devuelven una cabecera <code className={mono}>ETag</code> con
+              su hash. Envíala en <code className={mono}>If-None-Match</code> para recibir un{' '}
+              <code className={mono}>304 Not Modified</code> sin cuerpo cuando el archivo no haya
+              cambiado. Guarda las respuestas en caché y, si necesitas todos los datos, usa la
+              descarga completa.
             </p>
             <CodeBlock
-              label="curl"
-              code={`curl -H 'If-None-Match: "<sha256>"' "${base}/datasets/leyes.json"`}
+              samples={[
+                {
+                  label: 'curl',
+                  lang: 'bash',
+                  code: `curl -H 'If-None-Match: "<sha256>"' "${base}/datasets/leyes.json"`,
+                },
+              ]}
             />
           </Doc>
 
           <Doc id="licencia" title="Licencia y atribución">
             <p className="text-muted-foreground">
-              Los datos se publican con licencia{' '}
-              <strong className="text-foreground">CC BY 4.0</strong> y las encuestas con{' '}
-              <strong className="text-foreground">CC BY-SA 4.0</strong>. Cita la fuente que indica
-              el campo <code className={mono}>atribucion</code> del índice. Los resúmenes y temas se
-              generan con IA y pueden contener errores: los documentos oficiales del Congreso son la
-              referencia.
+              Los datos se distribuyen con licencia{' '}
+              <strong className="text-foreground">CC BY 4.0</strong>, salvo las encuestas, que se
+              distribuyen con <strong className="text-foreground">CC BY-SA 4.0</strong>. Cualquier
+              uso debe citar la fuente que indica el campo <code className={mono}>atribucion</code>{' '}
+              del índice. Los resúmenes y la clasificación por temas se generan con IA y pueden
+              contener errores: los documentos oficiales del Congreso son la referencia.
             </p>
           </Doc>
         </main>
