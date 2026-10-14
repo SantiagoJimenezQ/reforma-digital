@@ -17,7 +17,7 @@ export function MobileMenu({ links }: { links: readonly MenuLink[] }) {
       <Button
         variant="outline"
         size="icon"
-        className="hidden max-[640px]:inline-flex"
+        className="hidden max-[800px]:inline-flex"
         aria-label="Abrir el menú"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}

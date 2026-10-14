@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { siteUrl } from '../lib/site';
 import { congressBase, congressSections } from '../lib/congreso/routes';
+import { electionOrder, electionsHref } from '../lib/elecciones/pages';
 
 // Solo páginas indexables: /chat y /admin llevan noindex.
 const pages = [
@@ -13,6 +14,8 @@ const pages = [
   ...congressSections.flatMap(({ pages }) =>
     pages.map(([, path]) => `${congressBase}${path ? `/${path}` : ''}`),
   ),
+  electionsHref(),
+  ...electionOrder.map((id) => electionsHref(id)),
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

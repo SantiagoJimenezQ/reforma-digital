@@ -35,39 +35,12 @@ import {
   slug,
 } from '../../lib/congreso/data';
 import { pollsHidden } from '../../lib/congreso/polls';
-import {
-  Intro,
-  Section,
-  Stats,
-  Source,
-  Filters,
-  Pagination,
-  Empty,
-  date,
-  href,
-  number,
-} from './common';
+import { Intro, Stats, Source, Filters, Pagination, Empty, date, href, number } from './common';
 import { Coalition } from './coalition';
 import { Dhondt } from './dhondt';
 import { ElectionContext } from './election-context';
-
-const electionPages = [
-  ['caducan', 'Lo que caduca'],
-  ['legislatura', 'En cifras'],
-  ['repite', 'Quién repite'],
-  ['metricas', 'Métricas'],
-  ['mapa', 'Municipios'],
-  ['voto', 'Geografía del voto'],
-  ['noche', 'La noche electoral'],
-  ['calendario', 'Calendario'],
-  ['350', 'Los 350'],
-  ['historico', 'Desde 1977'],
-  ['escano', 'Precio del escaño'],
-  ['encuestas', 'Encuestas'],
-  ['proyeccion', 'Proyección'],
-  ['mercados', 'Mercados'],
-  ['acierto', 'Cuánto acertaron'],
-];
+import { electionsHref } from '../../lib/elecciones/pages';
+import { Bars, ReportIntro, ReportSection, ReportStats } from '../elecciones/report';
 
 export async function Geography({
   detail,
@@ -223,28 +196,6 @@ export async function Geography({
   );
 }
 
-function ElectionNav({ selected }: { selected: string }) {
-  return (
-    <nav
-      aria-label={'Elecciones'}
-      className="flex flex-wrap items-center gap-3 mb-6 [&_[aria-current=page]]:bg-primary [&_[aria-current=page]]:text-primary-foreground"
-    >
-      {electionPages.map(([id, title]) => (
-        <Link
-          key={id}
-          href={href(`elecciones/${id}`)}
-          aria-current={selected === id ? 'page' : undefined}
-          data-slot="button"
-          data-variant="ghost"
-          className={cn(buttonVariants({ variant: 'ghost' }))}
-        >
-          {title}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
 export async function Elections({
   detail,
   query,
@@ -257,8 +208,7 @@ export async function Elections({
   if (detail === 'escano')
     return (
       <>
-        <Intro title="Cómo se reparte un escaño" />
-        <ElectionNav selected="escano" />
+        <ReportIntro title="Cómo se reparte un escaño" />
         <Dhondt />
         <Source url="https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672">
           Ley Orgánica del Régimen Electoral General
@@ -266,18 +216,16 @@ export async function Elections({
       </>
     );
   const election = await getElections();
-  const selected = detail || 'calendario';
-  if (['caducan', 'legislatura', 'repite', 'metricas', 'mapa', 'voto', 'noche'].includes(selected))
+  const selected = detail ?? '';
+  if (['caducan', 'legislatura', 'repite', 'metricas', 'mapa', 'voto'].includes(selected))
     return <ElectionContext detail={selected} query={query} page={page} />;
-  const nav = <ElectionNav selected={selected} />;
   if (['encuestas', 'proyeccion', 'mercados', 'acierto'].includes(selected)) {
     const polls = await getPolls();
     if (pollsHidden(polls.veda))
       return (
         <>
-          <Intro title="Encuestas temporalmente ocultas" />
+          <ReportIntro title="Encuestas temporalmente ocultas" />
           <p>La publicación está restringida durante el periodo indicado en la fuente.</p>
-          {nav}
         </>
       );
     if (selected === 'proyeccion') {
@@ -285,22 +233,21 @@ export async function Elections({
       const geography = await getGeography();
       return (
         <>
-          <Intro title="Los escaños de la media">
+          <ReportIntro title="Los escaños de la media">
             <p>
               Proyección calculada el {date(data.fecha)}. Es una estimación, no un resultado
               electoral.
             </p>
-          </Intro>
-          {nav}
+          </ReportIntro>
           <Coalition seats={data.central} />
-          <Section title="Reparto central">
-            <Stats
+          <ReportSection title="Reparto central">
+            <ReportStats
               items={Object.entries(data.central)
                 .sort(([, a], [, b]) => b - a)
                 .map(([id, n]) => [n, id])}
             />
-          </Section>
-          <Section title="Provincia a provincia">
+          </ReportSection>
+          <ReportSection title="Provincia a provincia">
             <div
               className={
                 'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -328,7 +275,7 @@ export async function Elections({
                 </Card>
               ))}
             </div>
-          </Section>
+          </ReportSection>
         </>
       );
     }
@@ -336,10 +283,9 @@ export async function Elections({
       const data = await read('encuestas/mercados.json', marketsSchema);
       return (
         <>
-          <Intro title="Lo que apuestan los mercados">
+          <ReportIntro title="Lo que apuestan los mercados">
             <p>Precios de apuestas: no son encuestas ni probabilidades verificadas.</p>
-          </Intro>
-          {nav}
+          </ReportIntro>
           <div
             className={
               'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -358,7 +304,7 @@ export async function Elections({
               >
                 <CardContent>
                   <h2>{market.pregunta}</h2>
-                  <Stats
+                  <ReportStats
                     items={market.opciones.map((o) => [`${(o.p * 100).toFixed(1)} %`, o.nombre])}
                   />
                   <Source url={market.url}>Polymarket</Source>
@@ -373,8 +319,7 @@ export async function Elections({
       const data = await read('encuestas/aciertos.json', accuracySchema);
       return (
         <>
-          <Intro title="Cuánto acertaron las encuestas" />
-          {nav}
+          <ReportIntro title="Cuánto acertaron las encuestas" />
           <div
             className={
               'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -430,15 +375,14 @@ export async function Elections({
     );
     return (
       <>
-        <Intro title="Las encuestas">
+        <ReportIntro title="Las encuestas">
           <p>
             Datos recopilados hasta el {date(polls.actualizado)}. Cada encuesta es una estimación
             con incertidumbre.
           </p>
-        </Intro>
-        {nav}
+        </ReportIntro>
         <Source url={polls.fuente}>Tabla de origen en Wikipedia</Source>
-        <Filters action={href('elecciones/encuestas')} query={query} />
+        <Filters action={electionsHref('encuestas')} query={query} />
         <div
           className={
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -465,21 +409,24 @@ export async function Elections({
                     'cg-poll [&_>_div]:flex [&_>_div]:gap-3 [&_>_div]:items-center [&_>_div]:text-sm [&_dt]:w-16 [&_dd]:relative [&_dd]:[flex:1] [&_dd]:[text-align:right] [&_dd]:m-0 [&_dd_>_span]:absolute [&_dd_>_span]:[left:0] [&_dd_>_span]:[bottom:3px] [&_dd_>_span]:[top:3px] [&_dd_>_span]:[max-width:75%] [&_dd_>_span]:[border-radius:4px]'
                   }
                 >
-                  {Object.entries(e.v).map(([p, n]) => (
-                    <div key={p}>
-                      <dt>{p}</dt>
-                      <dd>
-                        <span
-                          style={{
-                            width: `${n * 2}%`,
-                            background: polls.partidos.find((party) => party.id === p)?.color,
-                          }}
-                          aria-hidden="true"
-                        />
-                        {n} %
-                      </dd>
-                    </div>
-                  ))}
+                  {Object.entries(e.v)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 6)
+                    .map(([p, n]) => (
+                      <div key={p}>
+                        <dt>{p}</dt>
+                        <dd>
+                          <span
+                            style={{
+                              width: `${n * 2}%`,
+                              background: polls.partidos.find((party) => party.id === p)?.color,
+                            }}
+                            aria-hidden="true"
+                          />
+                          {n} %
+                        </dd>
+                      </div>
+                    ))}
                 </dl>
               </CardContent>
             </Card>
@@ -491,34 +438,25 @@ export async function Elections({
   }
   if (selected === '350') {
     const geography = await getGeography();
+    const seats = Object.entries(election.escanos).sort(([, a], [, b]) => b - a);
     return (
       <>
-        <Intro title="Cada escaño sale de una provincia" />
-        {nav}
-        <div
-          className={
-            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
-          }
-        >
-          {Object.entries(election.escanos).map(([id, n]) => (
-            <Card
-              key={id}
-              render={
-                <article
-                  className={
-                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
-                  }
-                />
-              }
-            >
-              <CardContent>
-                <h2>{geography.provincias[id]?.n || id}</h2>
-                <Stats items={[[n, 'Escaños']]} />
-                <Link href={href(`geografia/${id}`)}>Ver la provincia</Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <ReportIntro title="Cada escaño sale de una provincia">
+          <p>
+            Cada provincia elige al menos dos diputados (Ceuta y Melilla, uno) y el resto se reparte
+            por población.
+          </p>
+        </ReportIntro>
+        <ReportSection title="Escaños por provincia">
+          <Bars
+            rows={seats.map(([id, n]) => ({
+              label: geography.provincias[id]?.n || id,
+              value: n,
+              display: String(n),
+              href: href(`geografia/${id}`),
+            }))}
+          />
+        </ReportSection>
       </>
     );
   }
@@ -536,15 +474,14 @@ export async function Elections({
       const geography = await getGeography();
       return (
         <>
-          <Intro title={`Elecciones del ${date(data.fecha)}`} />
-          {nav}
-          <Stats
+          <ReportIntro title={`Elecciones del ${date(data.fecha)}`} />
+          <ReportStats
             items={[
               [data.censo, 'Censo'],
               [data.votantes, 'Votantes'],
             ]}
           />
-          <Section title="Resultados nacionales">
+          <ReportSection title="Resultados nacionales">
             <div
               className={
                 'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
@@ -569,8 +506,8 @@ export async function Elections({
                 </TableBody>
               </Table>
             </div>
-          </Section>
-          <Section title="Por provincia">
+          </ReportSection>
+          <ReportSection title="Por provincia">
             <div
               className={
                 'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -614,14 +551,13 @@ export async function Elections({
                 </Card>
               ))}
             </div>
-          </Section>
+          </ReportSection>
         </>
       );
     }
     return (
       <>
-        <Intro title="Elecciones desde 1977" />
-        {nav}
+        <ReportIntro title="Elecciones desde 1977" />
         <div
           className={
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
@@ -635,7 +571,7 @@ export async function Elections({
                 key={e.id}
                 render={
                   <Link
-                    href={href(`elecciones/${e.id}`)}
+                    href={electionsHref(e.id)}
                     className={
                       'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
                     }
@@ -644,7 +580,7 @@ export async function Elections({
               >
                 <CardContent>
                   <h2>{date(e.fecha)}</h2>
-                  <Stats
+                  <ReportStats
                     items={[
                       [e.votantes, 'Votantes'],
                       [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
@@ -657,59 +593,5 @@ export async function Elections({
       </>
     );
   }
-  if (selected !== 'calendario') notFound();
-  return (
-    <>
-      <Intro label="Elecciones" title={`Camino al ${date(election.votacion)}`}>
-        <p>Calendario y datos de la convocatoria recogida por Escaño Abierto.</p>
-      </Intro>
-      {nav}
-      <Source
-        url={`https://www.boe.es/diario_boe/txt.php?id=${encodeURIComponent(election.decreto.boe)}`}
-      >
-        {election.decreto.rd}
-      </Source>
-      <Section title="Las fechas">
-        <ol
-          className={
-            'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
-          }
-        >
-          {election.calendario.map((milestone) => (
-            <li key={`${milestone.fecha}-${milestone.hito}`}>
-              <time dateTime={milestone.fecha}>{date(milestone.fecha)}</time>
-              <h3>{milestone.hito}</h3>
-              {milestone.detalle && <p>{milestone.detalle}</p>}
-            </li>
-          ))}
-        </ol>
-      </Section>
-      <Section title="Explora las elecciones">
-        <div
-          className={
-            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
-          }
-        >
-          {electionPages.slice(1).map(([id, title]) => (
-            <Card
-              key={id}
-              render={
-                <Link
-                  className={
-                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
-                  }
-                  href={href(`elecciones/${id}`)}
-                />
-              }
-            >
-              <CardContent>
-                <h2>{title}</h2>
-                <span>Consultar →</span>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </Section>
-    </>
-  );
+  notFound();
 }

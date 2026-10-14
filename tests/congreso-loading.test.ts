@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderToReadableStream } from 'react-dom/server';
 import Page from '../apps/web/app/(search)/congreso/[[...path]]/page';
+import ElectionsPage from '../apps/web/app/(search)/elecciones/[[...path]]/page';
 import { indexSchema } from '../apps/web/lib/congreso/schema';
 
 const data = vi.hoisted(() => ({ getIndex: vi.fn(), getPeriod: vi.fn() }));
@@ -36,7 +37,6 @@ describe('carga del Congreso', () => {
     ['como-ley', 'Cómo se hace una ley'],
     ['metodo', 'Método'],
     ['sobre', 'Sobre los datos'],
-    ['elecciones/escano', 'Cómo se reparte un escaño'],
   ])('muestra %s aunque los datos no estén disponibles', async (path, title) => {
     data.getIndex.mockRejectedValue(new Error('Datos no disponibles'));
     const page = await Page({
@@ -48,6 +48,18 @@ describe('carga del Congreso', () => {
     expect(html).not.toContain('Cargando datos');
     expect(data.getIndex).not.toHaveBeenCalled();
     expect(data.getPeriod).not.toHaveBeenCalled();
+  });
+
+  it('muestra el simulador de /elecciones/escano aunque los datos no estén disponibles', async () => {
+    data.getIndex.mockRejectedValue(new Error('Datos no disponibles'));
+    const page = await ElectionsPage({
+      params: Promise.resolve({ path: ['escano'] }),
+      searchParams: Promise.resolve({}),
+    });
+    const html = await new Response(await renderToReadableStream(page)).text();
+    expect(html).toContain('Cómo se reparte un escaño');
+    expect(html).not.toContain('Cargando datos');
+    expect(data.getIndex).not.toHaveBeenCalled();
   });
 
   it.each([
