@@ -29,6 +29,7 @@
     "nucleo-ui-essential-outline-18": "^1.1.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "shiki": "4.5.0",
     "tailwindcss": "^4.1.0",
     "unpdf": "^1.8.1",
     "zod": "^4.1.0"
