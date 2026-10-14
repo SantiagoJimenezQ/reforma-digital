@@ -35,7 +35,7 @@ export function MobileMenu({ links }: { links: readonly MenuLink[] }) {
             <Link href="/" aria-label="Reforma Digital, portada de la iniciativa" onClick={close}>
               <Logo size={36} />
             </Link>
-            <Button variant="ghost" size="icon" aria-label="Cerrar el menú" onClick={close}>
+            <Button variant="sunset" size="icon" aria-label="Cerrar el menú" onClick={close}>
               <span className="rotate-45">
                 <Icon name="mas" size={18} />
               </span>
@@ -62,7 +62,7 @@ export function MobileMenu({ links }: { links: readonly MenuLink[] }) {
             href="/#participar"
             onClick={close}
             className={cn(
-              buttonVariants(),
+              buttonVariants({ variant: 'sunset' }),
               'mx-[var(--page-gutter)] mt-auto mb-[var(--page-gutter)] min-h-13',
             )}
           >

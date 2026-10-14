@@ -421,7 +421,7 @@ export function WhereCard({
     <Card
       render={<section />}
       className={cn(
-        'chat-where flex flex-wrap items-center justify-between [gap:16px_24px] [&_>_div]:[flex:1_1_260px] [&_>_div]:[min-width:0] [&_>_[data-slot=button][data-variant=default]]:shrink-0 [@media(max-width:_760px)]:[&_[data-slot=button][data-variant=default]]:w-full caja-plana [background:var(--background)] [box-shadow:0_0_0_1px_var(--border)] chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]',
+        'chat-where flex flex-wrap items-center justify-between [gap:16px_24px] [&_>_div]:[flex:1_1_260px] [&_>_div]:[min-width:0] [&_>_[data-slot=button][data-variant=sunset]]:shrink-0 [@media(max-width:_760px)]:[&_[data-slot=button][data-variant=sunset]]:w-full caja-plana [background:var(--background)] [box-shadow:0_0_0_1px_var(--border)] chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]',
         'ring-0',
       )}
     >
@@ -672,7 +672,7 @@ export function SourceDetail({
   children?: ReactNode;
 }) {
   return (
-    <article className={'chat-source [&_[data-slot=button][data-variant=default]]:w-full'}>
+    <article className={'chat-source [&_[data-slot=button][data-variant=sunset]]:w-full'}>
       <p className={'chat-source-eyebrow [margin:0_0_12px] [color:var(--brand)] [font-size:13px]'}>
         {eyebrow}
       </p>

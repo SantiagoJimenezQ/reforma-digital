@@ -13,7 +13,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
       >
         Inténtalo de nuevo en un momento.
       </p>
-      <Button onClick={reset} variant="default">
+      <Button onClick={reset} variant="sunset">
         Volver a intentar
       </Button>
     </InfoPage>

@@ -92,8 +92,8 @@ export function Information({ section, title }: { section: string; title: string
               <a
                 href="/api/congreso"
                 data-slot="button"
-                data-variant="default"
-                className={cn(buttonVariants({ variant: 'default' }))}
+                data-variant="sunset"
+                className={cn(buttonVariants({ variant: 'sunset' }))}
               >
                 Consultar la API
               </a>

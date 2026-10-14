@@ -176,7 +176,7 @@ export default function HomePage() {
         <div
           id="proyectos"
           className={
-            'in-proyectos scroll-mt-24 [&_.rc]:[padding-bottom:0] [&_.rc]:scroll-mt-24 [&_.rc-paso-texto]:gap-5 [&_.rc-paso-texto_>_:is([data-slot=button][data-variant=default],_.in-enlace)]:[justify-self:start] [@media(max-width:_959px)]:[&_.rc-paso-texto]:gap-3 [@media(max-width:_959px)]:[&_.rc-paso-texto_>_p_+_*]:mt-2'
+            'in-proyectos scroll-mt-24 [&_.rc]:[padding-bottom:0] [&_.rc]:scroll-mt-24 [&_.rc-paso-texto]:gap-5 [&_.rc-paso-texto_>_:is([data-slot=button][data-variant=sunset],_.in-enlace)]:[justify-self:start] [@media(max-width:_959px)]:[&_.rc-paso-texto]:gap-3 [@media(max-width:_959px)]:[&_.rc-paso-texto_>_p_+_*]:mt-2'
           }
         >
           <ProjectTour
@@ -239,9 +239,9 @@ export default function HomePage() {
                       fragmentos de fuentes oficiales que puedes consultar.
                     </p>
                     <Link
-                      className={cn(buttonVariants())}
+                      className={cn(buttonVariants({ variant: 'sunset' }))}
                       data-slot="button"
-                      data-variant="default"
+                      data-variant="sunset"
                       href="/chat"
                     >
                       Abrir el buscador <Icon name="derecha" size={16} />
@@ -275,8 +275,8 @@ export default function HomePage() {
                       <a
                         href={links.install}
                         data-slot="button"
-                        data-variant="default"
-                        className={cn(buttonVariants({ variant: 'default' }))}
+                        data-variant="sunset"
+                        className={cn(buttonVariants({ variant: 'sunset' }))}
                       >
                         Descargar la extensión <Icon name="descargar" size={16} />
                       </a>
@@ -377,9 +377,9 @@ export default function HomePage() {
                       Congreso y datos electorales con enlaces a las fuentes oficiales.
                     </p>
                     <Link
-                      className={cn(buttonVariants())}
+                      className={cn(buttonVariants({ variant: 'sunset' }))}
                       data-slot="button"
-                      data-variant="default"
+                      data-variant="sunset"
                       href={congressBase}
                     >
                       Abrir El Congreso <Icon name="derecha" size={16} />

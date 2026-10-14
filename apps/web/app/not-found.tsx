@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { cn } from '@reforma-digital/design/lib/utils';
+import { buttonVariants } from '@reforma-digital/design/ui/button';
 import { InfoPage } from '../components/brand/info-page';
 export default function NotFound() {
   return (
@@ -18,7 +20,12 @@ export default function NotFound() {
       >
         No encontramos esta página. Vuelve al buscador para encontrar tu trámite.
       </p>
-      <Link className="boton" href="/chat">
+      <Link
+        className={cn(buttonVariants({ variant: 'sunset' }))}
+        data-slot="button"
+        data-variant="sunset"
+        href="/chat"
+      >
         Ir al buscador
       </Link>
     </InfoPage>
