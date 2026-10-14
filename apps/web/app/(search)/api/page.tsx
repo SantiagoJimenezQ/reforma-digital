@@ -18,7 +18,7 @@ import { siteUrl } from '../../../lib/site';
 
 const title = 'API de Reforma Digital';
 const description =
-  'La API de Reforma Digital sirve de forma abierta los datos del Congreso de los Diputados: votaciones, preguntas, Diarios de Sesiones y conjuntos de datos en JSON, sin autenticación y con licencia CC BY 4.0.';
+  'La API de Reforma Digital sirve de forma abierta los datos del Congreso de los Diputados: votaciones, preguntas, Diarios de Sesiones y datasets en JSON, sin autenticación y con licencia CC BY 4.0.';
 
 export const metadata: Metadata = pageMetadata({ title, description, path: '/api', og: 'fuentes' });
 
@@ -70,7 +70,7 @@ const endpoints: {
     id: 'indice',
     path: '',
     title: 'Obtener el índice',
-    text: 'Devuelve la versión de la API, la última publicación de datos, los conjuntos disponibles con su hash SHA-256 y la atribución que debe acompañar a cualquier uso de los datos.',
+    text: 'Devuelve la versión de la API, la última publicación de datos, los datasets disponibles con su hash SHA-256 y la atribución que debe acompañar a cualquier uso de los datos.',
     request: request(''),
     response: response(`{
   "version": 1,
@@ -170,7 +170,7 @@ const endpoints: {
   {
     id: 'datasets',
     path: '/datasets/<ruta.json>',
-    title: 'Obtener un conjunto de datos',
+    title: 'Obtener un dataset',
     text: (
       <>
         Devuelve uno de los archivos originales que alimentan la web, como <code>leyes.json</code>,{' '}
@@ -301,8 +301,8 @@ export default function Api() {
             <p className="mb-8 max-w-[65ch] text-lg leading-relaxed text-muted-foreground">
               La API de Reforma Digital sirve de forma abierta los datos del Congreso de los
               Diputados: las votaciones del Pleno con el voto de cada diputado, las preguntas
-              parlamentarias, los Diarios de Sesiones y los conjuntos de datos que alimentan la web.
-              Es una API REST de solo lectura que responde en JSON.
+              parlamentarias, los Diarios de Sesiones y los datasets que alimentan la web. Es una
+              API REST de solo lectura que responde en JSON.
             </p>
             <ul className="mb-8 flex flex-wrap gap-2">
               {['REST', 'JSON', 'Sin autenticación', 'CORS abierto', 'CC BY 4.0'].map((text) => (
@@ -395,8 +395,8 @@ export default function Api() {
 
           <Doc id="cache" title="Caché">
             <p className="text-muted-foreground">
-              Los conjuntos de datos devuelven una cabecera <code className={mono}>ETag</code> con
-              su hash. Envíala en <code className={mono}>If-None-Match</code> para recibir un{' '}
+              Los datasets devuelven una cabecera <code className={mono}>ETag</code> con su hash.
+              Envíala en <code className={mono}>If-None-Match</code> para recibir un{' '}
               <code className={mono}>304 Not Modified</code> sin cuerpo cuando el archivo no haya
               cambiado. Guarda las respuestas en caché y, si necesitas todos los datos, usa la
               descarga completa.
