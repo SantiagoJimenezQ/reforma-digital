@@ -25,7 +25,6 @@ describe('chat web retrieval', () => {
   it('uses Luna high web search without embeddings or the document index', async () => {
     vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
     vi.stubEnv('DATABASE_URL', '');
-    vi.stubEnv('LANGFUSE_SECRET_KEY', '');
     const content = 'Puedes solicitar el informe de vida laboral en Importass.';
     const citation = (url: string, excerpt = content) => ({
       type: 'url_citation',

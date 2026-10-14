@@ -113,7 +113,6 @@ export const defaultConfig = configSchema.parse({});
 export type Stage = 'understandQuery' | 'retrieval' | 'generation' | 'evaluation';
 export type SearchResult = {
   id: string;
-  traceId: string;
   query: string;
   resolvedQuery?: string;
   understanding: QueryUnderstanding;

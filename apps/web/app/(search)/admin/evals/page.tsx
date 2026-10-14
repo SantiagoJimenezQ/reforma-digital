@@ -311,7 +311,6 @@ export default async function Evals({
                             </pre>
                           </CollapsibleContent>
                         </Collapsible>
-                        <code>Trace ID: {c.result?.traceId ?? 'N/A'}</code>
                       </div>
                     ))}
                 </CollapsibleContent>

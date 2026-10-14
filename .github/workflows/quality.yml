@@ -34,9 +34,6 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.EVAL_DATABASE_URL }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
-      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-      LANGFUSE_BASE_URL: ${{ vars.LANGFUSE_BASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -46,7 +43,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Compare web search results with approved baseline
-        run: pnpm eval --mode live --dataset ${{ inputs.full && 'full' || 'golden' }} --judges --compare baseline --ci --publish
+        run: pnpm eval --mode live --dataset ${{ inputs.full && 'full' || 'golden' }} --judges --compare baseline --ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:

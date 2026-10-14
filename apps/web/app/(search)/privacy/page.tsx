@@ -42,9 +42,7 @@ export default function Privacy() {
       <h2>Qué se procesa</h2>
       <p>
         En el modo conectado, tu pregunta se envía al proveedor de IA configurado para interpretar y
-        responder con evidencias. Los fragmentos oficiales también se incluyen en esa petición. Si
-        Langfuse está configurado, registra la consulta y las etapas de la respuesta para evaluar
-        fallos.
+        responder con evidencias. Los fragmentos oficiales también se incluyen en esa petición.
       </p>
       <p>
         Antes de enviarla, tu navegador intenta detectar nombres, direcciones, DNI, correos,

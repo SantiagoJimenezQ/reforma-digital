@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { search, trace } from '@reforma-digital/ai';
+import { search } from '@reforma-digital/ai';
 import { defaultConfig, type SearchConfig } from '@reforma-digital/core';
 import { db, experiments } from '@reforma-digital/db';
 import { datasetSchema, type Dataset } from './schema';
@@ -128,7 +128,7 @@ export async function runExperiment(options: {
       if (!options.retrievalOnly && options.mode === 'live') {
         Object.assign(metrics, deterministicAnswerMetrics(c, result));
         if (options.judges) {
-          const j = await trace('evaluation', { caseId: c.id }, () => judgeAnswer(c, result));
+          const j = await judgeAnswer(c, result);
           judges = j.judges;
           Object.assign(metrics, j.metrics);
         }
@@ -257,7 +257,7 @@ export function formatReport(r: Report): string {
       .filter((c) => c.failures.length)
       .map(
         (c) =>
-          `\nQuery: ${c.case.query}\nExpected sources: ${c.case.expected.relevantSourceIds.join(', ')}\nExpected documents: ${c.case.expected.relevantDocumentIds.join(', ') || 'PENDING REVIEW'}\nRetrieved:\n${c.result?.evidence.map((e, i) => `${i + 1}. ${e.title} (${e.jurisdiction}) ${e.canonicalUrl}`).join('\n') ?? 'ERROR'}\nAnswer: ${JSON.stringify(c.result?.answer)}\nFailure: ${c.failures.join('; ')} ${c.error ?? ''}\nTrace ID: ${c.result?.traceId ?? 'N/A'}\nJudge detail: ${JSON.stringify(c.judges ?? {})}`,
+          `\nQuery: ${c.case.query}\nExpected sources: ${c.case.expected.relevantSourceIds.join(', ')}\nExpected documents: ${c.case.expected.relevantDocumentIds.join(', ') || 'PENDING REVIEW'}\nRetrieved:\n${c.result?.evidence.map((e, i) => `${i + 1}. ${e.title} (${e.jurisdiction}) ${e.canonicalUrl}`).join('\n') ?? 'ERROR'}\nAnswer: ${JSON.stringify(c.result?.answer)}\nFailure: ${c.failures.join('; ')} ${c.error ?? ''}\nJudge detail: ${JSON.stringify(c.judges ?? {})}`,
       )
       .join('\n')
   );

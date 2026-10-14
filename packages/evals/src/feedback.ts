@@ -19,7 +19,7 @@ try {
         status: 'pending',
         reviewer: null,
         reviewedAt: null,
-        evidenceNotes: `Feedback: ${r.feedback.reason ?? ''}. Review trace ${r.search.result.traceId}; decide expected.shouldAnswer and evidence manually.`,
+        evidenceNotes: `Feedback: ${r.feedback.reason ?? ''}. Review search ${r.search.result.id}; decide expected.shouldAnswer and evidence manually.`,
       },
       expected: {
         relevantSourceIds: [],
@@ -30,7 +30,6 @@ try {
         shouldAnswer: false,
       },
       context: {
-        traceId: r.search.result.traceId,
         comment: r.feedback.comment,
         evidence: r.search.result.evidence,
         answer: r.search.result.answer,
