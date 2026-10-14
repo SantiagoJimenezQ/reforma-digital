@@ -92,8 +92,8 @@ export function Sources({
               target="_blank"
               rel="noopener noreferrer"
               data-slot="button"
-              data-variant="default"
-              className={cn(buttonVariants({ variant: 'default' }))}
+              data-variant="sunset"
+              className={cn(buttonVariants({ variant: 'sunset' }))}
             >
               Abrir documento oficial
               <span

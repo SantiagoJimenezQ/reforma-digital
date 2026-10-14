@@ -92,7 +92,7 @@ function Compositor() {
           aria-label="Enviar pregunta"
           disabled={texto.trim().length < 4}
           size="icon-lg"
-          variant="default"
+          variant="sunset"
           className="size-13 rounded-full [--ring:var(--foreground)]"
         >
           <Icon name="enviar" size={20} />

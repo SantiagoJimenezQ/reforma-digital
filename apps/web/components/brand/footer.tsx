@@ -37,14 +37,14 @@ export function Footer() {
         </h2>
         <div
           className={
-            'pie-acciones flex flex-wrap gap-3 [@media(max-width:_720px)]:[&_:is([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline])]:w-full'
+            'pie-acciones flex flex-wrap gap-3 [@media(max-width:_720px)]:[&_:is([data-slot=button][data-variant=sunset],_[data-slot=button][data-variant=outline])]:w-full'
           }
         >
           <a
             href={links.contributing}
             data-slot="button"
-            data-variant="default"
-            className={cn(buttonVariants({ variant: 'default' }))}
+            data-variant="sunset"
+            className={cn(buttonVariants({ variant: 'sunset' }))}
           >
             <Icon name="contacto" /> Cuéntanos dónde te atascaste
           </a>

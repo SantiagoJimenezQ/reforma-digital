@@ -97,7 +97,7 @@ export default async function Page({ params, searchParams }: Props) {
       )}
       <div
         className={
-          'cg-body [max-width:var(--container-content)] [margin:auto] [padding:32px_var(--page-gutter)_80px] [&_.sol-tabs]:mb-6 [container-type:inline-size] [&_a:not([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline],_[data-slot=button][data-variant=ghost],_[data-slot=button][data-size=icon],_[data-slot=button][data-size=icon-lg],_.cg-card):hover]:[text-decoration:underline] [&_a:not([data-slot=button][data-variant=default],_[data-slot=button][data-variant=outline],_[data-slot=button][data-variant=ghost],_[data-slot=button][data-size=icon],_[data-slot=button][data-size=icon-lg],_.cg-card):hover]:[text-underline-offset:3px]'
+          'cg-body [max-width:var(--container-content)] [margin:auto] [padding:32px_var(--page-gutter)_80px] [&_.sol-tabs]:mb-6 [container-type:inline-size] [&_a:not([data-slot=button][data-variant=default],_[data-slot=button][data-variant=sunset],_[data-slot=button][data-variant=outline],_[data-slot=button][data-variant=ghost],_[data-slot=button][data-size=icon],_[data-slot=button][data-size=icon-lg],_.cg-card):hover]:[text-decoration:underline] [&_a:not([data-slot=button][data-variant=default],_[data-slot=button][data-variant=sunset],_[data-slot=button][data-variant=outline],_[data-slot=button][data-variant=ghost],_[data-slot=button][data-size=icon],_[data-slot=button][data-size=icon-lg],_.cg-card):hover]:[text-underline-offset:3px]'
         }
       >
         {information ? (

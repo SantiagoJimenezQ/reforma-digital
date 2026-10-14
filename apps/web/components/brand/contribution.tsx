@@ -173,7 +173,7 @@ export function Contribution() {
                 </Button>
                 <Button
                   type="submit"
-                  variant="default"
+                  variant="sunset"
                   className={'in-issue-enviar [&_>_span]:[grid-area:1_/_1]'}
                 >
                   <span className="in-issue-enviar-texto">Crear</span>

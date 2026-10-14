@@ -95,7 +95,7 @@ export default async function Evals({
                 required
               />
               {params.error && <p role="alert">Clave incorrecta.</p>}
-              <Button type="submit" variant="default">
+              <Button type="submit" variant="sunset">
                 Entrar
               </Button>
             </form>
