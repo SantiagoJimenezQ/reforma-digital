@@ -32,7 +32,6 @@ jobs:
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       HELMCODE_API_KEY: ${{ secrets.HELMCODE_API_KEY }}
       HELMCODE_MODEL: ${{ vars.HELMCODE_MODEL || 'deepseek-v4-flash' }}
-      CONGRESS_WORKDIR: ${{ runner.temp }}/congreso
       COMMAND: ${{ inputs.command || (github.event.schedule == '17 5 * * 1-6' && 'update' || 'polls') }}
       LIMIT: ${{ inputs.limit || '100' }}
       SINCE: ${{ inputs.since }}
@@ -56,6 +55,9 @@ jobs:
           test -n "$DATABASE_URL"
           test -n "$BLOB_READ_WRITE_TOKEN"
       - name: Recoger, analizar y publicar en Postgres y Blob
+        # El contexto `runner` solo existe dentro de los pasos, no en el `env` del job.
+        env:
+          CONGRESS_WORKDIR: ${{ runner.temp }}/congreso
         run: |
           args=("$COMMAND" --limit "$LIMIT")
           if [ -n "$SINCE" ]; then args+=(--since "$SINCE"); fi
