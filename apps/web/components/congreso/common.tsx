@@ -13,7 +13,7 @@ import { Button, buttonVariants } from '@reforma-digital/design/ui/button';
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import type { CongressIndex, Session, Vote } from '../../lib/congreso/schema';
+import type { CongressIndex, SessionCard, Vote, VoteCard } from '../../lib/congreso/schema';
 import { congressBase } from '../../lib/congreso/routes';
 import { deputyName, slug } from '../../lib/congreso/data';
 import { Icon } from '../brand/icon';
@@ -167,7 +167,7 @@ export function AI({
     </div>
   );
 }
-export function Votes({ votes }: { votes: Vote[] }) {
+export function Votes({ votes }: { votes: VoteCard[] }) {
   if (!votes.length) return <Empty />;
   return (
     <div
@@ -205,7 +205,7 @@ export function Votes({ votes }: { votes: Vote[] }) {
     </div>
   );
 }
-export function VoteCount({ vote }: { vote: Vote }) {
+export function VoteCount({ vote }: { vote: VoteCard }) {
   const total = vote.si + vote.no + vote.abst + vote.novota;
   const values = [
     [vote.si, 'Sí', 'si'],
@@ -250,7 +250,7 @@ export function VoteCount({ vote }: { vote: Vote }) {
     </div>
   );
 }
-export function Sessions({ sessions }: { sessions: Session[] }) {
+export function Sessions({ sessions }: { sessions: SessionCard[] }) {
   if (!sessions.length) return <Empty />;
   return (
     <div

@@ -10,6 +10,7 @@ try {
       '0002_applicability',
       '0004_retire_document_index',
       '0005_congreso',
+      '0006_congreso_month_rows',
     ]) {
       const done = await tx`SELECT id FROM schema_migrations WHERE id=${id}`;
       if (!done.length) {

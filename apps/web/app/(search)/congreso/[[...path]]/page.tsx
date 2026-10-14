@@ -10,7 +10,8 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
-import { getIndex, getPeriod } from '../../../../lib/congreso/data';
+import { getIndex } from '../../../../lib/congreso/data';
+import { periodCounts, sessions, votes } from '../../../../lib/congreso/queries';
 import { congressBase, congressRoute } from '../../../../lib/congreso/routes';
 import { pageMetadata } from '../../../../lib/seo';
 import {
@@ -176,7 +177,11 @@ async function Data({
   } else if (section === 'geografia')
     content = <Geography detail={detail} query={q} page={pagina} />;
   else {
-    const data = await getPeriod(periodo);
+    const [counts, latestSessions, latestVotes] = await Promise.all([
+      periodCounts(periodo),
+      sessions({ period: periodo }, 1, 6),
+      votes({ period: periodo }, 1, 6),
+    ]);
     content = (
       <>
         <div id="lo-ultimo">
@@ -190,9 +195,9 @@ async function Data({
         </div>
         <Stats
           items={[
-            [data.sesiones.length, 'Sesiones'],
-            [data.votaciones.length, 'Votaciones'],
-            [data.intervenciones.length, 'Intervenciones analizadas'],
+            [counts.sesiones, 'Sesiones'],
+            [counts.votaciones, 'Votaciones'],
+            [counts.intervenciones, 'Intervenciones analizadas'],
           ]}
         />
         <Section
@@ -205,13 +210,13 @@ async function Data({
           title="Las últimas sesiones"
           action={<Link href={href('dias', periodo)}>Ver todas →</Link>}
         >
-          <Sessions sessions={data.sesiones.slice(0, 6)} />
+          <Sessions sessions={latestSessions.rows} />
         </Section>
         <Section
           title="Así se votó"
           action={<Link href={href('votaciones', periodo)}>Ver todas →</Link>}
         >
-          <Votes votes={data.votaciones.slice(0, 6)} />
+          <Votes votes={latestVotes.rows} />
         </Section>
         <Section title="Próximos plenos">
           {index.agenda.plenos.length ? (

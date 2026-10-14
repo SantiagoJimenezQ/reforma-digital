@@ -14,13 +14,25 @@ import {
 import { Card, CardContent } from '@reforma-digital/design/ui/card';
 
 import { Icon } from '../brand/icon';
-import { topicSchema, rawQuestionSchema, rawSessionSchema } from '../../lib/congreso/schema';
+import { rawQuestionSchema, rawSessionSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { connection } from '@reforma-digital/db';
 import { z } from 'zod';
-import { getPeriod, getLaws, getQuestions, read, congressUrl, slug } from '../../lib/congreso/data';
-import type { CongressIndex, Intervention, Law } from '../../lib/congreso/schema';
+import { getQuestions, congressUrl, slug } from '../../lib/congreso/data';
+import {
+  approvedLaws,
+  findLaw,
+  findSession,
+  findTopic,
+  findVote,
+  interventions,
+  laws,
+  sessions,
+  topics,
+  votes,
+} from '../../lib/congreso/queries';
+import type { CongressIndex, Intervention, LawCard } from '../../lib/congreso/schema';
 import {
   Intro,
   Section,
@@ -102,7 +114,7 @@ export function Interventions({
     <Empty>No hay intervenciones analizadas en este periodo.</Empty>
   );
 }
-function Laws({ laws, legislature }: { laws: Law[]; legislature: string }) {
+function Laws({ laws, legislature }: { laws: LawCard[]; legislature: string }) {
   return laws.length ? (
     <div
       className={
@@ -214,62 +226,60 @@ export async function Activity({
       </>
     );
   }
-  if (section === 'leyes' || section === 'iniciativa') {
-    const data = await getLaws();
-    if (section === 'iniciativa') {
-      const law = data.iniciativas.find((law) => law.exp.replace('/', '-') === detail);
-      if (!law) notFound();
-      return (
-        <>
-          <Intro label={law.tipo} title={law.titulo}>
-            <p>{law.situacion}</p>
-          </Intro>
-          <Stats
-            items={[
-              [law.estado, 'Estado'],
-              [date(law.presentada), 'Presentada'],
-              [law.etapa, 'Etapa'],
-            ]}
-          />
-          <Source url={congressUrl(law.exp, index.meta.legislatura)}>Expediente completo</Source>
-          <Section title="Tramitación">
-            <ol
-              className={
-                'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
-              }
-            >
-              {law.fases.map(([organ, phase, from, to], i) => (
-                <li key={i}>
-                  <h3>{phase}</h3>
-                  <p>
-                    {organ} · {from}
-                    {to ? ` → ${to}` : ''}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </Section>
-          <Section title="Votaciones relacionadas">
-            <Votes votes={(await getPeriod('todo')).votaciones.filter((v) => v.exp === law.exp)} />
-          </Section>
-        </>
-      );
-    }
-    const laws = data.iniciativas.filter((law) =>
-      `${law.titulo} ${law.estado}`.toLowerCase().includes(query.toLowerCase()),
+  if (section === 'iniciativa') {
+    const law = detail ? await findLaw(detail) : null;
+    if (!law) notFound();
+    const related = await votes({ initiative: law.exp }, 1, null);
+    return (
+      <>
+        <Intro label={law.tipo} title={law.titulo}>
+          <p>{law.situacion}</p>
+        </Intro>
+        <Stats
+          items={[
+            [law.estado, 'Estado'],
+            [date(law.presentada), 'Presentada'],
+            [law.etapa, 'Etapa'],
+          ]}
+        />
+        <Source url={congressUrl(law.exp, index.meta.legislatura)}>Expediente completo</Source>
+        <Section title="Tramitación">
+          <ol
+            className={
+              'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+            }
+          >
+            {law.fases.map(([organ, phase, from, to], i) => (
+              <li key={i}>
+                <h3>{phase}</h3>
+                <p>
+                  {organ} · {from}
+                  {to ? ` → ${to}` : ''}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </Section>
+        <Section title="Votaciones relacionadas">
+          <Votes votes={related.rows} />
+        </Section>
+      </>
     );
+  }
+  if (section === 'leyes') {
+    const [found, approved] = await Promise.all([laws({ q: query }, page), approvedLaws()]);
     return (
       <>
         <Filters action={href('leyes')} query={query} />
-        <Laws laws={laws.slice((page - 1) * 24, page * 24)} legislature={index.meta.legislatura} />
-        <Pagination page={page} total={laws.length} params={{ q: query }} />
+        <Laws laws={found.rows} legislature={index.meta.legislatura} />
+        <Pagination page={page} total={found.total} params={{ q: query }} />
         <Section title="Leyes publicadas">
           <div
             className={
               'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
             }
           >
-            {data.aprobadas.map((law, i) => (
+            {approved.map((law, i) => (
               <Card
                 key={`${law.pdf}-${i}`}
                 render={
@@ -292,80 +302,66 @@ export async function Activity({
       </>
     );
   }
-  if (section === 'temas' || section === 'tema') {
-    const topics = await read('temas.json', topicSchema);
-    if (section === 'temas')
-      return (
-        <>
-          <div
-            className={
-              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
-            }
-          >
-            {Object.entries(topics).map(([id, topic]) => (
-              <Card
-                key={id}
-                render={
-                  <Link
-                    href={href(`tema/${id}`)}
-                    className={
-                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
-                    }
-                  />
-                }
-              >
-                <CardContent>
-                  <h2>{topic.nombre}</h2>
-                  <p>
-                    {number(topic.votos.length)} votaciones · {topic.leyes.length} iniciativas ·{' '}
-                    {number(topic.preguntas)} preguntas
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
-      );
-    const topic = detail && topics[detail];
+  if (section === 'temas')
+    return (
+      <>
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
+          {(await topics()).map((topic) => (
+            <Card
+              key={topic.id}
+              render={
+                <Link
+                  href={href(`tema/${topic.id}`)}
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                />
+              }
+            >
+              <CardContent>
+                <h2>{topic.nombre}</h2>
+                <p>
+                  {number(topic.votos)} votaciones · {topic.leyes.length} iniciativas ·{' '}
+                  {number(topic.preguntas)} preguntas
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </>
+    );
+  if (section === 'tema') {
+    if (!detail) notFound();
+    const topic = await findTopic(detail);
     if (!topic) notFound();
-    const data = await getPeriod('todo');
+    const [topicVotes, topicLaws] = await Promise.all([
+      votes({ topic: detail }, page),
+      laws({ exps: topic.leyes }, 1, null),
+    ]);
     return (
       <>
         <Intro title={topic.nombre} />
         <Stats
           items={[
-            [topic.votos.length, 'Votaciones'],
+            [topic.votos, 'Votaciones'],
             [topic.leyes.length, 'Iniciativas'],
             [topic.preguntas, 'Preguntas'],
           ]}
         />
-        <Votes
-          votes={data.votaciones
-            .filter((v) => v.tm?.includes(detail ?? ''))
-            .slice((page - 1) * 24, page * 24)}
-        />
-        <Pagination page={page} total={topic.votos.length} params={{}} />
+        <Votes votes={topicVotes.rows} />
+        <Pagination page={page} total={topic.votos} params={{}} />
         <Section title="Leyes relacionadas">
-          <Laws
-            laws={(await getLaws()).iniciativas.filter((l) => topic.leyes.includes(l.exp))}
-            legislature={index.meta.legislatura}
-          />
+          <Laws laws={topicLaws.rows} legislature={index.meta.legislatura} />
         </Section>
       </>
     );
   }
-  let selectedPeriod = period;
-  if (detail && ['sesion', 'votacion'].includes(section)) {
-    const sql = connection();
-    const rows =
-      section === 'sesion'
-        ? await sql`SELECT date::text FROM congreso_sessions WHERE legislature=${index.meta.legislatura} AND lower(id)=${detail}`
-        : await sql`SELECT date::text FROM congreso_votes WHERE legislature=${index.meta.legislatura} AND id=${detail}`;
-    selectedPeriod = rows[0]?.date ? z.string().parse(rows[0].date).slice(0, 7) : 'todo';
-  }
-  const data = await getPeriod(selectedPeriod);
   if (section === 'votacion') {
-    const vote = data.votaciones.find((vote) => vote.id === detail);
+    const vote = detail ? await findVote(detail) : null;
     if (!vote) notFound();
     const names: Record<string, string> = { S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' };
     return (
@@ -416,10 +412,13 @@ export async function Activity({
     );
   }
   if (section === 'sesion') {
-    const session = data.sesiones.find((session) => session.id.toLowerCase() === detail);
+    const session = detail ? await findSession(detail) : null;
     if (!session) notFound();
-    const rows =
-      await connection()`SELECT content FROM congreso_sessions WHERE legislature=${index.meta.legislatura} AND id=${session.id}`;
+    const [sessionVotes, said, rows] = await Promise.all([
+      votes({ ids: session.puntos.flatMap((p) => p.votos) }, 1, null),
+      interventions({ session: session.id }, 1, null),
+      connection()`SELECT content FROM congreso_sessions WHERE legislature=${index.meta.legislatura} AND id=${session.id}`,
+    ]);
     const raw = rows.length ? rawSessionSchema.parse(rows[0]?.content) : null;
     return (
       <>
@@ -448,14 +447,10 @@ export async function Activity({
           </ol>
         </Section>
         <Section title="Votaciones">
-          <Votes
-            votes={data.votaciones.filter((v) =>
-              session.puntos.some((p) => p.votos.includes(v.id)),
-            )}
-          />
+          <Votes votes={sessionVotes.rows} />
         </Section>
         <Section title="Qué se dijo">
-          <Interventions interventions={data.intervenciones.filter((i) => i.s === session.id)} />
+          <Interventions interventions={said.rows} />
         </Section>
         {raw && (
           <Section title="Intervenciones completas del Diario">
@@ -491,25 +486,22 @@ export async function Activity({
       </>
     );
   }
-  const votes = data.votaciones.filter((v) =>
-    `${v.titulo} ${v.texto}`.toLowerCase().includes(query.toLowerCase()),
-  );
-  if (section === 'votaciones')
+  if (section === 'votaciones') {
+    const found = await votes({ period, q: query }, page);
     return (
       <>
         <Filters action={href('votaciones')} query={query} period={period} />
-        <Votes votes={votes.slice((page - 1) * 24, page * 24)} />
-        <Pagination page={page} total={votes.length} params={{ q: query, periodo: period }} />
+        <Votes votes={found.rows} />
+        <Pagination page={page} total={found.total} params={{ q: query, periodo: period }} />
       </>
     );
-  const sessions = data.sesiones.filter((s) =>
-    `${s.organo} ${s.titular} ${s.resumen}`.toLowerCase().includes(query.toLowerCase()),
-  );
+  }
+  const found = await sessions({ period, q: query }, page);
   return (
     <>
       <Filters action={href('dias')} query={query} period={period} />
-      <Sessions sessions={sessions.slice((page - 1) * 24, page * 24)} />
-      <Pagination page={page} total={sessions.length} params={{ q: query, periodo: period }} />
+      <Sessions sessions={found.rows} />
+      <Pagination page={page} total={found.total} params={{ q: query, periodo: period }} />
     </>
   );
 }

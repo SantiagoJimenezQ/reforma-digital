@@ -8,17 +8,12 @@ import {
 } from '@reforma-digital/design/ui/table';
 import { Card, CardContent } from '@reforma-digital/design/ui/card';
 
-import {
-  balanceSchema,
-  metricsSchema,
-  municipalityVotesSchema,
-  municipalityNamesSchema,
-  ageSchema,
-} from '../../lib/congreso/schema';
+import { balanceSchema, metricsSchema, ageSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { electionsHref } from '../../lib/elecciones/pages';
 import { ReportIntro, ReportSection, ReportStats } from '../elecciones/report';
 import { getElections, read, congressUrl, getGeography } from '../../lib/congreso/data';
+import { municipalityVotes } from '../../lib/congreso/queries';
 import { Source, Empty, Filters, Pagination, date, href, number } from './common';
 
 export async function ElectionContext({
@@ -201,15 +196,7 @@ export async function ElectionContext({
     );
   }
   if (detail === 'mapa') {
-    const [votes, names] = await Promise.all([
-      read('elecciones/municipios-202307.json', municipalityVotesSchema),
-      read('geografia/municipios.json', municipalityNamesSchema),
-    ]);
-    const places = Object.entries(votes.municipios).filter(([id]) =>
-      String(names.m[id]?.[0] || id)
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-    );
+    const votes = await municipalityVotes(query, page);
     return (
       <>
         <ReportIntro title="El voto, municipio a municipio">
@@ -235,9 +222,9 @@ export async function ElectionContext({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {places.slice((page - 1) * 24, page * 24).map(([id, row]) => (
+              {votes.rows.map(([id, name, row]) => (
                 <TableRow key={id}>
-                  <TableHead>{String(names.m[id]?.[0] || id)}</TableHead>
+                  <TableHead>{name}</TableHead>
                   <TableCell>
                     {row[0] ? `${(((row[1] ?? 0) / row[0]) * 100).toFixed(1)} %` : '—'}
                   </TableCell>
@@ -249,7 +236,7 @@ export async function ElectionContext({
             </TableBody>
           </Table>
         </div>
-        <Pagination page={page} total={places.length} params={{ q: query }} />
+        <Pagination page={page} total={votes.total} params={{ q: query }} />
         <Source url="https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/">
           Resultados del Ministerio del Interior
         </Source>

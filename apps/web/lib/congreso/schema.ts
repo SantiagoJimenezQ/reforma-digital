@@ -265,11 +265,39 @@ export const historySchema = z.object({
     }),
   ),
 });
+// Lo que pintan los listados; las fichas usan el contrato completo.
+export const voteCardSchema = voteSchema.pick({
+  id: true,
+  fecha: true,
+  tipo: true,
+  titulo: true,
+  si: true,
+  no: true,
+  abst: true,
+  novota: true,
+  grupos: true,
+});
+export const sessionCardSchema = sessionSchema.pick({
+  id: true,
+  fecha: true,
+  organo: true,
+  sesion: true,
+  titular: true,
+  resumen: true,
+});
+export const lawCardSchema = lawsSchema.shape.iniciativas.element.pick({
+  exp: true,
+  tipo: true,
+  titulo: true,
+  estado: true,
+  situacion: true,
+});
 export type CongressIndex = z.infer<typeof indexSchema>;
 export type Vote = z.infer<typeof voteSchema>;
-export type Session = z.infer<typeof sessionSchema>;
+export type VoteCard = z.infer<typeof voteCardSchema>;
+export type SessionCard = z.infer<typeof sessionCardSchema>;
+export type LawCard = z.infer<typeof lawCardSchema>;
 export type Intervention = z.infer<typeof interventionSchema>;
-export type Law = z.infer<typeof lawsSchema>['iniciativas'][number];
 
 // El resto de los conjuntos públicos conserva su contrato JSON original para descarga y reutilización.
 export const jsonSchema = z.json();

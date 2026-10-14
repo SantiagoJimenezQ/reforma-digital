@@ -22,7 +22,6 @@ import {
   accuracySchema,
   mapSchema,
   historicalProvinceSchema,
-  municipalitiesSchema,
 } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -34,6 +33,7 @@ import {
   read,
   slug,
 } from '../../lib/congreso/data';
+import { municipalities } from '../../lib/congreso/queries';
 import { pollsHidden } from '../../lib/congreso/polls';
 import { Intro, Stats, Source, Filters, Pagination, Empty, date, href, number } from './common';
 import { Coalition } from './coalition';
@@ -58,10 +58,7 @@ export async function Geography({
     : undefined;
   if (detail && !selected && detail !== 'municipios') notFound();
   if (detail === 'municipios') {
-    const data = await read('geografia/municipios.json', municipalitiesSchema);
-    const municipalities = Object.entries(data.m).filter(([, m]) =>
-      m[0].toLowerCase().includes(query.toLowerCase()),
-    );
+    const data = await municipalities(query, page);
     return (
       <>
         <Intro title="Municipio a municipio">
@@ -85,7 +82,7 @@ export async function Geography({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {municipalities.slice((page - 1) * 24, page * 24).map(([id, m]) => (
+              {data.rows.map(([id, m]) => (
                 <TableRow key={id}>
                   <TableHead>{m[0]}</TableHead>
                   <TableCell>{number(m[4])}</TableCell>
@@ -96,7 +93,7 @@ export async function Geography({
             </TableBody>
           </Table>
         </div>
-        <Pagination page={page} total={municipalities.length} params={{ q: query }} />
+        <Pagination page={page} total={data.total} params={{ q: query }} />
       </>
     );
   }

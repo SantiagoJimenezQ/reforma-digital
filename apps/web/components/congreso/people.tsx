@@ -6,18 +6,19 @@ import {
 } from '@reforma-digital/design/ui/collapsible';
 
 import { Icon } from '../brand/icon';
-import { extraSchema } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { z } from 'zod';
+import { slug, deputyName, getQuestions } from '../../lib/congreso/data';
 import {
-  getPeriod,
-  getOrgans,
-  read,
-  slug,
-  deputyName,
-  getQuestions,
-} from '../../lib/congreso/data';
+  cargos,
+  deputyExtra,
+  deputyVotes,
+  findCargo,
+  interventions,
+  interventionsByGroup,
+  organsSummary,
+  votes,
+} from '../../lib/congreso/queries';
 import type { CongressIndex } from '../../lib/congreso/schema';
 import {
   Intro,
@@ -56,39 +57,34 @@ export async function People({
   province: string;
   page: number;
 }) {
-  if (section === 'organigrama' || section === 'cargo') {
-    const organs = await getOrgans();
-    if (section === 'cargo') {
-      const cargo = detail && organs.cargos[detail];
-      if (!cargo) notFound();
-      return (
-        <>
-          <Intro label={cargo.ministerio} title={cargo.cargo} />
-          <Section title="Quién ha ocupado el cargo">
-            <ol
-              className={
-                'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
-              }
-            >
-              {cargo.mandatos.map((m, i) => (
-                <li key={i}>
-                  <h3>{m.persona}</h3>
-                  <p>
-                    {m.desde ? date(m.desde) : 'Inicio no disponible'} → {m.hasta || 'Actualidad'}
-                  </p>
-                  {m.boe && <Source url={boeUrl(m.boe)}>Nombramiento en el BOE</Source>}
-                </li>
-              ))}
-            </ol>
-          </Section>
-        </>
-      );
-    }
-    const cargos = Object.entries(organs.cargos).filter(([, c]) =>
-      `${c.cargo} ${c.ministerio} ${c.mandatos.map((m) => m.persona).join(' ')}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
+  if (section === 'cargo') {
+    const cargo = detail ? await findCargo(detail) : null;
+    if (!cargo) notFound();
+    return (
+      <>
+        <Intro label={cargo.ministerio} title={cargo.cargo} />
+        <Section title="Quién ha ocupado el cargo">
+          <ol
+            className={
+              'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+            }
+          >
+            {cargo.mandatos.map((m, i) => (
+              <li key={i}>
+                <h3>{m.persona}</h3>
+                <p>
+                  {m.desde ? date(m.desde) : 'Inicio no disponible'} → {m.hasta || 'Actualidad'}
+                </p>
+                {m.boe && <Source url={boeUrl(m.boe)}>Nombramiento en el BOE</Source>}
+              </li>
+            ))}
+          </ol>
+        </Section>
+      </>
     );
+  }
+  if (section === 'organigrama') {
+    const [organs, found] = await Promise.all([organsSummary(), cargos(query, page)]);
     return (
       <>
         <Stats
@@ -104,7 +100,7 @@ export async function People({
             'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
           }
         >
-          {cargos.slice((page - 1) * 24, page * 24).map(([id, cargo]) => (
+          {found.rows.map(([id, cargo]) => (
             <Card
               key={id}
               render={
@@ -130,21 +126,21 @@ export async function People({
             </Card>
           ))}
         </div>
-        <Pagination page={page} total={cargos.length} params={{ q: query }} />
+        <Pagination page={page} total={found.total} params={{ q: query }} />
       </>
     );
   }
   if (section === 'diputado') {
     const deputy = index.diputados.find((d) => slug(d.nombre) === detail);
     if (!deputy) notFound();
-    const data = await getPeriod(period);
     const i = index.diputados.indexOf(deputy);
-    const votes = data.votaciones.filter((v) => v.v.charAt(i) && v.v.charAt(i) !== '-');
-    const interventions = data.intervenciones.filter(
-      (iv) => slug(iv.orador) === slug(deputy.nombre.split(',')[0] || ''),
-    );
-    const extra = (await read('diputados-extra.json', extraSchema))[deputy.nombre];
-    const questions = (await getQuestions()).diputados[String(i)];
+    const [ballots, said, extra, summary] = await Promise.all([
+      deputyVotes(period, i, page),
+      interventions({ period, speaker: slug(deputy.nombre.split(',')[0] || '') }, page),
+      deputyExtra(deputy.nombre),
+      getQuestions(),
+    ]);
+    const questions = summary.diputados[String(i)];
     return (
       <>
         <Intro label={`${deputy.grupo} · ${deputy.provincia}`} title={deputyName(deputy.nombre)}>
@@ -156,8 +152,8 @@ export async function People({
         </Intro>
         <Stats
           items={[
-            [votes.length, 'Votaciones en el periodo'],
-            [interventions.length, 'Intervenciones analizadas'],
+            [ballots.total, 'Votaciones en el periodo'],
+            [said.total, 'Intervenciones analizadas'],
             [questions?.[0] ?? 0, 'Preguntas en la legislatura'],
           ]}
         />
@@ -228,26 +224,29 @@ export async function People({
               'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
             }
           >
-            {votes.slice((page - 1) * 24, page * 24).map((vote) => (
+            {ballots.rows.map((vote) => (
               <article key={vote.id}>
                 <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>
                   {vote.titulo}
                 </Link>
-                <b>{{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[vote.v.charAt(i)]}</b>
+                <b>{{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[vote.voto]}</b>
               </article>
             ))}
           </div>
-          <Pagination page={page} total={votes.length} params={{ periodo: period }} />
+          <Pagination page={page} total={ballots.total} params={{ periodo: period }} />
         </Section>
         <Section title="Qué dijo">
-          <Interventions interventions={interventions.slice((page - 1) * 24, page * 24)} />
-          <Pagination page={page} total={interventions.length} params={{ periodo: period }} />
+          <Interventions interventions={said.rows} />
+          <Pagination page={page} total={said.total} params={{ periodo: period }} />
         </Section>
       </>
     );
   }
   if (section === 'grupos') {
-    const data = await getPeriod(period);
+    const [byGroup, latest] = await Promise.all([
+      interventionsByGroup(period),
+      votes({ period }, 1, 12),
+    ]);
     return (
       <>
         <Hemicycle index={index} />
@@ -282,10 +281,7 @@ export async function People({
                   <Stats
                     items={[
                       [g.escanos, 'Escaños'],
-                      [
-                        data.intervenciones.filter((iv) => iv.g === id).length,
-                        'Intervenciones analizadas',
-                      ],
+                      [byGroup.get(id) ?? 0, 'Intervenciones analizadas'],
                     ]}
                   />
                   <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
@@ -302,7 +298,7 @@ export async function People({
                           'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
                         }
                       >
-                        {data.votaciones.slice(0, 12).map((v) => (
+                        {latest.rows.map((v) => (
                           <li key={v.id}>
                             <Link href={href(`votacion/${v.id}`, v.fecha.slice(0, 7))}>
                               {v.titulo}
@@ -325,14 +321,7 @@ export async function People({
     );
   }
   if (section === 'oradores') {
-    const data = await getPeriod(period);
-    const interventions = data.intervenciones.filter(
-      (iv) =>
-        `${iv.orador} ${iv.item} ${iv.temas.join(' ')}`
-          .toLowerCase()
-          .includes(query.toLowerCase()) &&
-        (!group || iv.g === group),
-    );
+    const found = await interventions({ period, q: query, group }, page);
     return (
       <>
         <Filters
@@ -342,10 +331,10 @@ export async function People({
           index={index}
           period={period}
         />
-        <Interventions interventions={interventions.slice((page - 1) * 24, page * 24)} />
+        <Interventions interventions={found.rows} />
         <Pagination
           page={page}
-          total={interventions.length}
+          total={found.total}
           params={{ q: query, grupo: group, periodo: period }}
         />
       </>
