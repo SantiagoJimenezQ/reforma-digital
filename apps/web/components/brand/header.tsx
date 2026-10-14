@@ -20,6 +20,7 @@ export function Header({
     { href: '/#iniciativa', text: 'La iniciativa', current: false },
     { href: '/#proyectos', text: 'Proyectos', current: false },
     { href: '/congreso', text: 'El Congreso', current: current === '/congreso' },
+    { href: '/api', text: 'API', current: current === '/api' },
     { href: '/equipo', text: 'Equipo', current: current === '/equipo' },
   ];
 
