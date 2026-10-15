@@ -1,0 +1,448 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Button } from '@reforma-digital/design/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@reforma-digital/design/ui/tabs';
+import { Notice, Response, Thinking } from '@reforma-digital/design/chat';
+import { cn } from '@reforma-digital/design/lib/utils';
+import { officialLevel } from '@reforma-digital/government/domains';
+import type { ItemConversacion, TramiteVista } from '../shared/api';
+import { cargarTramite, useEstado } from './estado';
+import { ETIQUETA_ESTADO, host } from './formato';
+import { Icono } from './icono';
+import { Compositor } from './inicio';
+import { Pregunta } from './preguntas';
+import { HojaFuente, PanelTarjeta, type FuenteAbierta } from './tarjeta';
+
+type Panel = 'tarjeta' | 'navegador' | 'fuentes';
+const DE_NAVEGADOR = new Set([
+  'abrir',
+  'pulsar',
+  'escribir',
+  'elegir',
+  'marcar',
+  'tecla',
+  'volver',
+  'pedir_ayuda',
+]);
+
+type Bloque =
+  | { tipo: 'item'; item: ItemConversacion }
+  | { tipo: 'actividad'; items: Extract<ItemConversacion, { tipo: 'actividad' }>[] };
+
+/** Las acciones seguidas del asistente se muestran juntas, como un paso desplegable. */
+function agrupar(items: ItemConversacion[]): Bloque[] {
+  const bloques: Bloque[] = [];
+  for (const item of items) {
+    const ultimo = bloques.at(-1);
+    if (item.tipo === 'actividad' && ultimo?.tipo === 'actividad') ultimo.items.push(item);
+    else if (item.tipo === 'actividad') bloques.push({ tipo: 'actividad', items: [item] });
+    else bloques.push({ tipo: 'item', item });
+  }
+  return bloques;
+}
+
+function Actividad({
+  items,
+  enCurso,
+}: {
+  items: Extract<ItemConversacion, { tipo: 'actividad' }>[];
+  enCurso: boolean;
+}) {
+  const [abierta, setAbierta] = useState(false);
+  const ultima = items.at(-1)!;
+  const errores = items.filter((i) => i.estado === 'error').length;
+  return (
+    <div className="my-3">
+      <button
+        type="button"
+        aria-expanded={abierta}
+        onClick={() => setAbierta(!abierta)}
+        className="flex items-center gap-2 rounded-lg py-1 text-left text-sm text-muted-foreground hover:text-foreground"
+      >
+        <Icono
+          nombre={abierta ? 'atras' : 'siguiente'}
+          size={16}
+          className={abierta ? '-rotate-90' : ''}
+        />
+        <span className={cn(enCurso && 'font-medium text-foreground')}>
+          {enCurso
+            ? ultima.resumen
+            : `${items.length} ${items.length === 1 ? 'acción' : 'acciones'} del asistente`}
+        </span>
+        {errores > 0 && <span>· {errores} sin éxito</span>}
+      </button>
+      {abierta && (
+        <ol className="mt-1 mb-0 ml-2 space-y-1 border-l border-border pl-4 text-sm text-[var(--text-secondary)]">
+          {items.map((i) => (
+            <li key={i.id} className="flex items-start gap-2">
+              <Icono
+                nombre={
+                  i.estado === 'error' ? 'cerrar' : i.estado === 'fin' ? 'check' : 'siguiente'
+                }
+                size={16}
+                className="mt-0.5 shrink-0"
+              />
+              <span>
+                {i.resumen}
+                {i.detalle && (
+                  <span className="text-muted-foreground"> · {i.detalle.slice(0, 160)}</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
+function Conversacion({ vista, verNavegador }: { vista: TramiteVista; verNavegador: () => void }) {
+  const fin = useRef<HTMLDivElement>(null);
+  const caja = useRef<HTMLDivElement>(null);
+  const trabajando = vista.ejecucion === 'trabajando';
+  const bloques = agrupar(vista.conversacion);
+  const ultimo = vista.conversacion.at(-1);
+  const total = vista.conversacion.reduce(
+    (n, i) => n + (i.tipo === 'asistente' ? i.texto.length : 1),
+    0,
+  );
+  // Baja con la respuesta salvo que la persona esté leyendo más arriba.
+  useEffect(() => {
+    const c = caja.current;
+    if (c && c.scrollHeight - c.scrollTop - c.clientHeight < 240)
+      fin.current?.scrollIntoView({ block: 'end' });
+  }, [total]);
+  return (
+    <div ref={caja} className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        role="log"
+        aria-label="Conversación"
+        aria-busy={trabajando}
+        className="mx-auto w-full max-w-[720px] px-8 pt-4 pb-6 [&_.chat-notice]:rounded-[20px] [&_.chat-notice]:px-5"
+      >
+        {bloques.map((b, n) => {
+          if (b.tipo === 'actividad')
+            return (
+              <Actividad
+                key={b.items[0]!.id}
+                items={b.items}
+                enCurso={trabajando && n === bloques.length - 1}
+              />
+            );
+          const i = b.item;
+          if (i.tipo === 'usuario')
+            return (
+              <div key={i.id} className="my-6 flex flex-col items-end">
+                <p className="m-0 max-w-[85%] rounded-[20px] bg-muted px-4 py-3 text-base leading-relaxed whitespace-pre-wrap">
+                  {i.texto}
+                </p>
+                {i.protegidos > 0 && (
+                  <p
+                    className="mt-1.5 mb-0 flex items-center gap-1.5 text-sm text-muted-foreground"
+                    title="Se enviaron al asistente como marcadores: no ha visto los valores."
+                  >
+                    <Icono nombre="candado" size={16} />
+                    {i.protegidos === 1 ? '1 dato protegido' : `${i.protegidos} datos protegidos`}
+                  </p>
+                )}
+              </div>
+            );
+          if (i.tipo === 'asistente')
+            return (
+              <div key={i.id} className="my-4 text-[17px] leading-[1.6]">
+                <Response streaming={trabajando && i === ultimo}>{i.texto}</Response>
+              </div>
+            );
+          if (i.tipo === 'pregunta')
+            return <Pregunta key={i.id} tramite={vista.id} item={i} verNavegador={verNavegador} />;
+          if (i.tipo !== 'aviso') return null;
+          return (
+            <div key={i.id} className="my-4">
+              <Notice
+                tone={i.tono === 'error' ? 'error' : 'info'}
+                icon={<Icono nombre={i.tono === 'error' ? 'aviso' : 'info'} />}
+                role={i.tono === 'error' ? 'alert' : 'status'}
+                actions={
+                  i.continuar && i === ultimo && !trabajando ? (
+                    <Button
+                      variant="sunset"
+                      size="lg"
+                      onClick={() => void window.rd.enviar(vista.id, 'Continúa.')}
+                    >
+                      Continuar
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <p>{i.texto}</p>
+              </Notice>
+            </div>
+          );
+        })}
+        {trabajando &&
+          ultimo?.tipo !== 'actividad' &&
+          !(ultimo?.tipo === 'pregunta' && ultimo.estado === 'pendiente') && (
+            <Thinking label="Trabajando" />
+          )}
+        <div ref={fin} />
+      </div>
+    </div>
+  );
+}
+
+function PanelNavegador({ vista }: { vista: TramiteVista }) {
+  const hueco = useRef<HTMLDivElement>(null);
+  const nav = vista.navegador;
+  const hayVista = Boolean(nav?.url);
+  useLayoutEffect(() => {
+    const el = hueco.current;
+    if (!el || !hayVista) return;
+    const colocar = () => {
+      const r = el.getBoundingClientRect();
+      void window.rd.colocarNavegador(vista.id, {
+        x: r.left,
+        y: r.top,
+        width: r.width,
+        height: r.height,
+      });
+    };
+    colocar();
+    const ro = new ResizeObserver(colocar);
+    ro.observe(el);
+    // El hueco también se mueve sin cambiar de tamaño al redimensionar o ampliar la ventana.
+    window.addEventListener('resize', colocar);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', colocar);
+      void window.rd.colocarNavegador(vista.id, null);
+    };
+  }, [vista.id, hayVista]);
+  const ayuda = vista.conversacion.find(
+    (i) => i.tipo === 'pregunta' && i.estado === 'pendiente' && i.pregunta.tipo === 'ayuda',
+  );
+  const oficial = nav?.url ? Boolean(officialLevel(nav.url)) : false;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Atrás"
+          disabled={!nav?.puedeVolver}
+          onClick={() => void window.rd.navegar(vista.id, 'atras')}
+        >
+          <Icono nombre="atras" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Recargar"
+          disabled={!hayVista}
+          onClick={() => void window.rd.navegar(vista.id, 'recargar')}
+        >
+          <Icono nombre="recargar" />
+        </Button>
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm">
+          <Icono
+            nombre={oficial ? 'escudo' : 'web'}
+            size={16}
+            className={oficial ? 'shrink-0 text-[#05603A]' : 'shrink-0 text-muted-foreground'}
+          />
+          <span className="truncate">{nav?.url ? host(nav.url) : 'Sin página'}</span>
+          {nav?.url && (
+            <span className="ml-auto shrink-0 text-muted-foreground">
+              {oficial ? 'Web oficial' : 'No es una web oficial'}
+            </span>
+          )}
+        </div>
+      </div>
+      {ayuda && ayuda.tipo === 'pregunta' && ayuda.pregunta.tipo === 'ayuda' && (
+        <div className="flex items-center gap-3 bg-[var(--warning)] px-4 py-3 text-[15px] text-[var(--warning-foreground)]">
+          <Icono nombre="mano" className="shrink-0" />
+          <p className="m-0 flex-1">
+            <strong className="font-medium">Te toca a ti:</strong>{' '}
+            {ayuda.pregunta.ayuda.instrucciones}
+          </p>
+          <Button
+            variant="sunset"
+            size="lg"
+            onClick={() => void window.rd.responder(vista.id, ayuda.id, true)}
+          >
+            Ya está
+          </Button>
+        </div>
+      )}
+      {hayVista ? (
+        <div ref={hueco} className="min-h-0 flex-1 bg-background" />
+      ) : (
+        <div className="flex flex-1 items-center justify-center p-10 text-center text-[15px] leading-relaxed text-muted-foreground">
+          <p className="max-w-[40ch]">
+            El navegador se abre cuando el asistente visita una web oficial. Verás aquí todo lo que
+            hace y podrás tomar el control cuando quieras.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ListaFuentes({
+  vista,
+  abrir,
+}: {
+  vista: TramiteVista;
+  abrir: (f: FuenteAbierta) => void;
+}) {
+  if (!vista.fuentes.length)
+    return (
+      <p className="px-6 pt-4 text-[15px] text-muted-foreground">
+        Aún no hay fuentes. El asistente solo consulta webs de las administraciones.
+      </p>
+    );
+  return (
+    <ul className="m-0 space-y-1 px-3 pt-2 pb-8">
+      {vista.fuentes.map((f) => (
+        <li key={f.id} className="list-none">
+          <button
+            type="button"
+            onClick={() => abrir({ id: f.id })}
+            className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-muted"
+          >
+            <span className="mt-0.5 shrink-0 font-mono text-xs text-muted-foreground">{f.id}</span>
+            <span className="min-w-0">
+              <span className="block text-[15px] leading-snug">{f.titulo}</span>
+              <span className="block text-sm text-muted-foreground">
+                {f.organismo ?? host(f.url)} · {f.origen === 'pagina' ? 'leída entera' : 'extracto'}
+              </span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) {
+  const { tramites } = useEstado();
+  const vista = tramites[id];
+  const [panel, setPanel] = useState<Panel>('tarjeta');
+  const [fuente, setFuente] = useState<FuenteAbierta>(null);
+  useEffect(() => {
+    if (!vista) void cargarTramite(id);
+  }, [id, vista]);
+  // Mientras el asistente usa el navegador (o te pide que lo uses), se ve lo que pasa.
+  const ultimo = vista?.conversacion.at(-1);
+  const clave = ultimo ? `${ultimo.id}:${ultimo.tipo === 'actividad' ? ultimo.estado : ''}` : '';
+  const pideNavegador = Boolean(
+    ultimo &&
+    ((ultimo.tipo === 'actividad' &&
+      DE_NAVEGADOR.has(ultimo.herramienta) &&
+      ultimo.estado === 'inicio') ||
+      (ultimo.tipo === 'pregunta' &&
+        ultimo.estado === 'pendiente' &&
+        ultimo.pregunta.tipo === 'ayuda')),
+  );
+  // La vista del navegador se pinta encima de la interfaz: al mostrarla se cierra la hoja de fuente.
+  useEffect(() => {
+    if (!pideNavegador) return;
+    setPanel('navegador');
+    setFuente(null);
+  }, [clave, pideNavegador]);
+  if (!vista) return null;
+  const abrirEnTramite = (url: string) => {
+    setPanel('navegador');
+    void window.rd.abrirEnTramite(vista.id, url);
+  };
+  const trabajando = vista.ejecucion === 'trabajando';
+  // Mientras espera una respuesta tampoco acepta mensajes nuevos, pero se puede detener.
+  const ocupado = vista.ejecucion !== 'inactivo';
+  return (
+    <div className="flex h-full min-h-0">
+      <section
+        className={cn(
+          'flex min-w-0 flex-col',
+          panel === 'navegador' ? 'w-[400px] shrink-0' : 'flex-1',
+        )}
+        aria-label="Conversación"
+      >
+        <header className="arrastrar flex h-[52px] shrink-0 items-center gap-3 border-b border-border px-6">
+          <h1 className="m-0 truncate text-[15px] font-medium">{vista.titulo}</h1>
+          <span className="shrink-0 text-sm text-muted-foreground">
+            {ETIQUETA_ESTADO[vista.estado]}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-auto"
+            aria-label="Borrar este trámite"
+            onClick={() => {
+              if (
+                confirm(
+                  '¿Borrar este trámite? Se borran la conversación, la tarjeta y la sesión del navegador. Los documentos descargados se quedan en tu carpeta de Descargas.',
+                )
+              )
+                void window.rd.borrarTramite(vista.id).then(alBorrar);
+            }}
+          >
+            <Icono nombre="papelera" />
+          </Button>
+        </header>
+        <Conversacion vista={vista} verNavegador={() => setPanel('navegador')} />
+        <div className="mx-auto w-full max-w-[720px] px-8 pb-6">
+          <Compositor
+            placeholder={
+              trabajando
+                ? 'El asistente está trabajando…'
+                : ocupado
+                  ? 'Responde a la pregunta del asistente'
+                  : 'Escribe al asistente'
+            }
+            ocupado={ocupado}
+            alEnviar={(t) => window.rd.enviar(vista.id, t)}
+            alDetener={() => void window.rd.detener(vista.id)}
+          />
+        </div>
+      </section>
+      <aside
+        aria-label="Detalles del trámite"
+        className={cn(
+          'flex flex-col border-l border-border bg-[#fcfcfc]',
+          panel === 'navegador' ? 'min-w-0 flex-1' : 'w-[420px] shrink-0',
+        )}
+      >
+        <div className="arrastrar flex h-[52px] shrink-0 items-center px-4">
+          <Tabs
+            value={panel}
+            onValueChange={(v) => {
+              if (v === 'tarjeta' || v === 'navegador' || v === 'fuentes') setPanel(v);
+            }}
+          >
+            <TabsList>
+              <TabsTrigger value="tarjeta">Tarjeta</TabsTrigger>
+              <TabsTrigger value="navegador">Navegador</TabsTrigger>
+              <TabsTrigger value="fuentes">
+                Fuentes{vista.fuentes.length ? ` (${vista.fuentes.length})` : ''}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        {panel === 'tarjeta' && (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <PanelTarjeta vista={vista} abrirFuente={setFuente} abrirEnTramite={abrirEnTramite} />
+          </div>
+        )}
+        {panel === 'navegador' && <PanelNavegador vista={vista} />}
+        {panel === 'fuentes' && (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <ListaFuentes vista={vista} abrir={setFuente} />
+          </div>
+        )}
+      </aside>
+      <HojaFuente
+        vista={vista}
+        abierta={fuente}
+        cerrar={() => setFuente(null)}
+        abrirEnTramite={abrirEnTramite}
+      />
+    </div>
+  );
+}

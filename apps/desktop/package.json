@@ -1,0 +1,25 @@
+{
+  "name": "@reforma-digital/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reforma Digital para Mac: asistente de tr\u00e1mites con fuentes oficiales verificadas",
+  "author": "Reforma Digital",
+  "license": "MIT",
+  "main": "out/main.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && electron .",
+    "package": "node scripts/build.mjs && electron-builder --mac --dir --config electron-builder.json",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@reforma-digital/agent": "workspace:*",
+    "@reforma-digital/design": "workspace:*",
+    "@reforma-digital/government": "workspace:*",
+    "electron": "44.7.0",
+    "electron-builder": "26.17.0",
+    "nucleo-ui-essential-outline-18": "^1.1.8",
+    "zod": "^4.1.0"
+  }
+}

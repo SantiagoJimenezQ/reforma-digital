@@ -87,6 +87,7 @@ CAPTCHA, audio, contraseñas, certificados, firmas y archivos se mantienen como 
 | ------------------------------------ | ------------------------------------------------------------------------------------------- |
 | [`apps/web`](apps/web)               | Web pública, buscador, API y laboratorio de evaluaciones con Next.js.                       |
 | [`apps/extension`](apps/extension)   | Extensión de Chrome Manifest V3 y popup.                                                    |
+| [`apps/desktop`](apps/desktop)       | App para Mac con el asistente de trámites. Ver [docs/desktop.md](docs/desktop.md).          |
 | [`apps/playground`](apps/playground) | Laboratorio local para trabajar con datos ficticios.                                        |
 | [`sites`](sites)                     | Adaptaciones por portal, con configuración, pantallas, fixtures y pruebas.                  |
 | [`packages`](packages)               | Conexiones al DOM, componentes React, diseño, registro, runtime y capacidades del buscador. |

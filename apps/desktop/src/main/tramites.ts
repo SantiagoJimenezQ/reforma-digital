@@ -1,0 +1,488 @@
+import { randomUUID } from 'node:crypto';
+import path from 'node:path';
+import { app, Notification, session, type BrowserWindow } from 'electron';
+import {
+  crearProveedor,
+  ejecutarTurno,
+  LIMITES,
+  estadoInicial,
+  Privacidad,
+  type Anfitrion,
+  type ConfigProveedor,
+  type EstadoAgente,
+  type EventoAgente,
+  type Perfil,
+} from '@reforma-digital/agent';
+import type {
+  Descarga,
+  EventoApp,
+  ItemConversacion,
+  Pregunta,
+  Razonamiento,
+  Rect,
+  ResumenTramite,
+  TramiteVista,
+} from '../shared/api';
+import type { Almacen } from './almacen';
+import { interfacesComunitarias, leerConNavegador, NavegadorTramite, particion } from './navegador';
+
+type Registro = {
+  id: string;
+  actualizado: string;
+  estado: EstadoAgente;
+  conversacion: ItemConversacion[];
+  descargas: Descarga[];
+};
+
+export type Entorno = {
+  perfil(): Perfil;
+  guardarPerfil(valores: Perfil): Promise<void>;
+  /** Configuración del proveedor, o `null` si falta la clave. */
+  proveedor(): {
+    cfg: ConfigProveedor;
+    razonamiento: Razonamiento;
+    limiteTurnoUsd: number;
+  } | null;
+  /** Touch ID para aprobar envíos; `true` si no está disponible o desactivado. */
+  verificarIdentidad(motivo: string): Promise<boolean>;
+  /** Ruta de la extensión si la persona ha activado las interfaces comunitarias. */
+  extension(): string | null;
+  ventana(): BrowserWindow | null;
+  emitir(e: EventoApp): void;
+  alCambiarLista(): void;
+};
+
+/** Lo que queda en el historial de cada pregunta, sin valores. */
+const RESULTADOS: Record<Pregunta['tipo'], [string, string]> = {
+  formulario: ['Respondido', 'Sin responder'],
+  confirmacion: ['Aprobado', 'No aprobado'],
+  ayuda: ['Hecho', 'No has podido'],
+};
+
+type Espera = {
+  tramite: string;
+  resolver: (respuesta: Record<string, string> | boolean | null) => void;
+};
+
+const archivo = (id: string) => `tramite-${id}.bin`;
+const ahora = () => new Date().toISOString();
+
+export class Tramites {
+  private registros = new Map<string, Registro>();
+  private ejecuciones = new Map<string, AbortController>();
+  private esperas = new Map<string, Espera>();
+  private navegadores = new Map<string, NavegadorTramite>();
+  private pendienteEmitir = new Set<string>();
+  /** Última escritura de cada trámite: se encadenan para que una antigua no pise a otra nueva. */
+  private escrituras = new Map<string, Promise<void>>();
+  private temporizador: NodeJS.Timeout | null = null;
+
+  constructor(
+    private almacen: Almacen,
+    private entorno: Entorno,
+  ) {}
+
+  async cargar() {
+    for (const f of await this.almacen.lista('tramite-')) {
+      const r = await this.almacen.leer<Registro>(f).catch(() => undefined);
+      if (!r) continue;
+      // Lo que esperaba respuesta cuando se cerró la app ya no tiene a nadie esperando.
+      r.conversacion = r.conversacion.map((i) =>
+        i.tipo === 'pregunta' && i.estado === 'pendiente'
+          ? { ...i, estado: 'cancelada', resultado: 'Se cerró la app' }
+          : i,
+      );
+      // Un turno que no terminó (la app se cerró mientras trabajaba) se puede retomar.
+      const ultimo = r.conversacion.at(-1);
+      if (ultimo && ultimo.tipo !== 'asistente' && ultimo.tipo !== 'aviso')
+        r.conversacion.push({
+          tipo: 'aviso',
+          id: randomUUID(),
+          tono: 'info',
+          texto:
+            'La app se cerró mientras el asistente trabajaba. Pulsa «Continuar» para retomarlo donde lo dejó.',
+          continuar: true,
+        });
+      this.registros.set(r.id, r);
+    }
+  }
+
+  lista(): ResumenTramite[] {
+    return [...this.registros.values()]
+      .map((r) => this.resumen(r))
+      .sort((a, b) => b.actualizado.localeCompare(a.actualizado));
+  }
+
+  private resumen(r: Registro): ResumenTramite {
+    const esperando = [...this.esperas.values()].some((e) => e.tramite === r.id);
+    return {
+      id: r.id,
+      titulo: r.estado.tarjeta.titulo,
+      ...(r.estado.tarjeta.organismo ? { organismo: r.estado.tarjeta.organismo } : {}),
+      estado: r.estado.tarjeta.estado,
+      ejecucion: esperando ? 'esperando' : this.ejecuciones.has(r.id) ? 'trabajando' : 'inactivo',
+      actualizado: r.actualizado,
+      costeUsd: r.estado.uso.costeUsd,
+    };
+  }
+
+  vista(id: string): TramiteVista | null {
+    const r = this.registros.get(id);
+    if (!r) return null;
+    const nav = this.navegadores.get(id);
+    return {
+      ...this.resumen(r),
+      tarjeta: r.estado.tarjeta,
+      // La vista solo enseña el principio del texto; el completo se queda en el proceso principal.
+      fuentes: r.estado.fuentes.map((f) => ({
+        ...f,
+        texto: f.texto.length > 700 ? `${f.texto.slice(0, 700)}…` : f.texto,
+      })),
+      conversacion: r.conversacion,
+      uso: r.estado.uso,
+      descargas: r.descargas,
+      navegador: nav
+        ? {
+            url: nav.url(),
+            puedeVolver: nav.webContents.navigationHistory.canGoBack(),
+          }
+        : null,
+    };
+  }
+
+  /** Agrupa los cambios rápidos (texto que llega a trozos) en un aviso cada 60 ms. */
+  private cambio(id: string) {
+    this.pendienteEmitir.add(id);
+    if (this.temporizador) return;
+    this.temporizador = setTimeout(() => {
+      this.temporizador = null;
+      for (const t of this.pendienteEmitir) {
+        const v = this.vista(t);
+        if (v) this.entorno.emitir({ tipo: 'tramite', vista: v });
+      }
+      this.pendienteEmitir.clear();
+      this.entorno.alCambiarLista();
+    }, 60);
+  }
+
+  private guardar(r: Registro) {
+    r.actualizado = ahora();
+    const escritura = (this.escrituras.get(r.id) ?? Promise.resolve())
+      .catch(() => undefined)
+      // Un turno que sigue después de borrar el trámite no debe volver a escribirlo en disco.
+      .then(() =>
+        this.registros.get(r.id) === r ? this.almacen.escribir(archivo(r.id), r) : undefined,
+      );
+    this.escrituras.set(r.id, escritura);
+    return escritura;
+  }
+
+  async crear(texto: string): Promise<string> {
+    const id = randomUUID();
+    const titulo = texto.replace(/\s+/g, ' ').trim().slice(0, 60) || 'Nuevo trámite';
+    const r: Registro = {
+      id,
+      actualizado: ahora(),
+      estado: estadoInicial(titulo),
+      conversacion: [],
+      descargas: [],
+    };
+    this.registros.set(id, r);
+    await this.guardar(r);
+    await this.enviar(id, texto);
+    return id;
+  }
+
+  async enviar(id: string, texto: string) {
+    const r = this.registros.get(id);
+    if (!r) throw new Error('Trámite no encontrado');
+    if (this.ejecuciones.has(id)) throw new Error('El asistente sigue trabajando en este trámite');
+    const config = this.entorno.proveedor();
+    const p = new Privacidad(this.entorno.perfil());
+    p.limpiar(texto, { usuario: true });
+    const protegidos = Object.values(p.registro).reduce((a, b) => a + b, 0);
+    r.conversacion.push({ tipo: 'usuario', id: randomUUID(), texto, protegidos });
+    if (!config) {
+      r.conversacion.push({
+        tipo: 'aviso',
+        id: randomUUID(),
+        tono: 'error',
+        texto: 'Conecta un proveedor de IA en Ajustes para empezar.',
+      });
+      await this.guardar(r);
+      this.cambio(id);
+      return;
+    }
+    const control = new AbortController();
+    this.ejecuciones.set(id, control);
+    this.cambio(id);
+    void this.ejecutar(r, texto, config, control)
+      .catch(async (e: unknown) => {
+        r.conversacion.push({
+          tipo: 'aviso',
+          id: randomUUID(),
+          tono: 'error',
+          texto: `No se ha podido guardar el trámite: ${e instanceof Error ? e.message : String(e)}`,
+        });
+        await this.guardar(r).catch(() => undefined);
+      })
+      .finally(() => {
+        this.ejecuciones.delete(id);
+        this.cambio(id);
+      });
+  }
+
+  private preguntar(r: Registro, pregunta: Pregunta, signal: AbortSignal) {
+    const id = randomUUID();
+    const item: Extract<ItemConversacion, { tipo: 'pregunta' }> = {
+      tipo: 'pregunta',
+      id,
+      pregunta,
+      estado: 'pendiente',
+    };
+    r.conversacion.push(item);
+    this.cambio(r.id);
+    this.avisar(r, pregunta);
+    return new Promise<Record<string, string> | boolean | null>((resolver, rechazar) => {
+      const terminar = () => {
+        this.esperas.delete(id);
+        this.actualizarInsignia();
+      };
+      this.esperas.set(id, {
+        tramite: r.id,
+        resolver: (v) => {
+          terminar();
+          resolver(v);
+        },
+      });
+      this.actualizarInsignia();
+      signal.addEventListener(
+        'abort',
+        () => {
+          if (!this.esperas.has(id)) return;
+          terminar();
+          Object.assign(item, { estado: 'cancelada', resultado: 'Cancelada' });
+          rechazar(signal.reason);
+        },
+        { once: true },
+      );
+    });
+  }
+
+  /** La respuesta de la persona a una pregunta pendiente; `false` si sigue pendiente. */
+  async responder(
+    tramite: string,
+    preguntaId: string,
+    respuesta: Record<string, string> | boolean | null,
+  ) {
+    const espera = this.esperas.get(preguntaId);
+    const r = this.registros.get(tramite);
+    const item = r?.conversacion.find((i) => i.id === preguntaId);
+    if (!espera || espera.tramite !== tramite || !r || item?.tipo !== 'pregunta') return true;
+    // Si Touch ID se cancela o falla, la pregunta sigue pendiente: no es lo mismo que decir que no.
+    if (
+      item.pregunta.tipo === 'confirmacion' &&
+      respuesta === true &&
+      item.pregunta.confirmacion.tipo !== 'abrir_web' &&
+      !(await this.entorno.verificarIdentidad(item.pregunta.confirmacion.accion))
+    )
+      return false;
+    // Mientras Touch ID esperaba, el turno se ha podido detener o la pregunta responder.
+    if (this.esperas.get(preguntaId) !== espera || item.estado !== 'pendiente') return true;
+    const [si, no] = RESULTADOS[item.pregunta.tipo];
+    Object.assign(item, { estado: 'respondida', resultado: respuesta ? si : no });
+    espera.resolver(respuesta);
+    this.cambio(tramite);
+    return true;
+  }
+
+  private avisar(r: Registro, p: Pregunta) {
+    this.notificar(
+      r,
+      p.tipo === 'formulario'
+        ? p.formulario.titulo
+        : p.tipo === 'confirmacion'
+          ? `Pide tu permiso: ${p.confirmacion.accion}`
+          : p.ayuda.instrucciones,
+    );
+  }
+
+  /** Notificación del sistema solo si la ventana no está delante; al pulsarla, la trae. */
+  private notificar(r: Registro, cuerpo: string) {
+    const ventana = this.entorno.ventana();
+    if (ventana?.isFocused() || !Notification.isSupported()) return;
+    const n = new Notification({ title: r.estado.tarjeta.titulo, body: cuerpo });
+    n.on('click', () => {
+      ventana?.show();
+      ventana?.focus();
+    });
+    n.show();
+  }
+
+  private cargarExtension(nav: NavegadorTramite) {
+    return interfacesComunitarias(nav.webContents.session, this.entorno.extension()).catch(
+      () => undefined,
+    );
+  }
+
+  private actualizarInsignia() {
+    app.dock?.setBadge(this.esperas.size ? String(this.esperas.size) : '');
+  }
+
+  navegador(id: string): NavegadorTramite {
+    let nav = this.navegadores.get(id);
+    if (!nav) {
+      const r = this.registros.get(id);
+      nav = new NavegadorTramite(id, {
+        ventana: () => this.entorno.ventana(),
+        carpetaDescargas: () =>
+          path.join(
+            app.getPath('downloads'),
+            'Reforma Digital',
+            (r?.estado.tarjeta.titulo ?? id).replace(/[/\\:]/g, '-').slice(0, 60),
+          ),
+        alCambiar: () => this.cambio(id),
+        alDescargar: (d) => {
+          r?.descargas.push(d);
+          if (r) void this.guardar(r).catch((e: unknown) => console.error(e));
+          this.cambio(id);
+        },
+      });
+      this.navegadores.set(id, nav);
+      void this.cargarExtension(nav);
+    }
+    return nav;
+  }
+
+  colocarNavegador(id: string, rect: Rect | null) {
+    const ventana = this.entorno.ventana();
+    for (const [otro, nav] of this.navegadores)
+      if (otro !== id && ventana) nav.colocar(ventana, null);
+    if (!ventana) return;
+    if (rect) this.navegador(id).colocar(ventana, rect);
+    else this.navegadores.get(id)?.colocar(ventana, null);
+    this.cambio(id);
+  }
+
+  private async ejecutar(
+    r: Registro,
+    texto: string,
+    config: NonNullable<ReturnType<Entorno['proveedor']>>,
+    control: AbortController,
+  ) {
+    let actual: Extract<ItemConversacion, { tipo: 'asistente' }> | null = null;
+    const anfitrion: Anfitrion = {
+      perfil: () => this.entorno.perfil(),
+      guardarPerfil: (v) => this.entorno.guardarPerfil(v),
+      preguntar: async (formulario, signal) => {
+        const v = await this.preguntar(r, { tipo: 'formulario', formulario }, signal);
+        return v && typeof v === 'object' ? v : null;
+      },
+      confirmar: async (confirmacion, signal) =>
+        (await this.preguntar(r, { tipo: 'confirmacion', confirmacion }, signal)) === true,
+      pedirAyuda: async (ayuda, signal) => {
+        const v = await this.preguntar(r, { tipo: 'ayuda', ayuda }, signal);
+        return { hecho: v === true };
+      },
+      navegador: async () => this.navegador(r.id),
+      leerConNavegador,
+    };
+    const evento = (e: EventoAgente) => {
+      if (e.tipo === 'texto') {
+        if (!actual) {
+          actual = { tipo: 'asistente', id: randomUUID(), texto: '' };
+          r.conversacion.push(actual);
+        }
+        actual.texto += e.delta;
+      } else if (e.tipo === 'actividad') {
+        actual = null;
+        const previo = r.conversacion.find((i) => i.tipo === 'actividad' && i.id === e.id);
+        const item: ItemConversacion = {
+          tipo: 'actividad',
+          id: e.id,
+          herramienta: e.herramienta,
+          resumen: e.resumen,
+          estado: e.estado,
+          ...(e.detalle ? { detalle: e.detalle } : {}),
+        };
+        if (previo) Object.assign(previo, item);
+        else r.conversacion.push(item);
+      } else if (e.tipo === 'tarjeta') r.estado.tarjeta = e.tarjeta;
+      else if (e.tipo === 'fuentes') r.estado.fuentes = e.fuentes;
+      else if (e.tipo === 'uso') r.estado.uso = e.uso;
+      this.cambio(r.id);
+    };
+    const resultado = await ejecutarTurno({
+      proveedor: (guarda) => crearProveedor(config.cfg, guarda),
+      anfitrion,
+      estado: r.estado,
+      texto,
+      evento,
+      guardar: async (estado) => {
+        r.estado = estado;
+        await this.guardar(r);
+      },
+      signal: control.signal,
+      limites: { ...LIMITES, costeUsd: config.limiteTurnoUsd },
+      razonamiento: config.razonamiento,
+    });
+    r.estado = resultado.estado;
+    const aviso = {
+      limite_pasos:
+        'He dado muchos pasos seguidos y me he parado para que lo revises. Pulsa «Continuar» si quieres que siga.',
+      limite_coste:
+        'He llegado al límite de gasto de este turno. Pulsa «Continuar» si quieres que siga.',
+      cancelado: 'Has detenido al asistente.',
+      error: resultado.error ?? 'Ha ocurrido un error.',
+      respondido: '',
+    }[resultado.fin];
+    if (aviso)
+      r.conversacion.push({
+        tipo: 'aviso',
+        id: randomUUID(),
+        tono: resultado.fin === 'error' ? 'error' : 'info',
+        texto: aviso,
+        ...(resultado.fin === 'limite_pasos' || resultado.fin === 'limite_coste'
+          ? { continuar: true }
+          : {}),
+      });
+    await this.guardar(r);
+    if (resultado.fin === 'respondido')
+      this.notificar(r, 'El asistente ha terminado. Revisa la respuesta.');
+  }
+
+  detener(id: string) {
+    this.ejecuciones.get(id)?.abort(new Error('Detenido por la persona'));
+  }
+
+  async borrar(id: string) {
+    // Primero sale del registro: desde aquí ninguna escritura nueva lo vuelve a guardar.
+    this.registros.delete(id);
+    this.detener(id);
+    const nav = this.navegadores.get(id);
+    this.navegadores.delete(id);
+    await nav?.cerrar();
+    await session.fromPartition(particion(id)).clearStorageData();
+    await this.escrituras.get(id)?.catch(() => undefined);
+    this.escrituras.delete(id);
+    await this.almacen.borrar(archivo(id));
+    this.entorno.alCambiarLista();
+  }
+
+  /** Aplica el ajuste de interfaces comunitarias a los navegadores ya abiertos. */
+  async aplicarExtension() {
+    for (const nav of this.navegadores.values()) await this.cargarExtension(nav);
+  }
+
+  registro(id: string) {
+    return this.registros.get(id);
+  }
+
+  async borrarTodo() {
+    for (const id of [...this.registros.keys()]) await this.borrar(id);
+  }
+
+  detenerTodo() {
+    for (const c of this.ejecuciones.values()) c.abort(new Error('La app se cierra'));
+  }
+}

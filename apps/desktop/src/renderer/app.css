@@ -1,0 +1,19 @@
+/* Ajustes de la ventana de macOS: zonas para arrastrar la ventana. */
+html,
+body,
+#raiz {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-brand-text);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+.arrastrar {
+  -webkit-app-region: drag;
+}
+.arrastrar :is(button, a, input, select, textarea, [role='tab']) {
+  -webkit-app-region: no-drag;
+}

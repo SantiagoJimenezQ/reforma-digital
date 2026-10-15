@@ -1,0 +1,31 @@
+{
+  "appId": "es.reformadigital.mac",
+  "productName": "Reforma Digital",
+  "copyright": "Reforma Digital \u00b7 C\u00f3digo abierto con licencia MIT",
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
+  },
+  "files": ["out/**", "package.json", "!node_modules/**"],
+  "npmRebuild": false,
+  "electronLanguages": ["es", "en"],
+  "mac": {
+    "category": "public.app-category.productivity",
+    "icon": "build/icon.png",
+    "identity": "-",
+    "hardenedRuntime": false,
+    "extendInfo": {
+      "NSHumanReadableCopyright": "Reforma Digital \u00b7 Proyecto independiente, sin vinculaci\u00f3n con la Administraci\u00f3n"
+    }
+  },
+  "electronFuses": {
+    "runAsNode": false,
+    "enableCookieEncryption": true,
+    "enableNodeOptionsEnvironmentVariable": false,
+    "enableNodeCliInspectArguments": false,
+    "enableEmbeddedAsarIntegrityValidation": true,
+    "onlyLoadAppFromAsar": true,
+    "grantFileProtocolExtraPrivileges": false
+  },
+  "asarUnpack": ["out/extension/**"]
+}

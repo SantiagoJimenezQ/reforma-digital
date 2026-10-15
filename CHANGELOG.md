@@ -2,6 +2,10 @@
 
 ## 0.1.0 · En desarrollo
 
+- App para Mac (`apps/desktop`, experimental): un asistente investiga el trámite en webs oficiales, lo resume en una tarjeta con cada dato citado literalmente y verificado, y lo hace en la sede con un navegador integrado. Los identificadores de la persona no llegan al modelo; los envíos, pagos y firmas necesitan su aprobación; todo se guarda cifrado. Ver [docs/desktop.md](docs/desktop.md).
+- `packages/agent`: el agente, sus herramientas y garantías, reutilizable fuera de Electron. `pnpm eval:agent` lo evalúa en una sede ficticia y con casos del dataset del buscador.
+- `packages/government/src/domains.ts`: sufijos de dominio de las administraciones públicas españolas.
+
 - El chat sustituye datos personales en el navegador con Rampart antes de enviar la consulta, y no la envía si esa protección falla.
 - Monorepo con una extensión Chrome, laboratorio local y paquetes comunes.
 - Subproyectos por portal, con pantallas y conexiones organizadas por carpeta.
