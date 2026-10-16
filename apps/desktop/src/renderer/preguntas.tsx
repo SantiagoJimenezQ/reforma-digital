@@ -92,7 +92,11 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   const faltan = f.campos.filter((c) => c.obligatorio !== false && !valores[c.clave]?.trim());
   const fijar = (clave: string, v: string) => setValores((x) => ({ ...x, [clave]: v }));
   return (
-    <Tarjeta icono="documento" eyebrow="El asistente necesita unos datos" titulo={f.titulo}>
+    <Tarjeta
+      icono="documento"
+      eyebrow={f.accion ? 'El asistente puede hacerlo por ti' : 'El asistente necesita unos datos'}
+      titulo={f.titulo}
+    >
       {f.explicacion && (
         <p className="mt-0 mb-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
           {f.explicacion}
@@ -166,7 +170,7 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
         })}
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <Button type="submit" variant="sunset" size="lg" disabled={enviando || faltan.length > 0}>
-            Enviar respuestas
+            {f.accion ?? 'Enviar respuestas'}
           </Button>
           <Button
             type="button"

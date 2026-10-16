@@ -159,10 +159,12 @@ const uso = {
 /** Cada paso decide qué hace a la vista del prompt; los prompts recibidos quedan registrados. */
 function modeloGuionado(pasos: ((prompt: Prompt) => Paso)[]) {
   const prompts: Prompt[] = [];
+  const elecciones: unknown[] = [];
   let i = 0;
   const model = new MockLanguageModelV4({
-    doStream: async ({ prompt }) => {
+    doStream: async ({ prompt, toolChoice }) => {
       prompts.push(prompt);
+      elecciones.push(toolChoice);
       const paso = (pasos[Math.min(i++, pasos.length - 1)] ?? (() => ({ texto: 'fin' })))(prompt);
       const chunks: Parte[] =
         'texto' in paso
@@ -192,7 +194,7 @@ function modeloGuionado(pasos: ((prompt: Prompt) => Paso)[]) {
       return { stream: simulateReadableStream({ chunks }) };
     },
   });
-  return { model, prompts };
+  return { model, prompts, elecciones };
 }
 
 const proveedorDe = (model: MockLanguageModelV4): Proveedor => ({
@@ -795,6 +797,39 @@ describe('datos que no están en Mis datos', () => {
     expect(texto).not.toContain('2027');
     expect(texto).toContain('caduca en 4 meses');
     expect(texto).toContain('Madrid');
+  });
+});
+
+describe('formularios', () => {
+  it('si anuncia un formulario y no lo pone, tiene un paso más en el que solo puede ponerlo', async () => {
+    const pedido: string[] = [];
+    const a = {
+      ...anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
+      preguntar: async (f: { accion?: string }) => {
+        pedido.push(f.accion ?? '');
+        return {};
+      },
+    };
+    const { model, elecciones } = modeloGuionado([
+      () => ({ texto: 'Puedo pedirte la cita. Dime esto en el formulario:' }),
+      () => ({
+        llamadas: [
+          {
+            herramienta: 'preguntar',
+            entrada: {
+              titulo: 'Tu cita',
+              accion: 'Pedir la cita',
+              campos: [{ clave: 'documento_soporte', etiqueta: 'Soporte', tipo: 'texto' }],
+            },
+          },
+        ],
+      }),
+      () => ({ texto: 'Gracias, voy a por ella.' }),
+    ]);
+    const r = await turno(model, a, 'Renueva mi DNI');
+    expect(r.fin).toBe('respondido');
+    expect(elecciones[1]).toEqual({ type: 'tool', toolName: 'preguntar' });
+    expect(pedido).toEqual(['Pedir la cita']);
   });
 });
 

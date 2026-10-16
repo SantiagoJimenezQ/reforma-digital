@@ -394,19 +394,31 @@ export class Tramites {
     control: AbortController,
   ) {
     let actual: Extract<ItemConversacion, { tipo: 'asistente' }> | null = null;
-    // Las fuentes del turno van debajo de su última respuesta: las consultadas desde que empezó.
+    // Las fuentes van debajo de la respuesta a la que sirvieron: las consultadas desde la anterior.
+    // Se ponen al terminar el turno y antes de cada pregunta, para que se vean mientras espera.
     const respuestas: Extract<ItemConversacion, { tipo: 'asistente' }>[] = [];
-    const inicio = ahora();
+    let desde = ahora();
+    const marcarFuentes = () => {
+      const ultima = respuestas.at(-1);
+      const usadas = r.estado.fuentes.filter((f) => f.consultada >= desde).map((f) => f.id);
+      if (!ultima || !usadas.length) return;
+      ultima.fuentes = [...new Set([...(ultima.fuentes ?? []), ...usadas])];
+      desde = ahora();
+    };
     const anfitrion: Anfitrion = {
       perfil: () => this.entorno.perfil(),
       guardarPerfil: (v) => this.entorno.guardarPerfil(v),
       preguntar: async (formulario, signal) => {
+        marcarFuentes();
         const v = await this.preguntar(r, { tipo: 'formulario', formulario }, signal);
         return v && typeof v === 'object' ? v : null;
       },
-      confirmar: async (confirmacion, signal) =>
-        (await this.preguntar(r, { tipo: 'confirmacion', confirmacion }, signal)) === true,
+      confirmar: async (confirmacion, signal) => {
+        marcarFuentes();
+        return (await this.preguntar(r, { tipo: 'confirmacion', confirmacion }, signal)) === true;
+      },
       pedirAyuda: async (ayuda, signal) => {
+        marcarFuentes();
         const v = await this.preguntar(r, { tipo: 'ayuda', ayuda }, signal);
         return { hecho: v === true };
       },
@@ -473,9 +485,7 @@ export class Tramites {
       razonamiento: config.razonamiento,
     });
     r.estado = resultado.estado;
-    const usadas = r.estado.fuentes.filter((f) => f.consultada >= inicio).map((f) => f.id);
-    const ultima = respuestas.at(-1);
-    if (ultima && usadas.length) ultima.fuentes = usadas;
+    marcarFuentes();
     const aviso = {
       limite_pasos:
         'He dado muchos pasos seguidos y me he parado para que lo revises. Pulsa «Continuar» si quieres que siga.',

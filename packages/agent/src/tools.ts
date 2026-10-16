@@ -56,6 +56,14 @@ const campoEntrada = z.object({
 const formularioEntrada = z.object({
   titulo: z.string().min(3).max(90),
   explicacion: z.string().max(300).optional(),
+  accion: z
+    .string()
+    .min(2)
+    .max(40)
+    .optional()
+    .describe(
+      'Si el formulario es para hacer el trámite, el botón que lo pone en marcha: «Pedir la cita»',
+    ),
   campos: z.array(campoEntrada).min(1).max(12),
 });
 const confirmacionEntrada = z.object({

@@ -61,6 +61,10 @@ const HERRAMIENTAS_DE_PAGINA = new Set([
   'pedir_ayuda',
 ]);
 
+/** El final de una respuesta que ofrece hacer el trámite o pide algo a la persona. */
+const OFRECE =
+  /formulario|[?:]$|(puedo|podría) (ayudarte|hacerlo|pedir|solicitar|tramitar|reservar)|quieres que (te )?(lo |la )?(haga|ayude|pida|solicite|tramite|reserve)/i;
+
 /** Herramientas cuyo resultado sale de la página del trámite: pasan por el detector. */
 const CON_DATOS = new Set([...HERRAMIENTAS_DE_PAGINA, 'leer_texto']);
 
@@ -316,6 +320,10 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
           },
         ]
       : mensajes;
+  // El modelo a veces termina ofreciendo hacer el trámite o pidiendo datos en el texto («Puedo
+  // pedirte la cita; dime esto en el formulario:») sin llamar a preguntar, y la persona no ve
+  // ningún formulario. Entonces tiene un paso más en el que solo puede llamar a preguntar.
+  let forzarPregunta = false;
   try {
     for (let paso = 0; ; paso++) {
       if (paso >= limites.pasos) return { estado, fin: 'limite_pasos' };
@@ -333,13 +341,18 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
           : INSTRUCCIONES,
         messages: conCache(compactar(estado.mensajes)),
         tools,
+        ...(forzarPregunta ? { toolChoice: { type: 'tool' as const, toolName: 'preguntar' } } : {}),
         abortSignal: signal,
         maxRetries: 2,
         timeout: { firstChunkMs: 120000, chunkMs: 90000 },
         ...(o.razonamiento ? { reasoning: o.razonamiento } : {}),
       });
+      let texto = '';
       for await (const parte of r.fullStream) {
-        if (parte.type === 'text-delta') o.evento({ tipo: 'texto', delta: parte.text });
+        if (parte.type === 'text-delta') {
+          texto += parte.text;
+          o.evento({ tipo: 'texto', delta: parte.text });
+        }
         if (parte.type === 'error') throw parte.error;
       }
       const [mensajes, uso, metadatos, fin] = await Promise.all([
@@ -360,7 +373,9 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
       sincronizar();
       o.evento({ tipo: 'uso', uso: { ...estado.uso } });
       await o.guardar?.(estado);
-      if (fin !== 'tool-calls') return { estado, fin: 'respondido' };
+      if (fin === 'tool-calls') forzarPregunta = false;
+      else if (!forzarPregunta && OFRECE.test(texto.trim().slice(-300))) forzarPregunta = true;
+      else return { estado, fin: 'respondido' };
     }
   } catch (e) {
     sincronizar();
