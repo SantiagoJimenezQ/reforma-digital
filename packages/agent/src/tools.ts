@@ -4,6 +4,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { officialLevel } from '@reforma-digital/government/domains';
 import { aplicarParche, parcheTarjeta, verificarRespaldo, type Tarjeta } from './card';
+import type { Detector, OrigenTexto } from './detector';
 import { FetchError, leerPaginaOficial } from './fetch';
 import type { Proveedor } from './models';
 import {
@@ -20,8 +21,11 @@ import {
 } from './page';
 import {
   campoPerfil,
+  claveDeDato,
+  DETECTADO,
   esIdentificador,
   normalizarCampo,
+  normalizarValor,
   perfilParaModelo,
   Privacidad,
   validarCampo,
@@ -46,7 +50,9 @@ const campoEntrada = z.object({
   privado: z
     .boolean()
     .optional()
-    .describe('false si necesitas leer la respuesta (una explicación, una preferencia)'),
+    .describe(
+      'false si necesitas leer la respuesta: solo vale en si_no, opcion, numero y texto_largo',
+    ),
 });
 const formularioEntrada = z.object({
   titulo: z.string().min(3).max(90),
@@ -129,13 +135,22 @@ export type EventoAgente =
   | { tipo: 'tarjeta'; tarjeta: Tarjeta }
   | { tipo: 'fuentes'; fuentes: Fuente[] }
   | { tipo: 'uso'; uso: Uso }
-  | { tipo: 'privacidad'; filtrados: number };
+  | { tipo: 'privacidad'; filtrados: number }
+  /** Datos ocultos al modelo en el mensaje de la persona. */
+  | { tipo: 'protegidos'; cantidad: number };
 
 export type Contexto = {
   anfitrion: Anfitrion;
   proveedor: Proveedor;
   fuentes: Fuentes;
   privacidad: Privacidad;
+  /** Detector local de datos personales que no están en «Mis datos». */
+  detector: Detector;
+  /**
+   * Lo que el agente ha escrito en cada campo, tal como lo escribió (con sus marcadores), por el
+   * valor que quedó en la página (normalizado). Es lo único de un campo que ve.
+   */
+  escritos: Map<string, string>;
   tarjeta: { actual: Tarjeta };
   /** Respuestas privadas de este trámite que no son de «Mis datos» (DNI de un hijo, referencias…). */
   datosTramite: Perfil;
@@ -166,6 +181,15 @@ const host = (url: string) => {
 /** Perfil global y datos del trámite juntos, para resolver marcadores. */
 const todosLosDatos = (ctx: Contexto) => ({ ...ctx.anfitrion.perfil(), ...ctx.datosTramite });
 
+/** Lo que escriben la persona o una web: sin los datos de «Mis datos» ni los que encuentre el detector. */
+export function proteger(ctx: Contexto, texto: string, origen: OrigenTexto) {
+  ctx.privacidad.actualizar(todosLosDatos(ctx));
+  return ctx.privacidad.proteger(texto, ctx.detector, ctx.datosTramite, origen);
+}
+
+const sinParametros = (url: string) =>
+  url.replace(/[?#].*$/, (q) => (q.startsWith('?') ? '?…' : ''));
+
 async function verPagina(ctx: Contexto, nav: Navegador, aviso = ''): Promise<string> {
   let p;
   try {
@@ -185,21 +209,39 @@ async function verPagina(ctx: Contexto, nav: Navegador, aviso = ''): Promise<str
       ? '⚠ Hay un campo de contraseña: el inicio de sesión lo hace la persona (pedir_ayuda, motivo «iniciar_sesion»).'
       : '',
   ].filter(Boolean);
+  // De un campo solo se ve lo que ha escrito el agente, como lo escribió. Lo que trae la web (los
+  // datos de la persona tras iniciar sesión, lo que ella escribe) queda como dato oculto.
+  const campos = p.texto.replace(/⟦(\d+)⟧/g, (_m, i: string) => {
+    const v = p.valores[Number(i)] ?? '';
+    const propio = ctx.escritos.get(normalizarValor(v));
+    if (propio !== undefined) return propio;
+    const todos = todosLosDatos(ctx);
+    const clave = claveDeDato(todos, 'dato', v);
+    if (!esIdentificador(clave)) return v;
+    if (!todos[clave]) ctx.datosTramite[clave] = v;
+    return `{{${clave}}}`;
+  });
   const texto = [
     aviso,
     ...descargas.map((d) => `⬇ Descargado «${d}»: ya está guardado en el trámite.`),
-    `Página: ${p.titulo} — ${p.url}`,
+    `Página: ${p.titulo} — ${sinParametros(p.url)}`,
     ...avisos,
     '---',
-    p.texto,
+    campos,
   ]
     .filter(Boolean)
     .join('\n');
   ctx.hostActual = host(p.url);
-  // Lo que la persona escribió en la página vuelve al modelo como marcador, también las partes
-  // de un dato (el día de la fecha, el número del DNI sin la letra) que se ven en un campo.
-  ctx.privacidad.actualizar(todosLosDatos(ctx));
-  const limpio = ctx.privacidad.ocultarEnCampos(ctx.privacidad.limpiar(texto));
+  return texto;
+}
+
+/**
+ * Lo que sale del navegador del trámite, antes de llegar al modelo: los datos personales como
+ * marcador, también las partes de un dato (el día de la fecha, el número del DNI sin la letra)
+ * que se ven en un campo. Lo aplica `supervisar` a todas las herramientas de la página.
+ */
+export async function protegerPagina(ctx: Contexto, texto: string) {
+  const limpio = ctx.privacidad.ocultarEnCampos(await proteger(ctx, texto, 'pagina'));
   return Privacidad.marcadores(limpio).length
     ? limpio.replace(
         '\n---\n',
@@ -276,7 +318,11 @@ export function crearHerramientas(ctx: Contexto) {
   const enOrden =
     <A, R>(fn: (a: A, o: { abortSignal?: AbortSignal }) => Promise<R>) =>
     (a: A, o: { abortSignal?: AbortSignal }): Promise<R> => {
-      const r = cola.then(() => fn(a, o));
+      // Lo que esperaba en la cola no se hace si el turno se ha parado mientras.
+      const r = cola.then(() => {
+        o.abortSignal?.throwIfAborted();
+        return fn(a, o);
+      });
       cola = r.catch(() => undefined);
       return r;
     };
@@ -398,7 +444,7 @@ export function crearHerramientas(ctx: Contexto) {
 
     preguntar: tool({
       description:
-        'Pide datos a la persona con un formulario. Usa las claves de «Mis datos» (nombre, documento_numero, telefono…) cuando correspondan: se guardan para otros trámites. No pidas contraseñas, PIN ni códigos. Las respuestas privadas te llegan como marcador {{clave}}.',
+        'Pide datos a la persona con un formulario. Usa las claves de «Mis datos» (nombre, documento_numero, telefono…) cuando correspondan: se guardan para otros trámites. No pidas contraseñas, PIN ni códigos. Las respuestas te llegan como marcador {{clave}}, salvo las de si_no, opcion, numero y texto_largo con privado: false.',
       inputSchema: formularioEntrada,
       execute: async (f, opts) => {
         if (
@@ -407,14 +453,27 @@ export function crearHerramientas(ctx: Contexto) {
           )
         )
           return 'No pidas contraseñas, PIN ni códigos: los escribe la persona en la web oficial (pedir_ayuda).';
+        // Esas claves son de datos ya encontrados: una respuesta las cambiaría por otra cosa.
+        const ocupada = f.campos.find((c) => DETECTADO.test(c.clave));
+        if (ocupada)
+          return `La clave ${ocupada.clave} es de un dato ya encontrado ({{${ocupada.clave}}}). Usa otra, p. ej. nombre_hijo.`;
         const campos: CampoFormulario[] = f.campos.map((c) => {
           const perfil = campoPerfil(c.clave);
+          const tipo = perfil?.tipo === 'fecha' ? 'fecha' : c.tipo;
           return {
             ...c,
-            tipo: perfil?.tipo === 'fecha' ? 'fecha' : c.tipo,
-            // Un identificador de «Mis datos» nunca vuelve al modelo, aunque lo pida.
+            tipo,
+            // El modelo solo lee lo que necesita para razonar: un sí o no, una de sus opciones, una
+            // cantidad o una explicación (y estas, sin los datos que encuentre el detector). Un
+            // identificador de «Mis datos», un nombre, una fecha o un número de documento le
+            // llegan siempre como marcador, aunque pida verlos.
             privado:
-              (perfil && esIdentificador(c.clave)) || (c.privado ?? esIdentificador(c.clave)),
+              esIdentificador(c.clave) &&
+              !(
+                !perfil &&
+                c.privado === false &&
+                ['si_no', 'opcion', 'numero', 'texto_largo'].includes(tipo)
+              ),
             opciones: c.opciones ?? perfil?.opciones?.slice(),
           };
         });
@@ -436,11 +495,14 @@ export function crearHerramientas(ctx: Contexto) {
               continue;
             }
             paraPerfil[c.clave] = valor;
-          } else if (c.privado) ctx.datosTramite[c.clave] = valor;
+          }
+          // Un número largo (la Seguridad Social, una cuenta) tampoco se lee, aunque se pida.
+          const privado = c.privado || (c.tipo === 'numero' && valor.replace(/\D/g, '').length > 3);
+          if (privado && !campoPerfil(c.clave)) ctx.datosTramite[c.clave] = valor;
           lineas.push(
-            c.privado
+            privado
               ? `- ${c.clave}: {{${c.clave}}}${campoPerfil(c.clave) ? ' (guardado en Mis datos)' : ''}`
-              : `- ${c.clave}: ${ctx.privacidad.limpiar(valor, { usuario: true })}`,
+              : `- ${c.clave}: ${await proteger(ctx, valor, 'persona')}`,
           );
         }
         if (Object.keys(paraPerfil).length) await ctx.anfitrion.guardarPerfil(paraPerfil);
@@ -478,7 +540,7 @@ export function crearHerramientas(ctx: Contexto) {
       execute: enOrden(async (a, opts) => {
         const r = await ctx.anfitrion.pedirAyuda(a, signalDe(opts));
         const nav = await navegador();
-        const nota = r.nota ? ` Nota: ${ctx.privacidad.limpiar(r.nota, { usuario: true })}` : '';
+        const nota = r.nota ? ` Nota: ${await proteger(ctx, r.nota, 'persona')}` : '';
         return verPagina(
           ctx,
           nav,
@@ -527,9 +589,7 @@ export function crearHerramientas(ctx: Contexto) {
           }
         }
         return (
-          cabecera +
-          ctx.privacidad.limpiar(texto) +
-          (total > desde + 10000 ? `\n… (sigue con desde=${desde + 10000})` : '')
+          cabecera + texto + (total > desde + 10000 ? `\n… (sigue con desde=${desde + 10000})` : '')
         );
       }),
     }),
@@ -579,6 +639,7 @@ export function crearHerramientas(ctx: Contexto) {
         if (p && !p.invisible && !p.tapado) await nav.clic(p.x, p.y);
         if (!(await enfocarElemento(nav, r))) return 'No puedo escribir en ese campo.';
         await nav.insertarTexto(resuelto.texto);
+        ctx.escritos.set(normalizarValor(resuelto.texto), texto);
         const despues = await infoElemento(nav, r);
         // Nunca se repite aquí el valor del campo: podría contener datos de la persona.
         const aviso =

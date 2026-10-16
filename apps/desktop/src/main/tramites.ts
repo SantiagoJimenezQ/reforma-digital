@@ -6,9 +6,10 @@ import {
   ejecutarTurno,
   LIMITES,
   estadoInicial,
-  Privacidad,
+  MARCADOR,
   type Anfitrion,
   type ConfigProveedor,
+  type Detector,
   type EstadoAgente,
   type EventoAgente,
   type Perfil,
@@ -45,6 +46,8 @@ export type Entorno = {
   } | null;
   /** Touch ID para aprobar envíos; `true` si no está disponible o desactivado. */
   verificarIdentidad(motivo: string): Promise<boolean>;
+  /** Detector local de datos personales; falla si el modelo no se puede cargar. */
+  detector(): Promise<Detector>;
   /** Ruta de la extensión si la persona ha activado las interfaces comunitarias. */
   extension(): string | null;
   ventana(): BrowserWindow | null;
@@ -66,12 +69,27 @@ type Espera = {
 
 const archivo = (id: string) => `tramite-${id}.bin`;
 const ahora = () => new Date().toISOString();
+/** Para lo que se ve fuera de la app (notificaciones, carpeta de descargas): sin datos. */
+const sinMarcadores = (t: string) => t.replace(MARCADOR, '…');
+
+/**
+ * La persona ve en la app los datos que el asistente solo conoce como marcador ({{nombre_1}});
+ * los de «Mis datos» siguen ocultos tras Touch ID.
+ */
+const mostrar = (r: Registro) => (t: string) =>
+  t.replace(MARCADOR, (m, clave: string) => r.estado.datosTramite[clave] ?? m);
+
+/** Una copia de `valor` (datos JSON) con `fn` aplicada a cada texto. */
+const textos = <T>(valor: T, fn: (t: string) => string): T =>
+  JSON.parse(JSON.stringify(valor), (_k, v: unknown) => (typeof v === 'string' ? fn(v) : v));
 
 export class Tramites {
   private registros = new Map<string, Registro>();
   private ejecuciones = new Map<string, AbortController>();
   private esperas = new Map<string, Espera>();
   private navegadores = new Map<string, NavegadorTramite>();
+  /** Lo que el agente ha escrito en cada navegador; vive en memoria, como sus sesiones. */
+  private escritos = new Map<string, Map<string, string>>();
   private pendienteEmitir = new Set<string>();
   /** Última escritura de cada trámite: se encadenan para que una antigua no pise a otra nueva. */
   private escrituras = new Map<string, Promise<void>>();
@@ -117,7 +135,7 @@ export class Tramites {
     const esperando = [...this.esperas.values()].some((e) => e.tramite === r.id);
     return {
       id: r.id,
-      titulo: r.estado.tarjeta.titulo,
+      titulo: mostrar(r)(r.estado.tarjeta.titulo),
       ...(r.estado.tarjeta.organismo ? { organismo: r.estado.tarjeta.organismo } : {}),
       estado: r.estado.tarjeta.estado,
       ejecucion: esperando ? 'esperando' : this.ejecuciones.has(r.id) ? 'trabajando' : 'inactivo',
@@ -132,13 +150,13 @@ export class Tramites {
     const nav = this.navegadores.get(id);
     return {
       ...this.resumen(r),
-      tarjeta: r.estado.tarjeta,
+      tarjeta: textos(r.estado.tarjeta, mostrar(r)),
       // La vista solo enseña el principio del texto; el completo se queda en el proceso principal.
       fuentes: r.estado.fuentes.map((f) => ({
         ...f,
         texto: f.texto.length > 700 ? `${f.texto.slice(0, 700)}…` : f.texto,
       })),
-      conversacion: r.conversacion,
+      conversacion: textos(r.conversacion, mostrar(r)),
       uso: r.estado.uso,
       descargas: r.descargas,
       navegador: nav
@@ -179,11 +197,12 @@ export class Tramites {
 
   async crear(texto: string): Promise<string> {
     const id = randomUUID();
-    const titulo = texto.replace(/\s+/g, ' ').trim().slice(0, 60) || 'Nuevo trámite';
+    // El título lo pone el asistente: el mensaje puede llevar datos personales y el título se ve
+    // en las notificaciones y nombra la carpeta de descargas.
     const r: Registro = {
       id,
       actualizado: ahora(),
-      estado: estadoInicial(titulo),
+      estado: estadoInicial(),
       conversacion: [],
       descargas: [],
     };
@@ -198,10 +217,7 @@ export class Tramites {
     if (!r) throw new Error('Trámite no encontrado');
     if (this.ejecuciones.has(id)) throw new Error('El asistente sigue trabajando en este trámite');
     const config = this.entorno.proveedor();
-    const p = new Privacidad(this.entorno.perfil());
-    p.limpiar(texto, { usuario: true });
-    const protegidos = Object.values(p.registro).reduce((a, b) => a + b, 0);
-    r.conversacion.push({ tipo: 'usuario', id: randomUUID(), texto, protegidos });
+    r.conversacion.push({ tipo: 'usuario', id: randomUUID(), texto, protegidos: 0 });
     if (!config) {
       r.conversacion.push({
         tipo: 'aviso',
@@ -311,7 +327,10 @@ export class Tramites {
   private notificar(r: Registro, cuerpo: string) {
     const ventana = this.entorno.ventana();
     if (ventana?.isFocused() || !Notification.isSupported()) return;
-    const n = new Notification({ title: r.estado.tarjeta.titulo, body: cuerpo });
+    const n = new Notification({
+      title: sinMarcadores(r.estado.tarjeta.titulo),
+      body: sinMarcadores(cuerpo),
+    });
     n.on('click', () => {
       ventana?.show();
       ventana?.focus();
@@ -339,7 +358,9 @@ export class Tramites {
           path.join(
             app.getPath('downloads'),
             'Reforma Digital',
-            (r?.estado.tarjeta.titulo ?? id).replace(/[/\\:]/g, '-').slice(0, 60),
+            sinMarcadores(r?.estado.tarjeta.titulo ?? id)
+              .replace(/[/\\:]/g, '-')
+              .slice(0, 60),
           ),
         alCambiar: () => this.cambio(id),
         alDescargar: (d) => {
@@ -407,13 +428,33 @@ export class Tramites {
         };
         if (previo) Object.assign(previo, item);
         else r.conversacion.push(item);
+      } else if (e.tipo === 'protegidos') {
+        const usuario = r.conversacion.findLast((i) => i.tipo === 'usuario');
+        if (usuario) usuario.protegidos = e.cantidad;
       } else if (e.tipo === 'tarjeta') r.estado.tarjeta = e.tarjeta;
       else if (e.tipo === 'fuentes') r.estado.fuentes = e.fuentes;
       else if (e.tipo === 'uso') r.estado.uso = e.uso;
       this.cambio(r.id);
     };
+    const escritos = this.escritos.get(r.id) ?? new Map<string, string>();
+    this.escritos.set(r.id, escritos);
+    let detector: Detector;
+    try {
+      detector = await this.entorno.detector();
+    } catch (e) {
+      r.conversacion.push({
+        tipo: 'aviso',
+        id: randomUUID(),
+        tono: 'error',
+        texto: `No se ha podido cargar la protección de datos personales, así que no se ha enviado nada al asistente. Reinstala la app si sigue pasando. (${e instanceof Error ? e.message : String(e)})`,
+      });
+      await this.guardar(r);
+      return;
+    }
     const resultado = await ejecutarTurno({
       proveedor: (guarda) => crearProveedor(config.cfg, guarda),
+      detector,
+      escritos,
       anfitrion,
       estado: r.estado,
       texto,
@@ -461,6 +502,7 @@ export class Tramites {
     this.detener(id);
     const nav = this.navegadores.get(id);
     this.navegadores.delete(id);
+    this.escritos.delete(id);
     await nav?.cerrar();
     await session.fromPartition(particion(id)).clearStorageData();
     await this.escrituras.get(id)?.catch(() => undefined);

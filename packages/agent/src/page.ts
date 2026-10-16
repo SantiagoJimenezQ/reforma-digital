@@ -27,7 +27,9 @@ export interface Navegador {
 export type Instantanea = {
   url: string;
   titulo: string;
+  /** Los valores de los campos de texto van aparte, como `⟦n⟧`: la app decide qué se ve de ellos. */
   texto: string;
+  valores: string[];
   captcha: boolean;
   contrasenas: number;
 };
@@ -50,6 +52,7 @@ const SCRIPT = String.raw`(function () {
   if (window.__rd) return;
   var ids = new WeakMap();
   var refs = new Map();
+  var valores = [];
   var siguiente = 1;
   var OMITIR = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEMPLATE: 1, SVG: 1, HEAD: 1, META: 1, LINK: 1, OBJECT: 1, EMBED: 1 };
   var CONTROLES = { link: 1, button: 1, select: 1, textbox: 1, checkbox: 1, radio: 1, file: 1, combobox: 1, tab: 1, menuitem: 1, option: 1, switch: 1, searchbox: 1 };
@@ -118,7 +121,8 @@ const SCRIPT = String.raw`(function () {
     if (t2 === 'INPUT' && /^(button|submit|reset)$/i.test(el.type)) return corto(el.value || el.type, 120);
     if (t2 === 'INPUT' && el.type === 'image') return corto(el.alt || el.value || 'imagen', 120);
     if (t2 === 'IMG') return corto(el.alt || '', 120);
-    if (t2 !== 'INPUT' && t2 !== 'SELECT' && t2 !== 'TEXTAREA') {
+    // Lo que hay escrito en un campo no es su nombre: sería su valor, y el valor va aparte.
+    if (t2 !== 'INPUT' && t2 !== 'SELECT' && t2 !== 'TEXTAREA' && !/^(textbox|searchbox|combobox)$/.test(rol(el))) {
       var txt = textoDe(el);
       if (txt) return corto(txt, 120);
       var img = el.querySelector && el.querySelector('img[alt]');
@@ -130,8 +134,9 @@ const SCRIPT = String.raw`(function () {
     var h = el.getAttribute('href') || '';
     if (!h || /^javascript:/i.test(h) || h === '#') return '';
     try {
+      // Sin los parámetros: pueden llevar datos de la persona y para seguir el enlace basta su número.
       var u = new URL(h, el.ownerDocument.baseURI);
-      return u.origin === location.origin ? u.pathname + u.search : u.href;
+      return (u.origin === location.origin ? '' : u.origin) + u.pathname + (u.search ? '?…' : '');
     } catch (e) { return ''; }
   }
   function describir(el, r) {
@@ -156,7 +161,8 @@ const SCRIPT = String.raw`(function () {
     var ph = el.getAttribute('placeholder');
     var tipo = el.tagName === 'INPUT' && el.type && el.type !== 'text' ? ' ' + el.type : '';
     var max = el.maxLength > 0 && el.maxLength < 1000 ? ' (máx. ' + el.maxLength + ')' : '';
-    return '[' + id + '] campo' + tipo + ' "' + n + '" = "' + corto(valor, 200) + '"' + (ph && !valor ? ' ejemplo: "' + corto(ph, 60) + '"' : '') + req + max + dis + inv;
+    if (valor) valores.push(corto(valor, 200));
+    return '[' + id + '] campo' + tipo + ' "' + n + '" = "' + (valor ? '⟦' + (valores.length - 1) + '⟧' : '') + '"' + (ph && !valor ? ' ejemplo: "' + corto(ph, 60) + '"' : '') + req + max + dis + inv;
   }
   function esAviso(el) {
     var r = el.getAttribute('role');
@@ -214,6 +220,7 @@ const SCRIPT = String.raw`(function () {
       if (bloque) cerrar();
     }
     refs.clear();
+    valores = [];
     if (document.body) recorrer(document.body);
     cerrar();
     var total = 0, texto = 0, salida = [], omitidas = 0;
@@ -227,7 +234,7 @@ const SCRIPT = String.raw`(function () {
       if (!importante) texto += l.t.length;
     }
     if (omitidas) salida.push('(' + omitidas + ' párrafos omitidos; usa leer_texto si necesitas el texto completo)');
-    return { url: location.href, titulo: document.title, texto: salida.join('\n'), captcha: hayCaptcha, contrasenas: contrasenas };
+    return { url: location.href, titulo: document.title, texto: salida.join('\n'), valores: valores, captcha: hayCaptcha, contrasenas: contrasenas };
   }
   function elemento(id) {
     var el = refs.get(id);

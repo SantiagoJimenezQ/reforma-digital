@@ -6,12 +6,15 @@ import {
   type ToolSet,
 } from 'ai';
 import { tarjetaVacia, type Tarjeta } from './card';
+import { ErrorDeProteccion, type Detector } from './detector';
 import { guardaPrivacidad, type Proveedor } from './models';
 import { Privacidad, type Perfil } from './profile';
 import { contextoDelTurno, INSTRUCCIONES } from './prompt';
 import { coste, Fuentes, type Fuente } from './research';
 import {
   crearHerramientas,
+  proteger,
+  protegerPagina,
   usoVacio,
   type Anfitrion,
   type Contexto,
@@ -57,6 +60,9 @@ const HERRAMIENTAS_DE_PAGINA = new Set([
   'esperar',
   'pedir_ayuda',
 ]);
+
+/** Herramientas cuyo resultado sale de la página del trámite: pasan por el detector. */
+const CON_DATOS = new Set([...HERRAMIENTAS_DE_PAGINA, 'leer_texto']);
 
 type Salida = { type: string; value?: unknown };
 const textoDeSalida = (o: Salida) =>
@@ -104,8 +110,9 @@ export function compactar(mensajes: ModelMessage[]): ModelMessage[] {
  * Envuelve las herramientas para avisar a la interfaz y cortar repeticiones inútiles.
  * Una acción está atascada si las dos últimas veces que se pidió igual dieron el mismo resultado:
  * repetirla tras un cambio en la página (un aviso cerrado, un dato corregido) sí está permitido.
+ * Si el detector falla, `cortar` para el turno: lo que no se ha podido proteger no sale.
  */
-function supervisar(tools: ToolSet, ctx: Contexto): ToolSet {
+function supervisar(tools: ToolSet, ctx: Contexto, cortar: (e: Error) => void): ToolSet {
   const historial: { clave: string; resultado: unknown }[] = [];
   return Object.fromEntries(
     Object.entries(tools).map(([nombre, t]) => [
@@ -134,15 +141,25 @@ function supervisar(tools: ToolSet, ctx: Contexto): ToolSet {
           try {
             const r: unknown = await t.execute!(input, opts);
             ctx.evento({ tipo: 'actividad', id, herramienta: nombre, resumen, estado: 'fin' });
-            // Ningún resultado vuelve al modelo con un valor del perfil, venga de donde venga.
+            // Ningún resultado vuelve al modelo con un valor del perfil, venga de donde venga, y lo
+            // que sale de la página del trámite pasa además por el detector.
             ctx.privacidad.actualizar({ ...ctx.anfitrion.perfil(), ...ctx.datosTramite });
-            const resultado = typeof r === 'string' ? ctx.privacidad.limpiar(r) : r;
+            const resultado =
+              typeof r !== 'string'
+                ? r
+                : CON_DATOS.has(nombre)
+                  ? await protegerPagina(ctx, r)
+                  : ctx.privacidad.limpiar(r);
             historial.push({
               clave,
               resultado: typeof resultado === 'string' ? resultado : JSON.stringify(resultado),
             });
             return resultado;
           } catch (e) {
+            if (e instanceof ErrorDeProteccion) {
+              cortar(e);
+              throw e;
+            }
             const detalle = e instanceof Error ? e.message : String(e);
             ctx.evento({
               tipo: 'actividad',
@@ -209,6 +226,13 @@ export type OpcionesTurno = {
   estado: EstadoAgente;
   texto: string;
   evento: (e: EventoAgente) => void;
+  /** Detector local de datos personales. Sin él no se envía nada al modelo. */
+  detector: Detector;
+  /**
+   * Lo que el agente ha escrito en el navegador del trámite. Lo guarda quien lleva el navegador,
+   * para que en el turno siguiente siga viendo sus propios valores en los campos.
+   */
+  escritos?: Map<string, string>;
   /** Se llama tras cada paso para guardar el progreso. */
   guardar?: (estado: EstadoAgente) => void | Promise<void>;
   signal: AbortSignal;
@@ -240,6 +264,8 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
     proveedor,
     fuentes: new Fuentes(estado.fuentes),
     privacidad,
+    detector: o.detector,
+    escritos: o.escritos ?? new Map(),
     tarjeta: { actual: estado.tarjeta },
     datosTramite: estado.datosTramite,
     sitiosPermitidos: new Set(estado.sitiosPermitidos),
@@ -250,17 +276,27 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
     uso: estado.uso,
     evento: o.evento,
   };
-  const tools = supervisar(crearHerramientas(ctx), ctx);
+  const interno = new AbortController();
+  const signal = AbortSignal.any([o.signal, interno.signal]);
+  const tools = supervisar(crearHerramientas(ctx), ctx, (e) => interno.abort(e));
   const sincronizar = () => {
     estado.tarjeta = ctx.tarjeta.actual;
     estado.fuentes = ctx.fuentes.lista();
     estado.sitiosPermitidos = [...ctx.sitiosPermitidos];
   };
-  estado.mensajes.push({
-    role: 'user',
-    // El título nace del primer mensaje de la persona: se limpia igual que lo que escribe.
-    content: `${contextoDelTurno({ ...estado.tarjeta, titulo: privacidad.limpiar(estado.tarjeta.titulo, { usuario: true }) }, perfil)}\n\n${privacidad.limpiar(o.texto, { usuario: true })}`,
-  });
+  try {
+    // El título nace del primer mensaje de la persona: se protege igual y se guarda ya protegido,
+    // porque también se ve en las notificaciones y nombra la carpeta de descargas.
+    estado.tarjeta.titulo = await proteger(ctx, estado.tarjeta.titulo, 'persona');
+    const mensaje = await proteger(ctx, o.texto, 'persona');
+    o.evento({ tipo: 'protegidos', cantidad: Privacidad.marcadores(mensaje).length });
+    estado.mensajes.push({
+      role: 'user',
+      content: `${contextoDelTurno(estado.tarjeta, perfil)}\n\n${mensaje}`,
+    });
+  } catch (e) {
+    return { estado: o.estado, fin: 'error', error: mensajeDeError(e) };
+  }
   const costeInicial = estado.uso.costeUsd;
   const tokensIniciales = estado.uso.entrada + estado.uso.salida;
   // Anthropic solo cachea con marcas explícitas: instrucciones y último mensaje de cada paso.
@@ -294,7 +330,7 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
           : INSTRUCCIONES,
         messages: conCache(compactar(estado.mensajes)),
         tools,
-        abortSignal: o.signal,
+        abortSignal: signal,
         maxRetries: 2,
         timeout: { firstChunkMs: 120000, chunkMs: 90000 },
         ...(o.razonamiento ? { reasoning: o.razonamiento } : {}),
@@ -326,14 +362,18 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   } catch (e) {
     sincronizar();
     if (o.signal.aborted) return { estado, fin: 'cancelado' };
-    return { estado, fin: 'error', error: mensajeDeError(e) };
+    return { estado, fin: 'error', error: mensajeDeError(interno.signal.reason ?? e) };
   }
 }
 
 /** Errores del proveedor en palabras claras. */
 export function mensajeDeError(e: unknown): string {
   const texto = e instanceof Error ? e.message : String(e);
+  if (e instanceof ErrorDeProteccion)
+    return `${texto}. No se ha enviado nada al asistente. Vuelve a intentarlo; si sigue fallando, reinstala la app.`;
   const status = (e as { statusCode?: number }).statusCode;
+  if (/zero data retention|\bZDR\b/i.test(texto))
+    return 'Tu cuenta del proveedor de IA no permite la retención cero de datos (en Vercel exige el plan Pro). Desactívala en Ajustes o cambia de plan.';
   if (status === 401 || /unauthori[sz]ed|invalid api key|user not found/i.test(texto))
     return 'El proveedor de IA no acepta la clave. Revísala en Ajustes.';
   if (status === 402 || /insufficient|credit|balance|quota/i.test(texto))

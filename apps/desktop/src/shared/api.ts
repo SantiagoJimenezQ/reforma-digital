@@ -24,6 +24,8 @@ export type Ajustes = {
   touchIdEnConfirmaciones: boolean;
   /** Cargar la extensión de Reforma Digital en el navegador de los trámites (experimental). */
   interfacesComunitarias: boolean;
+  /** Usar solo proveedores de IA que no guardan las peticiones (en Vercel exige el plan Pro). */
+  retencionCero: boolean;
 };
 export type AjustesVista = Ajustes & { claveGuardada: boolean };
 
@@ -108,6 +110,7 @@ export type ApiRd = {
     proveedor: Proveedor;
     clave?: string;
     modelo: string;
+    retencionCero?: boolean;
   }): Promise<{ ok: boolean; error?: string }>;
   crearTramite(texto: string): Promise<string>;
   verTramite(id: string): Promise<TramiteVista | null>;

@@ -59,7 +59,8 @@ export function MisDatos() {
               <Icono nombre="ver" /> Lo que ve la IA
             </p>
             <p className="m-0 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Solo datos de contexto para investigar: {contexto.join(', ')} y tu edad.
+              Solo datos de contexto para investigar: {contexto.join(', ')}, tu edad y cuánto le
+              queda a tu documento.
             </p>
           </div>
           <div className="rounded-[20px] bg-muted p-5">
@@ -67,8 +68,10 @@ export function MisDatos() {
               <Icono nombre="candado" /> Lo que nunca ve
             </p>
             <p className="m-0 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Tu nombre, documento, teléfono, correo, dirección e IBAN. Le llegan como marcadores y
-              la app los escribe solo en webs oficiales.
+              Tu nombre, documento, fechas, teléfono, correo, dirección, código postal e IBAN. Ni
+              los nombres, documentos, direcciones, teléfonos y correos, también de otras personas,
+              que un detector encuentre en lo que escribes o en las webs. Le llegan como marcadores
+              y la app los escribe solo en webs oficiales.
             </p>
           </div>
         </div>

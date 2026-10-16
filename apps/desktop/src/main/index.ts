@@ -19,8 +19,10 @@ import {
   esIdentificador,
   mensajeDeError,
   normalizarCampo,
+  crearDetector,
   probarConexion,
   validarCampo,
+  type Detector,
   type Perfil,
 } from '@reforma-digital/agent';
 import type { Ajustes, ApiRd, EstadoApp, EventoApp } from '../shared/api';
@@ -30,6 +32,8 @@ import { esLectura } from './navegador';
 import { Tramites } from './tramites';
 
 const RAIZ = import.meta.dirname;
+/** Fuera del ASAR: Chromium no carga extensiones ni ONNX Runtime lee modelos desde un archivo empaquetado. */
+const DESEMPAQUETADO = RAIZ.replace(/app\.asar(?=[/\\]|$)/, 'app.asar.unpacked');
 const ORIGEN_APP = 'app://bundle';
 app.setName('Reforma Digital');
 protocol.registerSchemesAsPrivileged([
@@ -45,6 +49,7 @@ const AJUSTES_INICIALES: Ajustes = {
   limiteTurnoUsd: 0.5,
   touchIdEnConfirmaciones: true,
   interfacesComunitarias: false,
+  retencionCero: false,
 };
 
 let ventana: BrowserWindow | null = null;
@@ -52,6 +57,13 @@ let almacen: Almacen;
 let tramites: Tramites;
 let secretos: Secretos = { ajustes: AJUSTES_INICIALES };
 let perfil: Perfil = {};
+let detector: Promise<Detector> | undefined;
+/** Se carga una vez, del modelo que va dentro de la app; si falla, se reintenta en el siguiente turno. */
+const cargarDetector = () =>
+  (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart')).catch((e: unknown) => {
+    detector = undefined;
+    throw e;
+  }));
 
 const touchId = () => process.platform === 'darwin' && systemPreferences.canPromptTouchID();
 async function verificar(motivo: string, exigir: boolean) {
@@ -123,6 +135,7 @@ const ajustesEsquema = z
     limiteTurnoUsd: z.number().min(0.05).max(10),
     touchIdEnConfirmaciones: z.boolean(),
     interfacesComunitarias: z.boolean(),
+    retencionCero: z.boolean(),
     clave: z.string().trim().min(10).max(300),
   })
   .partial();
@@ -155,12 +168,18 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
           proveedor: z.enum(['gateway', 'openrouter']),
           clave: z.string().trim().optional(),
           modelo: z.string().max(100),
+          retencionCero: z.boolean().optional(),
         })
         .parse(entrada);
       const clave = a.clave || secretos.clave;
       if (!clave) return { ok: false, error: 'Escribe la clave del proveedor.' };
       try {
-        await probarConexion({ tipo: a.proveedor, clave, modelo: a.modelo });
+        await probarConexion({
+          tipo: a.proveedor,
+          clave,
+          modelo: a.modelo,
+          retencionCero: a.retencionCero ?? secretos.ajustes.retencionCero,
+        });
         return { ok: true };
       } catch (e) {
         return { ok: false, error: mensajeDeError(e) };
@@ -236,7 +255,8 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
         shell.showItemInFolder(r);
     },
     exportarCita: async (t) => {
-      const cita = tramites.registro(id.parse(t))?.estado.tarjeta;
+      // La vista ya trae los datos del trámite en lugar de sus marcadores.
+      const cita = tramites.vista(id.parse(t))?.tarjeta;
       if (!cita?.cita) return;
       const inicio = new Date(cita.cita.fecha);
       if (Number.isNaN(inicio.getTime())) return;
@@ -406,6 +426,8 @@ app
         return new Response('No encontrado', { status: 404 });
       return net.fetch(pathToFileURL(destino).href);
     });
+    // Las sesiones de los trámites ya no se guardan en disco: se borran las de versiones anteriores.
+    await fs.rm(path.join(app.getPath('userData'), 'Partitions'), { recursive: true, force: true });
     almacen = await Almacen.abrir(path.join(app.getPath('userData'), 'datos'));
     secretos = (await almacen.leer<Secretos>('secretos.bin')) ?? { ajustes: AJUSTES_INICIALES };
     secretos.ajustes = { ...AJUSTES_INICIALES, ...secretos.ajustes };
@@ -420,17 +442,16 @@ app
                 tipo: secretos.ajustes.proveedor,
                 clave: secretos.clave,
                 modelo: secretos.ajustes.modelo,
+                retencionCero: secretos.ajustes.retencionCero,
               },
               razonamiento: secretos.ajustes.razonamiento,
               limiteTurnoUsd: secretos.ajustes.limiteTurnoUsd,
             }
           : null,
       verificarIdentidad: (motivo) => verificar(motivo, secretos.ajustes.touchIdEnConfirmaciones),
-      // Fuera del ASAR: Chromium no carga extensiones desde un archivo empaquetado.
+      detector: cargarDetector,
       extension: () =>
-        secretos.ajustes.interfacesComunitarias
-          ? path.join(RAIZ.replace(/app\.asar(?=[/\\]|$)/, 'app.asar.unpacked'), 'extension')
-          : null,
+        secretos.ajustes.interfacesComunitarias ? path.join(DESEMPAQUETADO, 'extension') : null,
       ventana: () => ventana,
       emitir,
       alCambiarLista: () => emitir({ tipo: 'estado', estado: estadoApp() }),
@@ -448,6 +469,8 @@ app
     });
     menu();
     crearVentana();
+    // Se carga ya para que el primer mensaje no espere; los fallos se muestran al enviarlo.
+    cargarDetector().catch(() => undefined);
     app.on('activate', () => {
       if (!ventana) crearVentana();
     });

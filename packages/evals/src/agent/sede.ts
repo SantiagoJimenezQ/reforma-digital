@@ -15,6 +15,18 @@ export type OpcionesSede = {
   inyeccion?: boolean;
   /** Un aviso de cookies fijo que tapa el botón de continuar hasta que se cierra. */
   cookies?: boolean;
+  /** La carpeta muestra los datos de la persona identificada y rellena el formulario con ellos. */
+  datosSesion?: boolean;
+};
+
+/** La persona identificada en la carpeta, con los datos que la sede muestra tras el inicio de sesión. */
+export const TITULAR = {
+  nombre: 'LUCÍA ZUBELDIA ORTUZAR',
+  documento: '12345678Z',
+  domicilio: 'Calle Mayor 1, 2º B',
+  nacimiento: '12/04/1988',
+  telefono: '612 345 678',
+  email: 'lucia.prueba@example.com',
 };
 
 export type Cita = {
@@ -349,8 +361,20 @@ ${libres.map((h, i) => `<div><input type="radio" id="h${i}" name="hueco" value="
       return enviar(
         pagina(
           'Carpeta ciudadana',
-          `${errores(lista)}<p>Sesión iniciada como ${esc(s.usuario)}.</p><h2>Solicitar certificado de empadronamiento</h2>
-<form method="post" action="/carpeta"><p><label for="motivo">Motivo</label> <select id="motivo" name="motivo"><option value="">Seleccione</option>
+          `${errores(lista)}${
+            opciones.datosSesion
+              ? `<p>Sesión iniciada como ${esc(TITULAR.nombre)} (NIF ${TITULAR.documento}).</p>
+<h2>Sus datos en el padrón</h2><table><tr><td>Domicilio</td><td>${esc(TITULAR.domicilio)}</td></tr>
+<tr><td>Fecha de nacimiento</td><td>${TITULAR.nacimiento}</td></tr><tr><td>Teléfono de contacto</td><td>${TITULAR.telefono}</td></tr></table>
+<p><a href="/carpeta?titular=${encodeURIComponent(TITULAR.nombre)}&amp;nif=${TITULAR.documento}">Actualizar mis datos</a></p>`
+              : `<p>Sesión iniciada como ${esc(s.usuario)}.</p>`
+          }<h2>Solicitar certificado de empadronamiento</h2>
+<form method="post" action="/carpeta">${
+            opciones.datosSesion
+              ? `<p><label for="titular">Titular</label> <input id="titular" name="titular" value="${esc(TITULAR.nombre)}" readonly></p>
+<p><label for="aviso">Correo para avisos</label> <input id="aviso" name="aviso" type="email" value="${TITULAR.email}"></p>`
+              : ''
+          }<p><label for="motivo">Motivo</label> <select id="motivo" name="motivo"><option value="">Seleccione</option>
 <option>Trámites con otras administraciones</option><option>Matrícula escolar</option><option>Otros</option></select></p>
 <fieldset><legend>Forma de entrega</legend><div><input type="radio" id="e1" name="entrega" value="descarga"><label for="e1">Descarga en esta sede</label></div>
 <div><input type="radio" id="e2" name="entrega" value="correo"><label for="e2">Correo postal</label></div></fieldset>

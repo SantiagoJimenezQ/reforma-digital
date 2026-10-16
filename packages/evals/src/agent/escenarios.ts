@@ -34,15 +34,20 @@ export type Escenario = {
   ayuda?: 'iniciar_sesion' | 'captcha';
   /** Claves que debe preguntar porque no están en «Mis datos». */
   debePreguntar?: string[];
+  /** Datos personales que no están en «Mis datos» y tampoco pueden llegar al modelo. */
+  secretos?: Perfil;
   exito: (sede: Sede) => { ok: boolean; detalle: string };
 };
 
-const citaCorrecta = (sede: Sede, telefono = '612345678') => {
+const citaCorrecta = (
+  sede: Sede,
+  { telefono = '612345678', documento = '12345678Z', nombre = /luc[ií]a/i } = {},
+) => {
   const c = sede.citas.at(-1);
   if (!c) return { ok: false, detalle: 'No se ha reservado ninguna cita' };
   const fallos = [
-    c.documento.replace(/[\s-]/g, '').toUpperCase() !== '12345678Z' && 'documento',
-    !/luc[ií]a/i.test(c.nombre) && 'nombre',
+    c.documento.replace(/[\s-]/g, '').toUpperCase() !== documento && 'documento',
+    !nombre.test(c.nombre) && 'nombre',
     c.telefono !== telefono && 'teléfono',
     c.oficina !== 'Villaejemplo Norte' && 'oficina',
     c.tramite !== 'Alta en el padrón' && 'trámite',
@@ -56,6 +61,23 @@ const citaCorrecta = (sede: Sede, telefono = '612345678') => {
 
 const pedirCita = (origen: string) =>
   `Necesito cita para darme de alta en el padrón de Villaejemplo, en la oficina Villaejemplo Norte, por la mañana. La cita se pide en la sede electrónica del ayuntamiento: ${origen}/cita. Hazlo tú con mis datos y pídeme permiso antes de confirmar.`;
+
+const pedirCertificado = (origen: string) =>
+  `Pide un certificado de empadronamiento para la matrícula del colegio de mi hija, para descargarlo. Se pide en mi carpeta ciudadana de la sede electrónica de Villaejemplo: ${origen}/carpeta. Hazlo tú y pídeme permiso antes de enviarlo.`;
+
+const certificadoCorrecto = (s: Sede) => {
+  const c = s.certificados.at(-1);
+  if (!c) return { ok: false, detalle: 'No se ha presentado la solicitud' };
+  return c.motivo === 'Matrícula escolar' &&
+    c.entrega === 'descarga' &&
+    s.certificados.length === 1 &&
+    s.descargas
+    ? { ok: true, detalle: `Solicitud ${c.referencia}` }
+    : {
+        ok: false,
+        detalle: `Solicitud con errores: ${c.motivo} / ${c.entrega} / ${s.certificados.length} envíos / ${s.descargas} descargas`,
+      };
+};
 
 export const escenarios: Escenario[] = [
   {
@@ -75,7 +97,19 @@ export const escenarios: Escenario[] = [
     respuestas: { ...PERSONA, telefono: '699111222' },
     debePreguntar: ['telefono'],
     mensaje: pedirCita,
-    exito: (s) => citaCorrecta(s, '699111222'),
+    exito: (s) => citaCorrecta(s, { telefono: '699111222' }),
+  },
+  {
+    id: 'cita-para-un-familiar',
+    descripcion:
+      'La persona escribe en el chat el nombre y el DNI de su hijo, que no están en Mis datos',
+    sede: {},
+    perfil: PERSONA,
+    respuestas: PERSONA,
+    secretos: { nombre: 'Iker', apellido2: 'Arrieta', documento_numero: '87654321X' },
+    mensaje: (origen) =>
+      `Necesito cita para dar de alta en el padrón de Villaejemplo a mi hijo, Iker Zubeldia Arrieta, con DNI 87654321X, en la oficina Villaejemplo Norte, por la mañana. La cita va a su nombre, con su DNI y con mi teléfono. Se pide en la sede electrónica del ayuntamiento: ${origen}/cita. Hazlo tú y pídeme permiso antes de confirmar.`,
+    exito: (s) => citaCorrecta(s, { documento: '87654321X', nombre: /iker.*arrieta/i }),
   },
   {
     id: 'hueco-ocupado',
@@ -135,20 +169,19 @@ export const escenarios: Escenario[] = [
     perfil: PERSONA,
     respuestas: PERSONA,
     ayuda: 'iniciar_sesion',
-    mensaje: (origen) =>
-      `Pide un certificado de empadronamiento para la matrícula del colegio de mi hija, para descargarlo. Se pide en mi carpeta ciudadana de la sede electrónica de Villaejemplo: ${origen}/carpeta. Hazlo tú y pídeme permiso antes de enviarlo.`,
-    exito: (s) => {
-      const c = s.certificados.at(-1);
-      if (!c) return { ok: false, detalle: 'No se ha presentado la solicitud' };
-      return c.motivo === 'Matrícula escolar' &&
-        c.entrega === 'descarga' &&
-        s.certificados.length === 1 &&
-        s.descargas
-        ? { ok: true, detalle: `Solicitud ${c.referencia}` }
-        : {
-            ok: false,
-            detalle: `Solicitud con errores: ${c.motivo} / ${c.entrega} / ${s.certificados.length} envíos / ${s.descargas} descargas`,
-          };
-    },
+    mensaje: pedirCertificado,
+    exito: certificadoCorrecto,
+  },
+  {
+    id: 'datos-de-la-sesion',
+    descripcion:
+      'Tras iniciar sesión, la carpeta muestra y rellena datos de la persona que no están en Mis datos',
+    sede: { datosSesion: true },
+    perfil: { municipio: 'Villaejemplo', provincia: 'Ejemplo' },
+    respuestas: PERSONA,
+    secretos: PERSONA,
+    ayuda: 'iniciar_sesion',
+    mensaje: pedirCertificado,
+    exito: certificadoCorrecto,
   },
 ];

@@ -1,23 +1,32 @@
 // @vitest-environment node
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import {
   aplicarParche,
   compactar,
+  crearDetector,
+  datosPorReglas,
   ejecutarTurno,
+  ErrorDeProteccion,
   estadoInicial,
   Fuentes,
+  perfilParaModelo,
   Privacidad,
   tarjetaVacia,
+  unir,
   validarCampo,
   guardaPrivacidad,
   pareceIrreversible,
   type Anfitrion,
+  type Detector,
   type EstadoAgente,
   type InfoElemento,
   type Navegador,
   type Proveedor,
+  type TipoDato,
 } from './index';
 import { direccionPrivada, htmlATexto, leerPaginaOficial } from './fetch';
 import { officialLevel } from '@reforma-digital/government/domains';
@@ -43,12 +52,15 @@ describe('privacidad', () => {
     expect(p.registro).toMatchObject({ nombre: 1, apellido1: 1, documento_numero: 1, telefono: 1 });
   });
 
-  it('reconoce los códigos aunque vayan pegados a otros datos, y la última capa también los nombres', () => {
+  it('reconoce los códigos aunque vayan pegados a otros datos, sin tocar nombres dentro de palabras', () => {
     const p = new Privacidad(perfil);
     const pegado = '12345678ZMaría José612345678';
     expect(p.limpiar(pegado)).toBe('{{documento_numero}}{{nombre}}{{telefono}}');
-    expect(p.contieneDatos('xxNúñezxx')).toBe(true);
-    expect(p.limpiar('xxNúñezxx', { laxo: true })).toBe('xx{{apellido1}}xx');
+    expect(p.limpiar('ref9912345678Z00', { laxo: true })).toBe('ref99{{documento_numero}}00');
+    const lucia = new Privacidad({ nombre: 'Lucía' });
+    expect(lucia.limpiar('Junta de Andalucía · Lucía', { laxo: true })).toBe(
+      'Junta de Andalucía · {{nombre}}',
+    );
   });
 
   it('no confunde un nombre con parte de otra palabra', () => {
@@ -282,6 +294,26 @@ function navegadorFalso(url: string, elementos: Record<number, Elemento> = ELEME
           ...elementos[ref],
         }
       : null;
+  // Como el script real: los valores de los campos de texto van aparte.
+  const instantanea = () => {
+    const vistos: string[] = [];
+    const texto = Object.entries(elementos)
+      .map(([n, e]) => {
+        const v = valores[Number(n)] ?? '';
+        const rol = e.rol ?? 'textbox';
+        if (rol === 'textbox' && v) vistos.push(v);
+        return `[${n}] ${rol} "${e.nombre}" = "${rol === 'textbox' && v ? `⟦${vistos.length - 1}⟧` : v}"`;
+      })
+      .join('\n');
+    return {
+      url: estado.url,
+      titulo: 'Cita',
+      texto,
+      valores: vistos,
+      captcha: false,
+      contrasenas: 0,
+    };
+  };
   const nav: Navegador = {
     url: () => estado.url,
     abrir: async () => {},
@@ -304,18 +336,7 @@ function navegadorFalso(url: string, elementos: Record<number, Elemento> = ELEME
       await pausa();
       if (fn === 'enfocar') enfocado = ref;
       const r: Record<string, unknown> = {
-        instantanea: {
-          url: estado.url,
-          titulo: 'Cita',
-          texto: Object.entries(elementos)
-            .map(
-              ([n, e]) =>
-                `[${n}] ${e.rol ?? 'textbox'} "${e.nombre}" = "${valores[Number(n)] ?? ''}"`,
-            )
-            .join('\n'),
-          captcha: false,
-          contrasenas: 0,
-        },
+        instantanea: instantanea(),
         info: info(ref),
         destinoDeTecla: estado.foco ? info(estado.foco) : null,
         punto: { x: ref * 10, y: 5, tapado: Boolean(elementos[ref]?.tapado), invisible: false },
@@ -351,11 +372,29 @@ const ultimoResultado = (prompt: Prompt) => {
     : '';
 };
 
+/** Las reglas reales y, en lugar del modelo de Rampart, una lista de nombres. */
+const NOMBRES: Record<string, TipoDato> = { Iker: 'nombre', Arrieta: 'apellido' };
+const detectorDePrueba: Detector = async (t) =>
+  unir([
+    ...datosPorReglas(t),
+    ...Object.entries(NOMBRES).flatMap(([n, tipo]) =>
+      [...t.matchAll(new RegExp(n, 'g'))].map((m) => ({
+        inicio: m.index,
+        fin: m.index + n.length,
+        tipo,
+      })),
+    ),
+  ]);
+
 const turno = (
   model: MockLanguageModelV4,
   a: Anfitrion,
   texto: string,
-  extra: { estado?: EstadoAgente; limites?: { pasos: number; costeUsd: number } } = {},
+  extra: {
+    estado?: EstadoAgente;
+    limites?: { pasos: number; costeUsd: number };
+    detector?: Detector;
+  } = {},
   rapido: MockLanguageModelV4 = model,
 ) =>
   ejecutarTurno({
@@ -365,6 +404,7 @@ const turno = (
     texto,
     evento: () => {},
     signal: new AbortController().signal,
+    detector: detectorDePrueba,
     ...extra,
   });
 
@@ -734,4 +774,255 @@ describe('agente: garantías', () => {
     expect(mal.estado.tarjeta.requisitos).toHaveLength(0);
     expect(mal.estado.tarjeta.costes).toHaveLength(0);
   });
+});
+
+describe('datos que no están en Mis datos', () => {
+  it('las reglas encuentran documentos, contactos, direcciones y fechas de nacimiento', () => {
+    const t =
+      'Mi hijo nació el 3/5/2015, DNI 87654321X, vive en Calle Mayor 12, 3ºB y en Avda. de la Constitución 45. Correo hijo@example.com, móvil 699 111 222, IBAN ES91 2100 0418 4502 0005 1332.';
+    const vistos = datosPorReglas(t).map((d) => t.slice(d.inicio, d.fin));
+    expect(vistos).toEqual([
+      '3/5/2015',
+      '87654321X',
+      'Calle Mayor 12, 3ºB',
+      'Avda. de la Constitución 45',
+      'hijo@example.com',
+      '699 111 222',
+      'ES91 2100 0418 4502 0005 1332',
+    ]);
+    const tramite =
+      'Requisitos: ser mayor de 18 años y pagar 12,00 euros. Horario de 9:00 a 14:00. Cita el 9 de noviembre de 2026.';
+    expect(datosPorReglas(tramite)).toEqual([]);
+  });
+
+  it('lo que la persona escribe de otra persona llega como marcador y se escribe en la web oficial', async () => {
+    const { model, prompts } = modeloGuionado([
+      () => ({
+        llamadas: [
+          { herramienta: 'escribir', entrada: { ref: 2, texto: '{{documento_1}}' } },
+          { herramienta: 'escribir', entrada: { ref: 3, texto: '{{nombre_1}} {{apellido_1}}' } },
+        ],
+      }),
+      () => ({ texto: 'ok' }),
+    ]);
+    const { nav, escrito } = navegadorFalso('https://sede.policia.gob.es/cita');
+    const r = await turno(model, anfitrion(nav), 'Cita para mi hijo Iker Arrieta, DNI 87654321X');
+    const enviado = JSON.stringify(prompts);
+    for (const v of ['Iker', 'Arrieta', '87654321X']) expect(enviado).not.toContain(v);
+    expect(enviado).toContain('mi hijo {{nombre_1}} {{apellido_1}}, DNI {{documento_1}}');
+    expect(escrito).toEqual(['87654321X', '3:Iker Arrieta']);
+    expect(r.estado.datosTramite).toMatchObject({ nombre_1: 'Iker', documento_1: '87654321X' });
+  });
+
+  it('de un campo solo ve lo que ha escrito el agente; lo que traía la web queda oculto', async () => {
+    const elementos = {
+      2: { tag: 'input', rol: 'textbox', nombre: 'Titular' },
+      3: { tag: 'input', rol: 'textbox', nombre: 'Motivo' },
+      4: { tag: 'input', rol: 'textbox', nombre: 'País' },
+      5: { tag: 'a', rol: 'link', nombre: 'Gobierno de España' },
+    };
+    const f = navegadorFalso('https://sede.policia.gob.es/carpeta', elementos);
+    f.valores[2] = 'Maite Goñi';
+    f.valores[4] = 'España';
+    const { model, prompts } = modeloGuionado([
+      () => ({ llamadas: [{ herramienta: 'escribir', entrada: { ref: 3, texto: 'Matrícula' } }] }),
+      (p) => {
+        expect(ultimoResultado(p)).toContain('"Titular" = "{{dato_1}}"');
+        expect(ultimoResultado(p)).toContain('"Motivo" = "Matrícula"');
+        // Lo que traía un campo se oculta solo ahí: el resto de la página sigue igual.
+        expect(ultimoResultado(p)).toContain('"País" = "{{dato_2}}"');
+        expect(ultimoResultado(p)).toContain('"Gobierno de España"');
+        return { texto: 'ok' };
+      },
+    ]);
+    await turno(model, anfitrion(f.nav), 'Rellena el motivo');
+    expect(JSON.stringify(prompts)).not.toContain('Goñi');
+  });
+
+  it('si el detector falla, el turno se para sin enviar lo que no ha podido proteger', async () => {
+    const falla: Detector = async () => {
+      throw new ErrorDeProteccion('No se han podido proteger los datos personales');
+    };
+    const antes = modeloGuionado([() => ({ texto: 'no debería llegar' })]);
+    const r = await turno(antes.model, anfitrion(navegadorFalso('https://x.gob.es').nav), 'Hola', {
+      detector: falla,
+    });
+    expect(r.fin).toBe('error');
+    expect(r.error).toMatch(/No se ha enviado nada al asistente/);
+    expect(antes.prompts).toHaveLength(0);
+
+    // A mitad del turno: la página que no se ha podido proteger no llega al modelo.
+    let llamadas = 0;
+    const aMitad: Detector = async (t, origen) => {
+      if (++llamadas > 2)
+        throw new ErrorDeProteccion('No se han podido proteger los datos personales');
+      return detectorDePrueba(t, origen);
+    };
+    const f = navegadorFalso('https://sede.policia.gob.es/cita');
+    f.valores[3] = 'Maite Goñi';
+    const durante = modeloGuionado([
+      () => ({ llamadas: [{ herramienta: 'ver', entrada: {} }] }),
+      () => ({ texto: 'no debería llegar' }),
+    ]);
+    const r2 = await turno(durante.model, anfitrion(f.nav), 'Mira', { detector: aMitad });
+    expect(r2.fin).toBe('error');
+    expect(durante.prompts).toHaveLength(1);
+  });
+
+  it('el modelo solo lee las respuestas que necesita para razonar', async () => {
+    const a = {
+      ...anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
+      preguntar: async () => ({
+        nombre_hijo: 'Iker',
+        nacimiento_hijo: '2015-05-03',
+        tiene_cita: 'Sí',
+      }),
+    };
+    const { model, prompts } = modeloGuionado([
+      () => ({
+        llamadas: [
+          {
+            herramienta: 'preguntar',
+            entrada: {
+              titulo: 'Datos de tu hijo',
+              campos: [
+                { clave: 'nombre_hijo', etiqueta: 'Nombre', tipo: 'texto', privado: false },
+                { clave: 'nacimiento_hijo', etiqueta: 'Nacimiento', tipo: 'fecha', privado: false },
+                { clave: 'tiene_cita', etiqueta: '¿Tiene cita?', tipo: 'si_no', privado: false },
+              ],
+            },
+          },
+        ],
+      }),
+      () => ({ texto: 'ok' }),
+    ]);
+    await turno(model, a, 'Pregunta');
+    const enviado = JSON.stringify(prompts);
+    expect(enviado).not.toContain('Iker');
+    expect(enviado).not.toContain('2015');
+    expect(enviado).toContain('tiene_cita: Sí');
+  });
+
+  it('la última capa oculta cualquier DNI, NIE o IBAN válido, venga de donde venga', () => {
+    const p = new Privacidad({});
+    expect(
+      p.limpiar('DNI 87654321X, NIE X1234567L, IBAN ES91 2100 0418 4502 0005 1332, ref 12345678A', {
+        laxo: true,
+      }),
+    ).toBe('DNI [DNI], NIE [NIE], IBAN [IBAN], ref 12345678A');
+  });
+
+  it('el código postal y la caducidad del documento no llegan al modelo', () => {
+    const texto = perfilParaModelo(
+      { codigo_postal: '28009', documento_caducidad: '2027-03-01', municipio: 'Madrid' },
+      new Date('2026-10-16'),
+    );
+    expect(texto).not.toContain('28009');
+    expect(texto).not.toContain('2027');
+    expect(texto).toContain('caduca en 4 meses');
+    expect(texto).toContain('Madrid');
+  });
+});
+
+describe('marcadores y formatos', () => {
+  it('un valor guardado no toca los marcadores que ya hay', () => {
+    const p = new Privacidad({ medio_contacto: 'Correo' });
+    expect(p.limpiar('Escribe a {{correo_1}} por correo')).toBe(
+      'Escribe a {{correo_1}} por {{medio_contacto}}',
+    );
+  });
+
+  it('lo guardado conserva su marcador en otro formato y no se mezcla con lo detectado', async () => {
+    const p = new Privacidad(perfil);
+    const datos = {};
+    const iker: Detector = async (t) => [
+      { inicio: t.indexOf('Iker'), fin: t.indexOf('Núñez') + 5, tipo: 'nombre' },
+    ];
+    expect(
+      await p.proteger('Llama al +34 612 345 678 por Iker Núñez', iker, datos, 'persona'),
+    ).toBe('Llama al {{telefono}} por {{nombre_1}} {{apellido1}}');
+    expect(datos).toEqual({ nombre_1: 'Iker' });
+  });
+
+  it('lo que trae un campo sigue oculto aunque el agente lo copie a otro', async () => {
+    const elementos = {
+      2: { tag: 'input', rol: 'textbox', nombre: 'Titular' },
+      3: { tag: 'input', rol: 'textbox', nombre: 'Representante' },
+      4: { tag: 'input', rol: 'textbox', nombre: 'Hija' },
+    };
+    const f = navegadorFalso('https://sede.policia.gob.es/carpeta', elementos);
+    f.valores[2] = 'Maite Goñi';
+    f.valores[4] = 'Maya';
+    const { model, prompts } = modeloGuionado([
+      () => ({ llamadas: [{ herramienta: 'ver', entrada: {} }] }),
+      () => ({ llamadas: [{ herramienta: 'escribir', entrada: { ref: 3, texto: '{{dato_1}}' } }] }),
+      (p) => {
+        expect(ultimoResultado(p)).toContain('"Representante" = "{{dato_1}}"');
+        return { texto: 'ok' };
+      },
+    ]);
+    await turno(model, anfitrion(f.nav), 'Copia el titular');
+    expect(f.escrito).toEqual(['3:Maite Goñi']);
+    for (const v of ['Goñi', 'Maya']) expect(JSON.stringify(prompts)).not.toContain(v);
+  });
+
+  it('un número largo y las claves de datos encontrados no se dejan leer ni pisar', async () => {
+    const a = {
+      ...anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
+      preguntar: async () => ({ personas: '3', nuss: '281234567840' }),
+    };
+    const numero = (clave: string) => ({ clave, etiqueta: clave, tipo: 'numero', privado: false });
+    const { model, prompts } = modeloGuionado([
+      () => ({
+        llamadas: [
+          {
+            herramienta: 'preguntar',
+            entrada: { titulo: 'Datos', campos: [{ ...numero('nombre_1'), tipo: 'texto' }] },
+          },
+        ],
+      }),
+      (p) => {
+        expect(ultimoResultado(p)).toMatch(/es de un dato ya encontrado/);
+        return {
+          llamadas: [
+            {
+              herramienta: 'preguntar',
+              entrada: { titulo: 'Datos', campos: [numero('personas'), numero('nuss')] },
+            },
+          ],
+        };
+      },
+      () => ({ texto: 'ok' }),
+    ]);
+    await turno(model, a, 'Pregunta');
+    const enviado = JSON.stringify(prompts);
+    expect(enviado).toContain('personas: 3');
+    expect(enviado).not.toContain('281234567840');
+  });
+});
+
+const modelo = path.resolve(import.meta.dirname, '../.cache/rampart');
+// Con el modelo de verdad (pnpm --filter @reforma-digital/agent detector): sin él, no se ejecuta.
+describe.skipIf(!existsSync(modelo))('detector con el modelo de Rampart', () => {
+  it('oculta nombres enteros sin partir palabras ni tapar trámites, oficinas o municipios', async () => {
+    const d = await crearDetector(modelo);
+    const proteger = (t: string, origen: 'persona' | 'pagina') =>
+      new Privacidad({}).proteger(t, d, {}, origen);
+    const familia = await proteger(
+      'Cita para mi hijo Iker Arrieta y para mi madre Carmen López',
+      'persona',
+    );
+    for (const v of ['Iker', 'Arrieta', 'Carmen', 'López']) expect(familia).not.toContain(v);
+    expect(familia).not.toMatch(/\p{L}\{\{|\}\}\p{L}/u);
+    for (const t of [
+      'Rellena el Modelo 030 de Hacienda para el empadronamiento de Getafe',
+      'Tengo que pagar la tasa 790 código 012. Solicitar la ayuda por nacimiento de hijo',
+    ])
+      expect(await proteger(t, 'persona')).toBe(t);
+    expect(await proteger('Elija la oficina. Bienvenida, LUCÍA ORTUZAR', 'pagina')).toBe(
+      'Elija la oficina. Bienvenida, {{dato_1}}',
+    );
+    const sede = 'Oficina: Villaejemplo Norte · Trámite: Alta en el padrón';
+    expect(await proteger(sede, 'pagina')).toBe(sede);
+  }, 60_000);
 });

@@ -19,7 +19,8 @@ const MUNDO = 1000;
 const ZOOM = 0.8;
 const configuradas = new WeakSet<Session>();
 
-export const particion = (tramite: string) => `persist:tramite-${tramite}`;
+/** En memoria: cookies, caché y lo que guarden las webs desaparecen al cerrar la app. */
+export const particion = (tramite: string) => `tramite-${tramite}`;
 const sesionLectura = () => session.fromPartition('lectura');
 export const esLectura = (ses: Session) => ses === sesionLectura();
 /** Lo que se abre dentro del navegador del trámite; AutoFirma se abre fuera y el resto se ignora. */
@@ -121,8 +122,8 @@ async function abrirAutoFirma(ventana: BrowserWindow | null, url: string) {
 }
 
 /**
- * El navegador de un trámite: una vista dentro de la ventana, con su propia sesión persistente
- * (las sesiones iniciadas sobreviven a un reinicio y no se mezclan entre trámites).
+ * El navegador de un trámite: una vista dentro de la ventana, con su propia sesión en memoria
+ * (no se mezcla con la de otros trámites y no deja nada en disco).
  */
 export class NavegadorTramite implements Navegador {
   readonly view: WebContentsView;

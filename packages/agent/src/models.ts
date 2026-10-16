@@ -5,7 +5,7 @@ import {
   type LanguageModel,
   type LanguageModelMiddleware,
 } from 'ai';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOpenRouter, type OpenRouterChatSettings } from '@openrouter/ai-sdk-provider';
 import type { Privacidad } from './profile';
 
 export type ConfigProveedor = {
@@ -13,6 +13,8 @@ export type ConfigProveedor = {
   clave: string;
   /** Modelo del agente, con el identificador del proveedor («openai/gpt-6-luna»). */
   modelo: string;
+  /** Solo proveedores que no guardan las peticiones (en Vercel exige el plan Pro). */
+  retencionCero?: boolean;
 };
 
 /** Un modelo ya creado (no un identificador de texto). */
@@ -47,17 +49,21 @@ export function guardaPrivacidad(
   // escapados y un valor partido en dos líneas no se reconocería.
   const esObjeto = (v: unknown): v is object =>
     Boolean(v) && typeof v === 'object' && !(v instanceof Uint8Array) && !(v instanceof URL);
+  // `providerOptions` lleva datos del proveedor (el razonamiento cifrado): tocarlo lo estropearía.
+  const propio = ([k]: [string, unknown]) => k === 'providerOptions';
   const contiene = (valor: unknown): boolean =>
     typeof valor === 'string'
       ? privacidad.contieneDatos(valor)
       : Array.isArray(valor)
         ? valor.some(contiene)
-        : esObjeto(valor) && Object.values(valor).some(contiene);
+        : esObjeto(valor) && Object.entries(valor).some((e) => !propio(e) && contiene(e[1]));
   const limpiar = (valor: unknown): unknown => {
     if (typeof valor === 'string') return privacidad.limpiar(valor, { laxo: true });
     if (Array.isArray(valor)) return valor.map(limpiar);
     if (esObjeto(valor))
-      return Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, limpiar(v)]));
+      return Object.fromEntries(
+        Object.entries(valor).map((e) => [e[0], propio(e) ? e[1] : limpiar(e[1])]),
+      );
     return valor;
   };
   return {
@@ -69,14 +75,33 @@ export function guardaPrivacidad(
   };
 }
 
+/**
+ * Las peticiones solo van a proveedores que no entrenan con ellas y, con `retencionCero`, a los
+ * que tampoco las guardan. Si ninguno cumple, el proveedor devuelve un error: no se relaja.
+ */
+const sinEntrenamiento = (retencionCero = false): LanguageModelMiddleware => ({
+  transformParams: async ({ params }) => ({
+    ...params,
+    providerOptions: {
+      ...params.providerOptions,
+      gateway: {
+        ...params.providerOptions?.gateway,
+        disallowPromptTraining: true,
+        ...(retencionCero ? { zeroDataRetention: true } : {}),
+      },
+    },
+  }),
+});
+
 export function crearProveedor(
   cfg: ConfigProveedor,
   guarda?: LanguageModelMiddleware | LanguageModelMiddleware[],
 ): Proveedor {
-  const envolver = (model: Modelo) =>
-    guarda ? wrapLanguageModel({ model, middleware: guarda }) : model;
+  const capas = [guarda ?? []].flat();
   if (cfg.tipo === 'gateway') {
     const gateway = createGateway({ apiKey: cfg.clave });
+    const envolver = (model: Modelo) =>
+      wrapLanguageModel({ model, middleware: [...capas, sinEntrenamiento(cfg.retencionCero)] });
     return {
       tipo: 'gateway',
       gateway,
@@ -84,8 +109,13 @@ export function crearProveedor(
       rapido: envolver(gateway(MODELO_BUSQUEDA)),
     };
   }
+  const envolver = (model: Modelo) =>
+    capas.length ? wrapLanguageModel({ model, middleware: capas }) : model;
   const openrouter = createOpenRouter({ apiKey: cfg.clave });
-  const conCoste = { usage: { include: true } };
+  const conCoste: OpenRouterChatSettings = {
+    usage: { include: true },
+    provider: { data_collection: 'deny', ...(cfg.retencionCero ? { zdr: true } : {}) },
+  };
   return {
     tipo: 'openrouter',
     modelo: envolver(openrouter(cfg.modelo, conCoste)),

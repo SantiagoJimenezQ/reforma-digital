@@ -1,5 +1,6 @@
 export * from './agent';
 export * from './card';
+export * from './detector';
 export * from './models';
 export * from './page';
 export * from './profile';

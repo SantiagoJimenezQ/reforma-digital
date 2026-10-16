@@ -154,6 +154,56 @@ function FormProveedor({ conModelo = true }: { conModelo?: boolean }) {
   );
 }
 
+/** Solo se activa si el proveedor la acepta: con un plan que no la permite, la IA dejaría de responder. */
+function RetencionCero() {
+  const { app } = useEstado();
+  const [estado, setEstado] = useState<{ probando: boolean; error?: string }>({ probando: false });
+  if (!app) return null;
+  const a = app.ajustes;
+  const cambiar = async (activar: boolean) => {
+    if (activar) {
+      setEstado({ probando: true });
+      const prueba = await window.rd.probarConexion({
+        proveedor: a.proveedor,
+        modelo: a.modelo,
+        retencionCero: true,
+      });
+      if (!prueba.ok) return setEstado({ probando: false, error: prueba.error });
+    }
+    setEstado({ probando: false });
+    await window.rd.guardarAjustes({ retencionCero: activar });
+  };
+  return (
+    <div>
+      <label className="flex items-start gap-3">
+        <Checkbox
+          checked={a.retencionCero}
+          disabled={estado.probando || !a.claveGuardada}
+          onCheckedChange={(v) => void cambiar(v === true)}
+          className="mt-0.5"
+        />
+        <span>
+          <span className="block text-[15px] font-medium">
+            {estado.probando
+              ? 'Comprobando con el proveedor…'
+              : 'Exigir que el proveedor de IA no guarde las peticiones'}
+          </span>
+          <span className="block text-sm leading-relaxed text-muted-foreground">
+            Retención cero: solo se usan proveedores que borran cada petición al responder. En
+            Vercel AI Gateway exige el plan Pro. Sin ella, la app ya pide que no se entrene con tus
+            peticiones.
+          </span>
+        </span>
+      </label>
+      {estado.error && (
+        <p role="alert" className="mt-2 mb-0 ml-8 text-sm text-destructive">
+          {estado.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function Ajustes() {
   const { app } = useEstado();
   if (!app) return null;
@@ -255,10 +305,15 @@ export function Ajustes() {
         <section className="border-t border-border py-8">
           <h2 className="mt-0 mb-3 text-[15px] font-medium">Privacidad</h2>
           <ul className="m-0 space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-            <li>Tus datos, conversaciones y trámites se guardan cifrados en este Mac.</li>
             <li>
-              Al proveedor de IA solo le llegan marcadores en lugar de tus identificadores. Antes de
-              cada petición, la app comprueba que no se le escapa ninguno.
+              Tus datos, conversaciones y trámites se guardan cifrados en este Mac. Las sesiones de
+              las webs oficiales solo viven en memoria: al cerrar la app hay que volver a entrar.
+            </li>
+            <li>
+              Al proveedor de IA solo le llegan marcadores en lugar de tus datos personales: los de
+              Mis datos y los que un detector, que funciona en este Mac, encuentra en lo que
+              escribes y en las webs (nombres, documentos, direcciones, teléfonos y correos). De los
+              campos de texto solo ve lo que escribe él. Si el detector falla, no se envía nada.
             </li>
             <li>
               El asistente lee y busca en webs de las administraciones públicas. Para abrir otra web
@@ -268,6 +323,9 @@ export function Ajustes() {
               Contraseñas, CAPTCHA, certificados, firmas y pagos los haces tú en la web oficial.
             </li>
           </ul>
+          <div className="mt-6">
+            <RetencionCero />
+          </div>
         </section>
         <section className="border-t border-border pt-8">
           <Button
