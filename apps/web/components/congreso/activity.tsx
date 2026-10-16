@@ -100,7 +100,7 @@ export function Interventions({
                     Modelo: {iv.ia.model}. Prompt: {iv.ia.prompt}.{' '}
                     {iv.ia.provider === 'cache-importada'
                       ? 'Análisis conservado del histórico de Escaño Abierto.'
-                      : 'Generado en Reforma Digital con Helmcode.'}
+                      : 'Generado en Reforma Digital con NaN.'}
                   </p>
                 </CollapsibleContent>
               </Collapsible>

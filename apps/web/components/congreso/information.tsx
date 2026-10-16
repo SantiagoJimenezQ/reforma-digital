@@ -79,7 +79,7 @@ export function Information({ section, title }: { section: string; title: string
             </p>
             <p>
               El histórico importado conserva análisis de Escaño Abierto. Los nuevos análisis usan
-              Helmcode y guardan el modelo, la versión del prompt y el hash de entrada.
+              NaN y guardan el modelo, la versión del prompt y el hash de entrada.
             </p>
           </Section>
           <Section title="Puedes reutilizarlos">
