@@ -37,6 +37,18 @@ function agrupar(items: ItemConversacion[]): Bloque[] {
   return bloques;
 }
 
+/** Mientras trabaja: qué está haciendo, con el brillo de «pendiente» y el paso concreto debajo. */
+const FASES: Record<string, string> = {
+  buscar: 'Buscando trámites',
+  leer_pagina: 'Leyendo fuentes oficiales',
+  leer_texto: 'Leyendo la página',
+  mis_datos: 'Revisando tus datos',
+  ver: 'Trabajando en la sede',
+  esperar: 'Trabajando en la sede',
+};
+const fase = (herramienta: string) =>
+  FASES[herramienta] ?? (DE_NAVEGADOR.has(herramienta) ? 'Trabajando en la sede' : 'Pensando');
+
 function Actividad({
   items,
   enCurso,
@@ -47,6 +59,14 @@ function Actividad({
   const [abierta, setAbierta] = useState(false);
   const ultima = items.at(-1)!;
   const errores = items.filter((i) => i.estado === 'error').length;
+  // El paso concreto solo si dice algo más que la fase («Leyendo seg-social.es»).
+  if (enCurso)
+    return (
+      <Thinking
+        label={fase(ultima.herramienta)}
+        {...(ultima.herramienta === 'buscar' ? {} : { stage: ultima.resumen })}
+      />
+    );
   return (
     <div className="my-3">
       <button
@@ -60,11 +80,7 @@ function Actividad({
           size={16}
           className={abierta ? '-rotate-90' : ''}
         />
-        <span className={cn(enCurso && 'font-medium text-foreground')}>
-          {enCurso
-            ? ultima.resumen
-            : `${items.length} ${items.length === 1 ? 'acción' : 'acciones'} del asistente`}
-        </span>
+        <span>{`${items.length} ${items.length === 1 ? 'acción' : 'acciones'} del asistente`}</span>
         {errores > 0 && <span>· {errores} sin éxito</span>}
       </button>
       {abierta && (
@@ -200,7 +216,7 @@ function Conversacion({
         {trabajando &&
           ultimo?.tipo !== 'actividad' &&
           !(ultimo?.tipo === 'pregunta' && ultimo.estado === 'pendiente') && (
-            <Thinking label="Trabajando" />
+            <Thinking label="Pensando" />
           )}
         <div ref={fin} />
       </div>

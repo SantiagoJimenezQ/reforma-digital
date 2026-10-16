@@ -179,7 +179,10 @@ function supervisar(tools: ToolSet, ctx: Contexto, cortar: (e: Error) => void): 
   );
 }
 
-/** Lo que ve la persona en la lista de actividad. Nunca incluye valores de los campos. */
+/**
+ * Lo que ve la persona en la lista de actividad. Nunca incluye valores de los campos ni lo que
+ * busca el modelo.
+ */
 export function resumir(nombre: string, input: unknown): string {
   const i = (input ?? {}) as Record<string, unknown>;
   const host = (u: unknown) => {
@@ -191,7 +194,7 @@ export function resumir(nombre: string, input: unknown): string {
   };
   switch (nombre) {
     case 'buscar':
-      return `Buscando «${String(i.consulta)}» en webs oficiales`;
+      return 'Buscando en webs oficiales';
     case 'leer_pagina':
       return `Leyendo ${host(i.url)}`;
     case 'abrir':
