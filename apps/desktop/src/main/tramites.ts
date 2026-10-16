@@ -38,7 +38,7 @@ type Registro = {
 export type Entorno = {
   perfil(): Perfil;
   guardarPerfil(valores: Perfil): Promise<void>;
-  /** Configuración del proveedor, o `null` si falta la clave. */
+  /** Configuración del proveedor, o `null` si la compilación no lleva la clave. */
   proveedor(): {
     cfg: ConfigProveedor;
     razonamiento: Razonamiento;
@@ -223,7 +223,8 @@ export class Tramites {
         tipo: 'aviso',
         id: randomUUID(),
         tono: 'error',
-        texto: 'Conecta un proveedor de IA en Ajustes para empezar.',
+        texto:
+          'Esta compilación de la app no lleva la clave del asistente. Compílala con AI_GATEWAY_API_KEY.',
       });
       await this.guardar(r);
       this.cambio(id);

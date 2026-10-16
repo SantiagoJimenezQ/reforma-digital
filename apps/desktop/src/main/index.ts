@@ -41,9 +41,15 @@ protocol.registerSchemesAsPrivileged([
 ]);
 if (!app.requestSingleInstanceLock()) app.quit();
 
-type Secretos = { ajustes: Ajustes; clave?: string };
+/**
+ * La clave de Vercel AI Gateway con la que la app llama al asistente, para que nadie tenga que
+ * traer la suya. Se pone al compilar (AI_GATEWAY_API_KEY): va dentro de la app y se puede sacar
+ * de ella, así que solo vale para compilaciones propias, no para repartir.
+ */
+const CLAVE_GATEWAY = process.env.CLAVE_GATEWAY ?? '';
+
+type Secretos = { ajustes: Ajustes };
 const AJUSTES_INICIALES: Ajustes = {
-  proveedor: 'gateway',
   modelo: 'openai/gpt-6-luna',
   razonamiento: 'medium',
   limiteTurnoUsd: 0.5,
@@ -58,6 +64,8 @@ let tramites: Tramites;
 let secretos: Secretos = { ajustes: AJUSTES_INICIALES };
 let perfil: Perfil = {};
 let detector: Promise<Detector> | undefined;
+const SIN_CLAVE =
+  'Esta compilación de la app no lleva la clave del asistente. Compílala con AI_GATEWAY_API_KEY.';
 /** Se carga una vez, del modelo que va dentro de la app; si falla, se reintenta en el siguiente turno. */
 const cargarDetector = () =>
   (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart')).catch((e: unknown) => {
@@ -110,8 +118,7 @@ function recordatorios(): EstadoApp['recordatorios'] {
 function estadoApp(): EstadoApp {
   return {
     version: app.getVersion(),
-    configurado: Boolean(secretos.clave),
-    ajustes: { ...secretos.ajustes, claveGuardada: Boolean(secretos.clave) },
+    ajustes: secretos.ajustes,
     tramites: tramites.lista(),
     campos: camposPerfil,
     perfil: perfilVista(),
@@ -126,7 +133,6 @@ function emitir(e: EventoApp) {
 
 const ajustesEsquema = z
   .object({
-    proveedor: z.enum(['gateway', 'openrouter']),
     modelo: z
       .string()
       .regex(/^[\w.-]+\/[\w.:-]+$/)
@@ -136,7 +142,6 @@ const ajustesEsquema = z
     touchIdEnConfirmaciones: z.boolean(),
     interfacesComunitarias: z.boolean(),
     retencionCero: z.boolean(),
-    clave: z.string().trim().min(10).max(300),
   })
   .partial();
 const texto = z.string().trim().min(1).max(4000);
@@ -151,32 +156,22 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
     estado: async () => estadoApp(),
     guardarAjustes: async (entrada) => {
       const a = ajustesEsquema.safeParse(entrada);
-      if (!a.success) return { ok: false, error: 'Revisa los datos del proveedor.' };
-      const { clave, ...resto } = a.data;
-      secretos = {
-        ajustes: { ...secretos.ajustes, ...resto },
-        ...(clave ? { clave } : secretos.clave ? { clave: secretos.clave } : {}),
-      };
+      if (!a.success) return { ok: false, error: 'Revisa los ajustes.' };
+      secretos = { ajustes: { ...secretos.ajustes, ...a.data } };
       await almacen.escribir('secretos.bin', secretos);
-      if (resto.interfacesComunitarias !== undefined) await tramites.aplicarExtension();
+      if (a.data.interfacesComunitarias !== undefined) await tramites.aplicarExtension();
       emitir({ tipo: 'estado', estado: estadoApp() });
       return { ok: true };
     },
     probarConexion: async (entrada) => {
       const a = z
-        .object({
-          proveedor: z.enum(['gateway', 'openrouter']),
-          clave: z.string().trim().optional(),
-          modelo: z.string().max(100),
-          retencionCero: z.boolean().optional(),
-        })
+        .object({ modelo: z.string().max(100), retencionCero: z.boolean().optional() })
         .parse(entrada);
-      const clave = a.clave || secretos.clave;
-      if (!clave) return { ok: false, error: 'Escribe la clave del proveedor.' };
+      if (!CLAVE_GATEWAY) return { ok: false, error: SIN_CLAVE };
       try {
         await probarConexion({
-          tipo: a.proveedor,
-          clave,
+          tipo: 'gateway',
+          clave: CLAVE_GATEWAY,
           modelo: a.modelo,
           retencionCero: a.retencionCero ?? secretos.ajustes.retencionCero,
         });
@@ -436,11 +431,11 @@ app
       perfil: () => perfil,
       guardarPerfil: async (v) => guardarPerfil({ ...perfil, ...v }),
       proveedor: () =>
-        secretos.clave
+        CLAVE_GATEWAY
           ? {
               cfg: {
-                tipo: secretos.ajustes.proveedor,
-                clave: secretos.clave,
+                tipo: 'gateway',
+                clave: CLAVE_GATEWAY,
                 modelo: secretos.ajustes.modelo,
                 retencionCero: secretos.ajustes.retencionCero,
               },

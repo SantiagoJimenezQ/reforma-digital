@@ -19,7 +19,9 @@ pnpm --filter @reforma-digital/desktop package                 # .app en apps/de
 
 Si el terminal tiene `ELECTRON_RUN_AS_NODE=1` (lo definen algunas apps hechas con Electron), quítalo antes de `dev`: con esa variable Electron arranca como Node. La app empaquetada no se ve afectada porque el fusible `runAsNode` está desactivado.
 
-Al abrirla pide un proveedor de IA y su clave: **Vercel AI Gateway** u **OpenRouter**. Cada persona usa su propia clave; la app habla directamente con el proveedor y con las webs oficiales, sin servidores de Reforma Digital. El modelo por defecto es `openai/gpt-6-luna`, el que mejor resultado y menor coste ha dado en las evaluaciones.
+La app no pide ninguna clave: llama al asistente con la de **Vercel AI Gateway** que recibe al compilarse (`AI_GATEWAY_API_KEY`, del entorno o del `.env` de la raíz). Habla directamente con Vercel y con las webs oficiales, sin servidores de Reforma Digital. El modelo por defecto es `openai/gpt-6-luna`, el que mejor resultado y menor coste ha dado en las evaluaciones; se cambia en Ajustes.
+
+**La clave queda dentro del `.app` y cualquiera que lo tenga puede sacarla.** Sirve para compilaciones propias. Para repartir la app hace falta otra cosa: una clave aparte con presupuesto limitado en Vercel o, mejor, un servidor intermedio que guarde la clave y limite el uso. Sin clave, la app avisa al enviar un mensaje y no hace nada más.
 
 ## Cómo está hecha
 
@@ -28,7 +30,7 @@ flowchart LR
   UI["Interfaz · React + sistema Sol"] -- "window.rd (IPC validado)" --> Main["Proceso principal · Electron"]
   Main --> Almacen["Almacén cifrado · AES-256-GCM, clave en el llavero"]
   Main --> Agente["@reforma-digital/agent · bucle del agente"]
-  Agente --> Modelo["Proveedor de IA · Gateway u OpenRouter"]
+  Agente --> Modelo["Vercel AI Gateway"]
   Agente --> Oficiales["Webs oficiales · búsqueda y lectura"]
   Main --> Vista["Navegador del trámite · WebContentsView, sesión propia"]
   Agente -. "mismo script de página" .-> Vista
@@ -130,6 +132,6 @@ Lo que SpainAssist tiene y esta app no: firma propia sin AutoFirma, DNIe con el 
 - **La protección de datos reduce el riesgo, no lo elimina.** El modelo sigue viendo el contexto y la información del trámite que no identifica (fechas de cita, importes, estados), y el detector puede pasar por alto un nombre suelto. Ver [lo que todavía puede llegar al modelo](security-protocol.md#lo-que-todavía-puede-llegar-al-modelo).
 - **Touch ID es una comprobación de la interfaz**, no protege criptográficamente la clave de datos.
 - **Sin firma de Apple ni notarización.** El `.app` está firmado ad hoc; en otro Mac, Gatekeeper lo bloqueará hasta abrirlo con clic derecho → Abrir.
-- **OpenRouter sin probar en directo.** El código sigue el mismo motor que el buscador web, pero la clave disponible no funcionaba; las pruebas usaron Vercel AI Gateway.
+- **La clave del asistente va dentro de la app.** Ver [Puesta en marcha](#puesta-en-marcha). `packages/agent` también admite OpenRouter (las evaluaciones pueden usarlo), pero la app solo usa Vercel AI Gateway, y OpenRouter no se ha probado en directo.
 - **Webs que bloquean a los programas.** Algunas (interior.gob.es) rechazan las peticiones que no vienen de un navegador; la app las lee con una vista oculta de Chromium. En las evaluaciones, sin esa vista, el agente usa los extractos de la búsqueda.
 - **Interfaces comunitarias.** Se activan en Ajustes (vienen desactivadas) y cargan la extensión en el navegador de cada trámite. Se comprobó que aparecen con el fixture de DNI; el agente no se ha evaluado sobre ellas.

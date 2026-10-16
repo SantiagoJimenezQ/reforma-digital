@@ -11,11 +11,9 @@ import type {
 
 export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente, Tarjeta, Uso };
 
-export type Proveedor = 'gateway' | 'openrouter';
 export type Razonamiento = 'low' | 'medium' | 'high';
 
 export type Ajustes = {
-  proveedor: Proveedor;
   modelo: string;
   razonamiento: Razonamiento;
   /** Gasto máximo de un turno del asistente, en dólares. */
@@ -27,7 +25,6 @@ export type Ajustes = {
   /** Usar solo proveedores de IA que no guardan las peticiones (en Vercel exige el plan Pro). */
   retencionCero: boolean;
 };
-export type AjustesVista = Ajustes & { claveGuardada: boolean };
 
 export type Pregunta =
   | { tipo: 'formulario'; formulario: Formulario }
@@ -82,8 +79,7 @@ export type DatoPerfil = { clave: string; guardado: boolean; vista: string };
 
 export type EstadoApp = {
   version: string;
-  configurado: boolean;
-  ajustes: AjustesVista;
+  ajustes: Ajustes;
   tramites: ResumenTramite[];
   campos: readonly CampoPerfil[];
   perfil: DatoPerfil[];
@@ -103,12 +99,8 @@ export type EventoApp =
 /** Lo que el preload expone en `window.rd`. */
 export type ApiRd = {
   estado(): Promise<EstadoApp>;
-  guardarAjustes(
-    a: Partial<Ajustes> & { clave?: string },
-  ): Promise<{ ok: true } | { ok: false; error: string }>;
+  guardarAjustes(a: Partial<Ajustes>): Promise<{ ok: true } | { ok: false; error: string }>;
   probarConexion(a: {
-    proveedor: Proveedor;
-    clave?: string;
     modelo: string;
     retencionCero?: boolean;
   }): Promise<{ ok: boolean; error?: string }>;

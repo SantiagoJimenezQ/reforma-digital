@@ -3,11 +3,10 @@ import { Button } from '@reforma-digital/design/ui/button';
 import { Input } from '@reforma-digital/design/ui/input';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
 import { Checkbox } from '@reforma-digital/design/ui/checkbox';
-import type { Proveedor, Razonamiento } from '../shared/api';
+import type { Razonamiento } from '../shared/api';
 import { Cabecera } from './datos';
 import { useEstado } from './estado';
-import { Icono, Marca } from './icono';
-import { PROMESAS } from './inicio';
+import { Icono } from './icono';
 
 /** Modelos probados con las evaluaciones del agente (pnpm eval:agent). */
 const MODELOS = [
@@ -28,129 +27,31 @@ const MODELOS = [
   },
   { id: 'openai/gpt-6.1-sol', nombre: 'GPT-6.1 Sol', nota: 'Más capaz y bastante más caro.' },
 ];
-const PROVEEDORES: { id: Proveedor; nombre: string; ayuda: string }[] = [
-  { id: 'gateway', nombre: 'Vercel AI Gateway', ayuda: 'Clave de vercel.com' },
-  { id: 'openrouter', nombre: 'OpenRouter', ayuda: 'Clave de openrouter.ai' },
-];
-
 const opcion =
   'flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-border bg-background p-4 has-data-checked:border-foreground';
 
-function FormProveedor({ conModelo = true }: { conModelo?: boolean }) {
+function Modelo() {
   const { app } = useEstado();
-  const a = app?.ajustes;
-  const [proveedor, setProveedor] = useState<Proveedor>(a?.proveedor ?? 'gateway');
-  const [clave, setClave] = useState('');
-  const [modelo, setModelo] = useState(a?.modelo ?? MODELOS[0]!.id);
-  const [estado, setEstado] = useState<{
-    tipo: 'nada' | 'probando' | 'ok' | 'error';
-    texto?: string;
-  }>({ tipo: 'nada' });
-  const guardar = async () => {
-    setEstado({ tipo: 'probando' });
-    const prueba = await window.rd.probarConexion({
-      proveedor,
-      modelo,
-      ...(clave ? { clave } : {}),
-    });
-    if (!prueba.ok)
-      return setEstado({ tipo: 'error', texto: prueba.error ?? 'No se ha podido conectar.' });
-    const r = await window.rd.guardarAjustes({ proveedor, modelo, ...(clave ? { clave } : {}) });
-    if (!r.ok) return setEstado({ tipo: 'error', texto: r.error });
-    setClave('');
-    setEstado({ tipo: 'ok', texto: 'Conectado y guardado.' });
-  };
+  if (!app) return null;
   return (
-    <form
-      className="space-y-6"
-      onSubmit={(e) => {
-        e.preventDefault();
-        void guardar();
-      }}
-    >
-      <fieldset className="m-0 border-0 p-0">
-        <legend className="mb-3 text-[15px] font-medium">Proveedor de IA</legend>
-        <RadioGroup
-          value={proveedor}
-          onValueChange={(v) => setProveedor(v === 'openrouter' ? 'openrouter' : 'gateway')}
-          className="grid grid-cols-2 gap-3"
-        >
-          {PROVEEDORES.map((p) => (
-            <label key={p.id} className={opcion}>
-              <RadioGroupItem value={p.id} className="mt-0.5" />
-              <span>
-                <span className="block text-[15px] font-medium">{p.nombre}</span>
-                <span className="block text-sm leading-relaxed text-muted-foreground">
-                  {p.ayuda}
-                </span>
-              </span>
-            </label>
-          ))}
-        </RadioGroup>
-      </fieldset>
-      <div>
-        <label htmlFor="clave" className="mb-1.5 block text-[15px] font-medium">
-          Clave del proveedor
-        </label>
-        <Input
-          id="clave"
-          type="password"
-          className="h-11 text-base"
-          autoComplete="off"
-          placeholder={
-            a?.claveGuardada ? 'Guardada. Escribe otra para cambiarla' : 'Pega aquí tu clave'
-          }
-          value={clave}
-          onChange={(e) => setClave(e.target.value)}
-        />
-        <p className="mt-1.5 mb-0 text-sm text-muted-foreground">
-          Se guarda cifrada en este Mac. Las peticiones van directamente a tu proveedor: Reforma
-          Digital no tiene servidores intermedios.
-        </p>
-      </div>
-      {conModelo && (
-        <fieldset className="m-0 border-0 p-0">
-          <legend className="mb-3 text-[15px] font-medium">Modelo</legend>
-          <RadioGroup
-            value={modelo}
-            onValueChange={(v) => setModelo(String(v))}
-            className="grid gap-2"
-          >
-            {MODELOS.map((m) => (
-              <label key={m.id} className={opcion}>
-                <RadioGroupItem value={m.id} className="mt-0.5" />
-                <span>
-                  <span className="block text-[15px] font-medium">{m.nombre}</span>
-                  <span className="block text-sm text-muted-foreground">{m.nota}</span>
-                </span>
-              </label>
-            ))}
-          </RadioGroup>
-        </fieldset>
-      )}
-      <div className="flex items-center gap-4">
-        <Button
-          type="submit"
-          variant="sunset"
-          size="lg"
-          disabled={estado.tipo === 'probando' || (!clave && !a?.claveGuardada)}
-        >
-          {estado.tipo === 'probando' ? 'Comprobando…' : 'Probar y guardar'}
-        </Button>
-        {estado.texto && (
-          <p
-            role={estado.tipo === 'error' ? 'alert' : 'status'}
-            className={
-              estado.tipo === 'error'
-                ? 'm-0 text-sm text-destructive'
-                : 'm-0 text-sm text-muted-foreground'
-            }
-          >
-            {estado.texto}
-          </p>
-        )}
-      </div>
-    </form>
+    <fieldset className="m-0 border-0 p-0">
+      <legend className="mb-3 text-[15px] font-medium">Modelo</legend>
+      <RadioGroup
+        value={app.ajustes.modelo}
+        onValueChange={(v) => void window.rd.guardarAjustes({ modelo: String(v) })}
+        className="grid gap-2"
+      >
+        {MODELOS.map((m) => (
+          <label key={m.id} className={opcion}>
+            <RadioGroupItem value={m.id} className="mt-0.5" />
+            <span>
+              <span className="block text-[15px] font-medium">{m.nombre}</span>
+              <span className="block text-sm text-muted-foreground">{m.nota}</span>
+            </span>
+          </label>
+        ))}
+      </RadioGroup>
+    </fieldset>
   );
 }
 
@@ -163,11 +64,7 @@ function RetencionCero() {
   const cambiar = async (activar: boolean) => {
     if (activar) {
       setEstado({ probando: true });
-      const prueba = await window.rd.probarConexion({
-        proveedor: a.proveedor,
-        modelo: a.modelo,
-        retencionCero: true,
-      });
+      const prueba = await window.rd.probarConexion({ modelo: a.modelo, retencionCero: true });
       if (!prueba.ok) return setEstado({ probando: false, error: prueba.error });
     }
     setEstado({ probando: false });
@@ -178,7 +75,7 @@ function RetencionCero() {
       <label className="flex items-start gap-3">
         <Checkbox
           checked={a.retencionCero}
-          disabled={estado.probando || !a.claveGuardada}
+          disabled={estado.probando}
           onCheckedChange={(v) => void cambiar(v === true)}
           className="mt-0.5"
         />
@@ -216,12 +113,9 @@ export function Ajustes() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-[760px] px-10 pb-16">
-        <Cabecera
-          titulo="Ajustes"
-          entradilla="El proveedor de IA, el modelo y los límites del asistente."
-        />
+        <Cabecera titulo="Ajustes" entradilla="El modelo y los límites del asistente." />
         <section className="border-t border-border py-8">
-          <FormProveedor />
+          <Modelo />
         </section>
         <section className="space-y-6 border-t border-border py-8">
           <fieldset className="m-0 border-0 p-0">
@@ -334,7 +228,7 @@ export function Ajustes() {
             onClick={() => {
               if (
                 confirm(
-                  '¿Borrar todo? Se borran tus datos, los trámites, las sesiones del navegador y la clave del proveedor. No se puede deshacer.',
+                  '¿Borrar todo? Se borran tus datos, los trámites, las sesiones del navegador y los ajustes. No se puede deshacer.',
                 )
               )
                 void window.rd.borrarDatos('todo');
@@ -348,51 +242,6 @@ export function Ajustes() {
             independiente, sin vinculación con la Administración.
           </p>
         </section>
-      </div>
-    </div>
-  );
-}
-
-export function Bienvenida() {
-  return (
-    <div className="h-full overflow-y-auto">
-      <div className="arrastrar h-[52px]" />
-      <div className="mx-auto grid max-w-[1080px] grid-cols-[1fr_440px] gap-16 px-12 pt-10 pb-16">
-        <div>
-          <Marca size={40} />
-          <h1 className="mt-8 mb-0 font-heading text-[52px] leading-[1.06] font-normal tracking-[-0.02em]">
-            Tu asistente para hacer trámites
-          </h1>
-          <p className="mt-5 max-w-[48ch] text-[17px] leading-relaxed text-[var(--text-secondary)]">
-            Cuéntale qué necesitas. Investiga en webs oficiales, te explica cada paso con su fuente
-            y lo hace contigo en la sede electrónica, mientras lo ves.
-          </p>
-          <ul className="mt-10 space-y-5 p-0">
-            {PROMESAS.map(({ icono, titulo, texto }) => (
-              <li key={titulo} className="flex list-none gap-4">
-                <Icono nombre={icono} className="mt-0.5 shrink-0 text-brand" />
-                <span>
-                  <span className="block text-[17px] font-medium">{titulo}</span>
-                  <span className="block text-[15px] leading-relaxed text-muted-foreground">
-                    {texto}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-12 text-sm text-muted-foreground">
-            Proyecto independiente, sin vinculación con la Administración.
-          </p>
-        </div>
-        <div className="rounded-[28px] bg-background p-7 shadow-[var(--shadow-overlay)]">
-          <h2 className="mt-0 mb-1 text-xl font-medium">Conecta un proveedor de IA</h2>
-          <p className="mt-0 mb-6 text-[15px] leading-relaxed text-muted-foreground">
-            Usas tu propia clave: pagas solo lo que uses, normalmente céntimos por trámite. Empiezas
-            con el modelo que mejor resultado da en nuestras evaluaciones; puedes cambiarlo en
-            Ajustes.
-          </p>
-          <FormProveedor conModelo={false} />
-        </div>
       </div>
     </div>
   );

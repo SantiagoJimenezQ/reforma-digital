@@ -27,7 +27,11 @@ const node = (entrada, archivo, formato) =>
     configFile: false,
     logLevel: 'warn',
     root: raiz,
-    define: { 'process.env.NODE_ENV': '"production"' },
+    // La clave del asistente va dentro de la app compilada (ver CLAVE_GATEWAY en src/main/index.ts).
+    define: {
+      'process.env.NODE_ENV': '"production"',
+      'process.env.CLAVE_GATEWAY': JSON.stringify(process.env.AI_GATEWAY_API_KEY ?? ''),
+    },
     ssr: { noExternal: true },
     resolve: { alias: { sharp: path.join(raiz, 'src/main/sin-imagenes.ts') } },
     build: {

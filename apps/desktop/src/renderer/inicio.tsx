@@ -89,7 +89,7 @@ export function Compositor({
   );
 }
 
-export const PROMESAS: { icono: NombreIcono; titulo: string; texto: string }[] = [
+const PROMESAS: { icono: NombreIcono; titulo: string; texto: string }[] = [
   {
     icono: 'escudo',
     titulo: 'Fuentes oficiales',

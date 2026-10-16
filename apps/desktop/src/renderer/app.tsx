@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { buttonVariants } from '@reforma-digital/design/ui/button';
 import { cn } from '@reforma-digital/design/lib/utils';
-import { Ajustes, Bienvenida } from './ajustes';
+import { Ajustes } from './ajustes';
 import { MisDatos } from './datos';
 import { useEstado } from './estado';
 import { dolares, ETIQUETA_ESTADO } from './formato';
@@ -125,7 +125,6 @@ export function App() {
     [],
   );
   if (!app) return null;
-  if (!app.configurado) return <Bienvenida />;
   return (
     <div className="flex h-full">
       <Barra vista={vista} ir={ir} />

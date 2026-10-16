@@ -8,9 +8,9 @@
   "license": "MIT",
   "main": "out/main.js",
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "dev": "node ../../packages/agent/scripts/detector.mjs && node scripts/build.mjs && electron .",
-    "package": "node ../../packages/agent/scripts/detector.mjs && node scripts/build.mjs && electron-builder --mac --dir --config electron-builder.json",
+    "build": "node --env-file-if-exists=../../.env scripts/build.mjs",
+    "dev": "node ../../packages/agent/scripts/detector.mjs && node --env-file-if-exists=../../.env scripts/build.mjs && electron .",
+    "package": "node ../../packages/agent/scripts/detector.mjs && node --env-file-if-exists=../../.env scripts/build.mjs && electron-builder --mac --dir --config electron-builder.json",
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {

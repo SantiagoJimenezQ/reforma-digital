@@ -6,21 +6,22 @@ El principio es este: **el modelo de IA no recibe datos personales, y lo que la 
 
 ## Qué datos maneja y dónde están
 
-| Dato                                                            | Dónde vive                                      | Protección                                                                                   |
-| --------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| «Mis datos» (nombre, documento, contacto, domicilio, IBAN…)     | `datos/perfil.bin`                              | AES-256-GCM. La clave de datos es aleatoria y la guarda el llavero de macOS (`safeStorage`). |
-| Trámites: conversación, tarjeta, fuentes y datos del trámite    | `datos/tramite-<id>.bin`                        | Igual. El nombre del archivo va en los datos autenticados: no se pueden intercambiar.        |
-| Clave del proveedor de IA y ajustes                             | `datos/secretos.bin`                            | Igual. La interfaz solo sabe si hay clave guardada.                                          |
-| Sesiones de las webs oficiales (cookies, caché, almacenamiento) | Memoria                                         | Una sesión por trámite, sin escribir en disco. Al cerrar la app desaparecen.                 |
-| Documentos descargados (justificantes, certificados)            | `~/Downloads/Reforma Digital/<trámite>/`        | Sin cifrar: son documentos de la persona. La carpeta se nombra sin datos personales.         |
-| Notificaciones del sistema                                      | Centro de notificaciones de macOS               | Sin datos personales: los marcadores se sustituyen por «…».                                  |
-| Cita exportada al Calendario                                    | Un `.ics` temporal (`0600`) que abre Calendario | Lleva los datos que la persona ve en la tarjeta.                                             |
+| Dato                                                            | Dónde vive                                      | Protección                                                                                                                                                 |
+| --------------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| «Mis datos» (nombre, documento, contacto, domicilio, IBAN…)     | `datos/perfil.bin`                              | AES-256-GCM. La clave de datos es aleatoria y la guarda el llavero de macOS (`safeStorage`).                                                               |
+| Trámites: conversación, tarjeta, fuentes y datos del trámite    | `datos/tramite-<id>.bin`                        | Igual. El nombre del archivo va en los datos autenticados: no se pueden intercambiar.                                                                      |
+| Ajustes                                                         | `datos/secretos.bin`                            | Igual.                                                                                                                                                     |
+| Clave de Vercel AI Gateway                                      | Dentro de la app compilada (`out/main.js`)      | **Ninguna**: se puede sacar del `.app`. Solo para compilaciones propias (ver [Puesta en marcha](README.md#puesta-en-marcha)). La interfaz nunca la recibe. |
+| Sesiones de las webs oficiales (cookies, caché, almacenamiento) | Memoria                                         | Una sesión por trámite, sin escribir en disco. Al cerrar la app desaparecen.                                                                               |
+| Documentos descargados (justificantes, certificados)            | `~/Downloads/Reforma Digital/<trámite>/`        | Sin cifrar: son documentos de la persona. La carpeta se nombra sin datos personales.                                                                       |
+| Notificaciones del sistema                                      | Centro de notificaciones de macOS               | Sin datos personales: los marcadores se sustituyen por «…».                                                                                                |
+| Cita exportada al Calendario                                    | Un `.ics` temporal (`0600`) que abre Calendario | Lleva los datos que la persona ve en la tarjeta.                                                                                                           |
 
 «Borrar todo» en Ajustes destruye primero la clave de datos: lo que quedase en disco ya no se puede descifrar.
 
 ## Qué sale del Mac y a quién
 
-- **Proveedor de IA** (Vercel AI Gateway u OpenRouter, con la clave de la persona): las instrucciones, la tarjeta y la conversación, con los datos personales sustituidos por marcadores. Las peticiones solo van a proveedores que no entrenan con ellas (`disallowPromptTraining` en Vercel, `data_collection: deny` en OpenRouter). Con **Retención cero** en Ajustes, solo a los que tampoco las guardan (`zeroDataRetention`, que en Vercel exige el plan Pro; `zdr` en OpenRouter). Si el proveedor no puede cumplirlo, la petición falla: no se relaja.
+- **Proveedor de IA** (Vercel AI Gateway, con la clave con la que se compiló la app): las instrucciones, la tarjeta y la conversación, con los datos personales sustituidos por marcadores. Las peticiones solo van a proveedores que no entrenan con ellas (`disallowPromptTraining` en Vercel, `data_collection: deny` en OpenRouter). Con **Retención cero** en Ajustes, solo a los que tampoco las guardan (`zeroDataRetention`, que en Vercel exige el plan Pro; `zdr` en OpenRouter). Si el proveedor no puede cumplirlo, la petición falla: no se relaja.
 - **Buscador** (Parallel, a través del proveedor): la consulta que escribe el agente, limpia de identificadores.
 - **Webs oficiales**: las que el agente lee o abre en el navegador del trámite. Los datos reales solo se escriben en dominios de las administraciones (`packages/government/src/domains.ts`).
 - **Nadie más**: no hay servidores de Reforma Digital, analítica ni informes de errores. El modelo del detector va dentro de la app; no se descarga al usarla.
