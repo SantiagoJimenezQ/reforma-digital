@@ -1,11 +1,21 @@
 'use client';
+import { Dialog, DialogContent, DialogTitle } from '@reforma-digital/design/ui/dialog';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@reforma-digital/design/ui/select';
+import { Button } from '@reforma-digital/design/ui/button';
+import { Textarea } from '@reforma-digital/design/ui/textarea';
+
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { APICallError } from 'ai';
-import { Icon } from './sol/icon';
-import './chat.css';
+import { Icon } from './brand/icon';
 import type { Region, Stage } from '@reforma-digital/core';
-import { Button } from '@reforma-digital/design/sol';
+
 import {
   IconSwap,
   JumpButton,
@@ -17,7 +27,7 @@ import {
   Suggestion,
   Suggestions,
   Thinking,
-} from '@reforma-digital/design/sol/chat';
+} from '@reforma-digital/design/chat';
 import { AttachmentPicker } from './attachment-picker';
 import type { PdfContext } from '../lib/attachment';
 import { warm } from '../lib/pii';
@@ -28,11 +38,15 @@ import { AnswerBlocks, citedEvidence, readAnswer, type AnswerView } from './chat
 import { Sources, type SourceView } from './chat-sources';
 import type { Evidence } from '@reforma-digital/core';
 import dynamic from 'next/dynamic';
-import './sources-map.css';
 // The map geometry is only downloaded when the coverage dialog opens.
 const SourcesMap = dynamic(() => import('./sources-map'), {
   loading: () => (
-    <section className="sources-map sources-map-cargando" aria-labelledby="sources-map-title">
+    <section
+      className={
+        "sources-map [&_h2]:pr-14 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:[line-height:1.3] [&_a:not(.sources-map-region)]:[text-decoration:underline] [&_a:not(.sources-map-region)]:[text-underline-offset:3px] [&_[data-band='0']]:[fill:rgb(var(--bg-danger-line))] [&_[data-band='0']]:[background:rgb(var(--bg-danger-line))] [&_[data-band='1']]:[fill:rgb(var(--bg-warning-line))] [&_[data-band='1']]:[background:rgb(var(--bg-warning-line))] [&_[data-band='2']]:[fill:rgb(var(--bg-success-line))] [&_[data-band='2']]:[background:rgb(var(--bg-success-line))] [&_[data-band='3']]:[fill:rgb(var(--bg-success-fg))] [&_[data-band='3']]:[background:rgb(var(--bg-success-fg))] sources-map-cargando [min-height:100dvh]"
+      }
+      aria-labelledby="sources-map-title"
+    >
       <h2 id="sources-map-title">Fuentes por territorio</h2>
     </section>
   ),
@@ -72,14 +86,20 @@ function CoverageNotice({
 }) {
   if (!region) return null;
   return (
-    <p className="chat-coverage-note chat-enter">
+    <p
+      className={
+        'chat-coverage-note chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+      }
+    >
       Nuestra cobertura territorial en {region.name} es limitada: {region.sourceCount}{' '}
       {region.sourceCount === 1 ? 'fuente registrada' : 'fuentes registradas'}.{' '}
       <Button
-        variant="secondary"
         aria-haspopup="dialog"
-        aria-controls="chat-coverage-dialog"
+        aria-controls={
+          'chat-coverage-dialog [width:min(960px,_calc(100vw_-_32px))] [&_.source-close]:top-6 [&_.source-close]:right-6 [html:has(&[open])]:overflow-hidden [@media(max-width:_800px)]:[width:calc(100vw_-_16px)] [@media(max-width:_800px)]:[&_.source-modal-inner]:p-4 [@media(max-width:_800px)]:[&_.source-close]:top-4 [@media(max-width:_800px)]:[&_.source-close]:right-4'
+        }
         onClick={() => openMap(region.id)}
+        variant="outline"
       >
         Ver mapa de fuentes
       </Button>
@@ -145,7 +165,11 @@ function AnswerActions({
   if (!view.blocks.length) return null;
   return (
     <>
-      <div className="chat-actions chat-enter">
+      <div
+        className={
+          'chat-actions flex flex-wrap items-center gap-2 mt-8 [animation-delay:80ms] [@media(max-width:_800px)]:flex-wrap chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+        }
+      >
         {evidence.length > 0 && (
           <SourcesButton
             organization={evidence[0]!.organization}
@@ -153,31 +177,43 @@ function AnswerActions({
             onOpen={() => showSources(evidence)}
           />
         )}
-        <div className="chat-action-icons">
+        <div className={'chat-action-icons flex [margin-left:auto] [color:var(--text-secondary)]'}>
           {feedbackToken && (
             <>
-              <button
-                className="chat-icon"
+              <Button
+                variant={rating === 1 ? 'secondary' : 'ghost'}
+                size="icon"
+                className={
+                  "chat-icon inline-flex justify-center items-center [&[aria-pressed='true']_.icono]:[animation:chat-pulse_320ms_var(--ease-brand)] [@media(prefers-reduced-motion:_reduce)]:[&[aria-pressed='true']_.icono]:[animation:none]"
+                }
                 disabled={busy}
                 aria-label="Respuesta útil"
                 aria-pressed={rating === 1}
                 onClick={() => void vote(1)}
               >
                 <Icon name="util" size={20} />
-              </button>
-              <button
-                className="chat-icon"
+              </Button>
+              <Button
+                variant={rating === -1 ? 'secondary' : 'ghost'}
+                size="icon"
+                className={
+                  "chat-icon inline-flex justify-center items-center [&[aria-pressed='true']_.icono]:[animation:chat-pulse_320ms_var(--ease-brand)] [@media(prefers-reduced-motion:_reduce)]:[&[aria-pressed='true']_.icono]:[animation:none]"
+                }
                 disabled={busy}
                 aria-label="Respuesta no útil"
                 aria-pressed={rating === -1}
                 onClick={() => setNegative(!negative)}
               >
                 <Icon name="noUtil" size={20} />
-              </button>
+              </Button>
             </>
           )}
-          <button
-            className="chat-icon"
+          <Button
+            variant="ghost"
+            size="icon"
+            className={
+              "chat-icon inline-flex justify-center items-center [&[aria-pressed='true']_.icono]:[animation:chat-pulse_320ms_var(--ease-brand)] [@media(prefers-reduced-motion:_reduce)]:[&[aria-pressed='true']_.icono]:[animation:none]"
+            }
             onClick={() => void copy()}
             aria-label={copied ? 'Copiado' : 'Copiar respuesta'}
           >
@@ -186,37 +222,57 @@ function AnswerActions({
               a={<Icon name="copiar" size={20} />}
               b={<Icon name="hecho" size={20} />}
             />
-          </button>
+          </Button>
         </div>
       </div>
       {negative && (
         <form
-          className="chat-feedback chat-enter"
+          className={
+            'chat-feedback flex gap-2 flex-wrap items-center text-sm [background:rgb(var(--bg-surface-muted))] [padding:14px] [border-radius:16px] mt-4 [&_select]:[max-width:100%] chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+          }
           onSubmit={(e) => {
             e.preventDefault();
             void vote(-1);
           }}
         >
           <label htmlFor={`reason-${message.id}`}>¿Qué falló?</label>
-          <select
-            id={`reason-${message.id}`}
+          <Select
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onValueChange={(value) => {
+              if (value !== null) setReason(value);
+            }}
+            items={[
+              { value: 'incorrect', label: 'Respuesta incorrecta' },
+              { value: 'source', label: 'Fuente incorrecta' },
+              { value: 'outdated', label: 'Información desactualizada' },
+              { value: 'unanswered', label: 'No respondió' },
+              { value: 'other', label: 'Otro motivo' },
+            ]}
           >
-            <option value="incorrect">Respuesta incorrecta</option>
-            <option value="source">Fuente incorrecta</option>
-            <option value="outdated">Información desactualizada</option>
-            <option value="unanswered">No respondió</option>
-            <option value="other">Otro motivo</option>
-          </select>
-          <button disabled={busy}>Enviar</button>
-          <button type="button" onClick={() => setNegative(false)}>
+            <SelectTrigger id={`reason-${message.id}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="incorrect">Respuesta incorrecta</SelectItem>
+              <SelectItem value="source">Fuente incorrecta</SelectItem>
+              <SelectItem value="outdated">Información desactualizada</SelectItem>
+              <SelectItem value="unanswered">No respondió</SelectItem>
+              <SelectItem value="other">Otro motivo</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button disabled={busy}>Enviar</Button>
+          <Button type="button" onClick={() => setNegative(false)}>
             Cancelar
-          </button>
+          </Button>
         </form>
       )}
       {note && (
-        <p className="chat-action-message chat-enter" role="status">
+        <p
+          className={
+            'chat-action-message text-sm [color:rgb(var(--bg-ink-subtle))] mt-2! chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+          }
+          role="status"
+        >
           {note}
         </p>
       )}
@@ -247,7 +303,6 @@ export default function Chat({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const dock = useRef<HTMLDivElement>(null);
-  const coverageDialog = useRef<HTMLDialogElement>(null);
   const [coverageRegionId, setCoverageRegionId] = useState<string | null>(null);
   const [coverageOpened, setCoverageOpened] = useState(false);
   const nearBottom = useRef(true);
@@ -373,17 +428,35 @@ export default function Chat({
   function openCoverage(regionId: string) {
     setCoverageRegionId(regionId);
     setCoverageOpened(true);
-    coverageDialog.current?.showModal();
   }
   return (
-    <div className="chat-page">
+    <div
+      className={
+        'chat-page [body:has(&)]:[overflow-x:clip] [html:has(&)]:[scroll-padding-bottom:calc(var(--chat-dock-height,_160px)_+_16px)] [background:rgb(var(--bg-canvas))] [min-height:100dvh] [max-width:100%] [overflow-x:clip] [color:rgb(var(--bg-ink))] [font-family:var(--bg-font)] text-base [line-height:1.6]'
+      }
+    >
       {header}
-      <a className="skip-link" href="#chat-input">
+      <a
+        className={
+          'skip-link fixed top-2 left-2 [z-index:100] [padding:12px_16px] [background:var(--foreground)] [color:var(--background)] [transform:translateY(-150%)] [&:focus]:[transform:none]'
+        }
+        href="#chat-input"
+      >
         Ir al cuadro de mensaje
       </a>
-      <main id="main" className="chat-conversation" aria-label="Conversación">
+      <main
+        id="main"
+        className={
+          'chat-conversation [max-width:688px] [margin:0_auto] [padding:calc(108px_+_env(safe-area-inset-top,_0px))_12px_0] [overflow-wrap:anywhere] [@media(max-width:_800px)]:[padding:calc(96px_+_env(safe-area-inset-top,_0px))_16px_0]'
+        }
+        aria-label="Conversación"
+      >
         {!turns.length && (
-          <div className="chat-empty">
+          <div
+            className={
+              'chat-empty pt-20 [&_h1]:[font:500_36px/1.2_var(--bg-font)] [&_h1]:[letter-spacing:-0.04em] [&_h1]:[margin:0_0_20px] [&_>_p]:[color:rgb(var(--bg-ink-subtle))] [@media(max-width:_800px)]:pt-10 [@media(max-width:_800px)]:[&_h1]:[font-size:clamp(28px,_8vw,_36px)]'
+            }
+          >
             <h1>¿Qué necesitas hacer?</h1>
             <p>Pregunta con tus palabras. Te acercamos a las fuentes oficiales.</p>
             <Suggestions>
@@ -413,7 +486,13 @@ export default function Chat({
           const cited = citedEvidence(view);
           const documents = new Set(cited.map((e) => e.documentId)).size;
           return (
-            <section className="chat-turn" key={user.id} aria-label={`Pregunta ${turnIndex + 1}`}>
+            <section
+              className={
+                'chat-turn mb-14 [scroll-margin-top:120px] [@media(max-width:_800px)]:[margin-bottom:42px]'
+              }
+              key={user.id}
+              aria-label={`Pregunta ${turnIndex + 1}`}
+            >
               <Question
                 level={turnIndex === 0 ? 1 : 2}
                 attachment={
@@ -445,7 +524,7 @@ export default function Chat({
               >
                 <ProtectedQuestion text={question} ranges={view.hidden} id={user.id} />
               </Question>
-              <div className="chat-assistant">
+              <div className={'chat-assistant [line-height:1.6] [overflow-wrap:anywhere]'}>
                 <AnswerBlocks view={view} onCite={(selected) => showSources(cited, selected)} />
                 {pending && (
                   <Thinking
@@ -454,7 +533,10 @@ export default function Chat({
                   />
                 )}
                 {meta?.status === 'answered' && !view.blocks.length && (
-                  <Response streaming={view.streaming} className="chat-enter">
+                  <Response
+                    streaming={view.streaming}
+                    className={'chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'}
+                  >
                     {view.text}
                   </Response>
                 )}
@@ -472,16 +554,16 @@ export default function Chat({
                       (last || view.evidence.length > 0) && (
                         <>
                           {last && (
-                            <Button variant="secondary" onClick={() => rephrase(question)}>
+                            <Button onClick={() => rephrase(question)} variant="outline">
                               <Icon name="nueva" size={15} />
                               Reformular la pregunta
                             </Button>
                           )}
                           {view.evidence.length > 0 && (
                             <Button
-                              variant="secondary"
                               aria-haspopup="dialog"
                               onClick={() => showSources(view.evidence)}
+                              variant="outline"
                             >
                               Ver lo consultado ({view.evidence.length})
                             </Button>
@@ -494,7 +576,11 @@ export default function Chat({
                   </Notice>
                 )}
                 {meta?.incomplete && (
-                  <p className="chat-partial chat-enter">
+                  <p
+                    className={
+                      'chat-partial text-sm [color:rgb(var(--bg-ink-subtle))] [margin:20px_0]! [line-height:22px] chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+                    }
+                  >
                     Las fuentes no permiten confirmar todos los detalles. Aquí aparecen únicamente
                     los que hemos podido verificar.
                   </p>
@@ -506,13 +592,22 @@ export default function Chat({
                   />
                 )}
                 {halted && (
-                  <div className="chat-stopped chat-enter">
-                    <p className="chat-partial" role="status">
+                  <div
+                    className={
+                      'chat-stopped chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+                    }
+                  >
+                    <p
+                      className={
+                        'chat-partial text-sm [color:rgb(var(--bg-ink-subtle))] [margin:20px_0]! [line-height:22px]'
+                      }
+                      role="status"
+                    >
                       Respuesta detenida.
                       {view.blocks.length > 0 && ' Los fragmentos mostrados ya están verificados.'}
                     </p>
                     {last && (
-                      <Button variant="secondary" disabled={loading} onClick={retry}>
+                      <Button disabled={loading} onClick={retry} variant="outline">
                         <Icon name="reintentar" size={14} /> Volver a intentar
                       </Button>
                     )}
@@ -526,7 +621,7 @@ export default function Chat({
                     title="No se ha podido completar la respuesta"
                     actions={
                       last && (
-                        <Button variant="secondary" disabled={loading} onClick={retry}>
+                        <Button disabled={loading} onClick={retry} variant="outline">
                           <Icon name="reintentar" size={15} /> Volver a intentar
                         </Button>
                       )
@@ -565,30 +660,51 @@ export default function Chat({
             </section>
           );
         })}
-        <div ref={bottom} className="chat-bottom" />
+        <div
+          ref={bottom}
+          className={'chat-bottom [height:calc(var(--chat-dock-height,_160px)_+_24px)]'}
+        />
       </main>
-      <div ref={dock} className="chat-composer-dock">
+      <div
+        ref={dock}
+        className={
+          "chat-composer-dock fixed [z-index:15] [bottom:0] [left:0] [right:0] [width:min(_688px,_calc(100%_-_40px_-_env(safe-area-inset-left,_0px)_-_env(safe-area-inset-right,_0px))_)] [margin-inline:auto] [box-sizing:border-box] [padding:20px_0_max(16px,_env(safe-area-inset-bottom))] [background:linear-gradient(rgb(var(--bg-canvas)_/_0),_rgb(var(--bg-canvas))_20%)] isolate [&:after]:[content:''] [&:after]:absolute [&:after]:[z-index:-1] [&:after]:[left:0] [&:after]:[right:0] [&:after]:[bottom:0] [&:after]:[top:25px] [&:after]:[background:rgb(var(--bg-canvas))] [@media(max-width:_800px)]:[width:calc(_100%_-_max(16px,_env(safe-area-inset-left,_0px))_-_max(16px,_env(safe-area-inset-right,_0px))_)] [@media(max-width:_800px)]:pt-4 [@media(max-width:_800px)]:[padding-bottom:max(12px,_env(safe-area-inset-bottom))]"
+        }
+      >
         <JumpButton visible={showJump} onClick={jump}>
           <Icon name="abajo" size={18} />
         </JumpButton>
         {attachmentError && (
-          <p className="chat-composer-error chat-enter" role="alert">
+          <p
+            className={
+              'chat-composer-error text-sm [background:rgb(var(--bg-surface-muted))] p-3 [border-radius:12px] [margin:0_0_8px] chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+            }
+            role="alert"
+          >
             {attachmentError}
           </p>
         )}
         {(attachment || attachmentBusy) && (
-          <div className="chat-attachment-preview chat-enter">
+          <div
+            className={
+              'chat-attachment-preview [background:rgb(var(--bg-surface))] [border:1px_solid_rgb(var(--bg-brand-100))] [border-radius:var(--bg-radius-control)] [padding:10px_14px] [margin:0_8px_8px] [box-shadow:none] [&_>_div]:flex [&_>_div]:items-center [&_>_div]:[gap:10px] [&_>_div_>_span]:[flex:1] [&_>_div_>_span]:overflow-hidden [&_>_div_>_span]:[text-overflow:ellipsis] [&_>_div_>_span]:whitespace-nowrap [&_>_div_>_span]:text-sm [&_small]:block [&_small]:[color:rgb(var(--bg-ink-subtle))] [&_small]:text-sm [&_small]:[line-height:16px] [&_small]:mt-1 chat-enter [animation:chat-enter_360ms_var(--ease-brand)_both]'
+            }
+          >
             <div>
               <Icon name="documento" size={20} />
               <span>{attachmentBusy ? 'Leyendo PDF…' : attachment?.name}</span>
               {attachment && !attachmentBusy && (
-                <button
-                  className="chat-icon"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={
+                    "chat-icon inline-flex justify-center items-center [&[aria-pressed='true']_.icono]:[animation:chat-pulse_320ms_var(--ease-brand)] [@media(prefers-reduced-motion:_reduce)]:[&[aria-pressed='true']_.icono]:[animation:none]"
+                  }
                   onClick={() => setAttachment(undefined)}
                   aria-label="Quitar PDF"
                 >
                   <Icon name="cerrar" size={16} />
-                </button>
+                </Button>
               )}
             </div>
             <small>
@@ -598,7 +714,9 @@ export default function Chat({
           </div>
         )}
         <form
-          className="chat-composer"
+          className={
+            'chat-composer flex items-end [gap:6px] [border:1px_solid_rgb(var(--bg-line-control))] [background:rgb(var(--bg-surface))] [border-radius:20px] [box-shadow:none] [padding:10px_10px_10px_14px] [cursor:text] [transition:border-color_160ms_var(--ease-brand),_box-shadow_160ms_var(--ease-brand)] [&:focus-within]:outline-none [&:focus-within]:[outline-offset:0] [&:focus-within]:[border-color:rgb(var(--bg-ink))] [&:focus-within]:[box-shadow:0_0_0_3px_rgb(var(--bg-ink)_/_0.12)] [&_textarea]:block [&_textarea]:[resize:none] [&_textarea]:border-0 [&_textarea]:outline-none [&_textarea]:[background:transparent] [&_textarea]:[border-radius:0] [&_textarea]:[box-shadow:none]! [&_textarea]:[align-self:center] [&_textarea]:min-h-6 [&_textarea]:[max-height:200px] [&_textarea]:[line-height:24px] [&_textarea]:text-base [&_textarea]:w-full [&_textarea]:[box-sizing:border-box] [&_textarea]:m-0 [&_textarea]:[padding:10px_6px_10px_2px] [&_textarea]:[color:rgb(var(--bg-ink))] [&_textarea]:[caret-color:rgb(var(--bg-ink))] [&_textarea]:[min-width:0] [&_textarea]:[overflow-y:hidden] [&_textarea]:[scrollbar-width:thin] [&_textarea::placeholder]:[color:rgb(var(--bg-ink-subtle))] [&_textarea::placeholder]:[opacity:1] [@media(max-width:_800px)]:w-full [@media(max-width:_800px)]:[padding:8px_8px_8px_12px] [@media(prefers-reduced-motion:_reduce)]:[transition-duration:0ms]'
+          }
           onSubmit={submit}
           onClick={(event) => {
             if (
@@ -616,10 +734,15 @@ export default function Chat({
             onAttachment={setAttachment}
             onError={setAttachmentError}
           />
-          <label htmlFor="chat-input" className="sr-only">
+          <label
+            htmlFor="chat-input"
+            className={
+              'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+            }
+          >
             Pregunta sobre trámites, ayudas o impuestos
           </label>
-          <textarea
+          <Textarea
             id="chat-input"
             ref={inputRef}
             rows={1}
@@ -640,8 +763,9 @@ export default function Chat({
             }}
           />
           {/* One button for both states so the control never jumps; the glyphs crossfade. */}
-          <button
-            className="chat-send"
+          <Button
+            size="icon"
+            className={'chat-send flex items-center justify-center'}
             type={loading ? 'button' : 'submit'}
             onClick={loading ? halt : undefined}
             disabled={!loading && (input.trim().length < 4 || attachmentBusy)}
@@ -652,37 +776,38 @@ export default function Chat({
               a={<Icon name="arrowUp" size={18} />}
               b={<Icon name="detener" size={16} />}
             />
-          </button>
+          </Button>
         </form>
         {footer}
-        <span className="sr-only">
+        <span
+          className={
+            'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+          }
+        >
           Las respuestas se basan en fuentes oficiales. Comprueba las citas antes de realizar el
           trámite.
         </span>
       </div>
-      <dialog
-        ref={coverageDialog}
-        id="chat-coverage-dialog"
-        className="chat-source-dialog chat-coverage-dialog"
-        aria-labelledby="sources-map-title"
-        onClick={(event) => {
-          if (event.target === coverageDialog.current) coverageDialog.current.close();
-        }}
-      >
-        <div className="source-modal-inner">
-          <button
-            type="button"
-            className="chat-icon source-close"
+      <Dialog open={coverageOpened} onOpenChange={setCoverageOpened}>
+        <DialogContent
+          showCloseButton={false}
+          className="w-[calc(100vw-32px)] max-w-[960px] max-h-[calc(100dvh-32px)] overflow-auto rounded-[28px] p-6 max-[800px]:p-4"
+        >
+          <DialogTitle className="sr-only">Mapa de fuentes oficiales</DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4 z-10"
             aria-label="Cerrar mapa de fuentes"
-            onClick={() => coverageDialog.current?.close()}
+            onClick={() => setCoverageOpened(false)}
           >
             <Icon name="cerrar" size={19} />
-          </button>
+          </Button>
           {coverageOpened && (
             <SourcesMap selectedId={coverageRegionId} onSelect={setCoverageRegionId} />
           )}
-        </div>
-      </dialog>
+        </DialogContent>
+      </Dialog>
       <Sources
         view={sourceView}
         onClose={() => setSourceView(null)}

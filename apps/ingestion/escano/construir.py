@@ -17,7 +17,6 @@ from . import explora as mod_explora, semanas as mod_semanas, temas as mod_temas
 from .analisis import analizar, resumir_sesion, solo_cache
 from .config import DATOS, INFO_GRUPOS, LEGISLATURA_ROMANA, SESIONES, SITIO
 
-RETOS = DATOS / "retos.json"  # el reto de cada día de «¿Quién lo dijo?»: se calcula una vez y no se toca
 MVP = DATOS / "mvp.json"  # análisis del prototipo; solo rellenan lo que el pipeline aún no ha analizado
 
 PARLAMENTARIOS = ["PSOE", "PP", "VOX", "SUMAR", "ERC", "JUNTS", "BILDU", "PNV", "MIXTO"]
@@ -256,27 +255,6 @@ def votos_por_fecha(votaciones: list[dict] | None = None) -> dict[str, list[dict
     return por_fecha
 
 
-def escribir_retos(todos: dict) -> None:
-    """Un día por línea: cada actualización añade líneas al final y el historial se lee bien en git."""
-    RETOS.write_text("{\n" + ",\n".join(f"{json.dumps(f)}: {json.dumps(r, ensure_ascii=False)}"
-                                         for f, r in sorted(todos.items())) + "\n}\n")
-
-
-def fijar_reto_tematico(fecha: str, tema: str) -> dict:
-    """Sustituye el reto de un día por uno temático y lo publica ya en site/datos, sin reconstruir la web."""
-    citas = json.loads((SITIO / "datos" / "explora-citas.json").read_text())
-    diputados = json.loads((SITIO / "datos" / "indice.json").read_text())["diputados"]
-    nuevo = mod_explora.reto_tematico(fecha, tema, citas, diputados, SITIO / "datos")
-    todos = json.loads(RETOS.read_text()) if RETOS.exists() else {}
-    todos[fecha] = nuevo
-    escribir_retos(todos)
-    publicado = SITIO / "datos" / "explora-retos.json"
-    ventana = json.loads(publicado.read_text()) if publicado.exists() else {}
-    ventana[fecha] = nuevo
-    publicado.write_text(json.dumps(dict(sorted(ventana.items())), ensure_ascii=False))
-    return nuevo
-
-
 def construir(con_ia: bool = True) -> dict:
     votaciones = mod_votaciones.leer_todas()
     lista_diputados = diputados(votaciones)
@@ -389,16 +367,10 @@ def construir(con_ia: bool = True) -> dict:
     from .normalizar import _leer as leer_normalizacion   # lo que dejó `python -m escano explora`; sin API
     canon = leer_normalizacion("temas")
     explora = {"contesta": mod_explora.contesta(sesiones_web, ivs_web),
-               "citas": mod_explora.citas_juego(sesiones_web, ivs_web),
+               "citas": mod_explora.citas(sesiones_web, ivs_web),
                "radar": mod_explora.radar(sesiones_web, ivs_web, canon),
                "propuestas": mod_explora.propuestas(leer_normalizacion("propuestas"))}
     por_provincia = mod_explora.lugares(sesiones_web, ivs_web, leer_normalizacion("lugares"), canon)
-    # Los retos del día de «¿Quién lo dijo?», fijados de antemano en data/ (versionado) para que no cambien.
-    previos = json.loads(RETOS.read_text()) if RETOS.exists() else {}
-    todos, explora["retos"] = mod_explora.retos(explora["citas"], lista_diputados, previos, date.today())
-    if todos != previos:
-        escribir_retos(todos)
-
     fechas = sorted({s["fecha"] for s in sesiones_web})
     # «Datos hasta»: lo más reciente que hay (una sesión, una votación o un nombramiento o cese del BOE), no el día
     # en que se construye la web, que cambia aunque no haya nada nuevo.

@@ -1,3 +1,4 @@
+import { Button } from '@reforma-digital/design/ui/button';
 import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
 import { useBridge } from '@reforma-digital/react';
 import type { SitePage } from '@reforma-digital/registry';
@@ -9,7 +10,7 @@ import {
   ProgressSteps,
   SecondaryAction,
 } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { icpScreen } from '../../components/official';
 import { communityBar, screenPanels } from '../../components/panels';
 import { OUT_OF_SCOPE_FROM, STEPS } from '../../components/steps';
@@ -52,7 +53,7 @@ export const infoPage: SitePage = {
       title: 'Cita previa de Extranjería',
       description: 'Requisitos y forma de acceso',
       page: 'info',
-      pageStyles,
+      pageClassName,
       slots: [],
       shell: communityBar(bindings.header),
       panels: screenPanels(bindings.header, bindings.content, bridge, () => (
@@ -96,22 +97,43 @@ function Info({ bindings, restore }: { bindings: InfoBindings; restore: () => vo
 
       <div>
         {/* Opciones oficiales equivalentes: ninguna se destaca (DESIGN.md §3 · Botón principal). */}
-        <h3 className="bg-h2">Elige cómo continuar en la web oficial</h3>
+        <h3
+          className={
+            'bg-h2 [font-size:20px] [line-height:1.3] [font-weight:650] [color:rgb(var(--bg-ink))]'
+          }
+        >
+          Elige cómo continuar en la web oficial
+        </h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {options.map((option) => (
             <div key={option.id} className="flex flex-col rounded-control border border-line p-4">
-              <p className="bg-h3">{option.title}</p>
-              {option.description && <p className="bg-hint mt-1 flex-1">{option.description}</p>}
-              <button
+              <p
+                className={
+                  'bg-h3 [font-size:17px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))]'
+                }
+              >
+                {option.title}
+              </p>
+              {option.description && (
+                <p
+                  className={
+                    'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-1 flex-1'
+                  }
+                >
+                  {option.description}
+                </p>
+              )}
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => {
                   if (!bridge.activate(option.id)) restore();
                 }}
-                className="bg-btn bg-btn-secondary mt-4 w-full"
+                className={'mt-4 w-full'}
               >
                 {option.title}
                 <span aria-hidden="true">→</span>
-              </button>
+              </Button>
             </div>
           ))}
         </div>

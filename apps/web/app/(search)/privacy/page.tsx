@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { InfoPage } from '../../../components/sol/info-page';
+import { InfoPage } from '../../../components/brand/info-page';
 import { JsonLd } from '../../../components/json-ld';
 import { breadcrumbs, pageMetadata, webPage } from '../../../lib/seo';
 
@@ -23,18 +23,26 @@ export default function Privacy() {
   return (
     <InfoPage narrow>
       <JsonLd graph={graph} />
-      <span className="t-etiqueta info-etiqueta">TUS DATOS, CON CUIDADO</span>
+      <span
+        className={
+          't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase info-etiqueta block mb-4 [color:var(--text-secondary)]'
+        }
+      >
+        TUS DATOS, CON CUIDADO
+      </span>
       <h1>Pregunta sin identificarte.</h1>
-      <p className="info-entradilla">
+      <p
+        className={
+          'info-entradilla [max-width:65ch] mb-10 [color:var(--text-secondary)] text-lg [line-height:1.6]'
+        }
+      >
         No necesitas una cuenta. No incluyas tu DNI, dirección, información médica, datos bancarios
         ni otros datos personales en la consulta.
       </p>
       <h2>Qué se procesa</h2>
       <p>
         En el modo conectado, tu pregunta se envía al proveedor de IA configurado para interpretar y
-        responder con evidencias. Los fragmentos oficiales también se incluyen en esa petición. Si
-        Langfuse está configurado, registra la consulta y las etapas de la respuesta para evaluar
-        fallos.
+        responder con evidencias. Los fragmentos oficiales también se incluyen en esa petición.
       </p>
       <p>
         Antes de enviarla, tu navegador intenta detectar nombres, direcciones, DNI, correos,

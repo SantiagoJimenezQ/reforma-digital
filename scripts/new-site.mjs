@@ -59,7 +59,7 @@ const files = {
   'src/components/README.md':
     '# Componentes del portal\n\nComponentes React compartidos entre las pantallas de este portal. Los componentes comunes a varios portales pertenecen a packages/react (conectados) o packages/design (visuales).',
   'src/styles/README.md':
-    '# Estilos del portal\n\nUsa solo los tokens y componentes del sistema de diseño (DESIGN.md, @reforma-digital/design). Acota cualquier estilo sobre la página original a su atributo data-bg-site (y data-bg-page para una pantalla). Si el portal usa el framework Morfos de la AGE, importa @reforma-digital/design/themes/morfos.css.',
+    '# Estilos del portal\n\nUsa solo los tokens y componentes del sistema de diseño (DESIGN.md, @reforma-digital/design). Acota cualquier estilo sobre la página original a su atributo data-bg-site (y data-bg-page para una pantalla). Compón los paneles con @reforma-digital/design/ui/* (shadcn/Base UI) y utilidades Tailwind. Usa pageClassName para adaptar el contenido oficial.',
   'fixtures/README.md':
     '# Páginas de prueba\n\nHTML sintético o anonimizado para probar las conexiones. Documenta su origen. Nunca incluyas documentos personales, cookies, tokens reales ni capturas de sesiones autenticadas.',
   'tests/README.md':

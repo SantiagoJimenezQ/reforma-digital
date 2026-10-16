@@ -3,12 +3,7 @@ import { z } from 'zod';
 import { connection } from '@reforma-digital/db';
 import {
   indexSchema,
-  monthSchema,
-  lawsSchema,
   questionsSchema,
-  organsSchema,
-  weeksSchema,
-  quizSchema,
   geographySchema,
   electionsSchema,
   pollsSchema,
@@ -16,57 +11,52 @@ import {
 } from './schema';
 
 // Un render solo acepta conjuntos de la misma publicación.
-const publication = cache(async () => {
+export const publication = cache(async () => {
   const rows =
     await connection()`SELECT publication_id FROM congreso_datasets WHERE path='indice.json'`;
   if (!rows.length) throw new Error('El Congreso todavía no está importado');
   return z.string().parse(rows[0]?.publication_id);
 });
+
+// Documentos que una vista usa enteros. Un conjunto no cambia sin cambiar su sha256: la instancia
+// conserva la última versión de cada ruta y Postgres solo envía `content` cuando el hash ya no
+// coincide. Las vistas que usan una parte la piden con las consultas de `queries.ts`.
+// ponytail: caché por instancia (en frío se vuelve a descargar); la Data Cache de Vercel no sirve
+// porque descarta objetos de más de 2 MB.
+const memory = new Map<string, { sha256: string; content: unknown }>();
+const rowSchema = z.object({
+  sha256: z.string(),
+  publication_id: z.string(),
+  content: z.unknown(),
+});
+export async function dataset(file: string) {
+  const known = memory.get(file);
+  const rows = await connection()`SELECT sha256, publication_id,
+    CASE WHEN sha256 = ${known?.sha256 ?? ''} THEN NULL ELSE content END AS content
+    FROM congreso_datasets WHERE path = ${file}`;
+  if (!rows.length) return null;
+  const row = rowSchema.parse(rows[0]);
+  if (known && row.content === null) return { ...row, content: known.content };
+  memory.set(file, { sha256: row.sha256, content: row.content });
+  return row;
+}
+const content = cache(async (file: string) => {
+  const [row, current] = await Promise.all([dataset(file), publication()]);
+  if (row?.publication_id !== current) throw new Error(`Conjunto de datos no importado: ${file}`);
+  return row.content;
+});
 export async function read<T>(file: string, schema: z.ZodType<T>): Promise<T> {
-  const rows =
-    await connection()`SELECT content FROM congreso_datasets WHERE path = ${file} AND publication_id=${await publication()}`;
-  if (!rows.length) throw new Error(`Conjunto de datos no importado: ${file}`);
-  const result = schema.safeParse(rows[0]?.content);
+  const result = schema.safeParse(await content(file));
   if (!result.success) throw new Error('El contrato del conjunto de datos no es válido');
   return result.data;
 }
 
 export const getIndex = cache(() => read('indice.json', indexSchema));
-export const getLaws = cache(() => read('leyes.json', lawsSchema));
 export const getQuestions = cache(() => read('preguntas.json', questionsSchema));
-export const getOrgans = cache(() => read('organigrama.json', organsSchema));
-export const getWeeks = cache(() => read('semanas.json', weeksSchema));
-export const getQuiz = cache(() => read('explora-retos.json', quizSchema));
 export const getGeography = cache(() => read('geografia/territorios.json', geographySchema));
 export const getElections = cache(() => read('elecciones/elecciones.json', electionsSchema));
 export const getPolls = cache(() => read('encuestas/encuestas.json', pollsSchema));
 export const getHistory = cache(() => read('elecciones/historico.json', historySchema));
-
-export const getPeriod = cache(async (period: string) => {
-  const index = await getIndex();
-  const months = index.meses.map(({ mes }) => mes).sort();
-  if (period !== 'todo' && period !== 'reciente' && !months.includes(period))
-    throw new Error('Periodo desconocido');
-  const selected = period === 'todo' ? months : period === 'reciente' ? months.slice(-3) : [period];
-  const data = await Promise.all(selected.map((month) => read(`${month}.json`, monthSchema)));
-  return {
-    sesiones: data
-      .flatMap((month) => month.sesiones)
-      .sort((a, b) => b.fecha.localeCompare(a.fecha)),
-    votaciones: data
-      .flatMap((month) => month.votaciones)
-      .sort((a, b) => b.fecha.localeCompare(a.fecha)),
-    intervenciones: data.flatMap((month) =>
-      month.intervenciones.map((intervention) => ({
-        ...intervention,
-        item:
-          typeof intervention.item === 'number'
-            ? z.string().parse(month.items?.[intervention.item])
-            : intervention.item,
-      })),
-    ),
-  };
-});
 
 export const slug = (value: string) =>
   value

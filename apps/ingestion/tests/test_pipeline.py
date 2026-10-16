@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from escano import analisis
+from escano import analisis, explora
 import run
 
 
@@ -75,18 +75,26 @@ def test_imported_cache_survives_model_migration(monkeypatch, tmp_path):
 def test_public_archive_excludes_internal_state(monkeypatch, tmp_path):
     data = tmp_path / "data"
     datasets = tmp_path / "site/datos"
-    for name in ["sesiones/demo.json", "raw/original.json", "analisis/internal.json", "raw-index.json"]:
+    for name in ["sesiones/demo.json", "raw/original.json", "analisis/internal.json", "raw-index.json", "retos.json"]:
         file = data / name
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text('{"synthetic":true}')
     datasets.mkdir(parents=True)
     (datasets / "indice.json").write_text('{}')
+    (datasets / "explora-retos.json").write_text('{}')
+    (datasets / "explora-citas.json").write_text('[]')
     monkeypatch.setattr(run, "DATOS", data)
     monkeypatch.setattr(run, "SITIO", tmp_path / "site")
     file = tmp_path / "download.tar.gz"
     run.archive(file, public=True)
     with tarfile.open(file) as archive:
-        assert archive.getnames() == ["NOTICE.txt", "data/sesiones/demo.json", "datasets/indice.json"]
+        assert archive.getnames() == ["NOTICE.txt", "data/sesiones/demo.json", "datasets/explora-citas.json", "datasets/indice.json"]
+    # El checkpoint privado tampoco debe conservar el juego.
+    run.archive(file, public=False)
+    with tarfile.open(file) as archive:
+        assert "data/retos.json" not in archive.getnames()
+        assert "datasets/explora-retos.json" not in archive.getnames()
+        assert "datasets/explora-citas.json" in archive.getnames()
 
 
 def test_nonliteral_quotes_are_rejected():
@@ -102,3 +110,10 @@ def test_inference_budget_is_a_hard_limit(monkeypatch):
     monkeypatch.setattr(client.sesion,"post",lambda *args,**kwargs: pytest.fail("No debe llamar a la API"))
     with pytest.raises(analisis.PresupuestoAgotado):
         client.generar("Neutral","Texto sintético",{"type":"object"},800)
+
+
+def test_explore_keeps_quotes_without_game_restrictions():
+    quote = "Nuestro grupo parlamentario defiende esta propuesta para mejorar los servicios públicos."
+    sessions = [{"id": "demo", "fecha": "2026-10-13"}]
+    interventions = [{"cita": quote, "g": "MIXTO", "orador": "Orador sintético", "s": "demo"}]
+    assert explora.citas(sessions, interventions) == [[quote, "Orador sintético", "MIXTO", "demo", "2026-10-13"]]

@@ -1,12 +1,10 @@
-export const congressBase = '/new-escanoabierto/web';
+export const congressBase = '/congreso';
 export const congressSections = [
   {
     title: 'Portada y pestañas',
     pages: [
       ['Inicio', ''],
-      ['Elecciones', 'elecciones'],
       ['Geografía', 'geografia'],
-      ['¿Quién lo dijo?', 'quien-lo-dijo'],
       ['Método', 'metodo'],
     ],
   },
@@ -58,7 +56,6 @@ export function congressRoute(path: string[] = []) {
   ]);
   const detailTitle = details.get(section);
   if (detailTitle) return detail ? { section, detail, title: detailTitle } : null;
-  if (!title || (detail && !['elecciones', 'geografia', 'provincia', 'semana'].includes(section)))
-    return null;
+  if (!title || (detail && !['geografia', 'provincia', 'semana'].includes(section))) return null;
   return { section, detail, title };
 }

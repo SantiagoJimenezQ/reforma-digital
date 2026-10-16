@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { InfoPage } from '../../../components/sol/info-page';
+import { InfoPage } from '../../../components/brand/info-page';
 import { JsonLd } from '../../../components/json-ld';
 import { breadcrumbs, pageMetadata, webPage } from '../../../lib/seo';
 
@@ -23,9 +23,19 @@ export default function How() {
   return (
     <InfoPage narrow>
       <JsonLd graph={graph} />
-      <span className="t-etiqueta info-etiqueta">MENOS BUROCRACIA. MÁS CLARIDAD.</span>
+      <span
+        className={
+          't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase info-etiqueta block mb-4 [color:var(--text-secondary)]'
+        }
+      >
+        MENOS BUROCRACIA. MÁS CLARIDAD.
+      </span>
       <h1>De la pregunta al trámite.</h1>
-      <p className="info-entradilla">
+      <p
+        className={
+          'info-entradilla [max-width:65ch] mb-10 [color:var(--text-secondary)] text-lg [line-height:1.6]'
+        }
+      >
         Un punto de partida para entender la Administración, con el documento oficial siempre al
         alcance.
       </p>

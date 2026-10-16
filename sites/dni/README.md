@@ -11,7 +11,7 @@ Primer subproyecto del monorepo. Estado experimental; incluido en el build. Conf
 
 Cada carpeta contiene `page.tsx` y `bindings.ts`. `src/pages/index.ts` registra las pantallas. `src/components/` contiene los componentes propios y `src/styles/` los estilos del portal.
 
-`src/styles/page.css` viste la página completa con el sistema de diseño (DESIGN.md):
+`src/styles/page.ts` viste la página completa con el sistema de diseño (DESIGN.md):
 
 - fondo, cabecera y banner institucional intactos pero adaptados;
 - contenido y ayuda en dos columnas, que en móvil pasan a una;

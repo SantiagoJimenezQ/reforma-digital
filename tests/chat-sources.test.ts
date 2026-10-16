@@ -24,13 +24,19 @@ const evidence = (id: string, url: string, content: string): Evidence => ({
 
 it('muestra el fragmento citado sin enlaces ni HTML y salta a las otras fuentes', async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
-  const showModal = vi.fn(function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  });
-  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
-    configurable: true,
-    value: showModal,
-  });
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  );
+
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
   const first = evidence(
     'c1',
     'https://www.citapreviadnie.es/',
@@ -54,26 +60,31 @@ it('muestra el fragmento citado sin enlaces ni HTML y salta a las otras fuentes'
     );
   try {
     await act(async () => render());
-    expect(showModal).toHaveBeenCalled();
-    const excerpt = container.querySelector('.chat-source-excerpt')!;
+    expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();
+    const excerpt = document.body.querySelector('.chat-source-excerpt')!;
     expect(excerpt.querySelector('h3')?.textContent).toBe('Cita previa');
     expect(excerpt.querySelector('strong')?.textContent).toBe('Pide');
     expect(excerpt.querySelector('a, img, script')).toBeNull();
-    expect(container.textContent).toContain('Fragmento citado · 1');
-    expect(container.textContent).toContain('Estatal');
-    const official = container.querySelector<HTMLAnchorElement>('.chat-source a.boton')!;
+    expect(document.body.textContent).toContain('Fragmento citado · 1');
+    expect(document.body.textContent).toContain('Estatal');
+    const official = document.body.querySelector<HTMLAnchorElement>(
+      '.chat-source a[data-slot=button]',
+    )!;
     expect(official.href).toBe(first.canonicalUrl);
     expect(official.target).toBe('_blank');
     expect(official.rel).toBe('noopener noreferrer');
-    await act(async () => container.querySelector<HTMLButtonElement>('.chat-source-card')!.click());
-    expect(container.textContent).toContain('Fragmento citado · 2');
-    expect(container.querySelector('.chat-source-title')?.textContent).toBe(second.title);
-    await act(async () => container.querySelector<HTMLButtonElement>('.chat-sheet-back')!.click());
-    expect(container.querySelectorAll('.chat-source-card')).toHaveLength(2);
+    await act(async () =>
+      document.body.querySelector<HTMLButtonElement>('.chat-source-card')!.click(),
+    );
+    expect(document.body.textContent).toContain('Fragmento citado · 2');
+    expect(document.body.querySelector('.chat-source-title')?.textContent).toBe(second.title);
+    await act(async () =>
+      document.body.querySelector<HTMLButtonElement>('.chat-sheet-back')!.click(),
+    );
+    expect(document.body.querySelectorAll('.chat-source-card')).toHaveLength(2);
   } finally {
     await act(async () => root.unmount());
     container.remove();
-    Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
     vi.unstubAllGlobals();
   }
 });

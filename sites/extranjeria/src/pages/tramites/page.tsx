@@ -1,3 +1,13 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+  SelectLabel,
+} from '@reforma-digital/design/ui/select';
+import { RadioGroup } from '@reforma-digital/design/ui/radio-group';
 import { useId, useState, useSyncExternalStore } from 'react';
 import {
   DomBridge,
@@ -19,7 +29,7 @@ import {
   SearchField,
   SecondaryAction,
 } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { icpScreen, readVisibleErrors } from '../../components/official';
 import { communityBar, screenPanels } from '../../components/panels';
 import { matchesQuery } from '../../components/search';
@@ -60,7 +70,7 @@ export const tramitesPage: SitePage = {
       title: 'Cita previa de Extranjería',
       description: 'Selección de oficina y trámite',
       page: 'tramites',
-      pageStyles,
+      pageClassName,
       slots: [],
       shell: communityBar(bindings.header),
       panels: screenPanels(bindings.header, bindings.content, bridge, () => (
@@ -128,51 +138,65 @@ function Tramites({ bindings, restore }: { bindings: TramitesBindings; restore: 
       </Callout>
 
       <div>
-        <label htmlFor={officeId} className="bg-h2 mb-1 block">
+        <label
+          htmlFor={officeId}
+          className={
+            'bg-h2 [font-size:20px] [line-height:1.3] [font-weight:650] [color:rgb(var(--bg-ink))] mb-1 block'
+          }
+        >
           Oficina
         </label>
         {bindings.officeHint && (
-          <p id={officeHintId} className="bg-hint mb-3">
+          <p
+            id={officeHintId}
+            className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mb-3'}
+          >
             Según la web oficial: {bindings.officeHint}
           </p>
         )}
         {/* Cambiar de oficina envía el formulario oficial: la web recarga la página. */}
-        <select
-          id={officeId}
-          value={office.value}
-          onChange={(event) => act(bridge.setValue('oficina', event.currentTarget.value))}
-          aria-describedby={bindings.officeHint ? officeHintId : undefined}
-          className="bg-field"
+        <Select
+          value={typeof office.value === 'string' ? office.value : ''}
+          items={office.options}
+          onValueChange={(value) => {
+            if (value !== null) act(bridge.setValue('oficina', value));
+          }}
         >
-          {groupOptions(office).map(({ label, options }) =>
-            label ? (
-              <optgroup key={label} label={label}>
+          <SelectTrigger
+            id={officeId}
+            aria-describedby={bindings.officeHint ? officeHintId : undefined}
+            className="w-full"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {groupOptions(office).map(({ label, options }, index) => (
+              <SelectGroup key={label ?? index}>
+                {label && <SelectLabel>{label}</SelectLabel>}
                 {options.map((o) => (
-                  <option key={o.value} value={o.value} disabled={o.disabled}>
+                  <SelectItem key={o.value} value={o.value} disabled={o.disabled}>
                     {o.label}
-                  </option>
+                  </SelectItem>
                 ))}
-              </optgroup>
-            ) : (
-              options.map((o) => (
-                <option key={o.value} value={o.value} disabled={o.disabled}>
-                  {o.label}
-                </option>
-              ))
-            ),
-          )}
-        </select>
-        <p className="bg-hint mt-2">
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-2'}>
           Al cambiar de oficina, la web oficial recarga la página y puede mostrar trámites
           distintos.
         </p>
       </div>
 
       <fieldset className="space-y-3">
-        <legend className="bg-h2">
+        <legend
+          className={
+            'bg-h2 [font-size:20px] [line-height:1.3] [font-weight:650] [color:rgb(var(--bg-ink))]'
+          }
+        >
           Trámite <span className="font-normal text-ink-subtle">({total} disponibles)</span>
         </legend>
-        <p className="bg-hint">
+        <p className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))]'}>
           Agrupados por el organismo que los atiende, igual que en la web oficial.
         </p>
         <SearchField
@@ -182,29 +206,39 @@ function Tramites({ bindings, restore }: { bindings: TramitesBindings; restore: 
           onChange={setQuery}
           placeholder="Ej.: huellas, NIE, certificado, arraigo…"
         />
-        <div className="space-y-5 pt-1">
+        <RadioGroup
+          className="space-y-5 pt-1"
+          name="bg-tramite"
+          value={selected ? `${selected.index}:${selected.field.value}` : ''}
+          onValueChange={(value) => {
+            const [index, ...parts] = value.split(':');
+            act(bridge.setValue(group(Number(index)), parts.join(':')));
+          }}
+          aria-label="Trámite"
+        >
           {groups.map((g) => {
             const options = tramitesOf(g.field).filter((o) => matchesQuery(o.label, query));
             return (
-              <div key={g.select.id} role="radiogroup" aria-label={g.label}>
-                <h4 className="bg-eyebrow mb-2">
+              <div key={g.select.id} role="group" aria-label={g.label}>
+                <h4
+                  className={
+                    'bg-eyebrow text-xs [line-height:1.4] font-semibold [letter-spacing:0.06em] uppercase [color:rgb(var(--bg-ink-subtle))] mb-2'
+                  }
+                >
                   {g.label} · {options.length}
                 </h4>
                 <ul className="max-h-[360px] space-y-2 overflow-y-auto p-1">
                   {options.map((o) => (
                     <li key={o.value}>
-                      <Choice
-                        name="bg-tramite"
-                        value={`${g.index}:${o.value}`}
-                        checked={selected === g && g.field.value === o.value}
-                        onChange={() => act(bridge.setValue(group(g.index), o.value))}
-                      >
-                        {o.label}
-                      </Choice>
+                      <Choice value={`${g.index}:${o.value}`}>{o.label}</Choice>
                     </li>
                   ))}
                   {options.length === 0 && (
-                    <li className="bg-hint px-1">
+                    <li
+                      className={
+                        'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] px-1'
+                      }
+                    >
                       {query
                         ? 'Ningún trámite de este grupo coincide con la búsqueda.'
                         : 'Este grupo no tiene trámites disponibles.'}
@@ -214,7 +248,7 @@ function Tramites({ bindings, restore }: { bindings: TramitesBindings; restore: 
               </div>
             );
           })}
-        </div>
+        </RadioGroup>
       </fieldset>
 
       {official.hasTramiteMessages && (

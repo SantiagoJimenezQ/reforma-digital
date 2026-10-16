@@ -1,3 +1,4 @@
+import { RadioGroup } from '@reforma-digital/design/ui/radio-group';
 import { useId, useMemo, useState } from 'react';
 import { DomBridge, scrollToOfficial } from '@reforma-digital/bridge';
 import { useBoundField, useBridge, useDomValue } from '@reforma-digital/react';
@@ -14,7 +15,7 @@ import {
   SearchField,
   SecondaryAction,
 } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { icpScreen, readVisibleErrors } from '../../components/official';
 import { communityBar, screenPanels } from '../../components/panels';
 import { matchesQuery } from '../../components/search';
@@ -40,7 +41,7 @@ export const provinciasPage: SitePage = {
       title: 'Cita previa de Extranjería',
       description: 'Selección de provincia',
       page: 'provincias',
-      pageStyles,
+      pageClassName,
       slots: [],
       shell: communityBar(bindings.header),
       panels: screenPanels(bindings.header, bindings.content, bridge, () => (
@@ -90,7 +91,12 @@ function Provincias({ bindings, restore }: { bindings: ProvinciasBindings; resto
       }
     >
       <fieldset className="space-y-3">
-        <legend id={legendId} className="bg-h2">
+        <legend
+          id={legendId}
+          className={
+            'bg-h2 [font-size:20px] [line-height:1.3] [font-weight:650] [color:rgb(var(--bg-ink))]'
+          }
+        >
           Provincias disponibles{' '}
           <span className="font-normal text-ink-subtle">({provinces.length})</span>
         </legend>
@@ -104,26 +110,28 @@ function Provincias({ bindings, restore }: { bindings: ProvinciasBindings; resto
         <p className="sr-only" aria-live="polite">
           {filtered.length} provincias coinciden con la búsqueda
         </p>
-        <div
-          role="radiogroup"
+        <RadioGroup
+          name="bg-provincia"
+          value={typeof field.value === 'string' ? field.value : ''}
+          onValueChange={choose}
           aria-labelledby={legendId}
           className="grid max-h-[380px] grid-cols-2 gap-2 overflow-y-auto p-1 sm:grid-cols-3 lg:grid-cols-4"
         >
           {filtered.map((p) => (
-            <Choice
-              key={p.value}
-              name="bg-provincia"
-              value={p.value}
-              checked={p.value === field.value}
-              onChange={() => choose(p.value)}
-            >
+            <Choice key={p.value} value={p.value}>
               {p.label}
             </Choice>
           ))}
           {filtered.length === 0 && (
-            <p className="bg-hint col-span-full">Ninguna provincia coincide con «{query}».</p>
+            <p
+              className={
+                'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] col-span-full'
+              }
+            >
+              Ninguna provincia coincide con «{query}».
+            </p>
           )}
-        </div>
+        </RadioGroup>
       </fieldset>
 
       {officialErrors.length > 0 && (

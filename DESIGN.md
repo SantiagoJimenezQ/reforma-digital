@@ -1,17 +1,18 @@
 # Reforma Digital · Sistema de diseño
 
-Versión 2.0 · 2026‑10‑06
+Versión 3.0 · 2026‑10‑13
 
-Este documento es la referencia visual de Reforma Digital. Los dos ámbitos viven en `packages/design` (`@reforma-digital/design`) y no comparten tokens: la extensión y las adaptaciones de sedes oficiales usan `src/`, el preset y `themes/` (§§1–7); la web pública usa **Sol** (`sol/`, §8), el sistema de la portada definitiva, el buscador y las páginas informativas. Cada ámbito reutiliza sus tokens y componentes; las capturas y ejemplos de sedes conservan su identidad oficial.
+Toda la UI propia de la web, extensión y playground usa shadcn/ui con Base UI (`base-nova`) y Tailwind v4. La marca y la composición conservan su identidad. Las primitivas usan los estilos generados por el CLI, con el tema neutral de shadcn; no se retocan globalmente para reproducir Sol.
 
-| Qué                                    | Dónde vive en el código                                                                                                                                                                                                                                                       |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tokens (color, forma, tipografía)      | [`packages/design/src/tokens.css`](packages/design/src/tokens.css)                                                                                                                                                                                                            |
-| Componentes (botones, campos, avisos…) | [`packages/design/tailwind-preset.js`](packages/design/tailwind-preset.js)                                                                                                                                                                                                    |
-| Componentes React                      | [`packages/design/src/ui/components.tsx`](packages/design/src/ui/components.tsx) · campos conectados en [`packages/react`](packages/react/src/index.tsx)                                                                                                                      |
-| Temas para webs oficiales              | [`themes/morfos.css`](packages/design/themes/morfos.css) (framework Morfos de la AGE) · [`themes/aeat.css`](packages/design/themes/aeat.css) (Agencia Tributaria) · [`themes/sede-interior.css`](packages/design/themes/sede-interior.css) (Sede del Ministerio del Interior) |
+| Qué                             | Fuente de verdad                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| Tokens y movimiento             | [`packages/design/styles/theme.css`](packages/design/styles/theme.css)           |
+| Primitivas shadcn/Base UI       | [`packages/design/ui`](packages/design/ui)                                       |
+| Composición de trámites         | [`packages/design/src/ui/components.tsx`](packages/design/src/ui/components.tsx) |
+| Campos sincronizados            | [`packages/react`](packages/react/src/index.tsx)                                 |
+| Adaptación de contenido oficial | `sites/<portal>/src/styles/*.ts`, utilidades retiradas al restaurar              |
 
-Los componentes se definen **una sola vez** en el preset. Los paneles los usan como clases (`bg-btn bg-btn-primary`) y los temas los aplican a los elementos oficiales con `@apply`. Así, un botón oficial y un botón del panel son idénticos por construcción.
+Los controles oficiales de seguridad y los originales de las fixtures se conservan nativos. La frontera Shadow DOM mantiene su hoja de entrada; las pantallas propias se componen con utilidades Tailwind y los componentes compartidos.
 
 ---
 
@@ -28,7 +29,7 @@ Los componentes se definen **una sola vez** en el preset. Los paneles los usan c
 
 ### 2.1 Color
 
-Los valores están en `packages/design/src/tokens.css` como canales RGB (`--bg-brand-600: 20 20 20`). El contraste está medido sobre blanco salvo que se indique otra cosa.
+Los valores están en `packages/design/styles/theme.css` como canales RGB (`--bg-brand-600: 20 20 20`). El contraste está medido sobre blanco salvo que se indique otra cosa.
 
 | Token              | Hex                               | Uso                                                                      | Contraste             |
 | ------------------ | --------------------------------- | ------------------------------------------------------------------------ | --------------------- |
@@ -173,37 +174,27 @@ Si un panel ofrece un control sincronizado con uno oficial (el desplegable de pr
 ## 7. Cómo añadir o cambiar algo
 
 1. ¿Existe ya un token o componente? Úsalo.
-2. Si no existe, añádelo **aquí primero** (tabla correspondiente), después en `tokens.css` o en el preset, y por último úsalo.
+2. Si no existe, añádelo **aquí primero** (tabla correspondiente), después en `styles/theme.css` o en un componente compartido, y por último úsalo.
 3. Revisa el resultado con `npm run site:preview -- <portal>`, que reproduce una visita grabada con `site:record` sin conexión y guarda capturas a 1280 y 390 px en `.cache/preview/<portal>/`. Para los campos conectados, usa el laboratorio (`npm run dev`).
 4. Un PR que cambie el diseño debe incluir capturas y, si toca tokens de color, el contraste medido.
 
 ## 8. Web pública: sistema Sol
 
-Sol es el diseño definitivo de `apps/web`, no una variante de portada. Las rutas públicas son `/` (iniciativa y proyectos), `/chat` (buscador), `/equipo`, `/sources`, `/how-it-works` y `/privacy`. Las evaluaciones conservan su acceso interno en `/admin/evals`. Las páginas de error usan el mismo sistema. No se mantienen catálogos de variantes ni demos de chat con respuestas simuladas.
+Sol es el diseño definitivo de `apps/web`, no una variante de portada. Las rutas públicas son `/` (iniciativa y proyectos), `/chat` (buscador), `/congreso` (actividad parlamentaria y datos electorales), `/equipo`, `/sources`, `/how-it-works` y `/privacy`. Las evaluaciones conservan su acceso interno en `/admin/evals`. Las páginas de error usan el mismo sistema. No se mantienen catálogos de variantes ni demos de chat con respuestas simuladas.
 
-| Fuente de verdad                                                                | Archivo                                                                                                                                                                                                               |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Colores, degradados, tipografía, espaciado, radios, sombras, movimiento y cajas | [`packages/design/sol/tokens.css`](packages/design/sol/tokens.css)                                                                                                                                                    |
-| Botones y campos                                                                | [`sol/botones.css`](packages/design/sol/botones.css), [`sol/campos.css`](packages/design/sol/campos.css) · en React, `Button` y `Field` de [`@reforma-digital/design/sol`](packages/design/sol/components.tsx)        |
-| Piezas del chat (pregunta, bloques de respuesta, avisos, Markdown, movimiento)  | [`sol/chat.css`](packages/design/sol/chat.css) · en React, [`@reforma-digital/design/sol/chat`](packages/design/sol/chat.tsx)                                                                                         |
-| Utilidades de Tailwind v4                                                       | [`sol/tailwind.css`](packages/design/sol/tailwind.css)                                                                                                                                                                |
-| Fuentes (Geist y Geist Mono con `next/font`), salto, marca e icono              | [`app/(search)/globals.css`](<apps/web/app/(search)/globals.css>), [`fuentes.ts`](apps/web/components/sol/fuentes.ts), [`logo.tsx`](apps/web/components/sol/logo.tsx), [`icon.tsx`](apps/web/components/sol/icon.tsx) |
-| Navegación, pie y estructura informativa                                        | [`header.tsx`](apps/web/components/sol/header.tsx), [`footer.tsx`](apps/web/components/sol/footer.tsx), [`info-page.tsx`](apps/web/components/sol/info-page.tsx)                                                      |
-| Guía detallada de componentes y contraste                                       | [`GUIA.md`](apps/web/components/sol/GUIA.md)                                                                                                                                                                          |
-
-El paquete guarda los cimientos de Sol y `apps/web` solo los consume: `app/(search)/globals.css` importa `@reforma-digital/design/sol/*.css` y Tailwind, y el layout monta `.sol-raiz` y las fuentes una sola vez. Las páginas añaden su composición, sin volver a montar otro tema ni definir una segunda paleta. Los tokens `--bg-*` que necesitan el chat y el mapa se adaptan a Sol dentro de `sol/tokens.css`; no se cambian los tokens de la extensión. La composición propia de la web (cabecera, pie, recorrido, iniciativa, compositor del chat) sigue en `apps/web`.
+Las primitivas viven en `packages/design/ui`, los bloques del chat en `packages/design/chat.tsx` y la marca en `apps/web/components/brand`. El layout importa `@reforma-digital/design/web.css` y monta las fuentes una sola vez. Las páginas componen las primitivas con utilidades Tailwind; no añaden hojas de estilos propias.
 
 ### 8.1 Tipografía y retícula
 
-- Las familias son las del sistema visual de Paper. Titulares y cifras grandes en `--font-titular` (FFF Tool Serif Text Book, alternativa Georgia); la serif nunca va en botones, menús ni texto corrido. Todo lo demás (cuerpo, entradillas `.t-texto-l`, interfaz, botones, menús y chat) en `--font-texto` (Geist 400 y 500). Datos, números y etiquetas en `--font-mono` (Geist Mono 400 y 500). Solo el logotipo usa `--font-logo` (Ufficio, alternativa Geist). Geist y Geist Mono son OFL; Next las empaqueta y las sirve desde la propia web.
+- Las familias son las del sistema visual de Paper. Titulares y cifras grandes en `--font-brand-heading` (FFF Tool Serif Text Book, alternativa Georgia); la serif nunca va en botones, menús ni texto corrido. Todo lo demás (cuerpo, entradillas `.t-texto-l`, interfaz, botones, menús y chat) en `--font-texto` (Geist 400 y 500). Datos, números y etiquetas en `--font-mono` (Geist Mono 400 y 500). Solo el logotipo usa `--font-brand-logo` (Ufficio, alternativa Geist). Geist y Geist Mono son OFL; Next las empaqueta y las sirve desde la propia web.
 - FFF Tool Serif Text ([Fonts From Folch](https://www.fontsfromfolch.com/)) y Ufficio ([Giulia Boggio](https://www.giuliaboggio.xyz/fonts/ufficio-sans), [EULA](https://www.giuliaboggio.xyz/Eula.pdf)) son de pago y hoy no se sirven. El repositorio no incluye sus archivos ni los declara, así que no hay peticiones fallidas y se ven las alternativas. Las dos exigen una licencia web por dominio, con los archivos en el servidor propio, y prohíben distribuirlos; la EULA de Ufficio nombra GitHub, pide una licencia aparte para logotipos y consentimiento escrito para usos políticos. Para activarlas:
   1. Comprar las licencias web para el dominio y, para Ufficio, la de logotipo.
-  2. Copiar los WOFF2 de la licencia web en `apps/web/components/sol/fuentes/`, que git ignora. El despliegue debe aportarlos desde un almacenamiento privado: `next/font/local` detiene la compilación si faltan.
+  2. Copiar los WOFF2 de la licencia web en `apps/web/components/brand/fuentes/`, que git ignora. El despliegue debe aportarlos desde un almacenamiento privado: `next/font/local` detiene la compilación si faltan.
   3. En `fuentes.ts`, cargarlos con `next/font/local`: la serif con `weight: '400'`, `adjustFontFallback: 'Times New Roman'` y `variable: '--font-tool-serif'`; Ufficio solo en el peso del logotipo, con `preload: false` y `variable: '--font-ufficio'`. Añadir ambas clases a `fuentesSol`.
-  4. En `packages/design/sol/tokens.css`, poner `var(--font-tool-serif)` al principio de `--font-titular` y `var(--font-ufficio)` al principio de `--font-logo`.
+  4. En `packages/design/styles/theme.css`, poner `var(--font-tool-serif)` al principio de `--font-brand-heading` y `var(--font-ufficio)` al principio de `--font-brand-logo`.
 - Portada: titular centrado de 36–72 px; buscador, de 36–64 px; páginas informativas, de 36–60 px. Titulares de sección de 32–52 px, tarjetas de 24–30 px. Texto de lectura desde 16 px; ayudas y metadatos desde 14 px. Solo las etiquetas cortas en mayúsculas pueden medir 12 px.
 - Retícula común de 1200 px, con márgenes laterales de 20–24 px. Los artículos informativos limitan la lectura a 760 px y los párrafos a unas 65 letras de ancho. Las rejillas de fuentes y colaboradores se separan con bordes compartidos, sin huecos ni sombras por celda. El equipo conserva cinco tarjetas por fila en escritorio.
-- La cabecera es la misma en todas las páginas y mide 80 px, sin bordes: logotipo, enlaces `ghost` (píldora al pasar el ratón) y una acción en píldora `secondary` («Participar» o, en el chat, «Nueva conversación»). En la portada vive dentro del hero; en las páginas interiores, sobre blanco. Hasta 640 px, la navegación pasa a un `<dialog>` modal a pantalla completa (`mobile-menu.tsx`) que se abre con un círculo blanco con «+» y se despliega hacia abajo. Es amarilla para no confundirse con el rojo de la web: filas separadas por línea fina, sin números, y «Participar» en `primary` al pie; la acción propia de la página, como «Nueva conversación», sigue a la vista. Objetivos de al menos 44 px.
+- La cabecera es la misma en todas las páginas y mide 80 px, sin bordes: logotipo, enlaces `secondary` y una acción `outline` («Participar» o, en el chat, «Nueva conversación»). En la portada queda sobre el hero y permanece visible con `sticky`, fondo translúcido y blur; en las páginas interiores, sobre blanco. Los destinos de sección y el escenario de proyectos reservan sus 80 px. Hasta 640 px, la navegación pasa a un `<dialog>` modal a pantalla completa (`mobile-menu.tsx`) que se abre con un círculo blanco con «+» y se despliega hacia abajo. Es amarilla para no confundirse con el rojo de la web: filas separadas por línea fina, sin números, y «Participar» en `primary` al pie; la acción propia de la página, como «Nueva conversación», sigue a la vista. Objetivos de al menos 44 px.
 
 ### 8.2 Color y superficies
 
@@ -234,9 +225,28 @@ El paquete guarda los cimientos de Sol y `apps/web` solo los consume: `app/(sear
 
 ### 8.5 Tailwind y componentes React
 
-- `apps/web` usa Tailwind v4 sin preflight. `sol/tailwind.css` nombra los tokens de Sol en un `@theme inline reference`: `bg-rojo` compila a `background-color: var(--rojo)`, así que los valores siguen estando una sola vez en `sol/tokens.css` y el CSS existente sigue usando `var(--rojo)`. La paleta, las familias, los radios, las sombras y las curvas por defecto de Tailwind se vacían; el espaciado (4 px por paso) y los puntos de corte se mantienen. El preset de Tailwind v3 de la extensión no cambia.
-- `Button` (`variant`: `primary`, `secondary`, `ghost`, `icon`, `send`) y `Field` solo ponen la clase de Sol y pasan las props y la ref al elemento nativo. `Button` con `href` es un `<a>`; sin él, un `<button>`.
+- Sigue [la instalación de monorrepo](https://ui.shadcn.com/docs/monorepo) y [la instalación manual](https://ui.shadcn.com/docs/installation/manual). Ejecuta `pnpm --filter @reforma-digital/design exec shadcn add <componente> --cwd ../../apps/web`. El tema compartido importa `shadcn/tailwind.css`; `dark` depende de la clase `.dark`, no del modo del sistema.
+- No alteres colores, radios o tamaños de las primitivas generadas. Usa sus variantes y tamaños. Las clases de los usos se limitan a composición; una excepción visual debe resolver un caso concreto, como contraste en un hero o información semántica.
+- Excepción compartida: `secondary` usa el fondo al 30 % y al 40 % con `backdrop-blur` en hover, sin reducir la opacidad del texto. En las escenas de portada, el compositor tiene una sola superficie y anillo de foco; su `Input` no añade un segundo borde. Las fuentes oficiales se componen con `CardHeader`, `CardContent` y `CardFooter`.
+- Toda la UI usa Tailwind v4 y shadcn/Base UI. `Button` admite `default`, `sunset`, `outline`, `secondary`, `ghost`, `destructive` y `link`; `sunset` es la acción principal, en tinta con el sol al pasar el ratón; los tamaños incluyen `icon` e `icon-lg`.
+- Para navegar, usa un enlace o `next/link` con `cn(buttonVariants(...))`. No uses Button renderizado como enlace: conserva la semántica de navegación.
+- Usa `Input`, `Textarea`, `Select`, `Checkbox`, `RadioGroup`, `Card`, `Collapsible`, `Dialog`, `Sheet`, `Drawer` y `Table` desde `@reforma-digital/design/ui/*`. Los selects de formularios conservan `name`, valores reales y la opción vacía.
+- Los menús de la extensión se montan en el Shadow DOM mediante `PortalContainerContext`. La página oficial no recibe Preflight. El runtime retira únicamente las clases que añadió al restaurar.
 
 ### 8.6 Cambios posteriores
 
 Antes de añadir otro valor o componente, consulta `GUIA.md` y reutiliza los tokens y piezas existentes. Documenta aquí las decisiones de sistema y en la guía los detalles de uso. Comprueba móvil, teclado, contraste y reducción de movimiento. Incluye capturas comparables antes/después cuando cambies una pantalla existente.
+
+### 8.7 El Congreso
+
+El Congreso (`/congreso`) es una sección pública de Reforma Digital y usa Sol sin tokens propios. Conserva el diseño de Pablo de la PR #127. Sus estilos están en [`congreso.css`](apps/web/components/congreso/congreso.css). Aquí solo se recoge lo que decide por su cuenta.
+
+- La página es blanca de arriba abajo, también la portada. El rojo a caja completa (`--atardecer` como fondo de un hero) queda para la portada de Reforma Digital (`/`).
+- La portada conserva la silueta del hero de Sol (8 px de margen, radio 28, titular centrado de 36–72 px), en blanco y con un anillo de 1 px en `--linea`. La cabecera y la barra de la sección van encima, no dentro.
+- El sol pixelado es el atardecer de Sol tramado en celdas cuadradas. Usa `--rojo`, `--naranja` y `--amarillo`, de dentro afuera, con tramado ordenado de Bayer 4 × 4 entre tintas vecinas, y es transparente fuera. Las imágenes guardan una celda por píxel y se amplían con `image-rendering: pixelated`; la celda (`--celda`) mide siempre un número entero de píxeles, porque con decimales la trama se emborrona.
+- Hay dos dibujos. `sol-horizonte.png` (360 × 32 celdas) es un arco bajo y ancho, solo para la portada: celda de 8 px, y de 6 px hasta 560 px de ancho. `sol-disco.png` (120 × 44 celdas) es un sol que asoma, para la cabecera de cada vista: celda de 4 px, y de 3 px cuando la columna de contenido mide menos de 1090 px.
+- El sol va pegado al borde inferior de su pieza y recortado por su radio: centrado en la portada y a la derecha en las cabeceras. Nunca lleva texto encima. En la portada, el relleno inferior reserva su alto; en las cabeceras, el texto no pasa del 52 % del ancho y, cuando la columna mide menos de 820 px, ocupa todo el ancho con el sol debajo, centrado, en un hueco reservado. Encima solo van piezas opacas, como el botón claro con `--sombra-flota`. Hay uno por pantalla, no se anima y no se usa como textura de tarjetas.
+- La cabecera de cada vista (`Intro` con `h1`) es una pieza blanca de radio 28 con el mismo anillo. La de la portada, con `h2`, no lleva pieza ni sol: allí ya está el horizonte.
+- Para cambiarlo se editan los números de [`sol-pixel.mjs`](apps/web/scripts/sol-pixel.mjs) y se ejecuta `node apps/web/scripts/sol-pixel.mjs`. El PNG no se retoca a mano.
+- La cabecera de Reforma Digital lleva «El Congreso» como un enlace más, marcado como actual dentro de la sección. Desde 1100 px, las vistas van en una columna a la izquierda de 232 px, agrupadas y todas a la vista, con la actual sobre `--superficie`; se queda pegada al bajar y una ficha mantiene marcada la vista de la que sale. Por debajo de 1100 px, las vistas están en una barra con desplegables bajo la cabecera.
+- Los colores de un hemiciclo o de un resultado son datos (sí, no, abstención). Detrás no va el sol ni otro fondo de color.

@@ -43,29 +43,29 @@
     "typecheck:extension": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "@reforma-digital/design": "workspace:*",
     "dotenv": "^17.2.3",
-    "@reforma-digital/design": "workspace:*"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "typescript": "7.0.2",
-    "tsx": "^4.20.6",
-    "turbo": "^2.5.8",
-    "vitest": "5.0.0",
-    "@types/node": "26.5.0",
     "@playwright/test": "1.63.0",
     "@types/chrome": "0.2.9",
+    "@types/node": "26.5.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
     "jsdom": "30.0.1",
+    "oxlint": "1.86.0",
     "postcss": "8.5.28",
     "prettier": "3.9.6",
-    "tailwindcss": "3.4.19",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.20.6",
+    "turbo": "^2.5.8",
+    "typescript": "7.0.2",
+    "ultracite": "7.12.2",
     "vite": "8.2.2",
-    "oxlint": "1.86.0",
-    "ultracite": "7.12.2"
+    "vitest": "5.0.0"
   },
   "packageManager": "pnpm@11.1.1"
 }

@@ -1,9 +1,17 @@
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@reforma-digital/design/ui/select';
+import { Button } from '@reforma-digital/design/ui/button';
 import { useId, useMemo, useState } from 'react';
 import { DomBridge, normalizedLabel, scrollToOfficial } from '@reforma-digital/bridge';
 import { useBridge } from '@reforma-digital/react';
 import type { SitePage } from '@reforma-digital/registry';
 import { Callout, LinkButton, Panel, ProgressSteps, SearchField } from '@reforma-digital/design';
-import pageStyles from '../../styles/theme.css?inline';
+import { pageClassName } from '../../styles/theme';
 import { aeatLayout } from '../../components/panels';
 import { OUT_OF_SCOPE_FROM, STEPS } from '../../components/steps';
 import { catalogoBindings, type CatalogoBindings } from './bindings';
@@ -31,7 +39,7 @@ export const catalogoPage: SitePage = {
       title: 'Catálogo de servicios de asistencia',
       description: 'Agencia Tributaria · Elige el servicio',
       page: 'catalogo',
-      pageStyles,
+      pageClassName,
       slots: [],
       ...aeatLayout(
         bindings.title,
@@ -94,49 +102,110 @@ function Catalogo({ bindings, restore }: { bindings: CatalogoBindings; restore: 
           placeholder="Ej.: Cl@ve, IVA, deudas, censo…"
         />
         <div>
-          <label htmlFor={categoryId} className="bg-label">
+          <label
+            htmlFor={categoryId}
+            className={
+              'bg-label block [font-size:15px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))] [margin-bottom:6px]'
+            }
+          >
             Categoría
           </label>
-          <select
-            id={categoryId}
+          <Select
             value={category}
-            onChange={(e) => setCategory(e.currentTarget.value)}
-            className="bg-field"
+            onValueChange={(value) => setCategory(value ?? '')}
+            items={[
+              { value: '', label: 'Todas' },
+              ...bindings.categories.map((value) => ({ value, label: value })),
+            ]}
           >
-            <option value="">Todas</option>
-            {bindings.categories.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+            <SelectTrigger id={categoryId} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todas</SelectItem>
+              {bindings.categories.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <label htmlFor={channelId} className="bg-label">
+          <label
+            htmlFor={channelId}
+            className={
+              'bg-label block [font-size:15px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))] [margin-bottom:6px]'
+            }
+          >
             Canal
           </label>
-          <select
-            id={channelId}
+          <Select
             value={channel}
-            onChange={(e) => setChannel(e.currentTarget.value)}
-            className="bg-field"
+            onValueChange={(value) => setChannel(value ?? '')}
+            items={[
+              { value: '', label: 'Todos' },
+              ...bindings.channels.map((value) => ({ value, label: value })),
+            ]}
           >
-            <option value="">Todos</option>
-            {bindings.channels.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+            <SelectTrigger id={channelId} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos</SelectItem>
+              {bindings.channels.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <p className="bg-eyebrow" aria-live="polite">
+      <p
+        className={
+          'bg-eyebrow text-xs [line-height:1.4] font-semibold [letter-spacing:0.06em] uppercase [color:rgb(var(--bg-ink-subtle))]'
+        }
+        aria-live="polite"
+      >
         {results.length} {results.length === 1 ? 'servicio' : 'servicios'}
       </p>
       <ul className="max-h-[560px] space-y-3 overflow-y-auto p-1">
         {results.map((s) => (
           <li key={s.id} className="rounded-control border border-line p-4">
-            <p className="bg-eyebrow">{s.category}</p>
-            <h3 className="bg-h3 mt-1">{s.name}</h3>
-            {s.description && <p className="bg-hint mt-1">{s.description}</p>}
-            {s.note && <p className="bg-small mt-1">{s.note}</p>}
+            <p
+              className={
+                'bg-eyebrow text-xs [line-height:1.4] font-semibold [letter-spacing:0.06em] uppercase [color:rgb(var(--bg-ink-subtle))]'
+              }
+            >
+              {s.category}
+            </p>
+            <h3
+              className={
+                'bg-h3 [font-size:17px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))] mt-1'
+              }
+            >
+              {s.name}
+            </h3>
+            {s.description && (
+              <p
+                className={
+                  'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-1'
+                }
+              >
+                {s.description}
+              </p>
+            )}
+            {s.note && (
+              <p
+                className={
+                  'bg-small text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-1'
+                }
+              >
+                {s.note}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <ul className="flex flex-wrap gap-1.5" aria-label="Canales">
                 {s.channels.map((c) => (
@@ -148,9 +217,10 @@ function Catalogo({ bindings, restore }: { bindings: CatalogoBindings; restore: 
                   </li>
                 ))}
               </ul>
-              <button
+              <Button
+                variant="outline"
                 type="button"
-                className="bg-btn bg-btn-secondary"
+                className={''}
                 aria-label={s.requestLabel}
                 onClick={() => {
                   if (!bridge.activate(s.id)) restore();
@@ -158,12 +228,14 @@ function Catalogo({ bindings, restore }: { bindings: CatalogoBindings; restore: 
               >
                 Solicita asistencia y cita
                 <span aria-hidden="true">→</span>
-              </button>
+              </Button>
             </div>
           </li>
         ))}
         {results.length === 0 && (
-          <li className="bg-hint">Ningún servicio coincide con la búsqueda.</li>
+          <li className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))]'}>
+            Ningún servicio coincide con la búsqueda.
+          </li>
         )}
       </ul>
 

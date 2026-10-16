@@ -181,10 +181,6 @@ def main(argv: list[str] | None = None) -> None:
     pm = sub.add_parser("promesas", help="promesas de los programas de 2023 frente a lo votado (necesita HELMCODE_API_KEY)")
     pm.add_argument("--solo", help="solo un programa: PP, PSOE, VOX, SUMAR, ERC, JUNTS, BILDU, PNV, BNG o UPN")
     pm.add_argument("--limite", type=int, help="como mucho estas tandas de texto por programa (para probar)")
-    rt = sub.add_parser("reto", help="fija un reto temático de «¿Quién lo dijo?» para un día (p. ej. vivienda)")
-    rt.add_argument("fecha", type=date.fromisoformat)
-    rt.add_argument("--tema", required=True, help="un tema fijo de temas.py: vivienda, sanidad, pensiones…")
-
     args = p.parse_args(argv)
     if args.orden == "actualizar":
         actualizar(args.desde, args.hasta, not args.sin_ia)
@@ -235,11 +231,5 @@ def main(argv: list[str] | None = None) -> None:
         for sigla, p in r["programas"].items():
             print(f"  {sigla}: {len(p['promesas'])} promesas")
         print("Vuelve a construir la web para publicarlo: python -m escano construir --sin-ia")
-    elif args.orden == "reto":
-        from .construir import fijar_reto_tematico
-        r = fijar_reto_tematico(args.fecha.isoformat(), args.tema)
-        print(f"Reto del {args.fecha}: especial {r['nombre'].lower()}")
-        for x in r["rondas"]:
-            print(f"  {x['c'][2]:6} {x['c'][1]}: «{x['c'][0][:90]}»")
     elif args.orden == "calidad":
         raise SystemExit(1 if calidad.imprimir(calidad.informe()) else 0)

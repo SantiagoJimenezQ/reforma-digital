@@ -1,14 +1,18 @@
 'use client';
+import { Button, buttonVariants } from '@reforma-digital/design/ui/button';
+
+import { cn } from '@reforma-digital/design/lib/utils';
+
 import type { Evidence } from '@reforma-digital/core';
-import { Button } from '@reforma-digital/design/sol';
+
 import {
   Response,
   SourceCard,
   SourceDetail,
   SourceList,
   SourceSheet,
-} from '@reforma-digital/design/sol/chat';
-import { Icon } from './sol/icon';
+} from '@reforma-digital/design/chat';
+import { Icon } from './brand/icon';
 
 export type SourceView = { evidence: Evidence[]; selected?: Evidence };
 
@@ -47,21 +51,25 @@ export function Sources({
       onClose={onClose}
       back={
         selected && (
-          <button type="button" className="chat-sheet-back" onClick={() => onSelect()}>
+          <Button
+            type="button"
+            className={'chat-sheet-back inline-flex items-center justify-center [gap:6px]'}
+            onClick={() => onSelect()}
+          >
             <Icon name="izquierda" size={12} />
             Todas las fuentes
-          </button>
+          </Button>
         )
       }
       close={
-        <button
+        <Button
           type="button"
-          className="chat-sheet-close"
+          className={'chat-sheet-close inline-flex items-center justify-center [gap:6px]'}
           onClick={onClose}
           aria-label="Cerrar fuentes"
         >
           <Icon name="cerrar" size={16} />
-        </button>
+        </Button>
       }
     >
       {selected ? (
@@ -79,11 +87,25 @@ export function Sources({
             },
           ]}
           action={
-            <Button href={selected.canonicalUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={selected.canonicalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-slot="button"
+              data-variant="sunset"
+              className={cn(buttonVariants({ variant: 'sunset' }))}
+            >
               Abrir documento oficial
-              <span className="sr-only"> (se abre en una pestaña nueva)</span>
+              <span
+                className={
+                  'sr-only absolute [width:1px] [height:1px] p-0 [margin:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)] whitespace-nowrap border-0'
+                }
+              >
+                {' '}
+                (se abre en una pestaña nueva)
+              </span>
               <Icon name="arrowUpRight" size={16} />
-            </Button>
+            </a>
           }
         >
           {evidence.length > 1 && (
@@ -94,7 +116,13 @@ export function Sources({
         </SourceDetail>
       ) : (
         <>
-          <h2 className="chat-sheet-title">Fuentes</h2>
+          <h2
+            className={
+              'chat-sheet-title [margin:0_0_16px] [font-family:var(--font-brand-text)] text-2xl font-normal [letter-spacing:-0.01em]'
+            }
+          >
+            Fuentes
+          </h2>
           <SourceList
             title={`${evidence.length} ${evidence.length === 1 ? 'fragmento consultado' : 'fragmentos consultados'}`}
           >

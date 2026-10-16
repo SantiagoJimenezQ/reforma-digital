@@ -2,7 +2,6 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { configSchema } from '@reforma-digital/core';
 import { closeDb } from '@reforma-digital/db';
-import { shutdownTracing } from '@reforma-digital/ai';
 import {
   loadDataset,
   runExperiment,
@@ -13,7 +12,6 @@ import {
   type Report,
 } from './index';
 import { categorySchema } from './schema';
-import { publishExperiment } from './langfuse';
 const args = process.argv.slice(2).filter((a) => a !== '--');
 const value = (key: string, fallback: string) => {
   const i = args.indexOf(key);
@@ -32,7 +30,6 @@ try {
     '--mode',
     '--judges',
     '--ci',
-    '--publish',
     '--limit',
     '--save-baseline',
     '--thresholds',
@@ -94,7 +91,6 @@ try {
     );
     console.log('Baseline provisional guardado: approved=false. No certifica producción.');
   }
-  if (args.includes('--publish')) await publishExperiment(report);
   if (args.includes('--ci')) {
     const file = value('--thresholds', '');
     const thresholds = file ? JSON.parse(await readFile(file, 'utf8')) : undefined;
@@ -109,5 +105,4 @@ try {
   process.exitCode = 1;
 } finally {
   await closeDb();
-  await shutdownTracing();
 }

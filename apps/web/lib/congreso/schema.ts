@@ -193,21 +193,6 @@ export const weeksSchema = z.array(
     ),
   }),
 );
-export const quizSchema = z.record(
-  z.string(),
-  z.array(
-    z.object({
-      c: z.tuple([
-        z.string(),
-        z.string(),
-        z.string(),
-        z.string().regex(/^DSCD-\d+-(PL|CO)-\d+$/),
-        date,
-      ]),
-      grupos: z.array(z.string()),
-    }),
-  ),
-);
 export const geographySchema = z.object({
   fuentes: z.record(z.string(), z.union([z.number(), z.string()])),
   provincias: z.record(
@@ -230,8 +215,16 @@ export const electionsSchema = z.object({
   convocatoria: date,
   votacion: date,
   decreto: z.object({ rd: z.string(), boe: z.string() }),
-  calendario: z.array(z.object({ fecha: date, hito: z.string(), detalle: z.string().optional() })),
+  calendario: z.array(
+    z.object({
+      fecha: date,
+      hasta: date.optional(),
+      hito: z.string(),
+      detalle: z.string().optional(),
+    }),
+  ),
   escanos: z.record(z.string(), count),
+  escanos_cambian: z.array(z.tuple([z.string(), count, count])),
 });
 export const pollsSchema = z.object({
   actualizado: date,
@@ -252,21 +245,59 @@ export const pollsSchema = z.object({
   ),
 });
 export const historySchema = z.object({
+  familias: z.array(
+    z.object({ id: z.string(), nombre: z.string(), color: z.string().regex(/^#[\da-f]{6}$/i) }),
+  ),
   elecciones: z.array(
     z.object({
       id: z.string(),
       fecha: date,
       censo: count,
       votantes: count,
+      validos: count,
+      fam: z.record(z.string(), z.tuple([count, count])),
       partidos: z.array(z.tuple([z.string(), z.string(), z.string(), count, count])),
+      prov: z.record(
+        z.string(),
+        z.object({ e: count, censo: count, votantes: count, validos: count }),
+      ),
+      metricas: z.object({ nep_votos: z.number() }),
     }),
   ),
 });
+// Lo que pintan los listados; las fichas usan el contrato completo.
+export const voteCardSchema = voteSchema.pick({
+  id: true,
+  fecha: true,
+  tipo: true,
+  titulo: true,
+  si: true,
+  no: true,
+  abst: true,
+  novota: true,
+  grupos: true,
+});
+export const sessionCardSchema = sessionSchema.pick({
+  id: true,
+  fecha: true,
+  organo: true,
+  sesion: true,
+  titular: true,
+  resumen: true,
+});
+export const lawCardSchema = lawsSchema.shape.iniciativas.element.pick({
+  exp: true,
+  tipo: true,
+  titulo: true,
+  estado: true,
+  situacion: true,
+});
 export type CongressIndex = z.infer<typeof indexSchema>;
 export type Vote = z.infer<typeof voteSchema>;
-export type Session = z.infer<typeof sessionSchema>;
+export type VoteCard = z.infer<typeof voteCardSchema>;
+export type SessionCard = z.infer<typeof sessionCardSchema>;
+export type LawCard = z.infer<typeof lawCardSchema>;
 export type Intervention = z.infer<typeof interventionSchema>;
-export type Law = z.infer<typeof lawsSchema>['iniciativas'][number];
 
 // El resto de los conjuntos públicos conserva su contrato JSON original para descarga y reutilización.
 export const jsonSchema = z.json();
@@ -276,7 +307,6 @@ export const datasetSchemas = new Map<string, z.ZodType>([
   ['preguntas.json', questionsSchema],
   ['organigrama.json', organsSchema],
   ['semanas.json', weeksSchema],
-  ['explora-retos.json', quizSchema],
   ['geografia/territorios.json', geographySchema],
   ['elecciones/elecciones.json', electionsSchema],
   ['encuestas/encuestas.json', pollsSchema],
@@ -395,6 +425,7 @@ export const projectionSchema = z.object({
   central: z.record(z.string(), z.number()),
   media: z.record(z.string(), z.number()),
   provincias: z.record(z.string(), z.record(z.string(), z.number())),
+  bloques: z.record(z.string(), z.array(z.string())),
 });
 
 export const marketsSchema = z.object({
@@ -424,7 +455,17 @@ export const accuracySchema = z.object({
 export const mapSchema = z.object({
   ancho: z.number(),
   alto: z.number(),
-  provincias: z.record(z.string(), z.object({ n: z.string(), d: z.string() })),
+  canarias: z.string(),
+  provincias: z.record(
+    z.string(),
+    z.object({
+      n: z.string(),
+      d: z.string(),
+      c: z.tuple([z.number(), z.number()]),
+      circ: z.string(),
+      corto: z.string(),
+    }),
+  ),
 });
 
 export const historicalProvinceSchema = z.object({
@@ -437,6 +478,7 @@ export const historicalProvinceSchema = z.object({
       blancos: z.number(),
       sin_escano: z.number(),
       c: z.array(z.tuple([z.string(), z.string(), z.number(), z.number()])),
+      ultimo: z.object({ gana: z.string(), segundo: z.string(), faltan: z.number() }).optional(),
     }),
   ),
 });
@@ -473,11 +515,13 @@ export const balanceSchema = z.object({
     decretos_ley: z.number(),
     preguntas: z.number(),
     sin_respuesta: z.number(),
+    mas_ajustada: z.object({ si: z.number(), no: z.number() }).optional(),
   }),
   caducan: z.object({
     total: z.number(),
     proyectos: z.number(),
     proposiciones: z.number(),
+    por_origen: z.record(z.string(), z.number()),
     lista: z.array(
       z.tuple([
         z.string(),

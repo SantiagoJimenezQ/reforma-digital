@@ -11,7 +11,7 @@ Subproyecto del monorepo. Estado experimental; incluido en el build. Configuraci
 | `src/pages/tramites/`   | `/<app>/citar`, `/<app>/selectSede`     | Oficina (`select#sede`) y buscador de trámites agrupados por organismo (`tramiteGrupo[n]`), todo mediante el bridge. «Continuar» se habilita al elegir. Se repiten los errores oficiales y se avisa si aparecen mensajes o sub‑trámites oficiales |
 | `src/pages/info/`       | `/<app>/acInfo`                         | Llamada a leer la información oficial y dos opciones equivalentes que activan «Presentación con Cl@ve» (`#btnAccesoClave`) y «sin Cl@ve» (`#btnEntrar`), declaradas como acciones `custom`                                                        |
 
-Cada carpeta contiene `page.tsx` (interfaz y `prepare`) y `bindings.ts` (selectores revisados y extracción de datos). `src/components/` contiene los pasos, la búsqueda y la colocación de paneles; `src/styles/theme.css` aplica el tema Morfos del sistema de diseño y oculta **solo** los controles oficiales que el panel replica (DESIGN.md §4.2).
+Cada carpeta contiene `page.tsx` (interfaz y `prepare`) y `bindings.ts` (selectores revisados y extracción de datos). `src/components/` contiene los pasos, la búsqueda y la colocación de paneles; `src/styles/theme.ts` aplica el tema Morfos del sistema de diseño y oculta **solo** los controles oficiales que el panel replica (DESIGN.md §4.2).
 
 `acEntrada` (datos personales) y las pantallas siguientes no tienen pantalla registrada: conservan la interfaz original. La extensión no rellena datos, no resuelve el CAPTCHA, no consulta disponibilidad ni reserva, y no entra en Cl@ve.
 

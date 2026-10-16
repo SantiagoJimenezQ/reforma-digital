@@ -26,7 +26,14 @@ REVISION = "ba240791820b423503f69bb88406b51a25487083"
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def remove_game_data() -> None:
+    # Los checkpoints y el bootstrap anteriores pueden conservar estos archivos del juego retirado.
+    (DATOS / "retos.json").unlink(missing_ok=True)
+    (SITIO / "datos" / "explora-retos.json").unlink(missing_ok=True)
+
+
 def archive(destination: Path, *, public: bool) -> None:
+    remove_game_data()
     with tarfile.open(destination, "w:gz") as tar:
         if public:
             notice = ("Datos adaptados de Escaño Abierto: https://www.escanoabierto.com\n"
@@ -97,6 +104,7 @@ def copy_rows(db, table: str, columns: str, rows) -> None:
 
 
 def publish(db, revision: str, state_url: str | None, local: bool) -> dict:
+    remove_game_data()
     directory = SITIO / "datos"
     subprocess.run(["pnpm", "exec", "tsx", "apps/web/scripts/validate-congreso.ts", str(directory), str(DATOS)], cwd=ROOT, check=True)
     datasets = [(file.relative_to(directory).as_posix(), json.loads(file.read_text()), hashlib.sha256(file.read_bytes()).hexdigest())

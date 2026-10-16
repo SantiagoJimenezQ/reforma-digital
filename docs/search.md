@@ -56,7 +56,6 @@ Los favicons de las fuentes se cargan en el navegador desde Google S2, con carga
 - `FEEDBACK_SECRET`: firma del feedback y anonimización de los límites de peticiones.
 - `ADMIN_TOKEN`: acceso al laboratorio; no se incorpora al navegador.
 - `APP_ORIGIN`: origen autorizado del frontend.
-- `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL`: trazas y experimentos opcionales.
 
 Los costes proceden de los metadatos reales de OpenRouter; un coste desconocido se muestra como N/A.
 
@@ -74,4 +73,4 @@ Las evaluaciones reales requieren OpenRouter, sin depender de un índice ni de P
 
 `--retrieval-only` ejecuta la búsqueda sin generar respuestas ni llamar a los evaluadores de respuestas. Las métricas de documentos requieren referencias revisadas que correspondan a las fuentes web actuales; los datasets pendientes no certifican calidad. El baseline del sistema anterior se ha retirado y debe generarse y revisarse uno nuevo antes de habilitar la puerta de calidad real.
 
-`--publish` sincroniza el experimento con Langfuse. `pnpm eval:approve` sigue requiriendo una persona identificada y casos revisados. Los evaluadores y las comprobaciones de citas se mantienen porque verifican el comportamiento actual del chat.
+`pnpm eval:approve` sigue requiriendo una persona identificada y casos revisados. Los evaluadores y las comprobaciones de citas se mantienen porque verifican el comportamiento actual del chat.

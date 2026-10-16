@@ -5,6 +5,7 @@ import type { NextConfig } from 'next';
 import { withBotId } from 'botid/next/config';
 const config: NextConfig = {
   transpilePackages: [
+    '@reforma-digital/design',
     '@reforma-digital/core',
     '@reforma-digital/government',
     '@reforma-digital/db',
@@ -12,7 +13,7 @@ const config: NextConfig = {
     '@reforma-digital/ai',
     '@reforma-digital/evals',
   ],
-  serverExternalPackages: ['postgres', '@langfuse/otel', '@opentelemetry/sdk-node'],
+  serverExternalPackages: ['postgres'],
   poweredByHeader: false,
   images: {
     remotePatterns: [
@@ -24,6 +25,8 @@ const config: NextConfig = {
     return [
       { source: '/explorar', destination: '/chat', permanent: true },
       { source: '/propuesta', destination: '/#iniciativa', permanent: true },
+      { source: '/congreso/elecciones/calendario', destination: '/elecciones', permanent: true },
+      { source: '/congreso/elecciones/:path*', destination: '/elecciones/:path*', permanent: true },
     ];
   },
 };

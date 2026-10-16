@@ -5,7 +5,7 @@ Recolector Python adaptado de [Escaño Abierto](https://github.com/jorgegarcelan
 ## Dónde vive cada cosa
 
 - Git: código, esquema SQL y workflows. Ningún histórico descargado.
-- Postgres: conjuntos JSON publicados, diputados históricos, votaciones, votos individuales, **todas** las preguntas escritas y sesiones completas con su texto extraído. Las proyecciones JSON conservan los contratos originales; las tablas permiten búsquedas y paginación.
+- Postgres: conjuntos JSON publicados, diputados históricos, votaciones, votos individuales, **todas** las preguntas escritas y sesiones completas con su texto extraído. Las proyecciones JSON conservan los contratos originales; las tablas permiten búsquedas y paginación. Un trigger expande cada fichero mensual en `congreso_month_sessions`, `congreso_month_votes` y `congreso_interventions` dentro de la misma transacción que lo publica: la web consulta esas filas y recorta en SQL los documentos grandes en lugar de descargarlos enteros.
 - Un **Vercel Blob privado**: originales descargados por hash, checkpoint de procesamiento y archivo descargable. La API de Next autentica las descargas; el navegador nunca recibe la clave de escritura.
 - Directorio `CONGRESS_WORKDIR` (por defecto `apps/ingestion/.cache`): trabajo temporal, ignorado por Git.
 
@@ -61,7 +61,7 @@ El reanálisis es acotado y reanudable:
 .cache/congreso-python/bin/python apps/ingestion/run.py rebuild
 ```
 
-También se mantienen `geography`, `elections`, `promises` y `reparse`. Los comandos de adquisición individuales siguen disponibles con `python -m escano` desde `apps/ingestion`; para publicarlos con persistencia usa el runner. El bootstrap conserva elecciones, geografía, normalización y promesas previas aunque no llames a un modelo.
+También se mantienen `geography`, `elections`, `promises` y `reparse`. Los comandos de adquisición individuales siguen disponibles con `python -m escano` desde `apps/ingestion`; para publicarlos con persistencia usa el runner. El bootstrap conserva elecciones, geografía, normalización y promesas previas aunque no llames a un modelo. El juego «¿Quién lo dijo?» está retirado: al archivar o publicar se eliminan sus archivos históricos (`retos.json` y `explora-retos.json`); la publicación también retira el conjunto antiguo de Postgres. Las citas de Explora se conservan.
 
 La política de encuestas importada se aplica tanto en UI como en API; la descarga completa se bloquea durante esa ventana porque contiene encuestas. El recolector deja de actualizarlas desde el inicio de la ventana, como upstream. Al cambiar de convocatoria/legislatura hay que actualizar las constantes de los módulos correspondientes, revisar los parsers y hacer una migración deliberada; no se infiere una legislatura nueva automáticamente.
 
@@ -69,8 +69,7 @@ Los objetos originales se conservan. Se conservan las siete publicaciones más r
 
 ## API y web
 
-- `/new-escanoabierto`: índice de revisión, sin indexación.
-- `/new-escanoabierto/web`: web nativa con los datos propios.
+- `/congreso`: web pública con los datos propios, el diseño de Pablo y las vistas de actividad, diputados, elecciones y geografía.
 - `/api/congreso`: catálogo y publicación actual.
 - `/api/congreso/datasets/<ruta.json>`: contrato original, ETag y `X-Congreso-Publication`.
 - `/api/congreso/votaciones`, `/preguntas`, `/sesiones`: `pagina`, `limite` (1–100), `q`, `legislatura`, `desde`, `hasta`; preguntas admite `estado`.

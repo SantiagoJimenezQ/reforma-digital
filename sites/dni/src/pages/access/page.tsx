@@ -2,7 +2,7 @@ import { DomBridge } from '@reforma-digital/bridge';
 import type { SitePage } from '@reforma-digital/registry';
 import { officialAccessLink } from './bindings';
 import { AccessCard } from '../../components/AccessCard';
-import pageStyles from '../../styles/page.css?inline';
+import { pageClassName } from '../../styles/page';
 
 export const accessPage: SitePage = {
   id: 'access',
@@ -16,7 +16,7 @@ export const accessPage: SitePage = {
       bridge,
       title: 'Cita previa del DNI y pasaporte',
       description: 'DNI y pasaporte · Solicitud, consulta y anulación',
-      pageStyles,
+      pageClassName,
       slots: [{ source: access, render: () => <AccessCard source={access} /> }],
       health: () =>
         access.isConnected &&

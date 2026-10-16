@@ -1,3 +1,15 @@
+import { Input } from '@reforma-digital/design/ui/input';
+import { Textarea } from '@reforma-digital/design/ui/textarea';
+import { Button } from '@reforma-digital/design/ui/button';
+import { Checkbox } from '@reforma-digital/design/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@reforma-digital/design/ui/select';
 import {
   createContext,
   useContext,
@@ -49,42 +61,59 @@ export function BoundField({
     required: state.required,
     'aria-describedby': spec.help ? `${id}-help` : undefined,
     'aria-invalid': spec.element.getAttribute('aria-invalid') === 'true' ? true : undefined,
-    className: 'bg-field',
+    className: 'min-h-12',
   };
   return (
-    <div className={`bg-bound ${className}`.trim()} data-binding={binding}>
+    <div
+      className={`bg-bound block [min-width:0] [padding:6px_0_12px] ${className}`.trim()}
+      data-binding={binding}
+    >
       {!checkable ? (
-        <label className="bg-label" htmlFor={id}>
+        <label
+          id={`${id}-label`}
+          className={
+            'bg-label block [font-size:15px] [line-height:1.4] font-semibold [color:rgb(var(--bg-ink))] [margin-bottom:6px]'
+          }
+          htmlFor={id}
+        >
           {spec.label}
           {state.required ? <span aria-hidden="true"> *</span> : null}
         </label>
       ) : null}
       {state.type === 'select' ? (
-        <select
-          {...common}
+        <Select<string, boolean>
           multiple={state.multiple}
           value={state.multiple ? [...state.values] : state.value}
-          onChange={(event) =>
-            bridge.setValue(
-              binding,
-              state.multiple
-                ? Array.from(event.currentTarget.selectedOptions, (o) => o.value)
-                : event.currentTarget.value,
-            )
-          }
+          items={state.options}
+          disabled={state.disabled}
+          required={state.required}
+          onValueChange={(value) => {
+            if (value !== null) bridge.setValue(binding, value);
+          }}
         >
-          {state.options.map((option, index) => (
-            <option
-              key={`${option.value}-${index}`}
-              value={option.value}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            id={id}
+            aria-labelledby={`${id}-label`}
+            aria-describedby={common['aria-describedby']}
+            aria-invalid={common['aria-invalid']}
+            className={'w-full'}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {state.options.map((option, index) => (
+              <SelectItem
+                key={`${option.value}-${index}`}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       ) : state.type === 'textarea' ? (
-        <textarea
+        <Textarea
           {...common}
           ref={control}
           value={state.value}
@@ -94,18 +123,35 @@ export function BoundField({
           onChange={(event) => bridge.setValue(binding, event.currentTarget.value)}
         />
       ) : checkable ? (
-        <label className={`bg-choice${state.checked ? ' bg-choice-checked' : ''}`} htmlFor={id}>
-          <input
-            {...common}
-            className=""
-            type={state.type}
-            checked={state.checked}
-            onChange={(event) => bridge.setChecked(binding, event.currentTarget.checked)}
-          />
+        <label className="flex min-h-11 items-center gap-2" htmlFor={id}>
+          {state.type === 'checkbox' ? (
+            <Checkbox
+              id={id}
+              disabled={state.disabled}
+              required={state.required}
+              aria-describedby={common['aria-describedby']}
+              aria-invalid={common['aria-invalid']}
+              checked={state.checked}
+              onCheckedChange={(checked) => bridge.setChecked(binding, checked)}
+            />
+          ) : (
+            <RadioGroup
+              value={state.checked ? 'selected' : ''}
+              onValueChange={() => bridge.setChecked(binding, true)}
+            >
+              <RadioGroupItem
+                id={id}
+                value="selected"
+                disabled={state.disabled}
+                required={state.required}
+                aria-label={spec.label}
+              />
+            </RadioGroup>
+          )}
           {spec.label}
         </label>
       ) : (
-        <input
+        <Input
           {...common}
           ref={control}
           type={state.type}
@@ -128,7 +174,10 @@ export function BoundField({
         />
       )}
       {spec.help ? (
-        <p id={`${id}-help`} className="bg-hint mt-1.5">
+        <p
+          id={`${id}-help`}
+          className={'bg-hint text-sm [line-height:1.5] [color:rgb(var(--bg-ink-muted))] mt-1.5'}
+        >
           {spec.help}
         </p>
       ) : null}
@@ -145,7 +194,7 @@ export function BoundButton({
   useSyncExternalStore(bridge.subscribe, bridge.getRevision);
   const spec = bridge.actionSpec(binding);
   return (
-    <button
+    <Button
       {...props}
       type="button"
       disabled={
@@ -156,7 +205,7 @@ export function BoundButton({
       onClick={() => bridge.activate(binding)}
     >
       {children ?? spec.label}
-    </button>
+    </Button>
   );
 }
 

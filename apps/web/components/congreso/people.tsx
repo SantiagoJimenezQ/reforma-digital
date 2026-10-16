@@ -1,15 +1,24 @@
-import { extraSchema } from '../../lib/congreso/schema';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@reforma-digital/design/ui/collapsible';
+
+import { Icon } from '../brand/icon';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { z } from 'zod';
+import { slug, deputyName, getQuestions } from '../../lib/congreso/data';
 import {
-  getPeriod,
-  getOrgans,
-  read,
-  slug,
-  deputyName,
-  getQuestions,
-} from '../../lib/congreso/data';
+  cargos,
+  deputyExtra,
+  deputyVotes,
+  findCargo,
+  interventions,
+  interventionsByGroup,
+  organsSummary,
+  votes,
+} from '../../lib/congreso/queries';
 import type { CongressIndex } from '../../lib/congreso/schema';
 import {
   Intro,
@@ -48,42 +57,36 @@ export async function People({
   province: string;
   page: number;
 }) {
-  if (section === 'organigrama' || section === 'cargo') {
-    const organs = await getOrgans();
-    if (section === 'cargo') {
-      const cargo = detail && organs.cargos[detail];
-      if (!cargo) notFound();
-      return (
-        <>
-          <Intro label={cargo.ministerio} title={cargo.cargo} />
-          <Section title="Quién ha ocupado el cargo">
-            <ol className="cg-timeline">
-              {cargo.mandatos.map((m, i) => (
-                <li key={i}>
-                  <h3>{m.persona}</h3>
-                  <p>
-                    {m.desde ? date(m.desde) : 'Inicio no disponible'} → {m.hasta || 'Actualidad'}
-                  </p>
-                  {m.boe && <Source url={boeUrl(m.boe)}>Nombramiento en el BOE</Source>}
-                </li>
-              ))}
-            </ol>
-          </Section>
-        </>
-      );
-    }
-    const cargos = Object.entries(organs.cargos).filter(([, c]) =>
-      `${c.cargo} ${c.ministerio} ${c.mandatos.map((m) => m.persona).join(' ')}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-    );
+  if (section === 'cargo') {
+    const cargo = detail ? await findCargo(detail) : null;
+    if (!cargo) notFound();
     return (
       <>
-        <Intro title="Quién ocupa cada cargo">
-          <p>
-            Nombramientos y ceses publicados en el BOE. Actualizado el {date(organs.actualizado)}.
-          </p>
-        </Intro>
+        <Intro label={cargo.ministerio} title={cargo.cargo} />
+        <Section title="Quién ha ocupado el cargo">
+          <ol
+            className={
+              'cg-timeline list-none p-0 [&_li]:[padding:0_0_24px_24px] [&_li]:[border-left:2px_solid_var(--border)] [&_h3]:[margin:8px_0] [&_h3]:text-lg'
+            }
+          >
+            {cargo.mandatos.map((m, i) => (
+              <li key={i}>
+                <h3>{m.persona}</h3>
+                <p>
+                  {m.desde ? date(m.desde) : 'Inicio no disponible'} → {m.hasta || 'Actualidad'}
+                </p>
+                {m.boe && <Source url={boeUrl(m.boe)}>Nombramiento en el BOE</Source>}
+              </li>
+            ))}
+          </ol>
+        </Section>
+      </>
+    );
+  }
+  if (section === 'organigrama') {
+    const [organs, found] = await Promise.all([organsSummary(), cargos(query, page)]);
+    return (
+      <>
         <Stats
           items={[
             [organs.cifras.cargos_ocupados, 'Cargos ocupados'],
@@ -92,30 +95,52 @@ export async function People({
           ]}
         />
         <Filters action={href('organigrama')} query={query} />
-        <div className="cg-grid">
-          {cargos.slice((page - 1) * 24, page * 24).map(([id, cargo]) => (
-            <Link className="cg-card" key={id} href={href(`cargo/${id}`)}>
-              <span className="t-etiqueta">{cargo.ministerio}</span>
-              <h3>{cargo.cargo}</h3>
-              <p>{cargo.mandatos.find((m) => !m.hasta)?.persona || 'Vacante'}</p>
-            </Link>
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
+          {found.rows.map(([id, cargo]) => (
+            <Card
+              key={id}
+              render={
+                <Link
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                  href={href(`cargo/${id}`)}
+                />
+              }
+            >
+              <CardContent>
+                <span
+                  className={
+                    't-etiqueta [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
+                  }
+                >
+                  {cargo.ministerio}
+                </span>
+                <h3>{cargo.cargo}</h3>
+                <p>{cargo.mandatos.find((m) => !m.hasta)?.persona || 'Vacante'}</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
-        <Pagination page={page} total={cargos.length} params={{ q: query }} />
+        <Pagination page={page} total={found.total} params={{ q: query }} />
       </>
     );
   }
   if (section === 'diputado') {
     const deputy = index.diputados.find((d) => slug(d.nombre) === detail);
     if (!deputy) notFound();
-    const data = await getPeriod(period);
     const i = index.diputados.indexOf(deputy);
-    const votes = data.votaciones.filter((v) => v.v.charAt(i) && v.v.charAt(i) !== '-');
-    const interventions = data.intervenciones.filter(
-      (iv) => slug(iv.orador) === slug(deputy.nombre.split(',')[0] || ''),
-    );
-    const extra = (await read('diputados-extra.json', extraSchema))[deputy.nombre];
-    const questions = (await getQuestions()).diputados[String(i)];
+    const [ballots, said, extra, summary] = await Promise.all([
+      deputyVotes(period, i, page),
+      interventions({ period, speaker: slug(deputy.nombre.split(',')[0] || '') }, page),
+      deputyExtra(deputy.nombre),
+      getQuestions(),
+    ]);
+    const questions = summary.diputados[String(i)];
     return (
       <>
         <Intro label={`${deputy.grupo} · ${deputy.provincia}`} title={deputyName(deputy.nombre)}>
@@ -127,8 +152,8 @@ export async function People({
         </Intro>
         <Stats
           items={[
-            [votes.length, 'Votaciones en el periodo'],
-            [interventions.length, 'Intervenciones analizadas'],
+            [ballots.total, 'Votaciones en el periodo'],
+            [said.total, 'Intervenciones analizadas'],
             [questions?.[0] ?? 0, 'Preguntas en la legislatura'],
           ]}
         />
@@ -145,7 +170,11 @@ export async function People({
               <p>{extra.bio}</p>
             </Section>
             <Section title="Comisiones">
-              <ul className="cg-list">
+              <ul
+                className={
+                  'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+                }
+              >
                 {extra.comisiones.map(([commission, role]) => (
                   <li key={`${commission}-${role}`}>
                     <b>{commission}</b>
@@ -158,106 +187,143 @@ export async function People({
               <Section title="Declaración de intereses">
                 <p>Información del registro público del Congreso.</p>
                 {Object.entries(extra.intereses).map(([label, value]) => (
-                  <details className="cg-transcript" key={label}>
-                    <summary>{label.replaceAll('_', ' ')}</summary>
-                    {typeof value === 'string' ? (
-                      <p>{value}</p>
-                    ) : (
-                      <ul>
-                        {value.map((row, j) => (
-                          <li key={j}>
-                            {typeof row === 'string' ? row : row.filter(Boolean).join(' · ')}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </details>
+                  <Collapsible
+                    className={
+                      'cg-transcript [padding:16px_0] [border-bottom:1px_solid_var(--border)] [&_summary]:cursor-pointer [&_summary]:font-medium [&_p]:[max-width:80ch] [&_p]:[white-space:pre-line]'
+                    }
+                    key={label}
+                  >
+                    <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                      <span>{<>{label.replaceAll('_', ' ')}</>}</span>
+                      <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                        {<Icon name="abajo" size={16} />}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      {typeof value === 'string' ? (
+                        <p>{value}</p>
+                      ) : (
+                        <ul>
+                          {value.map((row, j) => (
+                            <li key={j}>
+                              {typeof row === 'string' ? row : row.filter(Boolean).join(' · ')}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
                 ))}
               </Section>
             )}
           </>
         )}
         <Section title="Cómo votó">
-          <div className="cg-list">
-            {votes.slice((page - 1) * 24, page * 24).map((vote) => (
+          <div
+            className={
+              'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+            }
+          >
+            {ballots.rows.map((vote) => (
               <article key={vote.id}>
                 <Link href={href(`votacion/${vote.id}`, vote.fecha.slice(0, 7))}>
                   {vote.titulo}
                 </Link>
-                <b>{{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[vote.v.charAt(i)]}</b>
+                <b>{{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[vote.voto]}</b>
               </article>
             ))}
           </div>
-          <Pagination page={page} total={votes.length} params={{ periodo: period }} />
+          <Pagination page={page} total={ballots.total} params={{ periodo: period }} />
         </Section>
         <Section title="Qué dijo">
-          <Interventions interventions={interventions.slice((page - 1) * 24, page * 24)} />
-          <Pagination page={page} total={interventions.length} params={{ periodo: period }} />
+          <Interventions interventions={said.rows} />
+          <Pagination page={page} total={said.total} params={{ periodo: period }} />
         </Section>
       </>
     );
   }
   if (section === 'grupos') {
-    const data = await getPeriod(period);
+    const [byGroup, latest] = await Promise.all([
+      interventionsByGroup(period),
+      votes({ period }, 1, 12),
+    ]);
     return (
       <>
-        <Intro title="Los grupos parlamentarios" />
         <Hemicycle index={index} />
-        <div className="cg-grid">
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {Object.entries(index.grupos)
             .filter(([, g]) => g.escanos)
             .map(([id, g]) => (
-              <article className="cg-card" key={id}>
-                <span className="cg-group">
-                  <i style={{ background: g.color }} />
-                  {id}
-                </span>
-                <h2>{g.nombre}</h2>
-                <Stats
-                  items={[
-                    [g.escanos, 'Escaños'],
-                    [
-                      data.intervenciones.filter((iv) => iv.g === id).length,
-                      'Intervenciones analizadas',
-                    ],
-                  ]}
-                />
-                <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
-                <details>
-                  <summary>Voto mayoritario del grupo</summary>
-                  <ul className="cg-list">
-                    {data.votaciones.slice(0, 12).map((v) => (
-                      <li key={v.id}>
-                        <Link href={href(`votacion/${v.id}`, v.fecha.slice(0, 7))}>{v.titulo}</Link>
-                        <b>
-                          {{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[
-                            v.grupos[id] || ''
-                          ] || 'Voto dividido'}
-                        </b>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              </article>
+              <Card
+                key={id}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <CardContent>
+                  <span
+                    className={
+                      'cg-group [&_i]:w-2 [&_i]:h-2 [&_i]:inline-block [&_i]:[border-radius:50%] flex items-center flex-wrap gap-3 text-sm'
+                    }
+                  >
+                    <i style={{ background: g.color }} />
+                    {id}
+                  </span>
+                  <h2>{g.nombre}</h2>
+                  <Stats
+                    items={[
+                      [g.escanos, 'Escaños'],
+                      [byGroup.get(id) ?? 0, 'Intervenciones analizadas'],
+                    ]}
+                  />
+                  <Link href={`${href('diputados')}?grupo=${id}`}>Ver sus diputados</Link>
+                  <Collapsible>
+                    <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                      <span>{'Voto mayoritario del grupo'}</span>
+                      <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                        {<Icon name="abajo" size={16} />}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <ul
+                        className={
+                          'cg-list list-none p-0 [&_:is(li,_article)]:flex [&_:is(li,_article)]:justify-between [&_:is(li,_article)]:gap-6 [&_:is(li,_article)]:[padding:16px_0] [&_:is(li,_article)]:[border-bottom:1px_solid_var(--border)] [&_span]:[color:var(--muted-foreground)]'
+                        }
+                      >
+                        {latest.rows.map((v) => (
+                          <li key={v.id}>
+                            <Link href={href(`votacion/${v.id}`, v.fecha.slice(0, 7))}>
+                              {v.titulo}
+                            </Link>
+                            <b>
+                              {{ S: 'Sí', N: 'No', A: 'Abstención', X: 'No vota' }[
+                                v.grupos[id] || ''
+                              ] || 'Voto dividido'}
+                            </b>
+                          </li>
+                        ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </CardContent>
+              </Card>
             ))}
         </div>
       </>
     );
   }
   if (section === 'oradores') {
-    const data = await getPeriod(period);
-    const interventions = data.intervenciones.filter(
-      (iv) =>
-        `${iv.orador} ${iv.item} ${iv.temas.join(' ')}`
-          .toLowerCase()
-          .includes(query.toLowerCase()) &&
-        (!group || iv.g === group),
-    );
+    const found = await interventions({ period, q: query, group }, page);
     return (
       <>
-        <Intro title="Por orador">
-          <p>Qué dijo cada persona, en qué contexto y con qué tono según el análisis.</p>
-        </Intro>
         <Filters
           action={href('oradores')}
           query={query}
@@ -265,10 +331,10 @@ export async function People({
           index={index}
           period={period}
         />
-        <Interventions interventions={interventions.slice((page - 1) * 24, page * 24)} />
+        <Interventions interventions={found.rows} />
         <Pagination
           page={page}
-          total={interventions.length}
+          total={found.total}
           params={{ q: query, grupo: group, periodo: period }}
         />
       </>
@@ -288,15 +354,17 @@ export async function People({
   );
   return (
     <>
-      <Intro
-        title={
-          section === 'provincia'
-            ? `Tus diputados${selectedProvince ? ` · ${selectedProvince}` : ''}`
-            : 'Quién te representa'
-        }
-      >
-        <p>Miembros actuales e históricos de la legislatura {index.meta.legislatura}.</p>
-      </Intro>
+      {detail && (
+        <Intro
+          title={
+            section === 'provincia'
+              ? `Tus diputados${selectedProvince ? ` · ${selectedProvince}` : ''}`
+              : 'Quién te representa'
+          }
+        >
+          <p>Miembros actuales e históricos de la legislatura {index.meta.legislatura}.</p>
+        </Intro>
+      )}
       <Filters
         action={href(section)}
         query={query}

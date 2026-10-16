@@ -2,7 +2,7 @@ import { DomBridge, fieldByLabel } from '@reforma-digital/bridge';
 import { BoundField, BridgeProvider } from '@reforma-digital/react';
 import type { SitePage } from '@reforma-digital/registry';
 import { identificationBindings, knownLabels } from './bindings';
-import pageStyles from '../../styles/page.css?inline';
+import { pageClassName } from '../../styles/page';
 
 export const identificationPage: SitePage = {
   id: 'identification',
@@ -15,7 +15,7 @@ export const identificationPage: SitePage = {
       bridge,
       title: 'Identificación',
       description: 'DNI y pasaporte · Acceso con datos del documento',
-      pageStyles,
+      pageClassName,
       slots: Object.entries(fields).map(([id, { element }]) => ({
         source: element,
         render: () => (

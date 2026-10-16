@@ -1,10 +1,27 @@
 import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@reforma-digital/design/ui/table';
+import { cn } from '@reforma-digital/design/lib/utils';
+import { buttonVariants } from '@reforma-digital/design/ui/button';
+import { Card, CardContent } from '@reforma-digital/design/ui/card';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@reforma-digital/design/ui/collapsible';
+
+import { Icon } from '../brand/icon';
+import {
   projectionSchema,
   marketsSchema,
   accuracySchema,
   mapSchema,
   historicalProvinceSchema,
-  municipalitiesSchema,
 } from '../../lib/congreso/schema';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -16,40 +33,14 @@ import {
   read,
   slug,
 } from '../../lib/congreso/data';
+import { municipalities } from '../../lib/congreso/queries';
 import { pollsHidden } from '../../lib/congreso/polls';
-import {
-  Intro,
-  Section,
-  Stats,
-  Source,
-  Filters,
-  Pagination,
-  Empty,
-  date,
-  href,
-  number,
-} from './common';
+import { Intro, Stats, Source, Filters, Pagination, Empty, date, href, number } from './common';
 import { Coalition } from './coalition';
 import { Dhondt } from './dhondt';
 import { ElectionContext } from './election-context';
-
-const electionPages = [
-  ['caducan', 'Lo que caduca'],
-  ['legislatura', 'En cifras'],
-  ['repite', 'Quién repite'],
-  ['metricas', 'Métricas'],
-  ['mapa', 'Municipios'],
-  ['voto', 'Geografía del voto'],
-  ['noche', 'La noche electoral'],
-  ['calendario', 'Calendario'],
-  ['350', 'Los 350'],
-  ['historico', 'Desde 1977'],
-  ['escano', 'Precio del escaño'],
-  ['encuestas', 'Encuestas'],
-  ['proyeccion', 'Proyección'],
-  ['mercados', 'Mercados'],
-  ['acierto', 'Cuánto acertaron'],
-];
+import { electionsHref } from '../../lib/elecciones/pages';
+import { Bars, ReportIntro, ReportSection, ReportStats } from '../elecciones/report';
 
 export async function Geography({
   detail,
@@ -67,10 +58,7 @@ export async function Geography({
     : undefined;
   if (detail && !selected && detail !== 'municipios') notFound();
   if (detail === 'municipios') {
-    const data = await read('geografia/municipios.json', municipalitiesSchema);
-    const municipalities = Object.entries(data.m).filter(([, m]) =>
-      m[0].toLowerCase().includes(query.toLowerCase()),
-    );
+    const data = await municipalities(query, page);
     return (
       <>
         <Intro title="Municipio a municipio">
@@ -79,29 +67,33 @@ export async function Geography({
           </p>
         </Intro>
         <Filters action={href('geografia/municipios')} query={query} />
-        <div className="cg-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Municipio</th>
-                <th>Población</th>
-                <th>Renta por persona</th>
-                <th>Edad media</th>
-              </tr>
-            </thead>
-            <tbody>
-              {municipalities.slice((page - 1) * 24, page * 24).map(([id, m]) => (
-                <tr key={id}>
-                  <th>{m[0]}</th>
-                  <td>{number(m[4])}</td>
-                  <td>{m[6] === null ? '—' : `${number(m[6])} €`}</td>
-                  <td>{m[7] ?? '—'}</td>
-                </tr>
+        <div
+          className={
+            'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
+          }
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Municipio</TableHead>
+                <TableHead>Población</TableHead>
+                <TableHead>Renta por persona</TableHead>
+                <TableHead>Edad media</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.rows.map(([id, m]) => (
+                <TableRow key={id}>
+                  <TableHead>{m[0]}</TableHead>
+                  <TableCell>{number(m[4])}</TableCell>
+                  <TableCell>{m[6] === null ? '—' : `${number(m[6])} €`}</TableCell>
+                  <TableCell>{m[7] ?? '—'}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-        <Pagination page={page} total={municipalities.length} params={{ q: query }} />
+        <Pagination page={page} total={data.total} params={{ q: query }} />
       </>
     );
   }
@@ -112,10 +104,16 @@ export async function Geography({
       );
   return (
     <>
-      <Intro title={selected ? selected[1].n : 'España, en datos'}>
-        <p>Población, renta, edad y representación, con datos del INE y del Congreso.</p>
-      </Intro>
-      <div className="cg-geo-hero">
+      {selected && (
+        <Intro title={selected[1].n}>
+          <p>Población, renta, edad y representación, con datos del INE y del Congreso.</p>
+        </Intro>
+      )}
+      <div
+        className={
+          'cg-geo-hero grid [grid-template-columns:1fr_1fr] items-center gap-12 [margin:32px_0] [&_>_svg]:w-full [&_>_svg]:[max-height:420px] [@media(max-width:_800px)]:[grid-template-columns:1fr]'
+        }
+      >
         <svg
           viewBox={`0 0 ${map.ancho} ${map.alto}`}
           aria-label="Provincias de España; selecciona una para consultar sus datos"
@@ -125,8 +123,8 @@ export async function Geography({
             <a href={href(`geografia/${id}`)} key={id} aria-label={p.n}>
               <path
                 d={p.d}
-                fill={selected && selected[0] !== id ? 'var(--superficie)' : 'var(--rojo)'}
-                stroke="var(--blanco)"
+                fill={selected && selected[0] !== id ? 'var(--muted)' : 'var(--brand)'}
+                stroke={'var(--background)'}
                 strokeWidth={0.6}
               >
                 <title>{p.n}</title>
@@ -140,32 +138,52 @@ export async function Geography({
             El mapa enlaza a las mismas fichas que la lista. Los datos no describen la situación de
             cada persona.
           </p>
-          <Link className="boton-claro" href={href('geografia/municipios')}>
+          <Link
+            href={href('geografia/municipios')}
+            data-slot="button"
+            data-variant="outline"
+            className={cn(buttonVariants({ variant: 'outline' }))}
+          >
             Consultar los municipios
           </Link>
           <Source url="https://www.ine.es/">Instituto Nacional de Estadística</Source>
         </div>
       </div>
       <Filters action={href('geografia')} query={query} />
-      <div className="cg-grid">
+      <div
+        className={
+          'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+        }
+      >
         {provinces.map(([id, p]) => (
-          <article className="cg-card" key={id}>
-            <h2>
-              <Link href={href(`geografia/${id}`)}>{p.n}</Link>
-            </h2>
-            <Stats
-              items={[
-                [p.pob, 'Habitantes'],
-                [p.esc, 'Escaños'],
-                [`${number(p.renta)} €`, 'Renta por persona'],
-                [p.edad, 'Edad media'],
-                [p.dens, 'Habitantes / km²'],
-              ]}
-            />
-          </article>
+          <Card
+            key={id}
+            render={
+              <article
+                className={
+                  'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                }
+              />
+            }
+          >
+            <CardContent>
+              <h2>
+                <Link href={href(`geografia/${id}`)}>{p.n}</Link>
+              </h2>
+              <Stats
+                items={[
+                  [p.pob, 'Habitantes'],
+                  [p.esc, 'Escaños'],
+                  [`${number(p.renta)} €`, 'Renta por persona'],
+                  [p.edad, 'Edad media'],
+                  [p.dens, 'Habitantes / km²'],
+                ]}
+              />
+            </CardContent>
+          </Card>
         ))}
       </div>
-      <p className="cg-muted">
+      <p className={'cg-muted [color:var(--muted-foreground)] text-sm'}>
         Años de referencia:{' '}
         {Object.entries(geography.fuentes)
           .map(([name, year]) => `${name}: ${year}`)
@@ -184,31 +202,27 @@ export async function Elections({
   query: string;
   page: number;
 }) {
+  if (detail === 'escano')
+    return (
+      <>
+        <ReportIntro title="Cómo se reparte un escaño" />
+        <Dhondt />
+        <Source url="https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672">
+          Ley Orgánica del Régimen Electoral General
+        </Source>
+      </>
+    );
   const election = await getElections();
-  const selected = detail || 'calendario';
-  if (['caducan', 'legislatura', 'repite', 'metricas', 'mapa', 'voto', 'noche'].includes(selected))
+  const selected = detail ?? '';
+  if (['caducan', 'legislatura', 'repite', 'metricas', 'mapa', 'voto'].includes(selected))
     return <ElectionContext detail={selected} query={query} page={page} />;
-  const nav = (
-    <nav className="cg-tabs" aria-label="Elecciones">
-      {electionPages.map(([id, title]) => (
-        <Link
-          key={id}
-          href={href(`elecciones/${id}`)}
-          aria-current={selected === id ? 'page' : undefined}
-        >
-          {title}
-        </Link>
-      ))}
-    </nav>
-  );
   if (['encuestas', 'proyeccion', 'mercados', 'acierto'].includes(selected)) {
     const polls = await getPolls();
     if (pollsHidden(polls.veda))
       return (
         <>
-          <Intro title="Encuestas temporalmente ocultas" />
+          <ReportIntro title="Encuestas temporalmente ocultas" />
           <p>La publicación está restringida durante el periodo indicado en la fuente.</p>
-          {nav}
         </>
       );
     if (selected === 'proyeccion') {
@@ -216,35 +230,49 @@ export async function Elections({
       const geography = await getGeography();
       return (
         <>
-          <Intro title="Los escaños de la media">
+          <ReportIntro title="Los escaños de la media">
             <p>
               Proyección calculada el {date(data.fecha)}. Es una estimación, no un resultado
               electoral.
             </p>
-          </Intro>
-          {nav}
+          </ReportIntro>
           <Coalition seats={data.central} />
-          <Section title="Reparto central">
-            <Stats
+          <ReportSection title="Reparto central">
+            <ReportStats
               items={Object.entries(data.central)
                 .sort(([, a], [, b]) => b - a)
                 .map(([id, n]) => [n, id])}
             />
-          </Section>
-          <Section title="Provincia a provincia">
-            <div className="cg-grid">
+          </ReportSection>
+          <ReportSection title="Provincia a provincia">
+            <div
+              className={
+                'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+              }
+            >
               {Object.entries(data.provincias).map(([id, seats]) => (
-                <article className="cg-card" key={id}>
-                  <h3>{geography.provincias[id]?.n || id}</h3>
-                  <p>
-                    {Object.entries(seats)
-                      .map(([p, n]) => `${p}: ${n}`)
-                      .join(' · ')}
-                  </p>
-                </article>
+                <Card
+                  key={id}
+                  render={
+                    <article
+                      className={
+                        'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                      }
+                    />
+                  }
+                >
+                  <CardContent>
+                    <h3>{geography.provincias[id]?.n || id}</h3>
+                    <p>
+                      {Object.entries(seats)
+                        .map(([p, n]) => `${p}: ${n}`)
+                        .join(' · ')}
+                    </p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </Section>
+          </ReportSection>
         </>
       );
     }
@@ -252,19 +280,33 @@ export async function Elections({
       const data = await read('encuestas/mercados.json', marketsSchema);
       return (
         <>
-          <Intro title="Lo que apuestan los mercados">
+          <ReportIntro title="Lo que apuestan los mercados">
             <p>Precios de apuestas: no son encuestas ni probabilidades verificadas.</p>
-          </Intro>
-          {nav}
-          <div className="cg-grid">
+          </ReportIntro>
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {data.mercados.map((market) => (
-              <article className="cg-card" key={market.slug}>
-                <h2>{market.pregunta}</h2>
-                <Stats
-                  items={market.opciones.map((o) => [`${(o.p * 100).toFixed(1)} %`, o.nombre])}
-                />
-                <Source url={market.url}>Polymarket</Source>
-              </article>
+              <Card
+                key={market.slug}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <CardContent>
+                  <h2>{market.pregunta}</h2>
+                  <ReportStats
+                    items={market.opciones.map((o) => [`${(o.p * 100).toFixed(1)} %`, o.nombre])}
+                  />
+                  <Source url={market.url}>Polymarket</Source>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </>
@@ -274,34 +316,52 @@ export async function Elections({
       const data = await read('encuestas/aciertos.json', accuracySchema);
       return (
         <>
-          <Intro title="Cuánto acertaron las encuestas" />
-          {nav}
-          <div className="cg-grid">
+          <ReportIntro title="Cuánto acertaron las encuestas" />
+          <div
+            className={
+              'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+            }
+          >
             {data.elecciones.map((e) => (
-              <article className="cg-card" key={e.id}>
-                <h2>{e.nombre}</h2>
-                <p>Error absoluto medio: {e.media_mae} puntos</p>
-                <div className="cg-table">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Partido</th>
-                        <th>Media</th>
-                        <th>Resultado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(e.resultado).map(([p, n]) => (
-                        <tr key={p}>
-                          <th>{p}</th>
-                          <td>{e.media[p]} %</td>
-                          <td>{n} %</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </article>
+              <Card
+                key={e.id}
+                render={
+                  <article
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <CardContent>
+                  <h2>{e.nombre}</h2>
+                  <p>Error absoluto medio: {e.media_mae} puntos</p>
+                  <div
+                    className={
+                      'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
+                    }
+                  >
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Partido</TableHead>
+                          <TableHead>Media</TableHead>
+                          <TableHead>Resultado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.entries(e.resultado).map(([p, n]) => (
+                          <TableRow key={p}>
+                            <TableHead>{p}</TableHead>
+                            <TableCell>{e.media[p]} %</TableCell>
+                            <TableCell>{n} %</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </>
@@ -312,40 +372,61 @@ export async function Elections({
     );
     return (
       <>
-        <Intro title="Las encuestas">
+        <ReportIntro title="Las encuestas">
           <p>
             Datos recopilados hasta el {date(polls.actualizado)}. Cada encuesta es una estimación
             con incertidumbre.
           </p>
-        </Intro>
-        {nav}
+        </ReportIntro>
         <Source url={polls.fuente}>Tabla de origen en Wikipedia</Source>
-        <Filters action={href('elecciones/encuestas')} query={query} />
-        <div className="cg-grid">
+        <Filters action={electionsHref('encuestas')} query={query} />
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {filtered.slice((page - 1) * 24, page * 24).map((e, i) => (
-            <article className="cg-card" key={i}>
-              <h3>{e.empresa}</h3>
-              <p>
-                {date(e.ini)} → {date(e.fin)} · muestra {e.n ?? 'no publicada'}
-              </p>
-              <dl className="cg-poll">
-                {Object.entries(e.v).map(([p, n]) => (
-                  <div key={p}>
-                    <dt>{p}</dt>
-                    <dd>
-                      <span
-                        style={{
-                          width: `${n * 2}%`,
-                          background: polls.partidos.find((party) => party.id === p)?.color,
-                        }}
-                        aria-hidden="true"
-                      />
-                      {n} %
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </article>
+            <Card
+              key={i}
+              render={
+                <article
+                  className={
+                    'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                  }
+                />
+              }
+            >
+              <CardContent>
+                <h3>{e.empresa}</h3>
+                <p>
+                  {date(e.ini)} → {date(e.fin)} · muestra {e.n ?? 'no publicada'}
+                </p>
+                <dl
+                  className={
+                    'cg-poll [&_>_div]:flex [&_>_div]:gap-3 [&_>_div]:items-center [&_>_div]:text-sm [&_dt]:w-16 [&_dd]:relative [&_dd]:[flex:1] [&_dd]:[text-align:right] [&_dd]:m-0 [&_dd_>_span]:absolute [&_dd_>_span]:[left:0] [&_dd_>_span]:[bottom:3px] [&_dd_>_span]:[top:3px] [&_dd_>_span]:[max-width:75%] [&_dd_>_span]:[border-radius:4px]'
+                  }
+                >
+                  {Object.entries(e.v)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 6)
+                    .map(([p, n]) => (
+                      <div key={p}>
+                        <dt>{p}</dt>
+                        <dd>
+                          <span
+                            style={{
+                              width: `${n * 2}%`,
+                              background: polls.partidos.find((party) => party.id === p)?.color,
+                            }}
+                            aria-hidden="true"
+                          />
+                          {n} %
+                        </dd>
+                      </div>
+                    ))}
+                </dl>
+              </CardContent>
+            </Card>
           ))}
         </div>
         <Pagination page={page} total={filtered.length} params={{ q: query }} />
@@ -354,19 +435,25 @@ export async function Elections({
   }
   if (selected === '350') {
     const geography = await getGeography();
+    const seats = Object.entries(election.escanos).sort(([, a], [, b]) => b - a);
     return (
       <>
-        <Intro title="Cada escaño sale de una provincia" />
-        {nav}
-        <div className="cg-grid">
-          {Object.entries(election.escanos).map(([id, n]) => (
-            <article className="cg-card" key={id}>
-              <h2>{geography.provincias[id]?.n || id}</h2>
-              <Stats items={[[n, 'Escaños']]} />
-              <Link href={href(`geografia/${id}`)}>Ver la provincia</Link>
-            </article>
-          ))}
-        </div>
+        <ReportIntro title="Cada escaño sale de una provincia">
+          <p>
+            Cada provincia elige al menos dos diputados (Ceuta y Melilla, uno) y el resto se reparte
+            por población.
+          </p>
+        </ReportIntro>
+        <ReportSection title="Escaños por provincia">
+          <Bars
+            rows={seats.map(([id, n]) => ({
+              label: geography.provincias[id]?.n || id,
+              value: n,
+              display: String(n),
+              href: href(`geografia/${id}`),
+            }))}
+          />
+        </ReportSection>
       </>
     );
   }
@@ -384,125 +471,124 @@ export async function Elections({
       const geography = await getGeography();
       return (
         <>
-          <Intro title={`Elecciones del ${date(data.fecha)}`} />
-          {nav}
-          <Stats
+          <ReportIntro title={`Elecciones del ${date(data.fecha)}`} />
+          <ReportStats
             items={[
               [data.censo, 'Censo'],
               [data.votantes, 'Votantes'],
             ]}
           />
-          <Section title="Resultados nacionales">
-            <div className="cg-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Candidatura</th>
-                    <th>Votos</th>
-                    <th>Escaños</th>
-                  </tr>
-                </thead>
-                <tbody>
+          <ReportSection title="Resultados nacionales">
+            <div
+              className={
+                'cg-table overflow-x-auto [&_table]:[border-collapse:collapse] [&_table]:w-full [&_table]:text-left [&_th]:p-3 [&_th]:[border-bottom:1px_solid_var(--border)] [&_th]:[vertical-align:top] [&_td]:p-3 [&_td]:[border-bottom:1px_solid_var(--border)] [&_td]:[vertical-align:top] [&_th]:text-sm'
+              }
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Candidatura</TableHead>
+                    <TableHead>Votos</TableHead>
+                    <TableHead>Escaños</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {data.partidos.map(([id, name, , votes, seats]) => (
-                    <tr key={`${id}-${name}`}>
-                      <th>{name}</th>
-                      <td>{number(votes)}</td>
-                      <td>{seats}</td>
-                    </tr>
+                    <TableRow key={`${id}-${name}`}>
+                      <TableHead>{name}</TableHead>
+                      <TableCell>{number(votes)}</TableCell>
+                      <TableCell>{seats}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
-          </Section>
-          <Section title="Por provincia">
-            <div className="cg-grid">
+          </ReportSection>
+          <ReportSection title="Por provincia">
+            <div
+              className={
+                'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+              }
+            >
               {Object.entries(provinces.prov).map(([id, p]) => (
-                <details className="cg-card" key={id}>
-                  <summary>
-                    {geography.provincias[id]?.n || id} · {p.e} escaños
-                  </summary>
-                  <p>{number(p.sin_escano)} votos a candidaturas sin escaño</p>
-                  <ul>
-                    {p.c.map(([name, , votes, seats]) => (
-                      <li key={name}>
-                        {name}: {number(votes)} votos · {seats} escaños
-                      </li>
-                    ))}
-                  </ul>
-                </details>
+                <Card
+                  key={id}
+                  render={
+                    <Collapsible
+                      className={
+                        'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                      }
+                    />
+                  }
+                >
+                  <CardContent>
+                    <CollapsibleTrigger className="group flex min-h-11 w-full items-center justify-between gap-3 text-left">
+                      <span>
+                        {
+                          <>
+                            {geography.provincias[id]?.n || id} · {p.e} escaños
+                          </>
+                        }
+                      </span>
+                      <span aria-hidden="true" className="flex shrink-0 group-data-open:rotate-180">
+                        {<Icon name="abajo" size={16} />}
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <p>{number(p.sin_escano)} votos a candidaturas sin escaño</p>
+                      <ul>
+                        {p.c.map(([name, , votes, seats]) => (
+                          <li key={name}>
+                            {name}: {number(votes)} votos · {seats} escaños
+                          </li>
+                        ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </Section>
+          </ReportSection>
         </>
       );
     }
     return (
       <>
-        <Intro title="Elecciones desde 1977" />
-        {nav}
-        <div className="cg-grid">
+        <ReportIntro title="Elecciones desde 1977" />
+        <div
+          className={
+            'cg-grid grid [grid-template-columns:repeat(3,_minmax(0,_1fr))] gap-5 [@media(max-width:_800px)]:[grid-template-columns:repeat(2,_minmax(0,_1fr))] [@media(max-width:_560px)]:[grid-template-columns:1fr]'
+          }
+        >
           {history.elecciones
             .slice()
             .reverse()
             .map((e) => (
-              <Link href={href(`elecciones/${e.id}`)} className="cg-card" key={e.id}>
-                <h2>{date(e.fecha)}</h2>
-                <Stats
-                  items={[
-                    [e.votantes, 'Votantes'],
-                    [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
-                  ]}
-                />
-              </Link>
+              <Card
+                key={e.id}
+                render={
+                  <Link
+                    href={electionsHref(e.id)}
+                    className={
+                      'cg-card [overflow-wrap:anywhere] [&_h2]:[font-size:28px] [&_h3]:text-lg [&_h3]:[line-height:1.3] [&_h3]:[margin:12px_0] [&_p]:[color:var(--text-secondary)] [&_p]:[margin:12px_0] [&_.cg-stats]:gap-5 [&_.cg-stats_dd]:[font-size:28px] [&_.cg-stats_dt]:[max-width:14ch]'
+                    }
+                  />
+                }
+              >
+                <CardContent>
+                  <h2>{date(e.fecha)}</h2>
+                  <ReportStats
+                    items={[
+                      [e.votantes, 'Votantes'],
+                      [`${((e.votantes / e.censo) * 100).toFixed(1)} %`, 'Participación'],
+                    ]}
+                  />
+                </CardContent>
+              </Card>
             ))}
         </div>
       </>
     );
   }
-  if (selected === 'escano')
-    return (
-      <>
-        <Intro title="Cómo se reparte un escaño" />
-        {nav}
-        <Dhondt />
-        <Source url="https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672">
-          Ley Orgánica del Régimen Electoral General
-        </Source>
-      </>
-    );
-  if (selected !== 'calendario') notFound();
-  return (
-    <>
-      <Intro label="Elecciones" title={`Camino al ${date(election.votacion)}`}>
-        <p>Calendario y datos de la convocatoria recogida por Escaño Abierto.</p>
-      </Intro>
-      {nav}
-      <Source
-        url={`https://www.boe.es/diario_boe/txt.php?id=${encodeURIComponent(election.decreto.boe)}`}
-      >
-        {election.decreto.rd}
-      </Source>
-      <Section title="Las fechas">
-        <ol className="cg-timeline">
-          {election.calendario.map((milestone) => (
-            <li key={`${milestone.fecha}-${milestone.hito}`}>
-              <time dateTime={milestone.fecha}>{date(milestone.fecha)}</time>
-              <h3>{milestone.hito}</h3>
-              {milestone.detalle && <p>{milestone.detalle}</p>}
-            </li>
-          ))}
-        </ol>
-      </Section>
-      <Section title="Explora las elecciones">
-        <div className="cg-grid">
-          {electionPages.slice(1).map(([id, title]) => (
-            <Link className="cg-card" key={id} href={href(`elecciones/${id}`)}>
-              <h2>{title}</h2>
-              <span>Consultar →</span>
-            </Link>
-          ))}
-        </div>
-      </Section>
-    </>
-  );
+  notFound();
 }
