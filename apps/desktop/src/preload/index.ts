@@ -19,7 +19,6 @@ const metodos = [
   'borrarDatos',
   'abrirEnlace',
   'mostrarArchivo',
-  'exportarCita',
 ] as const satisfies readonly Exclude<keyof ApiRd, 'on'>[];
 
 const api = Object.fromEntries(

@@ -93,7 +93,7 @@ const PROMESAS: { icono: NombreIcono; titulo: string; texto: string }[] = [
   {
     icono: 'escudo',
     titulo: 'Fuentes oficiales',
-    texto: 'Cada requisito, coste y plazo cita una web de la Administración.',
+    texto: 'Investiga en webs de la Administración y te enseña cuáles ha consultado.',
   },
   {
     icono: 'huella',

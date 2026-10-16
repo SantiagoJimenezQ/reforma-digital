@@ -4,7 +4,7 @@ import { cn } from '@reforma-digital/design/lib/utils';
 import { Ajustes } from './ajustes';
 import { MisDatos } from './datos';
 import { useEstado } from './estado';
-import { dolares, ETIQUETA_ESTADO } from './formato';
+import { dolares } from './formato';
 import { Icono, Marca } from './icono';
 import { Inicio } from './inicio';
 import { Tramite } from './tramite';
@@ -68,24 +68,24 @@ function Barra({ vista, ir }: { vista: Vista; ir: (v: Vista) => void }) {
                 <span className="line-clamp-2 leading-snug [overflow-wrap:anywhere]">
                   {t.titulo}
                 </span>
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  {t.ejecucion === 'esperando' ? (
-                    <>
-                      <span className="size-2 rounded-full bg-brand" aria-hidden="true" />
-                      <span className="font-medium text-foreground">Te toca a ti</span>
-                    </>
-                  ) : t.ejecucion === 'trabajando' ? (
-                    <>
-                      <span
-                        className="size-2 rounded-full bg-foreground/50 motion-safe:animate-pulse"
-                        aria-hidden="true"
-                      />
-                      Trabajando…
-                    </>
-                  ) : (
-                    ETIQUETA_ESTADO[t.estado]
-                  )}
-                </span>
+                {t.ejecucion !== 'inactivo' && (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    {t.ejecucion === 'esperando' ? (
+                      <>
+                        <span className="size-2 rounded-full bg-brand" aria-hidden="true" />
+                        <span className="font-medium text-foreground">Te toca a ti</span>
+                      </>
+                    ) : t.ejecucion === 'trabajando' ? (
+                      <>
+                        <span
+                          className="size-2 rounded-full bg-foreground/50 motion-safe:animate-pulse"
+                          aria-hidden="true"
+                        />
+                        Trabajando…
+                      </>
+                    ) : null}
+                  </span>
+                )}
               </button>
             </li>
           );

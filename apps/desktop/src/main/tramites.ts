@@ -135,9 +135,7 @@ export class Tramites {
     const esperando = [...this.esperas.values()].some((e) => e.tramite === r.id);
     return {
       id: r.id,
-      titulo: mostrar(r)(r.estado.tarjeta.titulo),
-      ...(r.estado.tarjeta.organismo ? { organismo: r.estado.tarjeta.organismo } : {}),
-      estado: r.estado.tarjeta.estado,
+      titulo: mostrar(r)(r.estado.titulo || 'Nuevo trámite'),
       ejecucion: esperando ? 'esperando' : this.ejecuciones.has(r.id) ? 'trabajando' : 'inactivo',
       actualizado: r.actualizado,
       costeUsd: r.estado.uso.costeUsd,
@@ -150,12 +148,8 @@ export class Tramites {
     const nav = this.navegadores.get(id);
     return {
       ...this.resumen(r),
-      tarjeta: textos(r.estado.tarjeta, mostrar(r)),
-      // La vista solo enseña el principio del texto; el completo se queda en el proceso principal.
-      fuentes: r.estado.fuentes.map((f) => ({
-        ...f,
-        texto: f.texto.length > 700 ? `${f.texto.slice(0, 700)}…` : f.texto,
-      })),
+      // El texto de las páginas se queda en el proceso principal: la interfaz no lo necesita.
+      fuentes: r.estado.fuentes.map(({ texto: _texto, ...f }) => f),
       conversacion: textos(r.conversacion, mostrar(r)),
       uso: r.estado.uso,
       descargas: r.descargas,
@@ -329,7 +323,7 @@ export class Tramites {
     const ventana = this.entorno.ventana();
     if (ventana?.isFocused() || !Notification.isSupported()) return;
     const n = new Notification({
-      title: sinMarcadores(r.estado.tarjeta.titulo),
+      title: sinMarcadores(r.estado.titulo || 'Reforma Digital'),
       body: sinMarcadores(cuerpo),
     });
     n.on('click', () => {
@@ -359,13 +353,20 @@ export class Tramites {
           path.join(
             app.getPath('downloads'),
             'Reforma Digital',
-            sinMarcadores(r?.estado.tarjeta.titulo ?? id)
+            sinMarcadores(r?.estado.titulo || id)
               .replace(/[/\\:]/g, '-')
               .slice(0, 60),
           ),
         alCambiar: () => this.cambio(id),
         alDescargar: (d) => {
           r?.descargas.push(d);
+          r?.conversacion.push({
+            tipo: 'aviso',
+            id: randomUUID(),
+            tono: 'info',
+            texto: `Descargado «${d.nombre}» en tu carpeta de Descargas.`,
+            archivo: d.ruta,
+          });
           if (r) void this.guardar(r).catch((e: unknown) => console.error(e));
           this.cambio(id);
         },
@@ -393,6 +394,9 @@ export class Tramites {
     control: AbortController,
   ) {
     let actual: Extract<ItemConversacion, { tipo: 'asistente' }> | null = null;
+    // Las fuentes del turno van debajo de su última respuesta: las consultadas desde que empezó.
+    const respuestas: Extract<ItemConversacion, { tipo: 'asistente' }>[] = [];
+    const inicio = ahora();
     const anfitrion: Anfitrion = {
       perfil: () => this.entorno.perfil(),
       guardarPerfil: (v) => this.entorno.guardarPerfil(v),
@@ -413,6 +417,7 @@ export class Tramites {
       if (e.tipo === 'texto') {
         if (!actual) {
           actual = { tipo: 'asistente', id: randomUUID(), texto: '' };
+          respuestas.push(actual);
           r.conversacion.push(actual);
         }
         actual.texto += e.delta;
@@ -432,8 +437,7 @@ export class Tramites {
       } else if (e.tipo === 'protegidos') {
         const usuario = r.conversacion.findLast((i) => i.tipo === 'usuario');
         if (usuario) usuario.protegidos = e.cantidad;
-      } else if (e.tipo === 'tarjeta') r.estado.tarjeta = e.tarjeta;
-      else if (e.tipo === 'fuentes') r.estado.fuentes = e.fuentes;
+      } else if (e.tipo === 'fuentes') r.estado.fuentes = e.fuentes;
       else if (e.tipo === 'uso') r.estado.uso = e.uso;
       this.cambio(r.id);
     };
@@ -469,6 +473,9 @@ export class Tramites {
       razonamiento: config.razonamiento,
     });
     r.estado = resultado.estado;
+    const usadas = r.estado.fuentes.filter((f) => f.consultada >= inicio).map((f) => f.id);
+    const ultima = respuestas.at(-1);
+    if (ultima && usadas.length) ultima.fuentes = usadas;
     const aviso = {
       limite_pasos:
         'He dado muchos pasos seguidos y me he parado para que lo revises. Pulsa «Continuar» si quieres que siga.',

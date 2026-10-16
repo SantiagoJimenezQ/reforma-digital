@@ -1,5 +1,4 @@
 import { generateText } from 'ai';
-import { quoteSupported } from '@reforma-digital/core';
 import { approvedSource, canonicalize } from '@reforma-digital/government';
 import {
   officialDomains,
@@ -21,7 +20,7 @@ export type Fuente = {
   consultada: string;
 };
 
-/** Fuentes vistas durante un trámite. Los datos de la tarjeta solo pueden citar estas. */
+/** Webs oficiales consultadas en un trámite: se muestran debajo de cada respuesta. */
 export class Fuentes {
   private porUrl = new Map<string, Fuente>();
   constructor(iniciales: Fuente[] = []) {
@@ -57,18 +56,6 @@ export class Fuentes {
     };
     this.porUrl.set(canonica, fuente);
     return fuente;
-  }
-
-  /**
-   * La cita tiene que aparecer literalmente en el texto que se obtuvo de esa fuente. Puede tener
-   * varios fragmentos de la misma fuente separados por «…»; cada uno debe aparecer tal cual.
-   */
-  respalda(idOUrl: string, cita: string): Fuente | undefined {
-    const f = this.obtener(idOUrl);
-    const fragmentos = cita.split(/\s*(?:…|\.\.\.)\s*/).filter(Boolean);
-    return f && fragmentos.length && fragmentos.every((t) => quoteSupported(f.texto, t))
-      ? f
-      : undefined;
   }
 }
 

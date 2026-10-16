@@ -5,7 +5,6 @@ import {
   type ToolResultPart,
   type ToolSet,
 } from 'ai';
-import { tarjetaVacia, type Tarjeta } from './card';
 import { ErrorDeProteccion, type Detector } from './detector';
 import { guardaPrivacidad, type Proveedor } from './models';
 import { Privacidad, type Perfil } from './profile';
@@ -24,7 +23,8 @@ import {
 
 /** Todo lo que se guarda de un trámite entre turnos. */
 export type EstadoAgente = {
-  tarjeta: Tarjeta;
+  /** Sale del primer mensaje, ya sin datos personales. */
+  titulo: string;
   fuentes: Fuente[];
   datosTramite: Perfil;
   sitiosPermitidos: string[];
@@ -33,8 +33,8 @@ export type EstadoAgente = {
   uso: Uso;
 };
 
-export const estadoInicial = (titulo = 'Nuevo trámite'): EstadoAgente => ({
-  tarjeta: tarjetaVacia(titulo),
+export const estadoInicial = (titulo = ''): EstadoAgente => ({
+  titulo,
   fuentes: [],
   datosTramite: {},
   sitiosPermitidos: [],
@@ -71,7 +71,7 @@ const textoDeSalida = (o: Salida) =>
 /**
  * Reduce el contexto sin perder lo necesario: solo la última página del navegador va completa
  * (las anteriores quedan como su primera línea) y los resultados de investigación antiguos se
- * recortan, porque lo importante ya está en la tarjeta y en las fuentes guardadas.
+ * recortan, porque el texto sigue guardado en sus fuentes.
  */
 export function compactar(mensajes: ModelMessage[]): ModelMessage[] {
   const resultados = mensajes.flatMap((m) =>
@@ -196,8 +196,6 @@ export function resumir(nombre: string, input: unknown): string {
       return `Leyendo ${host(i.url)}`;
     case 'abrir':
       return `Abriendo ${host(i.url)}`;
-    case 'actualizar_tramite':
-      return 'Actualizando la tarjeta';
     case 'preguntar':
       return `Preguntándote: ${String(i.titulo)}`;
     case 'confirmar':
@@ -266,7 +264,6 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
     privacidad,
     detector: o.detector,
     escritos: o.escritos ?? new Map(),
-    tarjeta: { actual: estado.tarjeta },
     datosTramite: estado.datosTramite,
     sitiosPermitidos: new Set(estado.sitiosPermitidos),
     ...(o.hostDePrueba ? { hostDePrueba: o.hostDePrueba } : {}),
@@ -280,19 +277,22 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   const signal = AbortSignal.any([o.signal, interno.signal]);
   const tools = supervisar(crearHerramientas(ctx), ctx, (e) => interno.abort(e));
   const sincronizar = () => {
-    estado.tarjeta = ctx.tarjeta.actual;
     estado.fuentes = ctx.fuentes.lista();
     estado.sitiosPermitidos = [...ctx.sitiosPermitidos];
   };
   try {
-    // El título nace del primer mensaje de la persona: se protege igual y se guarda ya protegido,
-    // porque también se ve en las notificaciones y nombra la carpeta de descargas.
-    estado.tarjeta.titulo = await proteger(ctx, estado.tarjeta.titulo, 'persona');
     const mensaje = await proteger(ctx, o.texto, 'persona');
     o.evento({ tipo: 'protegidos', cantidad: Privacidad.marcadores(mensaje).length });
+    // El título es la primera frase del primer mensaje, ya protegida: también se ve en las
+    // notificaciones y nombra la carpeta de descargas. Se corta entre palabras, sin partir un marcador.
+    estado.titulo ||= mensaje
+      .replace(/\s+/g, ' ')
+      .replace(/(?<=[.?!])\s.*$/, '')
+      .replace(/^(.{0,60})(\s.*)?$/, '$1')
+      .trim();
     estado.mensajes.push({
       role: 'user',
-      content: `${contextoDelTurno(estado.tarjeta, perfil)}\n\n${mensaje}`,
+      content: `${contextoDelTurno(perfil)}\n\n${mensaje}`,
     });
   } catch (e) {
     return { estado: o.estado, fin: 'error', error: mensajeDeError(e) };

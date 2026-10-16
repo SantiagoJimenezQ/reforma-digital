@@ -3,7 +3,6 @@ import { setTimeout as dormir } from 'node:timers/promises';
 import { tool } from 'ai';
 import { z } from 'zod';
 import { officialLevel } from '@reforma-digital/government/domains';
-import { aplicarParche, parcheTarjeta, verificarRespaldo, type Tarjeta } from './card';
 import type { Detector, OrigenTexto } from './detector';
 import { FetchError, leerPaginaOficial } from './fetch';
 import type { Proveedor } from './models';
@@ -132,7 +131,6 @@ export type EventoAgente =
       estado: 'inicio' | 'fin' | 'error';
       detalle?: string;
     }
-  | { tipo: 'tarjeta'; tarjeta: Tarjeta }
   | { tipo: 'fuentes'; fuentes: Fuente[] }
   | { tipo: 'uso'; uso: Uso }
   | { tipo: 'privacidad'; filtrados: number }
@@ -151,7 +149,6 @@ export type Contexto = {
    * valor que quedó en la página (normalizado). Es lo único de un campo que ve.
    */
   escritos: Map<string, string>;
-  tarjeta: { actual: Tarjeta };
   /** Respuestas privadas de este trámite que no son de «Mis datos» (DNI de un hijo, referencias…). */
   datosTramite: Perfil;
   /** Webs no oficiales que la persona ha permitido abrir en este trámite. */
@@ -416,30 +413,6 @@ export function crearHerramientas(ctx: Contexto) {
             : '';
         return formatoFuente(f, trozo) + resto;
       },
-    }),
-
-    actualizar_tramite: tool({
-      description:
-        'Actualiza la tarjeta del trámite que ve la persona. Las listas que envíes sustituyen a las anteriores. Cada requisito, documento, coste, plazo y aviso necesita fuente (F…) y una cita copiada literalmente de ella (puedes unir fragmentos de la misma fuente con «…»). El texto debe decir solo lo que dice la cita: lo que no se pueda comprobar se rechaza.',
-      inputSchema: parcheTarjeta,
-      execute: enOrden(async (parche, opts) => {
-        const literal = aplicarParche(ctx.tarjeta.actual, parche, ctx.fuentes, ctx.hostDePrueba);
-        const semantica = await verificarRespaldo(
-          ctx.tarjeta.actual,
-          literal.tarjeta,
-          ctx.proveedor.rapido,
-          opts.abortSignal,
-        );
-        const c = coste(semantica.costeMetadata);
-        if (c !== null) ctx.uso.costeUsd += c;
-        const tarjeta = semantica.tarjeta;
-        const rechazos = [...literal.rechazos, ...semantica.rechazos];
-        ctx.tarjeta.actual = tarjeta;
-        ctx.evento({ tipo: 'tarjeta', tarjeta });
-        return rechazos.length
-          ? `Tarjeta actualizada, pero se han rechazado ${rechazos.length} datos:\n- ${rechazos.join('\n- ')}\nCorrígelos con una cita literal (lee la página si hace falta) o quítalos.`
-          : 'Tarjeta actualizada.';
-      }),
     }),
 
     preguntar: tool({

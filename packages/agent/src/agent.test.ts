@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import {
-  aplicarParche,
   compactar,
   crearDetector,
   datosPorReglas,
@@ -15,7 +14,6 @@ import {
   Fuentes,
   perfilParaModelo,
   Privacidad,
-  tarjetaVacia,
   unir,
   validarCampo,
   guardaPrivacidad,
@@ -92,63 +90,7 @@ describe('privacidad', () => {
   });
 });
 
-describe('tarjeta verificada', () => {
-  const fuentes = () => {
-    const f = new Fuentes();
-    f.añadir(
-      'https://www.interior.gob.es/dni/tasas',
-      'Tasas del DNI',
-      'La tasa por la expedición del DNI es de 12,00 euros. Se paga en la oficina.',
-      'pagina',
-    );
-    return f;
-  };
-
-  it('acepta datos con cita literal y rechaza los que no se pueden comprobar', () => {
-    const { tarjeta, rechazos } = aplicarParche(
-      tarjetaVacia('Renovar el DNI'),
-      {
-        costes: [
-          {
-            texto: 'Cuesta 12 euros',
-            fuente: 'F1',
-            cita: 'La tasa por la expedición del DNI es de 12,00 euros',
-          },
-          {
-            texto: 'Cuesta 15 euros',
-            fuente: 'F1',
-            cita: 'La tasa por la expedición del DNI es de 12,00 euros',
-          },
-        ],
-        requisitos: [
-          {
-            texto: 'Llevar una foto',
-            fuente: 'F1',
-            cita: 'Hay que llevar una fotografía reciente',
-          },
-          { texto: 'Pago en oficina', fuente: 'F9', cita: 'Se paga en la oficina.' },
-        ],
-        enlaces: [
-          { titulo: 'Cita previa', url: 'https://www.citapreviadnie.es/' },
-          { titulo: 'Gestoría', url: 'https://gestoria-rapida.example/dni' },
-        ],
-      },
-      fuentes(),
-    );
-    expect(tarjeta.costes).toEqual([
-      {
-        texto: 'Cuesta 12 euros',
-        fuente: 'F1',
-        cita: 'La tasa por la expedición del DNI es de 12,00 euros',
-      },
-    ]);
-    expect(tarjeta.requisitos).toEqual([]);
-    expect(tarjeta.enlaces.map((e) => e.titulo)).toEqual(['Cita previa']);
-    expect(rechazos).toHaveLength(4);
-    expect(rechazos.join('\n')).toMatch(/cifras/);
-    expect(rechazos.join('\n')).toMatch(/F9 no es una fuente/);
-  });
-
+describe('fuentes', () => {
   it('solo guarda como fuente páginas de administraciones', () => {
     const f = new Fuentes();
     expect(
@@ -395,10 +337,9 @@ const turno = (
     limites?: { pasos: number; costeUsd: number };
     detector?: Detector;
   } = {},
-  rapido: MockLanguageModelV4 = model,
 ) =>
   ejecutarTurno({
-    proveedor: () => ({ ...proveedorDe(model), rapido }),
+    proveedor: () => proveedorDe(model),
     anfitrion: a,
     estado: estadoInicial('Cita'),
     texto,
@@ -571,38 +512,6 @@ describe('pasos vinculantes', () => {
   });
 });
 
-/** Modelo que contesta a la verificación semántica: aprueba todo o falla. */
-function verificador(falla = false) {
-  return new MockLanguageModelV4({
-    doGenerate: async () => {
-      if (falla) throw new Error('verificador caído');
-      const resultados = Array.from({ length: 10 }, (_, indice) => ({
-        indice,
-        respaldado: true,
-        motivo: '',
-      }));
-      return {
-        content: [{ type: 'text' as const, text: JSON.stringify({ resultados }) }],
-        finishReason: { unified: 'stop' as const, raw: undefined },
-        usage: uso,
-        warnings: [],
-      };
-    },
-  });
-}
-
-const conFuente = (): EstadoAgente => {
-  const f = new Fuentes();
-  f.añadir(
-    'https://www.interior.gob.es/dni',
-    'DNI',
-    'La tasa es de 12,00 euros. Hay que llevar una fotografía reciente.',
-    'pagina',
-  );
-  return { ...estadoInicial('Renovar el DNI'), fuentes: f.lista() };
-};
-const dato = (texto: string, cita: string) => ({ texto, fuente: 'F1', cita });
-
 describe('agente: garantías', () => {
   it('Intro sobre un formulario vinculante también necesita el código', async () => {
     const { model } = modeloGuionado([
@@ -694,15 +603,13 @@ describe('agente: garantías', () => {
     );
   });
 
-  it('el título que sale del primer mensaje no lleva identificadores al modelo', async () => {
-    const { model, prompts } = modeloGuionado([() => ({ texto: 'ok' })]);
+  it('el título sale del primer mensaje, sin datos personales', async () => {
+    const { model } = modeloGuionado([() => ({ texto: 'ok' })]);
     const { nav } = navegadorFalso('https://sede.policia.gob.es/cita');
-    await turno(model, anfitrion(nav), 'Hola', {
-      estado: estadoInicial('Cita DNI de mi hijo 87654321X, tel 699111222'),
+    const r = await turno(model, anfitrion(nav), 'Cita DNI de mi hijo 87654321X, tel 699111222', {
+      estado: estadoInicial(),
     });
-    const enviado = JSON.stringify(prompts);
-    expect(enviado).not.toContain('87654321X');
-    expect(enviado).not.toContain('699111222');
+    expect(r.estado.titulo).toBe('Cita DNI de mi hijo {{documento_1}}, tel {{telefono_1}}');
   });
 
   it('los identificadores de Mis datos son privados aunque el modelo diga lo contrario', async () => {
@@ -737,42 +644,9 @@ describe('agente: garantías', () => {
     const r = (await guarda.transformParams!({
       params,
       type: 'stream',
-      model: verificador(),
+      model: new MockLanguageModelV4(),
     } as never)) as typeof params;
     expect(JSON.stringify(r.prompt)).not.toContain('Mayor 1');
-  });
-
-  it('dos cambios de la tarjeta a la vez no se pisan, y sin verificador no se publica nada', async () => {
-    const llamadas = [
-      {
-        herramienta: 'actualizar_tramite',
-        entrada: {
-          requisitos: [dato('Llevar una foto', 'Hay que llevar una fotografía reciente')],
-        },
-      },
-      {
-        herramienta: 'actualizar_tramite',
-        entrada: { costes: [dato('Cuesta 12 euros', 'La tasa es de 12,00 euros')] },
-      },
-    ];
-    const bien = await turno(
-      modeloGuionado([() => ({ llamadas }), () => ({ texto: 'ok' })]).model,
-      anfitrion(navegadorFalso('https://x.gob.es').nav),
-      'Apunta',
-      { estado: conFuente() },
-      verificador(),
-    );
-    expect(bien.estado.tarjeta.requisitos).toHaveLength(1);
-    expect(bien.estado.tarjeta.costes).toHaveLength(1);
-    const mal = await turno(
-      modeloGuionado([() => ({ llamadas }), () => ({ texto: 'ok' })]).model,
-      anfitrion(navegadorFalso('https://x.gob.es').nav),
-      'Apunta',
-      { estado: conFuente() },
-      verificador(true),
-    );
-    expect(mal.estado.tarjeta.requisitos).toHaveLength(0);
-    expect(mal.estado.tarjeta.costes).toHaveLength(0);
   });
 });
 
@@ -854,7 +728,7 @@ describe('datos que no están en Mis datos', () => {
     // A mitad del turno: la página que no se ha podido proteger no llega al modelo.
     let llamadas = 0;
     const aMitad: Detector = async (t, origen) => {
-      if (++llamadas > 2)
+      if (++llamadas > 1)
         throw new ErrorDeProteccion('No se han podido proteger los datos personales');
       return detectorDePrueba(t, origen);
     };

@@ -5,11 +5,10 @@ import type {
   Confirmacion,
   Formulario,
   Fuente,
-  Tarjeta,
   Uso,
 } from '@reforma-digital/agent';
 
-export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente, Tarjeta, Uso };
+export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente, Uso };
 
 export type Razonamiento = 'low' | 'medium' | 'high';
 
@@ -33,7 +32,8 @@ export type Pregunta =
 
 export type ItemConversacion =
   | { tipo: 'usuario'; id: string; texto: string; protegidos: number }
-  | { tipo: 'asistente'; id: string; texto: string }
+  /** `fuentes`: las webs oficiales consultadas en el turno, en la última respuesta de ese turno. */
+  | { tipo: 'asistente'; id: string; texto: string; fuentes?: string[] }
   | {
       tipo: 'actividad';
       id: string;
@@ -50,7 +50,15 @@ export type ItemConversacion =
       /** Resumen sin valores, para el historial: «Respondido», «Aprobado», «No aprobado». */
       resultado?: string;
     }
-  | { tipo: 'aviso'; id: string; tono: 'info' | 'error'; texto: string; continuar?: boolean };
+  | {
+      tipo: 'aviso';
+      id: string;
+      tono: 'info' | 'error';
+      texto: string;
+      continuar?: boolean;
+      /** Documento descargado al que lleva el aviso. */
+      archivo?: string;
+    };
 
 export type EstadoEjecucion = 'inactivo' | 'trabajando' | 'esperando';
 
@@ -59,16 +67,16 @@ export type Descarga = { nombre: string; ruta: string };
 export type ResumenTramite = {
   id: string;
   titulo: string;
-  organismo?: string;
-  estado: Tarjeta['estado'];
   ejecucion: EstadoEjecucion;
   actualizado: string;
   costeUsd: number;
 };
 
+/** Una fuente como la ve la interfaz: sin su texto, que se queda en el proceso principal. */
+export type FuenteVista = Omit<Fuente, 'texto'>;
+
 export type TramiteVista = ResumenTramite & {
-  tarjeta: Tarjeta;
-  fuentes: Fuente[];
+  fuentes: FuenteVista[];
   conversacion: ItemConversacion[];
   uso: Uso;
   descargas: Descarga[];
@@ -124,6 +132,5 @@ export type ApiRd = {
   borrarDatos(que: 'perfil' | 'todo'): Promise<void>;
   abrirEnlace(url: string): Promise<void>;
   mostrarArchivo(ruta: string): Promise<void>;
-  exportarCita(id: string): Promise<void>;
   on(listener: (e: EventoApp) => void): () => void;
 };

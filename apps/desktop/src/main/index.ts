@@ -203,7 +203,7 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
     },
     abrirEnTramite: async (t, u) => {
       const url = z.string().url().parse(u);
-      if (!officialLevel(url)) throw new Error('Solo se abren webs oficiales desde la tarjeta');
+      if (!officialLevel(url)) throw new Error('Solo se abren webs oficiales desde las fuentes');
       await tramites.navegador(id.parse(t)).abrir(url);
     },
     revelarPerfil: async () =>
@@ -248,37 +248,6 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
         tramites.lista().some((t) => tramites.registro(t.id)?.descargas.some((d) => d.ruta === r))
       )
         shell.showItemInFolder(r);
-    },
-    exportarCita: async (t) => {
-      // La vista ya trae los datos del trámite en lugar de sus marcadores.
-      const cita = tramites.vista(id.parse(t))?.tarjeta;
-      if (!cita?.cita) return;
-      const inicio = new Date(cita.cita.fecha);
-      if (Number.isNaN(inicio.getTime())) return;
-      const f = (d: Date) =>
-        d
-          .toISOString()
-          .replace(/[-:]/g, '')
-          .replace(/\.\d{3}/, '');
-      const escapar = (s: string) => s.replace(/[\\;,]/g, (c) => '\\' + c).replace(/\n/g, '\\n');
-      const ics = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Reforma Digital//ES',
-        'BEGIN:VEVENT',
-        `UID:${t}@reforma.digital`,
-        `DTSTAMP:${f(new Date())}`,
-        `DTSTART:${f(inicio)}`,
-        `DTEND:${f(new Date(inicio.getTime() + 30 * 60000))}`,
-        `SUMMARY:${escapar(cita.titulo)}`,
-        `LOCATION:${escapar(cita.cita.lugar)}`,
-        `DESCRIPTION:${escapar(cita.cita.referencia ? `Referencia: ${cita.cita.referencia}` : 'Cita del trámite')}`,
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n');
-      const ruta = path.join(app.getPath('temp'), `cita-${t}.ics`);
-      await fs.writeFile(ruta, ics, { mode: 0o600 });
-      await shell.openPath(ruta);
     },
   };
 

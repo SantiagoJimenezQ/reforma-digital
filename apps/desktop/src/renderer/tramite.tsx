@@ -1,18 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@reforma-digital/design/ui/tabs';
 import { Notice, Response, Thinking } from '@reforma-digital/design/chat';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { officialLevel } from '@reforma-digital/government/domains';
 import type { ItemConversacion, TramiteVista } from '../shared/api';
 import { cargarTramite, useEstado } from './estado';
-import { ETIQUETA_ESTADO, host } from './formato';
+import { host } from './formato';
+import { FuentesRespuesta } from './fuentes';
 import { Icono } from './icono';
 import { Compositor } from './inicio';
 import { Pregunta } from './preguntas';
-import { HojaFuente, PanelTarjeta, type FuenteAbierta } from './tarjeta';
-
-type Panel = 'tarjeta' | 'navegador' | 'fuentes';
 const DE_NAVEGADOR = new Set([
   'abrir',
   'pulsar',
@@ -95,7 +92,15 @@ function Actividad({
   );
 }
 
-function Conversacion({ vista, verNavegador }: { vista: TramiteVista; verNavegador: () => void }) {
+function Conversacion({
+  vista,
+  verNavegador,
+  abrirFuente,
+}: {
+  vista: TramiteVista;
+  verNavegador: () => void;
+  abrirFuente: (url: string) => void;
+}) {
   const fin = useRef<HTMLDivElement>(null);
   const caja = useRef<HTMLDivElement>(null);
   const trabajando = vista.ejecucion === 'trabajando';
@@ -150,6 +155,12 @@ function Conversacion({ vista, verNavegador }: { vista: TramiteVista; verNavegad
             return (
               <div key={i.id} className="my-4 text-[17px] leading-[1.6]">
                 <Response streaming={trabajando && i === ultimo}>{i.texto}</Response>
+                {i.fuentes && (
+                  <FuentesRespuesta
+                    fuentes={vista.fuentes.filter((f) => i.fuentes?.includes(f.id))}
+                    abrir={abrirFuente}
+                  />
+                )}
               </div>
             );
           if (i.tipo === 'pregunta')
@@ -169,6 +180,14 @@ function Conversacion({ vista, verNavegador }: { vista: TramiteVista; verNavegad
                       onClick={() => void window.rd.enviar(vista.id, 'Continúa.')}
                     >
                       Continuar
+                    </Button>
+                  ) : i.archivo ? (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => void window.rd.mostrarArchivo(i.archivo!)}
+                    >
+                      Mostrar en Finder
                     </Button>
                   ) : undefined
                 }
@@ -285,47 +304,10 @@ function PanelNavegador({ vista }: { vista: TramiteVista }) {
   );
 }
 
-function ListaFuentes({
-  vista,
-  abrir,
-}: {
-  vista: TramiteVista;
-  abrir: (f: FuenteAbierta) => void;
-}) {
-  if (!vista.fuentes.length)
-    return (
-      <p className="px-6 pt-4 text-[15px] text-muted-foreground">
-        Aún no hay fuentes. El asistente solo consulta webs de las administraciones.
-      </p>
-    );
-  return (
-    <ul className="m-0 space-y-1 px-3 pt-2 pb-8">
-      {vista.fuentes.map((f) => (
-        <li key={f.id} className="list-none">
-          <button
-            type="button"
-            onClick={() => abrir({ id: f.id })}
-            className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-muted"
-          >
-            <span className="mt-0.5 shrink-0 font-mono text-xs text-muted-foreground">{f.id}</span>
-            <span className="min-w-0">
-              <span className="block text-[15px] leading-snug">{f.titulo}</span>
-              <span className="block text-sm text-muted-foreground">
-                {f.organismo ?? host(f.url)} · {f.origen === 'pagina' ? 'leída entera' : 'extracto'}
-              </span>
-            </span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) {
   const { tramites } = useEstado();
   const vista = tramites[id];
-  const [panel, setPanel] = useState<Panel>('tarjeta');
-  const [fuente, setFuente] = useState<FuenteAbierta>(null);
+  const [verNavegador, setVerNavegador] = useState(false);
   useEffect(() => {
     if (!vista) void cargarTramite(id);
   }, [id, vista]);
@@ -341,15 +323,12 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
         ultimo.estado === 'pendiente' &&
         ultimo.pregunta.tipo === 'ayuda')),
   );
-  // La vista del navegador se pinta encima de la interfaz: al mostrarla se cierra la hoja de fuente.
   useEffect(() => {
-    if (!pideNavegador) return;
-    setPanel('navegador');
-    setFuente(null);
+    if (pideNavegador) setVerNavegador(true);
   }, [clave, pideNavegador]);
   if (!vista) return null;
   const abrirEnTramite = (url: string) => {
-    setPanel('navegador');
+    setVerNavegador(true);
     void window.rd.abrirEnTramite(vista.id, url);
   };
   const trabajando = vista.ejecucion === 'trabajando';
@@ -358,26 +337,31 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
   return (
     <div className="flex h-full min-h-0">
       <section
-        className={cn(
-          'flex min-w-0 flex-col',
-          panel === 'navegador' ? 'w-[400px] shrink-0' : 'flex-1',
-        )}
+        className={cn('flex min-w-0 flex-col', verNavegador ? 'w-[400px] shrink-0' : 'flex-1')}
         aria-label="Conversación"
       >
         <header className="arrastrar flex h-[52px] shrink-0 items-center gap-3 border-b border-border px-6">
           <h1 className="m-0 truncate text-[15px] font-medium">{vista.titulo}</h1>
-          <span className="shrink-0 text-sm text-muted-foreground">
-            {ETIQUETA_ESTADO[vista.estado]}
-          </span>
+          {!verNavegador && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto"
+              onClick={() => setVerNavegador(true)}
+            >
+              <Icono nombre="web" />
+              Navegador
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto"
+            className={verNavegador ? 'ml-auto' : ''}
             aria-label="Borrar este trámite"
             onClick={() => {
               if (
                 confirm(
-                  '¿Borrar este trámite? Se borran la conversación, la tarjeta y la sesión del navegador. Los documentos descargados se quedan en tu carpeta de Descargas.',
+                  '¿Borrar este trámite? Se borran la conversación y la sesión del navegador. Los documentos descargados se quedan en tu carpeta de Descargas.',
                 )
               )
                 void window.rd.borrarTramite(vista.id).then(alBorrar);
@@ -386,7 +370,11 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
             <Icono nombre="papelera" />
           </Button>
         </header>
-        <Conversacion vista={vista} verNavegador={() => setPanel('navegador')} />
+        <Conversacion
+          vista={vista}
+          verNavegador={() => setVerNavegador(true)}
+          abrirFuente={abrirEnTramite}
+        />
         <div className="mx-auto w-full max-w-[720px] px-8 pb-6">
           <Compositor
             placeholder={
@@ -402,47 +390,26 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
           />
         </div>
       </section>
-      <aside
-        aria-label="Detalles del trámite"
-        className={cn(
-          'flex flex-col border-l border-border bg-[#fcfcfc]',
-          panel === 'navegador' ? 'min-w-0 flex-1' : 'w-[420px] shrink-0',
-        )}
-      >
-        <div className="arrastrar flex h-[52px] shrink-0 items-center px-4">
-          <Tabs
-            value={panel}
-            onValueChange={(v) => {
-              if (v === 'tarjeta' || v === 'navegador' || v === 'fuentes') setPanel(v);
-            }}
-          >
-            <TabsList>
-              <TabsTrigger value="tarjeta">Tarjeta</TabsTrigger>
-              <TabsTrigger value="navegador">Navegador</TabsTrigger>
-              <TabsTrigger value="fuentes">
-                Fuentes{vista.fuentes.length ? ` (${vista.fuentes.length})` : ''}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        {panel === 'tarjeta' && (
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <PanelTarjeta vista={vista} abrirFuente={setFuente} abrirEnTramite={abrirEnTramite} />
+      {verNavegador && (
+        <aside
+          aria-label="Navegador del trámite"
+          className="flex min-w-0 flex-1 flex-col border-l border-border bg-[#fcfcfc]"
+        >
+          <div className="arrastrar flex h-[52px] shrink-0 items-center gap-2 px-4">
+            <span className="text-[15px] font-medium">Navegador</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto"
+              aria-label="Ocultar el navegador"
+              onClick={() => setVerNavegador(false)}
+            >
+              <Icono nombre="cerrar" />
+            </Button>
           </div>
-        )}
-        {panel === 'navegador' && <PanelNavegador vista={vista} />}
-        {panel === 'fuentes' && (
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <ListaFuentes vista={vista} abrir={setFuente} />
-          </div>
-        )}
-      </aside>
-      <HojaFuente
-        vista={vista}
-        abierta={fuente}
-        cerrar={() => setFuente(null)}
-        abrirEnTramite={abrirEnTramite}
-      />
+          <PanelNavegador vista={vista} />
+        </aside>
+      )}
     </div>
   );
 }
