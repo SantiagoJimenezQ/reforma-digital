@@ -65,7 +65,8 @@ def _guardar(nombre: str, datos: dict) -> None:
 
 
 def _pedir(mensaje: str, esquema: dict, max_tokens: int) -> dict:
-    return analisis.ClienteNan().generar(SISTEMA, mensaje, esquema, max_tokens)
+    # Unificar y situar etiquetas no necesita razonamiento: sin él, la salida es solo el JSON.
+    return analisis.ClienteNan().generar(SISTEMA, mensaje, esquema, max_tokens, razonamiento="none")
 
 
 def clave_etiqueta(t: str) -> str:

@@ -118,3 +118,50 @@ def test_explore_keeps_quotes_without_game_restrictions():
     sessions = [{"id": "demo", "fecha": "2026-10-13"}]
     interventions = [{"cita": quote, "g": "MIXTO", "orador": "Orador sintético", "s": "demo"}]
     assert explora.citas(sessions, interventions) == [[quote, "Orador sintético", "MIXTO", "demo", "2026-10-13"]]
+
+
+def test_session_summary_waits_for_new_analyses(monkeypatch, tmp_path):
+    from escano import construir, votaciones
+    sessions = tmp_path / "sesiones"
+    sessions.mkdir()
+    text = "Texto sintético de una intervención suficientemente larga. " * 10
+    session = {"id": "PL-999", "fecha": "2026-10-13", "serie": "PL", "organo": "Pleno", "intervenciones": [
+        {"orden": i, "orador": f"Orador sintético {i}", "grupo": "PP", "item": "ASUNTO", "seccion": "S", "exp": None,
+         "texto": f"{i}. {text}"} for i in range(2)]}
+    (sessions / "PL-999.json").write_text(json.dumps(session))
+    monkeypatch.setattr(run, "DATOS", tmp_path)
+    monkeypatch.setattr(analisis, "ANALISIS", tmp_path / "analisis")
+    monkeypatch.setattr(votaciones, "leer_todas", lambda: [])
+    calls = []
+
+    def llamar(cliente, mensaje, herramienta, max_tokens):
+        calls.append((herramienta["name"], mensaje.count("Orador sintético")))
+        if herramienta["name"] == "registrar_sesion":
+            return {"titular": "t", "resumen": "r", "titulos": ["x"], "momentos": []}
+        return {"resumen": "Resumen sintético", "en_una_frase": "f", "tono": "técnico", "intensidad": 1,
+                "temas": ["vivienda"], "cita": "", "posicion": "no aplica", "responde": "no aplica"}
+
+    monkeypatch.setattr(analisis, "_llamar", llamar)
+    run.reanalyze(10, None)
+    # El resumen se pide una sola vez y con las dos intervenciones recién analizadas.
+    assert calls == [("registrar_analisis", 1), ("registrar_analisis", 1), ("registrar_sesion", 2)]
+    assert construir.analisis_de_sesion(session, [], con_ia=False)[2]["titular"] == "t"
+    calls.clear()
+    run.reanalyze(10, None)
+    assert calls == []
+
+
+def test_normalization_disables_reasoning(monkeypatch):
+    import requests
+    from escano import normalizar
+    monkeypatch.setenv("NAN_API_KEY", "synthetic-test-token")
+    bodies = []
+
+    class Reply:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"finish_reason": "stop", "message": {"content": '{"etiquetas": []}'}}]}
+
+    monkeypatch.setattr(requests.Session, "post", lambda self, url, **kwargs: bodies.append(kwargs["json"]) or Reply())
+    normalizar._pedir("Etiquetas sintéticas", {"type": "object"}, 100)
+    assert bodies[0]["reasoning_effort"] == "none"
