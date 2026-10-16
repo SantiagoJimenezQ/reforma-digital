@@ -1,6 +1,6 @@
 # Protocolo de seguridad de la app para Mac
 
-Este documento recoge cómo protege la app para Mac (`apps/desktop` y `packages/agent`) los datos de las personas, qué queda fuera de esa protección y qué hay que comprobar antes de cambiar cualquier cosa que toque esos datos. El funcionamiento general está en [desktop.md](desktop.md); los límites de seguridad del repositorio, en [SECURITY.md](../SECURITY.md).
+Este documento recoge cómo protege la app para Mac (`apps/desktop` y `packages/agent`) los datos de las personas, qué queda fuera de esa protección y qué hay que comprobar antes de cambiar cualquier cosa que toque esos datos. El funcionamiento general está en [el README de la app](README.md); los límites de seguridad del repositorio, en [SECURITY.md](../../SECURITY.md).
 
 El principio es este: **el modelo de IA no recibe datos personales, y lo que la app no puede proteger no sale del Mac**. Es una reducción del riesgo, no una garantía absoluta (ver [Lo que todavía puede llegar al modelo](#lo-que-todavía-puede-llegar-al-modelo)).
 
@@ -27,7 +27,7 @@ El principio es este: **el modelo de IA no recibe datos personales, y lo que la 
 
 ## Cómo se impide que el modelo vea datos
 
-Cada capa está en el código, no en el prompt, y tiene pruebas en [`agent.test.ts`](../packages/agent/src/agent.test.ts).
+Cada capa está en el código, no en el prompt, y tiene pruebas en [`agent.test.ts`](../../packages/agent/src/agent.test.ts).
 
 | Capa                           | Qué hace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Dónde                                    |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
@@ -45,7 +45,7 @@ La app sustituye los marcadores por los valores reales en dos sitios: al escribi
 
 ## Otras garantías
 
-Las garantías que no dependen del prompt (códigos de confirmación de un solo uso ligados a la web, solo webs oficiales, lectura sin acceso a la red local, contraseñas y CAPTCHA siempre en manos de la persona, tarjeta con citas verificadas) están descritas en [desktop.md](desktop.md#garantías-que-no-dependen-del-prompt).
+Las garantías que no dependen del prompt (códigos de confirmación de un solo uso ligados a la web, solo webs oficiales, lectura sin acceso a la red local, contraseñas y CAPTCHA siempre en manos de la persona, tarjeta con citas verificadas) están descritas en [el README de la app](README.md#garantías-que-no-dependen-del-prompt).
 
 La app empaquetada desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector, valida la integridad del ASAR y cifra las cookies. La ventana de la app y el navegador de cada trámite corren con `sandbox` y aislamiento de contexto, la interfaz tiene una CSP estricta y el proceso principal valida cada llamada de la interfaz y su origen.
 
@@ -71,7 +71,7 @@ Para que nada salga del Mac haría falta un modelo de IA local. Está pendiente 
 
 ## Si se encuentra una fuga
 
-1. No publiques datos reales en issues, logs ni capturas. Usa el canal privado de [SECURITY.md](../SECURITY.md).
+1. No publiques datos reales en issues, logs ni capturas. Usa el canal privado de [SECURITY.md](../../SECURITY.md).
 2. Reprodúcela con datos ficticios en un escenario de la sede de pruebas (`packages/evals/src/agent/escenarios.ts`, con `secretos`) hasta que el detector de fugas de la evaluación la cuente.
 3. Corrígela en la capa donde se originó, no solo en la última.
 4. Añade la prueba. La evaluación tiene que volver a dar 0.
