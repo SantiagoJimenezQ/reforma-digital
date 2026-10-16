@@ -1,6 +1,6 @@
 """Resumen, tono, intensidad y temas de cada intervención con un modelo de lenguaje.
 
-Usa Helmcode con salida JSON validada. Conserva la caché importada hasta disponer de un nuevo análisis.
+Usa NaN con salida JSON validada. Conserva la caché importada hasta disponer de un nuevo análisis.
 Cada respuesta se guarda en data/analisis/ con una clave que depende del texto, del modelo
 y de la versión del prompt, así que volver a ejecutar el pipeline no repite llamadas.
 """
@@ -167,21 +167,22 @@ class PresupuestoAgotado(RuntimeError):
     pass
 
 
-class ClienteHelmcode:
+class ClienteNan:
     """API OpenAI compatible. No registra respuestas ni cabeceras con credenciales."""
     def __init__(self):
         import requests
         self.sesion = requests.Session()
-        self.sesion.headers.update({"Authorization": f"Bearer {os.environ['HELMCODE_API_KEY']}"})
+        self.sesion.headers.update({"Authorization": f"Bearer {os.environ['NAN_API_KEY']}"})
 
     def generar(self, sistema: str, mensaje: str, esquema: dict, max_tokens: int) -> dict:
         import requests
         from jsonschema import validate, ValidationError
         cuerpo = {
             "model": MODELO, "reasoning_effort": "low", "max_tokens": max_tokens * 4,
-            "messages": [{"role": "system", "content": sistema}, {"role": "user", "content": mensaje}],
-            "response_format": {"type": "json_schema", "json_schema": {
-                "name": "analisis", "schema": esquema, "strict": False}},
+            # NaN solo admite json_schema en algunos modelos; json_object exige mencionar JSON en el prompt.
+            "messages": [{"role": "system", "content": f"{sistema}\n\nResponde solo con JSON conforme a este JSON Schema:\n{json.dumps(esquema, ensure_ascii=False)}"},
+                         {"role": "user", "content": mensaje}],
+            "response_format": {"type": "json_object"},
         }
         global INTENTOS
         for intento in range(5):
@@ -190,26 +191,26 @@ class ClienteHelmcode:
                     raise PresupuestoAgotado("Se alcanzó el límite de llamadas de esta ejecución")
                 INTENTOS += 1
             try:
-                r = self.sesion.post("https://api.helmcode.com/v1/chat/completions", json=cuerpo, timeout=180)
+                r = self.sesion.post("https://api.nan.builders/v1/chat/completions", json=cuerpo, timeout=180)
             except requests.RequestException:
                 if intento == 4:
-                    raise RuntimeError("Helmcode: conexión fallida") from None
+                    raise RuntimeError("NaN: conexión fallida") from None
                 time.sleep(2 ** intento)
                 continue
             if r.status_code in (429, 500, 502, 503, 504):
                 time.sleep(2 ** intento)
                 continue
             if r.status_code != 200:
-                raise RuntimeError(f"Helmcode respondió HTTP {r.status_code}")
+                raise RuntimeError(f"NaN respondió HTTP {r.status_code}")
             respuesta = r.json()
             candidato = respuesta["choices"][0]
             if candidato["finish_reason"] != "stop":
-                raise ValueError("Helmcode: salida incompleta")
+                raise ValueError("NaN: salida incompleta")
             try:
                 datos = json.loads(candidato["message"]["content"])
                 validate(datos, esquema)
             except (ValueError, TypeError, ValidationError):
-                raise ValueError("Helmcode: salida incompatible con el esquema JSON") from None
+                raise ValueError("NaN: salida incompatible con el esquema JSON") from None
             if isinstance(respuesta.get("model"), str):
                 datos["_provenance"] = {"served_model": respuesta["model"]}
             uso = respuesta.get("usage", {})
@@ -218,11 +219,11 @@ class ClienteHelmcode:
             USO["salida"] += uso.get("completion_tokens", 0)
             USO["razonamiento"] += uso.get("completion_tokens_details", {}).get("reasoning_tokens", 0)
             return datos
-        raise RuntimeError("Helmcode agotó los reintentos")
+        raise RuntimeError("NaN agotó los reintentos")
 
 
 def _llamar(cliente, mensaje: str, herramienta: dict, max_tokens: int) -> dict:
-    return (cliente or ClienteHelmcode()).generar(
+    return (cliente or ClienteNan()).generar(
         SISTEMA, f"{herramienta['description']}\n\n{mensaje}", herramienta["input_schema"], max_tokens)
 
 
@@ -237,7 +238,7 @@ def _leer_cache(*partes: str) -> dict | None:
         fichero = ANALISIS / f"{clave}.json"
         if fichero.exists():
             datos = json.loads(fichero.read_text())
-            datos.setdefault("_provenance", {"provider": "cache-importada" if clave != claves[0] else "helmcode",
+            datos.setdefault("_provenance", {"provider": "cache-importada" if clave != claves[0] else "nan",
                               "model": MODELO_IMPORTADO if clave != claves[0] else MODELO,
                               "prompt": VERSION_PROMPT, "cache_key": clave})
             return datos
@@ -246,7 +247,7 @@ def _leer_cache(*partes: str) -> dict | None:
 
 def guardar(peticion: dict, datos: dict) -> dict:
     """Depura la respuesta del modelo (si es de una intervención) y la guarda en la caché."""
-    datos["_provenance"] = {**datos.get("_provenance", {}), "provider": "helmcode", "model": MODELO, "prompt": VERSION_PROMPT, "input_sha256": hashlib.sha256(peticion["mensaje"].encode()).hexdigest()}
+    datos["_provenance"] = {**datos.get("_provenance", {}), "provider": "nan", "model": MODELO, "prompt": VERSION_PROMPT, "input_sha256": hashlib.sha256(peticion["mensaje"].encode()).hexdigest()}
     if peticion["tipo"] == "intervencion":
         datos = depurar(datos, peticion["iv"])
     ANALISIS.mkdir(parents=True, exist_ok=True)

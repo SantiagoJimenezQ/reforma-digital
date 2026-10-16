@@ -11,7 +11,7 @@
     python -m escano explora [--solo temas]     # unifica temas, lugares y propuestas para la pestaña Explora
     python -m escano estado [--desde 2018-06-01] # solo los nombramientos y ceses del BOE (organigrama del Estado)
     python -m escano candidaturas               # listas al Congreso del BOE y quién de los diputados repite (29N)
-    python -m escano promesas [--solo PP]       # promesas de los programas de 2023 frente a lo que se votó (Helmcode)
+    python -m escano promesas [--solo PP]       # promesas de los programas de 2023 frente a lo que se votó (NaN)
 """
 from __future__ import annotations
 
@@ -153,7 +153,7 @@ def main(argv: list[str] | None = None) -> None:
     a = sub.add_parser("actualizar", help="descarga datos nuevos y regenera la web")
     a.add_argument("--desde", type=date.fromisoformat, default=date.today() - timedelta(days=10))
     a.add_argument("--hasta", type=date.fromisoformat, default=date.today())
-    a.add_argument("--sin-ia", action="store_true", help="no llama a Helmcode")
+    a.add_argument("--sin-ia", action="store_true", help="no llama a NaN")
 
     d = sub.add_parser("diario", help="procesa un Diario de Sesiones concreto")
     d.add_argument("serie", choices=["PL", "CO"])
@@ -178,7 +178,7 @@ def main(argv: list[str] | None = None) -> None:
     ca.add_argument("--desde", type=date.fromisoformat, help="por defecto, el día 21 tras la convocatoria")
     ca.add_argument("--hasta", type=date.fromisoformat, help="por defecto, hoy")
     ca.add_argument("--boe", nargs="+", help="identificadores BOE-A-… concretos (el principal y sus correcciones)")
-    pm = sub.add_parser("promesas", help="promesas de los programas de 2023 frente a lo votado (necesita HELMCODE_API_KEY)")
+    pm = sub.add_parser("promesas", help="promesas de los programas de 2023 frente a lo votado (necesita NAN_API_KEY)")
     pm.add_argument("--solo", help="solo un programa: PP, PSOE, VOX, SUMAR, ERC, JUNTS, BILDU, PNV, BNG o UPN")
     pm.add_argument("--limite", type=int, help="como mucho estas tandas de texto por programa (para probar)")
     args = p.parse_args(argv)

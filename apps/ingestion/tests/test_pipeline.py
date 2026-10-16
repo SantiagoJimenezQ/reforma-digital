@@ -28,10 +28,10 @@ def test_runner_uses_writer_connection(monkeypatch, writer_url):
         run.main()
 
 
-def test_helmcode_retries_and_validates(monkeypatch):
-    monkeypatch.setenv("HELMCODE_API_KEY", "synthetic-test-token")
+def test_nan_retries_and_validates(monkeypatch):
+    monkeypatch.setenv("NAN_API_KEY", "synthetic-test-token")
     monkeypatch.setattr(analisis.time, "sleep", lambda _: None)
-    client = analisis.ClienteHelmcode()
+    client = analisis.ClienteNan()
     bodies = []
 
     class Reply:
@@ -44,7 +44,7 @@ def test_helmcode_retries_and_validates(monkeypatch):
 
     replies = iter([Busy(), Reply()])
     def post(url, **kwargs):
-        assert url == "https://api.helmcode.com/v1/chat/completions"
+        assert url == "https://api.nan.builders/v1/chat/completions"
         bodies.append(kwargs["json"])
         return next(replies)
     monkeypatch.setattr(client.sesion, "post", post)
@@ -53,7 +53,8 @@ def test_helmcode_retries_and_validates(monkeypatch):
     assert result["value"] == 2
     assert result["_provenance"]["served_model"] == "synthetic-model-revision"
     assert len(bodies) == 2
-    assert bodies[0]["response_format"]["json_schema"]["schema"] == schema
+    assert bodies[0]["response_format"] == {"type": "json_object"}
+    assert json.dumps(schema) in bodies[0]["messages"][0]["content"]
     assert bodies[0]["reasoning_effort"] == "low"
     assert "synthetic-test-token" not in json.dumps(bodies)
 
@@ -103,10 +104,10 @@ def test_nonliteral_quotes_are_rejected():
 
 
 def test_inference_budget_is_a_hard_limit(monkeypatch):
-    monkeypatch.setenv("HELMCODE_API_KEY", "synthetic-test-token")
+    monkeypatch.setenv("NAN_API_KEY", "synthetic-test-token")
     monkeypatch.setattr(analisis, "LIMITE_LLAMADAS", 1)
     monkeypatch.setattr(analisis, "INTENTOS", 1)
-    client = analisis.ClienteHelmcode()
+    client = analisis.ClienteNan()
     monkeypatch.setattr(client.sesion,"post",lambda *args,**kwargs: pytest.fail("No debe llamar a la API"))
     with pytest.raises(analisis.PresupuestoAgotado):
         client.generar("Neutral","Texto sintético",{"type":"object"},800)

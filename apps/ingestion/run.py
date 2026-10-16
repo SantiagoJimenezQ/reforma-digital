@@ -232,7 +232,7 @@ def main() -> None:
     parser.add_argument("command", choices=["bootstrap", "update", "polls", "reanalyze", "rebuild", "geography", "elections", "promises", "reparse"])
     parser.add_argument("--source", type=Path, help="copia local del commit fijado, solo bootstrap")
     parser.add_argument("--local", action="store_true", help="importación de desarrollo sin Blob; requiere --source")
-    parser.add_argument("--limit", type=int, default=100, help="máximo de llamadas a Helmcode")
+    parser.add_argument("--limit", type=int, default=100, help="máximo de llamadas a NaN")
     parser.add_argument("--since", type=date.fromisoformat)
     args = parser.parse_args()
     if args.limit < 1 or args.limit > 5000:
@@ -262,7 +262,7 @@ def main() -> None:
             from escano import cli, construir
             if args.command == "update":
                 cli.actualizar(date.today() - timedelta(days=10), date.today(), con_ia=False)
-                if os.environ.get("HELMCODE_API_KEY"):
+                if os.environ.get("NAN_API_KEY"):
                     analyze_and_normalize(args.limit, date.today() - timedelta(days=10))
                 construir.construir(con_ia=False)
             elif args.command == "polls":

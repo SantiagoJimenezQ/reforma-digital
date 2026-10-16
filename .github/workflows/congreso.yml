@@ -12,7 +12,7 @@ on:
           [update, polls, bootstrap, reanalyze, rebuild, geography, elections, promises, reparse]
         default: update
       limit:
-        description: Máximo de llamadas a Helmcode (1–5000)
+        description: Máximo de llamadas a NaN (1–5000)
         default: '100'
       since:
         description: Reanalizar desde esta fecha (AAAA-MM-DD; vacío para todo)
@@ -30,8 +30,8 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.CONGRESS_DATABASE_URL }}
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-      HELMCODE_API_KEY: ${{ secrets.HELMCODE_API_KEY }}
-      HELMCODE_MODEL: ${{ vars.HELMCODE_MODEL || 'deepseek-v4-flash' }}
+      NAN_API_KEY: ${{ secrets.NAN_API_KEY }}
+      NAN_MODEL: ${{ vars.NAN_MODEL || 'deepseek-v4-flash' }}
       COMMAND: ${{ inputs.command || (github.event.schedule == '17 5 * * 1-6' && 'update' || 'polls') }}
       LIMIT: ${{ inputs.limit || '100' }}
       SINCE: ${{ inputs.since }}

@@ -5,12 +5,12 @@ sobre lo que prometió. Las reglas son las mismas para todos y el resultado lo d
 
 1. **Texto.** Cada programa (PDF oficial, `data/raw/programas/2023/`) se pasa a texto por páginas, se quitan
    cabeceras y pies repetidos y se corta sin IA en unidades (párrafos, puntos numerados, viñetas).
-2. **Promesas.** Helmcode marca qué unidades son promesas: un compromiso de futuro con un objeto identificable
+2. **Promesas.** NaN marca qué unidades son promesas: un compromiso de futuro con un objeto identificable
    (una norma, una cifra, un plazo o un cambio comprobable). Quedan fuera los diagnósticos, los valores y los
    verbos sin instrumento («fomentar», «apostar por», «mejorar»). Solo se acepta si la cita es literal.
 3. **Candidatos.** Un buscador léxico (BM25, sin IA) propone las doce iniciativas votadas en el Pleno más
    parecidas a cada promesa, a partir de su objeto y su resumen en castellano.
-4. **Juicio a ciegas.** Helmcode ve la promesa y cada iniciativa sin nombres de partidos ni grupos y sin saber cómo
+4. **Juicio a ciegas.** NaN ve la promesa y cada iniciativa sin nombres de partidos ni grupos y sin saber cómo
    votó nadie, y responde solo la relación: cumple, avanza, contradice, relacionada o no relacionada.
 5. **Resultado.** Con el voto de los diputados elegidos en esa candidatura (no el grupo de hoy: quien cambió de
    grupo sigue contando para la lista por la que salió), `resultado()` aplica la tabla de RESULTADOS.
@@ -199,7 +199,7 @@ def cita_literal(cita: str, texto: str) -> bool:
     return len(c.split()) >= 5 and c in _norm(texto)
 
 
-# ---------- 2. promesas (Helmcode) ----------
+# ---------- 2. promesas (NaN) ----------
 
 def _cache(clave: str, pedir) -> dict:
     ruta = CACHE / f"{hashlib.sha1((MODELO + VERSION + clave).encode()).hexdigest()}.json"
@@ -213,9 +213,9 @@ def _cache(clave: str, pedir) -> dict:
     return datos
 
 
-def _helmcode(mensaje: str, esquema: dict, max_tokens: int) -> dict:
-    from .analisis import ClienteHelmcode
-    return ClienteHelmcode().generar(SISTEMA, mensaje, esquema, max_tokens)
+def _nan(mensaje: str, esquema: dict, max_tokens: int) -> dict:
+    from .analisis import ClienteNan
+    return ClienteNan().generar(SISTEMA, mensaje, esquema, max_tokens)
 
 
 def tandas(us: list[dict], caracteres: int = 7000) -> list[list[dict]]:
@@ -238,7 +238,7 @@ def extraer(sigla: str, limite: int | None = None, hilos: int = 6) -> list[dict]
 
     def una(lote):
         texto = "\n".join(f"[{u['id']}] {u['texto']}" for u in lote)
-        return _cache("promesas\x1f" + texto, lambda: _helmcode(PROMPT_PROMESAS.format(temas=temas, unidades=texto), ESQ_PROMESAS, 6000))
+        return _cache("promesas\x1f" + texto, lambda: _nan(PROMPT_PROMESAS.format(temas=temas, unidades=texto), ESQ_PROMESAS, 6000))
 
     promesas = []
     with ThreadPoolExecutor(hilos) as ex:
@@ -339,7 +339,7 @@ def juzgar(promesa: dict, candidatos: list[dict]) -> dict[str, dict]:
     random.Random(promesa["id"] if "id" in promesa else promesa["resumen"]).shuffle(orden)   # el orden no debe influir
     lista = "\n".join(f"[{a['id']}] ({a['tipo']}, {a['fecha'][:4]}) {anonimo(a['titulo'])}. {anonimo(a['texto'])[:500]}" for a in orden)
     mensaje = PROMPT_JUICIO.format(promesa=promesa["resumen"], objeto=promesa["objeto"], actos=lista)
-    r = _cache("juicio\x1f" + mensaje, lambda: _helmcode(mensaje, ESQ_JUICIO, 3000))
+    r = _cache("juicio\x1f" + mensaje, lambda: _nan(mensaje, ESQ_JUICIO, 3000))
     validos = {a["id"] for a in candidatos}
     return {x["id"]: x for x in r.get("relaciones", []) if x.get("id") in validos}
 
@@ -440,6 +440,6 @@ def ejecutar(solo: str | None = None, limite: int | None = None) -> dict:
                                       "promesas": sorted(lista, key=lambda x: x["id"])}
     salida["resultados"] = RESULTADOS
     from .analisis import USO
-    print(f"  Helmcode: {USO['llamadas']} llamadas, {USO['entrada']:,} tokens de entrada y {USO['salida']:,} de salida")
+    print(f"  NaN: {USO['llamadas']} llamadas, {USO['entrada']:,} tokens de entrada y {USO['salida']:,} de salida")
     previo.write_text(json.dumps(salida, ensure_ascii=False, separators=(",", ":")))
     return salida
