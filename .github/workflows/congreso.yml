@@ -54,6 +54,7 @@ jobs:
         run: |
           test -n "$DATABASE_URL"
           test -n "$BLOB_READ_WRITE_TOKEN"
+          test -n "$NAN_API_KEY"
       - name: Recoger, analizar y publicar en Postgres y Blob
         # El contexto `runner` solo existe dentro de los pasos, no en el `env` del job.
         env:

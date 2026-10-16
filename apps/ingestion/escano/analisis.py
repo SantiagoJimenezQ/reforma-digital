@@ -174,11 +174,12 @@ class ClienteNan:
         self.sesion = requests.Session()
         self.sesion.headers.update({"Authorization": f"Bearer {os.environ['NAN_API_KEY']}"})
 
-    def generar(self, sistema: str, mensaje: str, esquema: dict, max_tokens: int) -> dict:
+    def generar(self, sistema: str, mensaje: str, esquema: dict, max_tokens: int, razonamiento: str = "low") -> dict:
         import requests
         from jsonschema import validate, ValidationError
         cuerpo = {
-            "model": MODELO, "reasoning_effort": "low", "max_tokens": max_tokens * 4,
+            # "none" apaga el razonamiento; los demás niveles son orientativos y NaN eleva max_tokens a 16384.
+            "model": MODELO, "reasoning_effort": razonamiento, "max_tokens": max_tokens * 4,
             # NaN solo admite json_schema en algunos modelos; json_object exige mencionar JSON en el prompt.
             "messages": [{"role": "system", "content": f"{sistema}\n\nResponde solo con JSON conforme a este JSON Schema:\n{json.dumps(esquema, ensure_ascii=False)}"},
                          {"role": "user", "content": mensaje}],

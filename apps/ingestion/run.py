@@ -199,15 +199,17 @@ def reanalyze(limit: int, since: date | None) -> int:
         for session in sorted(sessions, key=lambda s: (s["fecha"] or "", s["id"]), reverse=True):
             if not session["fecha"] or (since and session["fecha"] < since.isoformat()):
                 continue
-            analisis.RECOGER = []
-            construir.analisis_de_sesion(session, votes_by_day.get(session["fecha"], []), con_ia=True)
-            requests = analisis.RECOGER
-            analisis.RECOGER = None
-            for request in requests:
-                if done >= limit:
-                    return done
-                analisis._pedir(request, None)
-                done += 1
+            # Primero las intervenciones; el resumen de la jornada se recoge después, con sus análisis en la caché.
+            for _ in range(2):
+                analisis.RECOGER = []
+                construir.analisis_de_sesion(session, votes_by_day.get(session["fecha"], []), con_ia=True)
+                requests = [r for r in analisis.RECOGER if r["tipo"] == "intervencion"] or analisis.RECOGER
+                analisis.RECOGER = None
+                for request in requests:
+                    if done >= limit:
+                        return done
+                    analisis._pedir(request, None)
+                    done += 1
     finally:
         analisis.RECOGER = None
         analisis.USAR_IMPORTADOS = True
