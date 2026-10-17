@@ -255,6 +255,7 @@ El Congreso (`/congreso`) es una sección pública de Reforma Digital y usa Sol 
 
 La app de Mac (`apps/desktop`) usa los mismos tokens y primitivas, con la composición de un cliente de chat de escritorio.
 
+- **Letra.** La misma Geist de la web (§8.1), empaquetada dentro de la app con `@fontsource-variable/geist`, porque aquí no la sirve Next.
 - **Lienzo gris, superficies blancas.** Toda la ventana es `--muted`; lo que se lee o se rellena va en blanco y sin sombra: el mensaje de la persona, las tarjetas de preguntas, el navegador del trámite y las secciones de «Mis datos» y «Ajustes» (radio 24). Solo el compositor flota, con `--shadow-soft`.
 - **Barra lateral de 260 px**, un poco más oscura que el lienzo (`foreground` al 2,5 %). Arriba, «Nuevo trámite» y «Mis datos»; después, los trámites en filas de 36 px con el título en una línea y, a la derecha, cuánto hace del último cambio («5 min», «12 d»). Un punto rojo y «Te toca» marcan que el asistente espera a la persona; un punto gris que late, que está trabajando (con su texto para lectores de pantalla). Abajo, la marca y «Ajustes». Las filas se oscurecen al pasar (4 %) y la activa queda marcada (7 %).
 - **Compositor** de radio 28 (§8.2): el texto arriba y, debajo, «Datos protegidos» y el selector de cuánto piensa el asistente (el mismo ajuste que en «Ajustes»), sin un segundo borde (§8.5), y el botón de enviar o detener. En la conversación, el texto se funde con el lienzo justo encima.
