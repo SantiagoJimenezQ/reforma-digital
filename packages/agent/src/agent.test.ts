@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { APICallError, RetryError, simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import {
@@ -855,6 +855,36 @@ describe('formularios', () => {
     expect(r.fin).toBe('respondido');
     expect(elecciones[1]).toEqual({ type: 'tool', toolName: 'preguntar' });
     expect(pedido).toEqual(['Pedir la cita']);
+  });
+
+  it('espera lo que haga falta a que la persona rellene el formulario', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const a = {
+        ...anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
+        preguntar: async () => {
+          await vi.advanceTimersByTimeAsync(5 * 60_000);
+          return {};
+        },
+      };
+      const { model } = modeloGuionado([
+        () => ({
+          llamadas: [
+            {
+              herramienta: 'preguntar',
+              entrada: {
+                titulo: 'Tu cita',
+                campos: [{ clave: 'documento_soporte', etiqueta: 'Soporte', tipo: 'texto' }],
+              },
+            },
+          ],
+        }),
+        () => ({ texto: 'Gracias, voy a por ella.' }),
+      ]);
+      expect((await turno(model, a, 'Renueva mi DNI')).fin).toBe('respondido');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

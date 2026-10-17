@@ -16,6 +16,6 @@
     "@reforma-digital/ai": "workspace:*",
     "zod": "^4.1.0",
     "@reforma-digital/agent": "workspace:*",
-    "ai": "^7.0.124"
+    "ai": "^7.0.137"
   }
 }
