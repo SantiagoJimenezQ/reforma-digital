@@ -49,6 +49,18 @@ function prepararSesion(ses: Session) {
 }
 
 /**
+ * Lo que se espera de una página puede no llegar nunca (si se va a otra mientras se lee): sin un
+ * plazo, el asistente se quedaría esperando para siempre.
+ */
+const aTiempo = <T>(p: Promise<T>, ms: number, error = 'La web no ha respondido a tiempo.') =>
+  Promise.race([
+    p,
+    dormir(ms).then(() => {
+      throw new Error(error);
+    }),
+  ]);
+
+/**
  * Lee el texto de una web oficial que rechaza las peticiones que no vienen de un navegador. Usa
  * una vista oculta con su propia sesión en memoria: no comparte cookies con ningún trámite.
  */
@@ -69,25 +81,34 @@ export async function leerConNavegador(url: string, signal: AbortSignal) {
   };
   wc.on('will-navigate', soloOficiales);
   wc.on('will-redirect', soloOficiales);
+  let codigo = 0;
+  wc.on('did-navigate', (_e, _url, c) => (codigo = c));
   const cerrar = () => {
     if (!wc.isDestroyed()) wc.close();
   };
   signal.addEventListener('abort', cerrar, { once: true });
   try {
-    await Promise.race([
+    await aTiempo(
       wc.loadURL(url).catch((e: Error) => {
         if (!/ERR_ABORTED/.test(e.message)) throw e;
       }),
-      new Promise((_r, rechazar) =>
-        setTimeout(() => rechazar(new Error('La web oficial no ha cargado a tiempo.')), 25000),
-      ),
-    ]);
-    // Algunas webs comprueban el navegador con JavaScript y recargan: se espera a que se calme.
-    for (let i = 0; i < 16 && wc.isLoading(); i++) await dormir(500);
+      25000,
+      'La web oficial no ha cargado a tiempo.',
+    );
+    // Algunas webs comprueban el navegador con JavaScript (con un error 403 mientras tanto) y
+    // recargan: se espera a que se calme.
+    for (let i = 0; i < 16 && (wc.isLoading() || codigo >= 400); i++) await dormir(500);
+    // Lo que se ve es un error o una comprobación que no pasa sola: no es la página que se buscaba.
+    if (codigo >= 400)
+      throw new Error(
+        `La web oficial responde con un error ${codigo}. Si pide comprobar que eres una persona, ábrela con abrir en el navegador del trámite y, si la comprobación no pasa sola, usa pedir_ayuda con motivo «captcha».`,
+      );
     await dormir(1200);
-    const r = (await wc.executeJavaScriptInIsolatedWorld(MUNDO, [
-      { code: llamar('leerTexto', 0, 200000) },
-    ])) as { texto: string; titulo: string };
+    const r = (await aTiempo(
+      wc.executeJavaScriptInIsolatedWorld(MUNDO, [{ code: llamar('leerTexto', 0, 200000) }]),
+      15000,
+      'La web oficial no ha respondido a tiempo.',
+    )) as { texto: string; titulo: string };
     return { url: wc.getURL(), titulo: r.titulo, texto: r.texto };
   } finally {
     signal.removeEventListener('abort', cerrar);
@@ -236,10 +257,14 @@ export class NavegadorTramite implements Navegador {
 
   async abrir(url: string) {
     this.asegurarEnVentana();
-    await this.webContents.loadURL(url).catch((e: Error) => {
-      // Una redirección o una navegación nueva cancelan la anterior: no es un error.
-      if (!/ERR_ABORTED/.test(e.message)) throw e;
-    });
+    await aTiempo(
+      this.webContents.loadURL(url).catch((e: Error) => {
+        // Una redirección o una navegación nueva cancelan la anterior: no es un error.
+        if (!/ERR_ABORTED/.test(e.message)) throw e;
+      }),
+      30000,
+      'La web no ha cargado a tiempo. Puede que siga cargando: mírala con ver.',
+    );
     await this.esperar(200);
   }
 
@@ -249,9 +274,10 @@ export class NavegadorTramite implements Navegador {
   }
 
   evaluar<T>(expresion: string): Promise<T> {
-    return this.webContents.executeJavaScriptInIsolatedWorld(MUNDO, [
-      { code: expresion },
-    ]) as Promise<T>;
+    return aTiempo(
+      this.webContents.executeJavaScriptInIsolatedWorld(MUNDO, [{ code: expresion }]) as Promise<T>,
+      20000,
+    );
   }
 
   async clic(x: number, y: number) {

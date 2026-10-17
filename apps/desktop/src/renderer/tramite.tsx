@@ -57,15 +57,18 @@ function Actividad({
   enCurso: boolean;
 }) {
   const [abierta, setAbierta] = useState(false);
-  const ultima = items.at(-1)!;
   const errores = items.filter((i) => i.estado === 'error').length;
-  // El paso concreto solo si dice algo más que la fase («Leyendo seg-social.es»).
+  // El paso concreto solo si dice algo más que la fase («Leyendo seg-social.es»). Cuando ya ha
+  // terminado todo lo que hacía, lo que queda es el modelo pensando el siguiente paso.
+  const enMarcha = items.findLast((i) => i.estado === 'inicio');
   if (enCurso)
-    return (
+    return enMarcha ? (
       <Thinking
-        label={fase(ultima.herramienta)}
-        {...(ultima.herramienta === 'buscar' ? {} : { stage: ultima.resumen })}
+        label={fase(enMarcha.herramienta)}
+        {...(enMarcha.herramienta === 'buscar' ? {} : { stage: enMarcha.resumen })}
       />
+    ) : (
+      <Thinking label="Pensando" />
     );
   return (
     <div className="my-3">
