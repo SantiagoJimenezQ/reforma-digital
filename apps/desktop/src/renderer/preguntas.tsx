@@ -1,5 +1,10 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@reforma-digital/design/ui/collapsible';
 import { Input } from '@reforma-digital/design/ui/input';
 import { Textarea } from '@reforma-digital/design/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
@@ -15,16 +20,21 @@ export const TIPO_INPUT: Partial<Record<string, string>> = {
   numero: 'number',
 };
 
-/** Una pregunta pendiente recibe el foco al aparecer, salvo que la persona tenga algo escrito. */
+/**
+ * Cabecera con el icono, lo que pide el asistente y el título; `accesorio` va a su derecha. Una
+ * pregunta pendiente recibe el foco al aparecer, salvo que la persona tenga algo escrito.
+ */
 function Tarjeta({
   icono,
   eyebrow,
   titulo,
+  accesorio,
   children,
 }: {
   icono: NombreIcono;
   eyebrow: string;
   titulo: string;
+  accesorio?: ReactNode;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -42,15 +52,20 @@ function Tarjeta({
       ref={ref}
       tabIndex={-1}
       aria-labelledby={idTitulo}
-      className="my-6 rounded-[20px] bg-background p-5 outline-none [animation:chat-enter_360ms_var(--ease-brand)_both] focus-visible:ring-2 focus-visible:ring-ring"
+      className="my-6 rounded-[20px] bg-background outline-none [animation:chat-enter_360ms_var(--ease-brand)_both] focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand">
-        <Icono nombre={icono} />
-        {eyebrow}
-      </p>
-      <h3 id={idTitulo} className="m-0 mb-3 text-lg leading-snug font-medium">
-        {titulo}
-      </h3>
+      <div className="flex flex-wrap items-center gap-x-3.5 gap-y-3 p-5">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
+          <Icono nombre={icono} />
+        </span>
+        <div className="min-w-0 flex-1 basis-52">
+          <p className="m-0 text-sm text-muted-foreground">{eyebrow}</p>
+          <h3 id={idTitulo} className="m-0 text-[17px] leading-snug font-medium">
+            {titulo}
+          </h3>
+        </div>
+        {accesorio}
+      </div>
       {children}
     </section>
   );
@@ -83,26 +98,36 @@ function useConMarcadores() {
     });
 }
 
+/**
+ * Si el formulario ofrece hacer el trámite, llega plegado bajo la explicación del asistente, con
+ * el botón de la acción («Pedir la cita»): al pulsarlo se despliega con los datos que hacen falta.
+ */
 function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) {
   const base = useId();
   const f = item.pregunta.tipo === 'formulario' ? item.pregunta.formulario : null;
   const [valores, setValores] = useState<Record<string, string>>({});
+  const [abierto, setAbierto] = useState(!f?.accion);
+  const formulario = useRef<HTMLFormElement>(null);
   const { enviando, responder } = useResponder(tramite, item);
+  const plegable = Boolean(f?.accion);
+  useEffect(() => {
+    if (abierto && plegable)
+      formulario.current
+        ?.querySelector<HTMLElement>('input:not([aria-hidden]), textarea, [role="radio"]')
+        ?.focus();
+  }, [abierto, plegable]);
   if (!f) return null;
   const faltan = f.campos.filter((c) => c.obligatorio !== false && !valores[c.clave]?.trim());
   const fijar = (clave: string, v: string) => setValores((x) => ({ ...x, [clave]: v }));
-  return (
-    <Tarjeta
-      icono="documento"
-      eyebrow={f.accion ? 'El asistente puede hacerlo por ti' : 'El asistente necesita unos datos'}
-      titulo={f.titulo}
-    >
+  const cuerpo = (
+    <div className="px-5 pb-5">
       {f.explicacion && (
         <p className="mt-0 mb-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
           {f.explicacion}
         </p>
       )}
       <form
+        ref={formulario}
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
@@ -188,7 +213,51 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
           )}
         </div>
       </form>
-    </Tarjeta>
+    </div>
+  );
+  if (!f.accion)
+    return (
+      <Tarjeta icono="documento" eyebrow="El asistente necesita unos datos" titulo={f.titulo}>
+        {cuerpo}
+      </Tarjeta>
+    );
+  return (
+    <Collapsible open={abierto} onOpenChange={setAbierto}>
+      <Tarjeta
+        icono="documento"
+        eyebrow="El asistente puede hacerlo por ti"
+        titulo={f.titulo}
+        accesorio={
+          <div className="ml-auto flex gap-2">
+            {!abierto && (
+              <Button variant="ghost" size="lg" disabled={enviando} onClick={() => responder(null)}>
+                Ahora no
+              </Button>
+            )}
+            {/* El mismo botón despliega y pliega, para que no pierda el foco. */}
+            <CollapsibleTrigger
+              aria-label={abierto ? 'Plegar' : undefined}
+              render={
+                <Button variant={abierto ? 'ghost' : 'sunset'} size={abierto ? 'icon-lg' : 'lg'} />
+              }
+            >
+              {abierto ? <Icono nombre="siguiente" className="-rotate-90" /> : f.accion}
+            </CollapsibleTrigger>
+          </div>
+        }
+      >
+        <CollapsibleContent
+          // Al terminar de desplegarse, deja a la vista el formulario entero si cabe.
+          onTransitionEnd={(e) => {
+            if (abierto && e.target === e.currentTarget && e.propertyName === 'height')
+              e.currentTarget.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }}
+          className="h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-300 ease-(--ease-brand) data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0 motion-reduce:transition-none"
+        >
+          {cuerpo}
+        </CollapsibleContent>
+      </Tarjeta>
+    </Collapsible>
   );
 }
 
@@ -206,31 +275,33 @@ function Confirmacion({ tramite, item }: { tramite: string; item: ItemPregunta }
       eyebrow={web ? 'Abrir una web que no es oficial' : 'Necesito tu permiso'}
       titulo={c.accion}
     >
-      {c.previas?.length ? (
-        <p className="mt-0 mb-3 flex gap-2 rounded-xl bg-[var(--warning)] px-3 py-2.5 text-sm text-[var(--warning-foreground)]">
-          <Icono nombre="aviso" />
-          <span>
-            En este trámite ya se hizo: {c.previas.join('; ')}. Comprueba que no lo estás
-            repitiendo.
-          </span>
-        </p>
-      ) : null}
-      {c.detalles.length > 0 && (
-        <ul className="mt-0 mb-4 space-y-1.5 pl-5 text-[15px] leading-relaxed">
-          {c.detalles.map((d) => (
-            <li key={d}>{conMarcadores(d)}</li>
-          ))}
-        </ul>
-      )}
-      {c.sitio && <p className="mt-0 mb-4 text-sm text-muted-foreground">En {c.sitio}</p>}
-      <div className="flex flex-wrap gap-3">
-        <Button variant="sunset" size="lg" disabled={enviando} onClick={() => responder(true)}>
-          {huella && <Icono nombre="huella" />}
-          {web ? 'Abrir' : 'Aprobar'}
-        </Button>
-        <Button variant="outline" size="lg" disabled={enviando} onClick={() => responder(false)}>
-          No
-        </Button>
+      <div className="px-5 pb-5">
+        {c.previas?.length ? (
+          <p className="mt-0 mb-3 flex gap-2 rounded-xl bg-[var(--warning)] px-3 py-2.5 text-sm text-[var(--warning-foreground)]">
+            <Icono nombre="aviso" />
+            <span>
+              En este trámite ya se hizo: {c.previas.join('; ')}. Comprueba que no lo estás
+              repitiendo.
+            </span>
+          </p>
+        ) : null}
+        {c.detalles.length > 0 && (
+          <ul className="mt-0 mb-4 space-y-1.5 pl-5 text-[15px] leading-relaxed">
+            {c.detalles.map((d) => (
+              <li key={d}>{conMarcadores(d)}</li>
+            ))}
+          </ul>
+        )}
+        {c.sitio && <p className="mt-0 mb-4 text-sm text-muted-foreground">En {c.sitio}</p>}
+        <div className="flex flex-wrap gap-3">
+          <Button variant="sunset" size="lg" disabled={enviando} onClick={() => responder(true)}>
+            {huella && <Icono nombre="huella" />}
+            {web ? 'Abrir' : 'Aprobar'}
+          </Button>
+          <Button variant="outline" size="lg" disabled={enviando} onClick={() => responder(false)}>
+            No
+          </Button>
+        </div>
       </div>
     </Tarjeta>
   );
@@ -261,20 +332,22 @@ function Ayuda({
   const m = MOTIVOS[a.motivo];
   return (
     <Tarjeta icono={m.icono} eyebrow={m.eyebrow} titulo={a.instrucciones}>
-      <p className="mt-0 mb-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-        Hazlo en el navegador de la derecha, en la web oficial. El asistente espera y no ve lo que
-        escribes en las contraseñas.
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <Button variant="sunset" size="lg" disabled={enviando} onClick={() => responder(true)}>
-          Ya está
-        </Button>
-        <Button variant="outline" size="lg" onClick={verNavegador}>
-          Ver el navegador
-        </Button>
-        <Button variant="ghost" size="lg" disabled={enviando} onClick={() => responder(false)}>
-          No he podido
-        </Button>
+      <div className="px-5 pb-5">
+        <p className="mt-0 mb-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+          Hazlo en el navegador de la derecha, en la web oficial. El asistente espera y no ve lo que
+          escribes en las contraseñas.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="sunset" size="lg" disabled={enviando} onClick={() => responder(true)}>
+            Ya está
+          </Button>
+          <Button variant="outline" size="lg" onClick={verNavegador}>
+            Ver el navegador
+          </Button>
+          <Button variant="ghost" size="lg" disabled={enviando} onClick={() => responder(false)}>
+            No he podido
+          </Button>
+        </div>
       </div>
     </Tarjeta>
   );

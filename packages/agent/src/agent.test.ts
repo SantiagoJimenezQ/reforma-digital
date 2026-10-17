@@ -826,36 +826,42 @@ describe('datos que no están en Mis datos', () => {
 });
 
 describe('formularios', () => {
-  it('si anuncia un formulario y no lo pone, tiene un paso más en el que solo puede ponerlo', async () => {
-    const pedido: string[] = [];
-    const a = {
-      ...anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
-      preguntar: async (f: { accion?: string }) => {
-        pedido.push(f.accion ?? '');
-        return {};
-      },
-    };
-    const { model, elecciones } = modeloGuionado([
-      () => ({ texto: 'Puedo pedirte la cita. Dime esto en el formulario:' }),
-      () => ({
-        llamadas: [
-          {
-            herramienta: 'preguntar',
-            entrada: {
-              titulo: 'Tu cita',
-              accion: 'Pedir la cita',
-              campos: [{ clave: 'documento_soporte', etiqueta: 'Soporte', tipo: 'texto' }],
+  it.each([
+    'Puedo pedirte la cita. Dime esto en el formulario:',
+    'Si quieres, te acompaño paso a paso en la web oficial.',
+  ])(
+    'si ofrece hacerlo y no pone el formulario, tiene un paso más en el que solo puede ponerlo: «%s»',
+    async (oferta) => {
+      const pedido: string[] = [];
+      const a = {
+        ...anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
+        preguntar: async (f: { accion?: string }) => {
+          pedido.push(f.accion ?? '');
+          return {};
+        },
+      };
+      const { model, elecciones } = modeloGuionado([
+        () => ({ texto: oferta }),
+        () => ({
+          llamadas: [
+            {
+              herramienta: 'preguntar',
+              entrada: {
+                titulo: 'Tu cita',
+                accion: 'Pedir la cita',
+                campos: [{ clave: 'documento_soporte', etiqueta: 'Soporte', tipo: 'texto' }],
+              },
             },
-          },
-        ],
-      }),
-      () => ({ texto: 'Gracias, voy a por ella.' }),
-    ]);
-    const r = await turno(model, a, 'Renueva mi DNI');
-    expect(r.fin).toBe('respondido');
-    expect(elecciones[1]).toEqual({ type: 'tool', toolName: 'preguntar' });
-    expect(pedido).toEqual(['Pedir la cita']);
-  });
+          ],
+        }),
+        () => ({ texto: 'Gracias, voy a por ella.' }),
+      ]);
+      const r = await turno(model, a, 'Renueva mi DNI');
+      expect(r.fin).toBe('respondido');
+      expect(elecciones[1]).toEqual({ type: 'tool', toolName: 'preguntar' });
+      expect(pedido).toEqual(['Pedir la cita']);
+    },
+  );
 
   it('espera lo que haga falta a que la persona rellene el formulario', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

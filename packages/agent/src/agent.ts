@@ -64,7 +64,7 @@ const HERRAMIENTAS_DE_PAGINA = new Set([
 
 /** El final de una respuesta que ofrece hacer el trámite o pide algo a la persona. */
 const OFRECE =
-  /formulario|[?:]$|(puedo|podría) (ayudarte|hacerlo|pedir|solicitar|tramitar|reservar)|quieres que (te )?(lo |la )?(haga|ayude|pida|solicite|tramite|reserve)/i;
+  /formulario|[?:]$|(puedo|podría) (ayudarte|hacerlo|pedir|solicitar|tramitar|reservar)|quieres que (te )?(lo |la )?(haga|ayude|pida|solicite|tramite|reserve)|te (ayudo|acompaño)/i;
 
 /** Herramientas cuyo resultado sale de la página del trámite: pasan por el detector. */
 const CON_DATOS = new Set([...HERRAMIENTAS_DE_PAGINA, 'leer_texto']);
