@@ -155,13 +155,13 @@ function Conversacion({
           const i = b.item;
           if (i.tipo === 'usuario')
             return (
-              <div key={i.id} className="my-6 flex flex-col items-end">
-                <p className="m-0 max-w-[85%] rounded-[20px] bg-muted px-4 py-3 text-base leading-relaxed whitespace-pre-wrap">
+              <div key={i.id} className="my-6">
+                <p className="m-0 rounded-[20px] bg-background px-5 py-3.5 text-base leading-relaxed whitespace-pre-wrap">
                   {i.texto}
                 </p>
                 {i.protegidos > 0 && (
                   <p
-                    className="mt-1.5 mb-0 flex items-center gap-1.5 text-sm text-muted-foreground"
+                    className="mt-2 mb-0 ml-1 flex items-center gap-1.5 text-sm text-muted-foreground"
                     title="Se enviaron al asistente como marcadores: no ha visto los valores."
                   >
                     <Icono nombre="candado" size={16} />
@@ -172,8 +172,13 @@ function Conversacion({
             );
           if (i.tipo === 'asistente')
             return (
-              <div key={i.id} className="my-4 text-[17px] leading-[1.6]">
-                <Response streaming={trabajando && i === ultimo}>{i.texto}</Response>
+              <div key={i.id} className="my-4 text-base leading-[1.65]">
+                <Response
+                  streaming={trabajando && i === ultimo}
+                  className="[&_li]:marker:text-muted-foreground [&_ol]:list-decimal [&_ul]:list-disc"
+                >
+                  {i.texto}
+                </Response>
                 {i.fuentes && (
                   <FuentesRespuesta
                     fuentes={vista.fuentes.filter((f) => i.fuentes?.includes(f.id))}
@@ -361,13 +366,13 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
         className={cn('flex min-w-0 flex-col', verNavegador ? 'w-[400px] shrink-0' : 'flex-1')}
         aria-label="Conversación"
       >
-        <header className="arrastrar flex h-[52px] shrink-0 items-center gap-3 border-b border-border px-6">
+        <header className="arrastrar flex h-[52px] shrink-0 items-center gap-2 px-6">
           <h1 className="m-0 truncate text-[15px] font-medium">{vista.titulo}</h1>
           {!verNavegador && (
             <Button
               variant="ghost"
-              size="sm"
-              className="ml-auto"
+              size="lg"
+              className="ml-auto hover:bg-foreground/[0.06]"
               onClick={() => setVerNavegador(true)}
             >
               <Icono nombre="web" />
@@ -376,8 +381,8 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
           )}
           <Button
             variant="ghost"
-            size="icon"
-            className={verNavegador ? 'ml-auto' : ''}
+            size="icon-lg"
+            className={cn('hover:bg-foreground/[0.06]', verNavegador && 'ml-auto')}
             aria-label="Borrar este trámite"
             onClick={() => {
               if (
@@ -396,7 +401,8 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
           verNavegador={() => setVerNavegador(true)}
           abrirFuente={abrirFuente}
         />
-        <div className="mx-auto w-full max-w-[720px] px-8 pb-6">
+        {/* La conversación se funde con el lienzo justo encima del compositor. */}
+        <div className="relative mx-auto w-full max-w-[720px] px-8 pt-2 pb-6 before:pointer-events-none before:absolute before:inset-x-0 before:-top-8 before:h-8 before:bg-linear-to-b before:from-transparent before:to-muted">
           <Compositor
             placeholder={
               trabajando
@@ -414,7 +420,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
       {verNavegador && (
         <aside
           aria-label="Navegador del trámite"
-          className="flex min-w-0 flex-1 flex-col border-l border-border bg-[#fcfcfc]"
+          className="flex min-w-0 flex-1 flex-col border-l border-border bg-background"
         >
           <div className="arrastrar flex h-[52px] shrink-0 items-center gap-2 px-4">
             <span className="text-[15px] font-medium">Navegador</span>

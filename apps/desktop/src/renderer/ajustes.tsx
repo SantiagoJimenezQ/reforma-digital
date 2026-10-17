@@ -6,6 +6,7 @@ import { Checkbox } from '@reforma-digital/design/ui/checkbox';
 import type { Razonamiento } from '../shared/api';
 import { Cabecera } from './datos';
 import { useEstado } from './estado';
+import { dolares } from './formato';
 import { Icono } from './icono';
 
 /** Modelos probados con las evaluaciones del agente (pnpm eval:agent). */
@@ -125,10 +126,14 @@ export function Ajustes() {
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-[760px] px-10 pb-16">
         <Cabecera titulo="Ajustes" entradilla="El modelo y los límites del asistente." />
-        <section className="border-t border-border py-8">
+        <section className="mb-3 rounded-[24px] bg-background p-6">
           <Modelo />
+          <p className="mt-4 mb-0 text-sm text-muted-foreground">
+            Gasto en IA de todos tus trámites:{' '}
+            {dolares(app.tramites.reduce((n, t) => n + t.costeUsd, 0))}
+          </p>
         </section>
-        <section className="space-y-6 border-t border-border py-8">
+        <section className="mb-3 flex flex-col gap-6 rounded-[24px] bg-background p-6">
           <fieldset className="m-0 border-0 p-0">
             <legend className="mb-3 text-[15px] font-medium">Cuánto piensa antes de actuar</legend>
             <RadioGroup
@@ -207,7 +212,7 @@ export function Ajustes() {
             </span>
           </label>
         </section>
-        <section className="border-t border-border py-8">
+        <section className="mb-3 rounded-[24px] bg-background p-6">
           <h2 className="mt-0 mb-3 text-[15px] font-medium">Privacidad</h2>
           <ul className="m-0 space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--text-secondary)]">
             <li>
@@ -235,7 +240,7 @@ export function Ajustes() {
             </div>
           )}
         </section>
-        <section className="border-t border-border pt-8">
+        <section className="pt-5">
           <Button
             variant="destructive"
             size="lg"

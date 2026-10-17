@@ -250,3 +250,13 @@ El Congreso (`/congreso`) es una sección pública de Reforma Digital y usa Sol 
 - Para cambiarlo se editan los números de [`sol-pixel.mjs`](apps/web/scripts/sol-pixel.mjs) y se ejecuta `node apps/web/scripts/sol-pixel.mjs`. El PNG no se retoca a mano.
 - La cabecera de Reforma Digital lleva «El Congreso» como un enlace más, marcado como actual dentro de la sección. Desde 1100 px, las vistas van en una columna a la izquierda de 232 px, agrupadas y todas a la vista, con la actual sobre `--superficie`; se queda pegada al bajar y una ficha mantiene marcada la vista de la que sale. Por debajo de 1100 px, las vistas están en una barra con desplegables bajo la cabecera.
 - Los colores de un hemiciclo o de un resultado son datos (sí, no, abstención). Detrás no va el sol ni otro fondo de color.
+
+## 9. App de Mac
+
+La app de Mac (`apps/desktop`) usa los mismos tokens y primitivas, con la composición de un cliente de chat de escritorio.
+
+- **Lienzo gris, superficies blancas.** Toda la ventana es `--muted`; lo que se lee o se rellena va en blanco y sin sombra: el mensaje de la persona, las tarjetas de preguntas, el navegador del trámite y las secciones de «Mis datos» y «Ajustes» (radio 24). Solo el compositor flota, con `--shadow-soft`.
+- **Barra lateral de 260 px**, un poco más oscura que el lienzo (`foreground` al 2,5 %). Arriba, «Nuevo trámite» y «Mis datos»; después, los trámites en filas de 36 px con el título en una línea y, a la derecha, cuánto hace del último cambio («5 min», «12 d»). Un punto rojo y «Te toca» marcan que el asistente espera a la persona; un punto gris que late, que está trabajando (con su texto para lectores de pantalla). Abajo, la marca y «Ajustes». Las filas se oscurecen al pasar (4 %) y la activa queda marcada (7 %).
+- **Compositor** de radio 28 (§8.2): el texto arriba y, debajo, «Datos protegidos» y el selector de cuánto piensa el asistente (el mismo ajuste que en «Ajustes»), sin un segundo borde (§8.5), y el botón de enviar o detener. En la conversación, el texto se funde con el lienzo justo encima.
+- **Inicio**: titular en serif de 40 px, recordatorios en píldora sobre el compositor, sugerencias en píldora debajo y las tres promesas al pie.
+- **Conversación** en una columna de 720 px: el mensaje de la persona a todo el ancho, la respuesta a 16 px con sus listas numeradas y las acciones del asistente en una línea desplegable. Los botones fantasma sobre el lienzo se oscurecen al pasar (6 %), porque `hover:bg-muted` no se vería.

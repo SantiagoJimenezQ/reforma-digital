@@ -278,7 +278,7 @@ function crearVentana() {
     show: false,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 18, y: 20 },
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f5f5f5',
     webPreferences: {
       preload: path.join(RAIZ, 'preload.cjs'),
       sandbox: true,

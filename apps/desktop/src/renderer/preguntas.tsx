@@ -42,7 +42,7 @@ function Tarjeta({
       ref={ref}
       tabIndex={-1}
       aria-labelledby={idTitulo}
-      className="my-6 rounded-[20px] bg-background p-5 shadow-[var(--shadow-soft)] outline-none [animation:chat-enter_360ms_var(--ease-brand)_both] focus-visible:ring-2 focus-visible:ring-ring"
+      className="my-6 rounded-[20px] bg-background p-5 outline-none [animation:chat-enter_360ms_var(--ease-brand)_both] focus-visible:ring-2 focus-visible:ring-ring"
     >
       <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand">
         <Icono nombre={icono} />

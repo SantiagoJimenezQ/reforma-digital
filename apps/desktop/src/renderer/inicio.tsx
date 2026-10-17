@@ -1,15 +1,59 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@reforma-digital/design/ui/select';
+import type { Razonamiento } from '../shared/api';
 import { useEstado } from './estado';
 import { Icono, type NombreIcono } from './icono';
 
 const SUGERENCIAS = [
-  'Quiero renovar mi DNI',
-  'Necesito empadronarme en mi municipio',
-  'Quiero descargar mi vida laboral',
-  'Quiero darme de alta como autónomo',
-  'Necesito pedir el paro',
+  'Renovar el DNI',
+  'Empadronarme',
+  'Descargar mi vida laboral',
+  'Pedir el paro',
 ];
+
+const RAZONAMIENTO = [
+  { value: 'low', label: 'Rápido' },
+  { value: 'medium', label: 'Equilibrado' },
+  { value: 'high', label: 'Cuidadoso' },
+] satisfies { value: Razonamiento; label: string }[];
+
+/** Cuánto piensa el asistente antes de actuar: el mismo ajuste que en Ajustes, a mano al escribir. */
+function Razonar() {
+  const { app } = useEstado();
+  if (!app) return null;
+  return (
+    <Select
+      value={app.ajustes.razonamiento}
+      items={RAZONAMIENTO}
+      onValueChange={(v) => {
+        if (v === 'low' || v === 'medium' || v === 'high')
+          void window.rd.guardarAjustes({ razonamiento: v });
+      }}
+    >
+      {/* Dentro del compositor no hay un segundo borde (DESIGN.md §8.5). */}
+      <SelectTrigger
+        aria-label="Cuánto piensa antes de actuar"
+        className="h-8 border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false} align="start" className="p-1">
+        {RAZONAMIENTO.map((r) => (
+          <SelectItem key={r.value} value={r.value}>
+            {r.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 /** El campo para escribir, el mismo en el inicio y en cada trámite. */
 export function Compositor({
@@ -47,7 +91,7 @@ export function Compositor({
     }
   };
   return (
-    <div className="flex items-end gap-2 rounded-[28px] bg-background p-2.5 pl-5 shadow-[var(--shadow-soft)] focus-within:ring-3 focus-within:ring-ring/40">
+    <div className="rounded-[28px] bg-background shadow-[var(--shadow-soft)] focus-within:ring-1 focus-within:ring-foreground/20">
       <label className="sr-only" htmlFor="compositor">
         Mensaje para el asistente
       </label>
@@ -55,36 +99,46 @@ export function Compositor({
         id="compositor"
         ref={ref}
         autoFocus={autoFocus}
-        rows={1}
+        rows={2}
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
         onKeyDown={tecla}
         placeholder={placeholder}
         maxLength={4000}
-        className="field-sizing-content max-h-48 min-h-11 flex-1 resize-none bg-transparent py-2.5 text-base leading-6 outline-none placeholder:text-muted-foreground"
+        className="field-sizing-content block max-h-60 min-h-[60px] w-full resize-none bg-transparent px-5 pt-4 text-base leading-6 outline-none placeholder:text-muted-foreground"
       />
-      {ocupado && alDetener ? (
-        <Button
-          variant="outline"
-          size="icon-lg"
-          className="rounded-full"
-          aria-label="Detener al asistente"
-          onClick={alDetener}
+      <div className="flex items-center gap-1 px-2.5 pt-1 pb-2.5">
+        <span
+          className="flex items-center gap-1.5 px-2.5 text-sm text-muted-foreground"
+          title="Al asistente le llegan marcadores en lugar de tu nombre, tu documento o tu dirección."
         >
-          <Icono nombre="detener" />
-        </Button>
-      ) : (
-        <Button
-          variant="sunset"
-          size="icon-lg"
-          className="rounded-full"
-          aria-label="Enviar"
-          disabled={!texto.trim() || ocupado || enviando}
-          onClick={() => void enviar()}
-        >
-          <Icono nombre="enviar" />
-        </Button>
-      )}
+          <Icono nombre="candado" size={16} />
+          Datos protegidos
+        </span>
+        <Razonar />
+        {ocupado && alDetener ? (
+          <Button
+            variant="outline"
+            size="icon-lg"
+            className="ml-auto rounded-full"
+            aria-label="Detener al asistente"
+            onClick={alDetener}
+          >
+            <Icono nombre="detener" />
+          </Button>
+        ) : (
+          <Button
+            variant="sunset"
+            size="icon-lg"
+            className="ml-auto rounded-full"
+            aria-label="Enviar"
+            disabled={!texto.trim() || ocupado || enviando}
+            onClick={() => void enviar()}
+          >
+            <Icono nombre="enviar" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -115,63 +169,65 @@ export function Inicio({ abrir }: { abrir: (id: string) => void }) {
       {/* El atardecer de Sol, solo como luz de fondo bajo el contenido. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-[radial-gradient(70%_100%_at_50%_100%,color-mix(in_oklab,var(--brand-yellow)_22%,transparent),transparent)]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(60%_100%_at_50%_100%,color-mix(in_oklab,var(--brand-yellow)_16%,transparent),transparent)]"
       />
       <div className="arrastrar h-[52px] shrink-0" />
-      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-8 pb-16">
-        <div className="w-full max-w-[720px]">
-          <div className="text-center">
-            <h1 className="m-0 font-heading text-[52px] leading-[1.08] font-normal tracking-[-0.02em]">
-              ¿Qué trámite quieres hacer?
-            </h1>
-            <p className="mx-auto mt-4 mb-10 max-w-[56ch] text-[17px] leading-relaxed text-[var(--text-secondary)]">
-              Lo investigo en webs oficiales, te explico cada paso con su fuente y, si quieres, lo
-              hago contigo en la sede electrónica.
-            </p>
-          </div>
-          {app?.recordatorios.map((r) => (
-            <button
-              key={r.texto}
-              type="button"
-              onClick={() => void crear(r.sugerencia)}
-              className="mb-4 flex w-full items-center gap-3 rounded-2xl bg-[var(--warning)] px-5 py-4 text-left text-[var(--warning-foreground)] transition-[scale] active:scale-[0.98]"
-            >
-              <Icono nombre="aviso" />
-              <span className="flex-1">
-                <strong className="font-medium">{r.texto}</strong> Te ayudo a renovarlo.
-              </span>
-              <Icono nombre="siguiente" />
-            </button>
-          ))}
+      <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-8">
+        <div className="my-auto w-full max-w-[680px] py-10">
+          <h1 className="m-0 mb-8 text-center font-heading text-[40px] leading-[1.1] font-normal tracking-[-0.02em]">
+            ¿Qué trámite quieres hacer?
+          </h1>
+          {app?.recordatorios.length ? (
+            <div className="mb-3 flex flex-wrap gap-2 px-2">
+              {app.recordatorios.map((r) => (
+                <button
+                  key={r.texto}
+                  type="button"
+                  onClick={() => void crear(r.sugerencia)}
+                  className="flex min-h-9 items-center gap-2 rounded-full bg-[var(--warning)] px-3.5 text-left text-sm text-[var(--warning-foreground)] transition-[scale] active:scale-[0.96]"
+                >
+                  <Icono nombre="aviso" size={16} />
+                  <span>
+                    <strong className="font-medium">{r.texto}</strong> Te ayudo a renovarlo.
+                  </span>
+                  <Icono nombre="siguiente" size={14} />
+                </button>
+              ))}
+            </div>
+          ) : null}
           <Compositor
             autoFocus
             placeholder="Por ejemplo: quiero pedir cita para renovar el DNI en Sevilla"
             ocupado={false}
             alEnviar={crear}
           />
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             {SUGERENCIAS.map((s) => (
               <Button
                 key={s}
                 variant="outline"
                 size="lg"
-                className="rounded-full px-4"
+                className="rounded-full px-3.5 text-[15px] font-normal"
                 onClick={() => void crear(s)}
               >
                 {s}
               </Button>
             ))}
           </div>
-          <ul className="mt-16 grid grid-cols-3 gap-8 border-t border-border pt-8">
-            {PROMESAS.map((p) => (
-              <li key={p.titulo} className="text-sm">
-                <Icono nombre={p.icono} className="text-brand" />
-                <p className="mt-2 mb-1 text-[15px] font-medium">{p.titulo}</p>
-                <p className="m-0 leading-relaxed text-muted-foreground">{p.texto}</p>
-              </li>
-            ))}
-          </ul>
         </div>
+        <ul className="m-0 grid w-full max-w-[760px] grid-cols-3 gap-8 p-0 pb-10">
+          {PROMESAS.map((p) => (
+            <li key={p.titulo} className="flex list-none gap-3">
+              <Icono nombre={p.icono} className="mt-0.5 shrink-0 text-brand" />
+              <span>
+                <span className="block text-[15px] font-medium">{p.titulo}</span>
+                <span className="block text-sm leading-relaxed text-muted-foreground">
+                  {p.texto}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

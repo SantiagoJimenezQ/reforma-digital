@@ -48,7 +48,7 @@ const sitio = (url: string) => {
     .join('.');
 };
 
-const fila = 'flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-muted';
+const fila = 'flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-background';
 
 /** Una página: su título y de quién es. */
 function Pagina({ f, abrir }: { f: FuenteVista; abrir: (url: string) => void }) {
@@ -102,7 +102,7 @@ function Grupo({
               <button
                 type="button"
                 onClick={() => abrir(f.url)}
-                className="w-full rounded-lg px-2 py-1.5 text-left text-[15px] leading-snug hover:bg-muted"
+                className="w-full rounded-lg px-2 py-1.5 text-left text-[15px] leading-snug hover:bg-background"
               >
                 {f.titulo}
                 {f.nivel ? (

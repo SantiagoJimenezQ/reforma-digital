@@ -10,10 +10,10 @@ export function Cabecera({ titulo, entradilla }: { titulo: string; entradilla: s
   return (
     <>
       <div className="arrastrar h-[52px] shrink-0" />
-      <h1 className="m-0 font-heading text-[44px] leading-[1.1] font-normal tracking-[-0.02em]">
+      <h1 className="m-0 font-heading text-[36px] leading-[1.1] font-normal tracking-[-0.02em]">
         {titulo}
       </h1>
-      <p className="mt-3 mb-8 max-w-[62ch] text-[17px] leading-relaxed text-[var(--text-secondary)]">
+      <p className="mt-3 mb-8 max-w-[62ch] text-base leading-relaxed text-[var(--text-secondary)]">
         {entradilla}
       </p>
     </>
@@ -53,8 +53,8 @@ export function MisDatos() {
           titulo="Mis datos"
           entradilla="El asistente los usa para rellenar los formularios oficiales sin preguntarte cada vez. Se guardan cifrados en este Mac, con una clave protegida por tu llavero."
         />
-        <div className="mb-10 grid grid-cols-2 gap-4">
-          <div className="rounded-[20px] bg-muted p-5">
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          <div className="rounded-[24px] bg-background p-6">
             <p className="m-0 mb-2 flex items-center gap-2 font-medium">
               <Icono nombre="ver" /> Lo que ve la IA
             </p>
@@ -63,7 +63,7 @@ export function MisDatos() {
               queda a tu documento.
             </p>
           </div>
-          <div className="rounded-[20px] bg-muted p-5">
+          <div className="rounded-[24px] bg-background p-6">
             <p className="m-0 mb-2 flex items-center gap-2 font-medium">
               <Icono nombre="candado" /> Lo que nunca ve
             </p>
@@ -94,7 +94,7 @@ export function MisDatos() {
           {aviso && <p className="m-0 text-sm text-destructive">{aviso}</p>}
         </div>
         {GRUPOS.map((grupo) => (
-          <section key={grupo} className="border-t border-border py-6">
+          <section key={grupo} className="mb-3 rounded-[24px] bg-background p-6">
             <h2 className="mt-0 mb-4 font-mono text-xs font-medium tracking-[0.06em] text-muted-foreground uppercase">
               {grupo}
             </h2>
@@ -158,7 +158,7 @@ export function MisDatos() {
             </dl>
           </section>
         ))}
-        <section className="border-t border-border pt-6">
+        <section className="pt-5">
           <Button
             variant="destructive"
             size="lg"
