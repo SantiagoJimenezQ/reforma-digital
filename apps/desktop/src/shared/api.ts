@@ -88,6 +88,8 @@ export type DatoPerfil = { clave: string; guardado: boolean; vista: string };
 export type EstadoApp = {
   version: string;
   ajustes: Ajustes;
+  /** Temporal: el modelo de NaN Builders que usa el asistente (fijo), o `null` con Vercel AI Gateway. */
+  modeloNan: string | null;
   tramites: ResumenTramite[];
   campos: readonly CampoPerfil[];
   perfil: DatoPerfil[];

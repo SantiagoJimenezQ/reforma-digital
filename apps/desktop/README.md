@@ -21,7 +21,9 @@ Si el terminal tiene `ELECTRON_RUN_AS_NODE=1` (lo definen algunas apps hechas co
 
 La app no pide ninguna clave: llama al asistente con la de **Vercel AI Gateway** que recibe al compilarse (`AI_GATEWAY_API_KEY`, del entorno o del `.env` de la raíz). Habla directamente con Vercel y con las webs oficiales, sin servidores de Reforma Digital. El modelo por defecto es `openai/gpt-6-luna`, el que mejor resultado y menor coste ha dado en las evaluaciones; se cambia en Ajustes.
 
-**La clave queda dentro del `.app` y cualquiera que lo tenga puede sacarla.** Sirve para compilaciones propias. Para repartir la app hace falta otra cosa: una clave aparte con presupuesto limitado en Vercel o, mejor, un servidor intermedio que guarde la clave y limite el uso. Sin clave, la app avisa al enviar un mensaje y no hace nada más.
+**Temporal: NaN Builders y Exa.** Si al compilar también están `NAN_API_KEY` y `EXA_API_KEY`, la app usa en su lugar `deepseek-v4-flash`, un modelo abierto de [NaN Builders](https://nan.builders) (sin registro de peticiones, en la UE), y busca con [Exa](https://exa.ai). Ajustes muestra el modelo fijo en lugar de la lista de Vercel.
+
+**Las claves quedan dentro del `.app` y cualquiera que lo tenga puede sacarlas.** Sirve para compilaciones propias. Para repartir la app hace falta otra cosa: una clave aparte con presupuesto limitado en Vercel o, mejor, un servidor intermedio que guarde la clave y limite el uso. Sin clave, la app avisa al enviar un mensaje y no hace nada más.
 
 ## Cómo está hecha
 
@@ -30,7 +32,7 @@ flowchart LR
   UI["Interfaz · React + sistema Sol"] -- "window.rd (IPC validado)" --> Main["Proceso principal · Electron"]
   Main --> Almacen["Almacén cifrado · AES-256-GCM, clave en el llavero"]
   Main --> Agente["@reforma-digital/agent · bucle del agente"]
-  Agente --> Modelo["Vercel AI Gateway"]
+  Agente --> Modelo["Vercel AI Gateway · temporal: NaN Builders + Exa"]
   Agente --> Oficiales["Webs oficiales · búsqueda y lectura"]
   Main --> Vista["Navegador del trámite · WebContentsView, sesión propia"]
   Agente -. "mismo script de página" .-> Vista
@@ -65,20 +67,20 @@ Se comprueban en el código de las herramientas y tienen pruebas en [`agent.test
 
 - **Datos personales ocultos.** El modelo no recibe los identificadores de «Mis datos» ni los que un detector local (reglas y [Rampart](https://github.com/nationaldesignstudio/rampart), que funciona en el Mac) encuentra en lo que escribe la persona y en las páginas: nombres, documentos, direcciones, teléfonos, correos y fechas de nacimiento, también de otras personas. Le llegan como marcadores (`{{documento_numero}}`, `{{nombre_1}}`). De los campos de un formulario solo ve lo que ha escrito él. La app sustituye el marcador por el valor al escribir en una web oficial y en su propia interfaz. Ve los datos de contexto (municipio, provincia, nacionalidad, edad…) porque los necesita para investigar. Antes de cada petición, una última capa vuelve a buscar los valores guardados y cualquier DNI, NIE o IBAN válido. Si el detector falla, no se envía nada. Detalles, límites y comprobaciones en el [protocolo de seguridad](security-protocol.md).
 - **Nada vinculante sin permiso.** Los botones que envían, confirman, reservan, pagan o firman necesitan un código de un solo uso que solo da `confirmar` cuando la persona lo aprueba (con Touch ID si está activado). El código vale solo en la web donde se pidió y se gasta al pulsar. Intro y Espacio sobre un botón vinculante o en un formulario que se enviaría también lo necesitan. Si en el trámite ya se hizo un envío, la confirmación lo recuerda para no repetirlo.
-- **Solo webs oficiales.** El asistente busca y lee solo dominios de las administraciones. Para abrir otra web necesita el permiso de la persona, y aun así no escribe datos personales en ella. Nunca escribe en campos de contraseña.
-- **Lectura segura.** `leer_pagina` solo usa HTTPS y dominios oficiales, comprueba cada redirección y conecta con la IP que ha comprobado (no puede llegar a la red local).
-- **Fuentes a la vista.** Debajo de cada respuesta, la app muestra en un desplegable las webs oficiales que el asistente consultó en ese turno, con su icono; cada una se abre en el navegador del trámite. La lista sale de lo que leyó, no de lo que dice el modelo. Lo que no hay es una comprobación de que cada dato de la respuesta salga de esas webs (ver [Limitaciones](#limitaciones)).
+- **Datos solo en webs oficiales.** El asistente busca en toda la web (las de las administraciones son demasiadas para una lista) y marca como «sin verificar» los resultados cuyo dominio no está en la lista de webs oficiales (`packages/government/src/domains.ts`); las instrucciones le piden usarlos solo si son claramente de una administración. Solo abre en el navegador del trámite webs de la lista; para abrir otra necesita el permiso de la persona, y aun así no escribe datos personales en ella. Nunca escribe en campos de contraseña.
+- **Lectura segura.** `leer_pagina` solo usa HTTPS, lee dominios de la lista o páginas que haya devuelto el buscador (nunca una dirección que escriba el modelo), comprueba cada redirección y conecta con la IP que ha comprobado (no puede llegar a la red local).
+- **Fuentes a la vista.** Debajo de cada respuesta, la app muestra en un desplegable las webs que el asistente consultó en ese turno, con su icono y la marca «sin verificar» si no están en la lista; las oficiales se abren en el navegador del trámite y las demás en el del Mac. La lista sale de lo que leyó, no de lo que dice el modelo. Lo que no hay es una comprobación de que cada dato de la respuesta salga de esas webs (ver [Limitaciones](#limitaciones)).
 
 Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, en memoria (al cerrar la app hay que volver a iniciar sesión, y no queda nada en disco); las peticiones solo van a proveedores de IA que no entrenan con ellas (con retención cero opcional); el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones; los certificados se eligen del llavero de macOS; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y el `.app` desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
 
 ### Herramientas del agente
 
-| Herramienta                                                                                          | Para qué                                                                          |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `buscar`, `leer_pagina`                                                                              | Buscar y leer en webs oficiales; lo consultado se muestra debajo de la respuesta. |
-| `mis_datos`, `preguntar`                                                                             | Qué hay guardado y pedir lo que falte; lo que se responde se guarda cifrado.      |
-| `confirmar`, `pedir_ayuda`                                                                           | Permiso para lo vinculante y ceder el navegador a la persona.                     |
-| `abrir`, `ver`, `leer_texto`, `pulsar`, `escribir`, `elegir`, `marcar`, `tecla`, `volver`, `esperar` | Manejar la sede electrónica con los controles originales.                         |
+| Herramienta                                                                                          | Para qué                                                                              |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `buscar`, `leer_pagina`                                                                              | Buscar en la web y leer las páginas; lo consultado se muestra debajo de la respuesta. |
+| `mis_datos`, `preguntar`                                                                             | Qué hay guardado y pedir lo que falte; lo que se responde se guarda cifrado.          |
+| `confirmar`, `pedir_ayuda`                                                                           | Permiso para lo vinculante y ceder el navegador a la persona.                         |
+| `abrir`, `ver`, `leer_texto`, `pulsar`, `escribir`, `elegir`, `marcar`, `tecla`, `volver`, `esperar` | Manejar la sede electrónica con los controles originales.                             |
 
 ## Evaluaciones
 
@@ -86,6 +88,7 @@ Además: todos los datos de la app se guardan cifrados; cada trámite tiene su p
 AI_GATEWAY_API_KEY=… pnpm eval:agent --suite ejecucion      # escenarios en la sede ficticia
 AI_GATEWAY_API_KEY=… pnpm eval:agent --suite investigacion  # casos del dataset del buscador
 pnpm eval:agent --suite todo --modelo openai/gpt-6-luna --comparar artifacts/runs/<informe>.json
+NAN_API_KEY=… EXA_API_KEY=… pnpm eval:agent --proveedor nan --modelo deepseek-v4-flash --juez deepseek-v4-flash
 ```
 
 Usan modelos reales (con coste) y guardan el informe y las transcripciones en `artifacts/runs/`. Las transcripciones contienen marcadores, no datos personales.
@@ -120,7 +123,7 @@ Las evaluaciones guiaron cambios concretos: una sede que se presentaba «de prue
 
 | SpainAssist                                                                                | Reforma Digital para Mac                                                                                                                        |
 | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| La investigación devuelve texto sin fuentes.                                               | Cada respuesta muestra las webs oficiales consultadas; el asistente solo busca y lee dominios de la Administración.                             |
+| La investigación devuelve texto sin fuentes.                                               | Cada respuesta muestra las webs consultadas y marca las que no están en la lista de webs oficiales.                                             |
 | El modelo recibe los datos personales; los límites contra exfiltración están en el prompt. | El modelo ve marcadores, también para los datos que detecta un modelo local; dominios, contraseñas y confirmaciones se comprueban en el código. |
 | `confirm_action` es orientativo.                                                           | Sin código de confirmación no se pulsa un botón vinculante.                                                                                     |
 | `fetch_url` y `run_script` pueden llegar a la red local con IPv6 mapeado.                  | Solo dominios oficiales por HTTPS y conexión a la IP comprobada.                                                                                |
@@ -136,10 +139,10 @@ Lo que SpainAssist tiene y esta app no: firma propia sin AutoFirma, DNIe con el 
 
 - **Webs reales sin validar.** La ejecución se ha probado en la sede ficticia, en Playwright y en la app; la investigación, en webs oficiales reales. No se ha completado ningún trámite en una sede real.
 - **Las respuestas no se verifican.** Muestran las fuentes consultadas y las instrucciones piden no decir nada que no esté en ellas, pero nada lo comprueba: el modelo puede equivocarse en un requisito, un importe o un plazo. Antes, una tarjeta citaba y verificaba cada dato; se quitó para simplificar la app.
-- **Los iconos de las fuentes vienen de Google.** Al mostrarlas, Google recibe el origen de cada web oficial (`https://sede.policia.gob.es`), sin ruta ni referer: sabe qué webs se han consultado, no la pregunta ni los datos.
+- **Los iconos de las fuentes vienen de Google.** Al mostrarlas, Google recibe el origen de cada web (`https://sede.policia.gob.es`), sin ruta ni referer: sabe qué webs se han consultado, no la pregunta ni los datos.
 - **La protección de datos reduce el riesgo, no lo elimina.** El modelo sigue viendo el contexto y la información del trámite que no identifica (fechas de cita, importes, estados), y el detector puede pasar por alto un nombre suelto. Ver [lo que todavía puede llegar al modelo](security-protocol.md#lo-que-todavía-puede-llegar-al-modelo).
 - **Touch ID es una comprobación de la interfaz**, no protege criptográficamente la clave de datos.
 - **Sin firma de Apple ni notarización.** El `.app` está firmado ad hoc; en otro Mac, Gatekeeper lo bloqueará hasta abrirlo con clic derecho → Abrir.
-- **La clave del asistente va dentro de la app.** Ver [Puesta en marcha](#puesta-en-marcha). `packages/agent` también admite OpenRouter (las evaluaciones pueden usarlo), pero la app solo usa Vercel AI Gateway, y OpenRouter no se ha probado en directo.
+- **La clave del asistente va dentro de la app.** Ver [Puesta en marcha](#puesta-en-marcha). `packages/agent` también admite OpenRouter (las evaluaciones pueden usarlo), pero la app solo usa Vercel AI Gateway o, de forma temporal, NaN Builders; OpenRouter no se ha probado en directo.
 - **Webs que bloquean a los programas.** Algunas (interior.gob.es) rechazan las peticiones que no vienen de un navegador; la app las lee con una vista oculta de Chromium. En las evaluaciones, sin esa vista, el agente usa los extractos de la búsqueda.
 - **Interfaces comunitarias.** Se activan en Ajustes (vienen desactivadas) y cargan la extensión en el navegador de cada trámite. Se comprobó que aparecen con el fixture de DNI; el agente no se ha evaluado sobre ellas.

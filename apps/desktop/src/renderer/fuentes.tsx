@@ -60,6 +60,7 @@ function Pagina({ f, abrir }: { f: FuenteVista; abrir: (url: string) => void }) 
           <span className="block truncate text-[15px] leading-snug">{f.titulo}</span>
           <span className="block text-sm text-muted-foreground">
             {f.organismo ?? host(f.url)}
+            {f.nivel ? '' : ' · web sin verificar'}
             {f.origen === 'pagina' ? '' : ' · extracto del buscador'}
           </span>
         </span>
@@ -104,6 +105,11 @@ function Grupo({
                 className="w-full rounded-lg px-2 py-1.5 text-left text-[15px] leading-snug hover:bg-muted"
               >
                 {f.titulo}
+                {f.nivel ? (
+                  ''
+                ) : (
+                  <span className="text-sm text-muted-foreground"> · sin verificar</span>
+                )}
                 {f.origen === 'pagina' ? (
                   ''
                 ) : (
@@ -119,8 +125,8 @@ function Grupo({
 }
 
 /**
- * Las webs oficiales que consultó el asistente para una respuesta, en un desplegable: una fila
- * por organismo o web, y cada página se abre en el navegador del trámite.
+ * Las webs que consultó el asistente para una respuesta, en un desplegable: una fila por
+ * organismo o web, y cada página se abre en el navegador del trámite (o del Mac, si no es oficial).
  */
 export function FuentesRespuesta({
   fuentes,

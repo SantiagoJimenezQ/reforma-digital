@@ -20,15 +20,20 @@ const { values: v } = parseArgs({
     comparar: { type: 'string' },
   },
 });
-const tipo = z.enum(['gateway', 'openrouter']).parse(v.proveedor);
-const clave = tipo === 'gateway' ? process.env.AI_GATEWAY_API_KEY : process.env.OPENROUTER_API_KEY;
-if (!clave)
-  throw new Error(
-    `Falta ${tipo === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'OPENROUTER_API_KEY'}: las evaluaciones del agente usan un modelo real.`,
-  );
+const tipo = z.enum(['gateway', 'openrouter', 'nan']).parse(v.proveedor);
+const variable = {
+  gateway: 'AI_GATEWAY_API_KEY',
+  openrouter: 'OPENROUTER_API_KEY',
+  nan: 'NAN_API_KEY',
+}[tipo];
+const clave = process.env[variable];
+if (!clave) throw new Error(`Falta ${variable}: las evaluaciones del agente usan un modelo real.`);
+// Con NaN Builders, las búsquedas las hace Exa.
+const claveExa = process.env.EXA_API_KEY;
+if (tipo === 'nan' && !claveExa) throw new Error('Falta EXA_API_KEY: con NaN Builders busca Exa.');
 const suite = z.enum(['ejecucion', 'investigacion', 'todo']).parse(v.suite);
 const cfg: Config = {
-  proveedor: { tipo, clave, modelo: v.modelo },
+  proveedor: { tipo, clave, modelo: v.modelo, ...(claveExa ? { claveExa } : {}) },
   juez: v.juez,
   razonamiento: z
     .enum(['none', 'minimal', 'low', 'medium', 'high'])

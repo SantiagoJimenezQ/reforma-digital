@@ -2,7 +2,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { simulateReadableStream } from 'ai';
+import { APICallError, RetryError, simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import {
   compactar,
@@ -11,6 +11,7 @@ import {
   ejecutarTurno,
   ErrorDeProteccion,
   estadoInicial,
+  mensajeDeError,
   Fuentes,
   perfilParaModelo,
   Privacidad,
@@ -91,16 +92,36 @@ describe('privacidad', () => {
 });
 
 describe('fuentes', () => {
-  it('solo guarda como fuente páginas de administraciones', () => {
+  it('marca sin nivel las webs que no están en la lista de oficiales', () => {
     const f = new Fuentes();
+    expect(f.añadir('http://www.ayto-villacanada.es/padron', 'Padrón', 'texto', 'busqueda')).toBe(
+      undefined,
+    );
     expect(
-      f.añadir('https://www.blog-tramites.example/dni', 'Blog', 'texto', 'busqueda'),
+      f.añadir('https://www.ayto-villacanada.es/padron', 'Padrón', 'texto', 'busqueda')?.nivel,
     ).toBeUndefined();
     expect(
-      f.añadir('https://sede.agenciatributaria.gob.es/x', 'AEAT', 'texto', 'busqueda')?.id,
-    ).toBe('F1');
+      f.añadir('https://sede.agenciatributaria.gob.es/x', 'AEAT', 'texto', 'busqueda')?.nivel,
+    ).toBe('estatal');
     expect(officialLevel('https://evilgob.es/')).toBeUndefined();
     expect(officialLevel('http://www.boe.es/')).toBeUndefined();
+  });
+});
+
+describe('errores del proveedor', () => {
+  it('reconoce el límite de peticiones después de los reintentos', () => {
+    const limite = new APICallError({
+      message: 'Rate limit exceeded',
+      url: 'https://api.nan.builders/v1/chat/completions',
+      requestBodyValues: {},
+      statusCode: 429,
+    });
+    const e = new RetryError({
+      message: 'Failed after 3 attempts',
+      reason: 'maxRetriesExceeded',
+      errors: [limite],
+    });
+    expect(mensajeDeError(e)).toMatch(/limitando las peticiones/);
   });
 });
 
@@ -139,6 +160,10 @@ describe('lectura de páginas oficiales', () => {
       /no es una web oficial/,
     );
     await expect(leerPaginaOficial('http://www.boe.es/')).rejects.toThrow(/no es una web oficial/);
+    // Una web que devolvió el buscador no abre la puerta a otras.
+    await expect(
+      leerPaginaOficial('https://example.com/', { encontrada: 'ayto-villacanada.es' }),
+    ).rejects.toThrow(/no es una web oficial/);
   });
 });
 

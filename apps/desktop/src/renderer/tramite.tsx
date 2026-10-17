@@ -343,7 +343,9 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
     if (pideNavegador) setVerNavegador(true);
   }, [clave, pideNavegador]);
   if (!vista) return null;
-  const abrirEnTramite = (url: string) => {
+  // Las webs oficiales se abren en el navegador del trámite; las demás, en el navegador del Mac.
+  const abrirFuente = (url: string) => {
+    if (!officialLevel(url)) return void window.rd.abrirEnlace(url);
     setVerNavegador(true);
     void window.rd.abrirEnTramite(vista.id, url);
   };
@@ -389,7 +391,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
         <Conversacion
           vista={vista}
           verNavegador={() => setVerNavegador(true)}
-          abrirFuente={abrirEnTramite}
+          abrirFuente={abrirFuente}
         />
         <div className="mx-auto w-full max-w-[720px] px-8 pb-6">
           <Compositor

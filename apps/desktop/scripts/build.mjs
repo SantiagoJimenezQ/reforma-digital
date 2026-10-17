@@ -31,6 +31,8 @@ const node = (entrada, archivo, formato) =>
     define: {
       'process.env.NODE_ENV': '"production"',
       'process.env.CLAVE_GATEWAY': JSON.stringify(process.env.AI_GATEWAY_API_KEY ?? ''),
+      'process.env.CLAVE_NAN': JSON.stringify(process.env.NAN_API_KEY ?? ''),
+      'process.env.CLAVE_EXA': JSON.stringify(process.env.EXA_API_KEY ?? ''),
     },
     ssr: { noExternal: true },
     resolve: { alias: { sharp: path.join(raiz, 'src/main/sin-imagenes.ts') } },

@@ -33,6 +33,17 @@ const opcion =
 function Modelo() {
   const { app } = useEstado();
   if (!app) return null;
+  if (app.modeloNan)
+    return (
+      <div>
+        <h2 className="mt-0 mb-3 text-[15px] font-medium">Modelo</h2>
+        <p className="m-0 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+          De momento, el asistente usa {app.modeloNan}, un modelo abierto de NaN Builders, que no
+          guarda las peticiones y funciona en la Unión Europea. Las búsquedas en webs oficiales las
+          hace Exa.
+        </p>
+      </div>
+    );
   return (
     <fieldset className="m-0 border-0 p-0">
       <legend className="mb-3 text-[15px] font-medium">Modelo</legend>
@@ -210,16 +221,19 @@ export function Ajustes() {
               campos de texto solo ve lo que escribe él. Si el detector falla, no se envía nada.
             </li>
             <li>
-              El asistente lee y busca en webs de las administraciones públicas. Para abrir otra web
-              te pide permiso, y tus datos solo los escribe en webs oficiales.
+              El asistente busca en toda la web y marca las que no son de la lista de webs
+              oficiales. Para abrir una de ellas te pide permiso, y tus datos solo los escribe en
+              webs oficiales.
             </li>
             <li>
               Contraseñas, CAPTCHA, certificados, firmas y pagos los haces tú en la web oficial.
             </li>
           </ul>
-          <div className="mt-6">
-            <RetencionCero />
-          </div>
+          {!app.modeloNan && (
+            <div className="mt-6">
+              <RetencionCero />
+            </div>
+          )}
         </section>
         <section className="border-t border-border pt-8">
           <Button

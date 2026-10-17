@@ -113,15 +113,19 @@ export type Pagina = { url: string; titulo: string; texto: string; tipo: 'html' 
 /**
  * Descarga una página de una administración y la devuelve como texto. Solo HTTPS y solo dominios
  * oficiales, también en cada redirección: las herramientas del agente no pueden sacar datos a
- * terceros ni llegar a la red local.
+ * terceros ni llegar a la red local. `encontrada` es otra web que se puede leer porque la devolvió
+ * el buscador, nunca una dirección escrita por el modelo.
  */
 export async function leerPaginaOficial(
   url: string,
-  opciones: { signal?: AbortSignal } = {},
+  opciones: { signal?: AbortSignal; encontrada?: string } = {},
 ): Promise<Pagina> {
   let actual = new URL(url);
   for (let saltos = 0; saltos <= 5; saltos++) {
-    if (!officialLevel(actual.href))
+    const permitida =
+      officialLevel(actual.href) ||
+      (actual.protocol === 'https:' && actual.hostname === opciones.encontrada);
+    if (!permitida)
       throw new FetchError(`${actual.hostname} no es una web oficial: no se puede leer.`);
     const res = await pedir(actual, opciones.signal);
     if (res.status >= 300 && res.status < 400 && res.headers.location) {

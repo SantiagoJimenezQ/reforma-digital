@@ -22,6 +22,7 @@ import {
   crearDetector,
   probarConexion,
   validarCampo,
+  type ConfigProveedor,
   type Detector,
   type Perfil,
 } from '@reforma-digital/agent';
@@ -47,6 +48,20 @@ if (!app.requestSingleInstanceLock()) app.quit();
  * de ella, así que solo vale para compilaciones propias, no para repartir.
  */
 const CLAVE_GATEWAY = process.env.CLAVE_GATEWAY ?? '';
+/**
+ * Temporal: si se compila con NAN_API_KEY y EXA_API_KEY, el asistente usa un modelo abierto de
+ * NaN Builders (sin registro de peticiones, en la UE) y busca con Exa, en lugar de Vercel AI Gateway.
+ */
+const NAN =
+  process.env.CLAVE_NAN && process.env.CLAVE_EXA
+    ? { clave: process.env.CLAVE_NAN, claveExa: process.env.CLAVE_EXA, modelo: 'deepseek-v4-flash' }
+    : null;
+
+/** El proveedor con el que habla el asistente, o `null` si la compilación no lleva claves. */
+function configProveedor(modelo: string, retencionCero: boolean): ConfigProveedor | null {
+  if (NAN) return { tipo: 'nan', ...NAN };
+  return CLAVE_GATEWAY ? { tipo: 'gateway', clave: CLAVE_GATEWAY, modelo, retencionCero } : null;
+}
 
 type Secretos = { ajustes: Ajustes };
 const AJUSTES_INICIALES: Ajustes = {
@@ -119,6 +134,7 @@ function estadoApp(): EstadoApp {
   return {
     version: app.getVersion(),
     ajustes: secretos.ajustes,
+    modeloNan: NAN?.modelo ?? null,
     tramites: tramites.lista(),
     campos: camposPerfil,
     perfil: perfilVista(),
@@ -167,14 +183,10 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
       const a = z
         .object({ modelo: z.string().max(100), retencionCero: z.boolean().optional() })
         .parse(entrada);
-      if (!CLAVE_GATEWAY) return { ok: false, error: SIN_CLAVE };
+      const cfg = configProveedor(a.modelo, a.retencionCero ?? secretos.ajustes.retencionCero);
+      if (!cfg) return { ok: false, error: SIN_CLAVE };
       try {
-        await probarConexion({
-          tipo: 'gateway',
-          clave: CLAVE_GATEWAY,
-          modelo: a.modelo,
-          retencionCero: a.retencionCero ?? secretos.ajustes.retencionCero,
-        });
+        await probarConexion(cfg);
         return { ok: true };
       } catch (e) {
         return { ok: false, error: mensajeDeError(e) };
@@ -399,19 +411,16 @@ app
     tramites = new Tramites(almacen, {
       perfil: () => perfil,
       guardarPerfil: async (v) => guardarPerfil({ ...perfil, ...v }),
-      proveedor: () =>
-        CLAVE_GATEWAY
+      proveedor: () => {
+        const cfg = configProveedor(secretos.ajustes.modelo, secretos.ajustes.retencionCero);
+        return cfg
           ? {
-              cfg: {
-                tipo: 'gateway',
-                clave: CLAVE_GATEWAY,
-                modelo: secretos.ajustes.modelo,
-                retencionCero: secretos.ajustes.retencionCero,
-              },
+              cfg,
               razonamiento: secretos.ajustes.razonamiento,
               limiteTurnoUsd: secretos.ajustes.limiteTurnoUsd,
             }
-          : null,
+          : null;
+      },
       verificarIdentidad: (motivo) => verificar(motivo, secretos.ajustes.touchIdEnConfirmaciones),
       detector: cargarDetector,
       extension: () =>

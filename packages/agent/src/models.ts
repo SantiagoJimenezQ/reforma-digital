@@ -5,12 +5,15 @@ import {
   type LanguageModel,
   type LanguageModelMiddleware,
 } from 'ai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createOpenRouter, type OpenRouterChatSettings } from '@openrouter/ai-sdk-provider';
 import type { Privacidad } from './profile';
 
 export type ConfigProveedor = {
-  tipo: 'gateway' | 'openrouter';
+  tipo: 'gateway' | 'openrouter' | 'nan';
   clave: string;
+  /** Con `nan`: la clave de Exa, que hace las búsquedas. */
+  claveExa?: string;
   /** Modelo del agente, con el identificador del proveedor («openai/gpt-6-luna»). */
   modelo: string;
   /** Solo proveedores que no guardan las peticiones (en Vercel exige el plan Pro). */
@@ -33,6 +36,12 @@ export type Proveedor =
       modelo: Modelo;
       rapido: Modelo;
       modeloBusquedaOpenRouter: (dominios: string[], max: number) => Modelo;
+    }
+  | {
+      /** NaN Builders: modelos abiertos en GPU compartida (sin registro de peticiones, en la UE). */
+      tipo: 'nan';
+      modelo: Modelo;
+      claveExa: string;
     };
 
 export const MODELO_BUSQUEDA = 'openai/gpt-6-luna';
@@ -111,6 +120,15 @@ export function crearProveedor(
   }
   const envolver = (model: Modelo) =>
     capas.length ? wrapLanguageModel({ model, middleware: capas }) : model;
+  if (cfg.tipo === 'nan') {
+    const nan = createOpenAICompatible({
+      name: 'nan',
+      baseURL: 'https://api.nan.builders/v1',
+      apiKey: cfg.clave,
+      includeUsage: true,
+    });
+    return { tipo: 'nan', modelo: envolver(nan(cfg.modelo)), claveExa: cfg.claveExa ?? '' };
+  }
   const openrouter = createOpenRouter({ apiKey: cfg.clave });
   const conCoste: OpenRouterChatSettings = {
     usage: { include: true },
@@ -131,7 +149,7 @@ export function crearProveedor(
                 type: 'openrouter:web_search',
                 parameters: {
                   engine: 'parallel',
-                  allowed_domains: dominios,
+                  ...(dominios.length ? { allowed_domains: dominios } : {}),
                   max_results: max,
                   max_total_results: max,
                   max_uses: 1,

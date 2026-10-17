@@ -1,4 +1,5 @@
 import {
+  RetryError,
   streamText,
   type LanguageModelMiddleware,
   type ModelMessage,
@@ -389,7 +390,9 @@ export function mensajeDeError(e: unknown): string {
   const texto = e instanceof Error ? e.message : String(e);
   if (e instanceof ErrorDeProteccion)
     return `${texto}. No se ha enviado nada al asistente. Vuelve a intentarlo; si sigue fallando, reinstala la app.`;
-  const status = (e as { statusCode?: number }).statusCode;
+  // Tras los reintentos, el código HTTP está en el último error.
+  const causa = RetryError.isInstance(e) ? e.lastError : e;
+  const status = (causa as { statusCode?: number } | undefined)?.statusCode;
   if (/zero data retention|\bZDR\b/i.test(texto))
     return 'Tu cuenta del proveedor de IA no permite la retención cero de datos (en Vercel exige el plan Pro). Desactívala en Ajustes o cambia de plan.';
   if (status === 401 || /unauthori[sz]ed|invalid api key|user not found/i.test(texto))

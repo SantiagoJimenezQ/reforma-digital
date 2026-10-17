@@ -1,18 +1,15 @@
 import { generateText } from 'ai';
+import { z } from 'zod';
 import { approvedSource, canonicalize } from '@reforma-digital/government';
-import {
-  officialDomains,
-  officialLevel,
-  type AdministrationLevel,
-} from '@reforma-digital/government/domains';
+import { officialLevel, type AdministrationLevel } from '@reforma-digital/government/domains';
 import type { Proveedor } from './models';
 
 export type Fuente = {
   id: string;
   url: string;
   titulo: string;
-  /** Nivel de la administración según el dominio. */
-  nivel: AdministrationLevel;
+  /** Nivel de la administración según el dominio; sin él, la web no está en la lista de oficiales. */
+  nivel?: AdministrationLevel;
   /** Organismo, si el dominio es una fuente registrada del buscador de Reforma Digital. */
   organismo?: string;
   texto: string;
@@ -20,7 +17,7 @@ export type Fuente = {
   consultada: string;
 };
 
-/** Webs oficiales consultadas en un trámite: se muestran debajo de cada respuesta. */
+/** Webs consultadas en un trámite: se muestran debajo de cada respuesta. */
 export class Fuentes {
   private porUrl = new Map<string, Fuente>();
   constructor(iniciales: Fuente[] = []) {
@@ -31,8 +28,8 @@ export class Fuentes {
     this.porUrl.get(idOUrl) ?? this.lista().find((f) => f.id === idOUrl.trim().toUpperCase());
 
   añadir(url: string, titulo: string, texto: string, origen: Fuente['origen']): Fuente | undefined {
+    if (!url.startsWith('https://')) return;
     const nivel = officialLevel(url);
-    if (!nivel) return;
     const canonica = canonicalize(url);
     const previa = this.porUrl.get(canonica);
     if (previa) {
@@ -48,7 +45,7 @@ export class Fuentes {
       id: `F${this.porUrl.size + 1}`,
       url: canonica,
       titulo: titulo || new URL(canonica).hostname,
-      nivel,
+      ...(nivel ? { nivel } : {}),
       ...(registrada ? { organismo: registrada.organization } : {}),
       texto,
       origen,
@@ -58,16 +55,6 @@ export class Fuentes {
     return fuente;
   }
 }
-
-// Parallel acepta unas decenas de dominios por búsqueda: Estado, comunidades y plataformas de sedes
-// municipales. Los ayuntamientos concretos se piden con `dominios`.
-export const DOMINIOS_POR_DEFECTO = [
-  ...officialDomains.filter((d) => d.level !== 'local').map((d) => d.suffix),
-  'sedelectronica.es',
-  'sedelectronica.gal',
-  'eadministracio.cat',
-  'egoitzaelektronikoa.eus',
-];
 
 export type Resultado = { url: string; titulo: string; extracto: string };
 
@@ -82,17 +69,20 @@ export function limpiarExtracto(texto: string): string {
 }
 
 /**
- * Busca en la web limitándose a dominios oficiales. La búsqueda la ejecuta el proveedor (Parallel
- * en Vercel AI Gateway, o el motor Parallel de OpenRouter) a través de un modelo pequeño que solo
- * hace una llamada; el agente recibe los resultados ya filtrados.
+ * Busca en toda la web, o solo en `dominios` si se dan: las webs de las administraciones son
+ * demasiadas para una lista. La búsqueda la ejecuta el proveedor (Parallel en Vercel AI Gateway, o
+ * el motor Parallel de OpenRouter) a través de un modelo pequeño que solo hace una llamada, o Exa
+ * directamente con NaN Builders.
  */
-export async function buscarEnWebsOficiales(
+export async function buscarEnLaWeb(
   consulta: string,
   dominios: string[],
   proveedor: Proveedor,
   signal?: AbortSignal,
 ): Promise<{ resultados: Resultado[]; costeUsd: number | null }> {
   const max = 8;
+  if (proveedor.tipo === 'nan')
+    return buscarConExa(consulta, dominios, proveedor.claveExa, max, signal);
   const instrucciones =
     'Llama una sola vez a la herramienta de búsqueda con la consulta tal cual y no escribas nada más.';
   if (proveedor.tipo === 'gateway') {
@@ -103,7 +93,7 @@ export async function buscarEnWebsOficiales(
         buscar: proveedor.gateway.tools.parallelSearch({
           maxResults: max,
           mode: 'agentic',
-          sourcePolicy: { includeDomains: dominios },
+          ...(dominios.length ? { sourcePolicy: { includeDomains: dominios } } : {}),
           excerpts: { maxCharsPerResult: 2500 },
         }),
       },
@@ -148,6 +138,49 @@ export async function buscarEnWebsOficiales(
       : [];
   });
   return { resultados, costeUsd: coste(r.providerMetadata) };
+}
+
+const respuestaExa = z.object({
+  results: z.array(
+    z.object({
+      url: z.string(),
+      title: z.string().nullish(),
+      highlights: z.array(z.string()).nullish(),
+    }),
+  ),
+  costDollars: z.object({ total: z.number() }).partial().nullish(),
+});
+
+/** Exa: la búsqueda directa, sin pasar por un modelo, con fragmentos de cada página. */
+async function buscarConExa(
+  consulta: string,
+  dominios: string[],
+  clave: string,
+  max: number,
+  signal?: AbortSignal,
+): Promise<{ resultados: Resultado[]; costeUsd: number | null }> {
+  const res = await fetch('https://api.exa.ai/search', {
+    method: 'POST',
+    headers: { 'x-api-key': clave, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      query: consulta,
+      numResults: max,
+      userLocation: 'ES',
+      ...(dominios.length ? { includeDomains: dominios } : {}),
+      contents: { highlights: { maxCharacters: 2500 } },
+    }),
+    signal: AbortSignal.any([AbortSignal.timeout(30000), ...(signal ? [signal] : [])]),
+  });
+  if (!res.ok) throw new Error(`El buscador (Exa) respondió con un error ${res.status}.`);
+  const r = respuestaExa.parse(await res.json());
+  return {
+    resultados: r.results.map((x) => ({
+      url: x.url,
+      titulo: x.title ?? '',
+      extracto: limpiarExtracto((x.highlights ?? []).join('\n\n')),
+    })),
+    costeUsd: r.costDollars?.total ?? null,
+  };
 }
 
 export function coste(metadata: unknown): number | null {

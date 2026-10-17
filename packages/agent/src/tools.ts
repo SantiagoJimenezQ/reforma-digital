@@ -30,13 +30,7 @@ import {
   validarCampo,
   type Perfil,
 } from './profile';
-import {
-  buscarEnWebsOficiales,
-  coste,
-  DOMINIOS_POR_DEFECTO,
-  type Fuente,
-  type Fuentes,
-} from './research';
+import { buscarEnLaWeb, coste, type Fuente, type Fuentes } from './research';
 
 const campoEntrada = z.object({
   clave: z.string().regex(/^[a-z0-9_]{2,40}$/),
@@ -256,7 +250,7 @@ export async function protegerPagina(ctx: Contexto, texto: string) {
 }
 
 const formatoFuente = (f: Fuente, extracto: string) =>
-  `[${f.id}] ${f.titulo} — ${host(f.url)}${f.organismo ? ` (${f.organismo})` : ''}\n${extracto}`;
+  `[${f.id}] ${f.titulo} — ${host(f.url)}${f.organismo ? ` (${f.organismo})` : ''}${f.nivel ? '' : ' (sin verificar)'}\n${extracto}`;
 
 export function crearHerramientas(ctx: Contexto) {
   const signalDe = (o: { abortSignal?: AbortSignal }) =>
@@ -350,7 +344,7 @@ export function crearHerramientas(ctx: Contexto) {
 
     buscar: tool({
       description:
-        'Busca en webs oficiales de las administraciones españolas (Estado, comunidades y sedes municipales). Devuelve fuentes con id (F1, F2…) y extractos. Para un ayuntamiento o diputación concretos, pasa su dominio en dominios.',
+        'Busca en la web, desde España. Devuelve fuentes con id (F1, F2…) y extractos; las que no están en la lista de webs oficiales de la app salen como (sin verificar). Para buscar solo en la web de un organismo, ayuntamiento o diputación, pasa su dominio en dominios.',
       inputSchema: z.object({
         consulta: z
           .string()
@@ -361,7 +355,7 @@ export function crearHerramientas(ctx: Contexto) {
           .array(z.string())
           .max(10)
           .optional()
-          .describe('Solo estos dominios oficiales, p. ej. ["getafe.es", "comunidad.madrid"]'),
+          .describe('Solo estos dominios, p. ej. ["getafe.es", "comunidad.madrid"]'),
       }),
       execute: async ({ consulta, dominios }, opts) => {
         const limpia = ctx.privacidad.limpiar(consulta, { usuario: true });
@@ -374,10 +368,10 @@ export function crearHerramientas(ctx: Contexto) {
                 .replace(/^https?:\/\//, '')
                 .split('/')[0]!,
           )
-          .filter((d) => officialLevel(`https://${d}/`));
-        const { resultados, costeUsd } = await buscarEnWebsOficiales(
+          .filter((d) => /^[\p{L}\d-]+(\.[\p{L}\d-]+)+$/u.test(d));
+        const { resultados, costeUsd } = await buscarEnLaWeb(
           limpia,
-          validos.length ? validos : DOMINIOS_POR_DEFECTO,
+          validos,
           ctx.proveedor,
           signalDe(opts),
         );
@@ -390,24 +384,33 @@ export function crearHerramientas(ctx: Contexto) {
         return vistas.length
           ? vistas.join('\n\n') +
               '\n\nPara citar un dato necesitas su texto literal: si el extracto no basta, usa leer_pagina.'
-          : 'Sin resultados en webs oficiales. Prueba con otras palabras o con el dominio del organismo.';
+          : 'Sin resultados. Prueba con otras palabras o con el dominio del organismo.';
       },
     }),
 
     leer_pagina: tool({
       description:
-        'Lee el texto de una página o PDF de una web oficial (https). Queda como fuente citable. Usa desde para seguir leyendo.',
+        'Lee el texto de una página o PDF de una web oficial o de un resultado de buscar (https). Queda como fuente citable. Usa desde para seguir leyendo.',
       inputSchema: z.object({ url: z.string(), desde: z.number().int().min(0).optional() }),
       execute: async ({ url, desde = 0 }, opts) => {
         const previa = ctx.fuentes.obtener(url);
         const destino = previa?.url ?? url;
         let p: { url: string; titulo: string; texto: string };
         try {
-          p = await leerPaginaOficial(destino, { signal: signalDe(opts) });
+          p = await leerPaginaOficial(destino, {
+            signal: signalDe(opts),
+            ...(previa && !previa.nivel ? { encontrada: new URL(previa.url).hostname } : {}),
+          });
         } catch (e) {
-          // Solo cuando la web responde con un error HTTP (suele ser un filtro contra programas):
-          // nunca si el dominio no es oficial o apunta a una red privada.
-          if (!ctx.anfitrion.leerConNavegador || !(e instanceof FetchError) || !e.status) throw e;
+          // Solo cuando una web oficial responde con un error HTTP (suele ser un filtro contra
+          // programas): nunca si el dominio no es oficial o apunta a una red privada.
+          if (
+            !ctx.anfitrion.leerConNavegador ||
+            !(e instanceof FetchError) ||
+            !e.status ||
+            !officialLevel(destino)
+          )
+            throw e;
           p = await ctx.anfitrion.leerConNavegador(destino, signalDe(opts));
           if (!officialLevel(p.url)) return `${host(p.url)} no es una web oficial.`;
         }
