@@ -10,7 +10,7 @@ import { Textarea } from '@reforma-digital/design/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
 import type { Ayuda, ItemConversacion } from '../shared/api';
 import { useEstado } from './estado';
-import { Icono, type NombreIcono } from './icono';
+import { Icono, Marca, type NombreIcono } from './icono';
 
 type ItemPregunta = Extract<ItemConversacion, { tipo: 'pregunta' }>;
 export const TIPO_INPUT: Partial<Record<string, string>> = {
@@ -21,24 +21,26 @@ export const TIPO_INPUT: Partial<Record<string, string>> = {
 };
 
 /**
- * Cabecera con el icono, lo que pide el asistente y el título; `accesorio` va a su derecha. Una
- * pregunta pendiente recibe el foco al aparecer, salvo que la persona tenga algo escrito.
+ * Cabecera con el icono, lo que pide el asistente y, debajo en gris, qué es exactamente;
+ * `accesorio` va a su derecha. Una pregunta pendiente recibe el foco al aparecer, salvo que la
+ * persona tenga algo escrito.
  */
 function Tarjeta({
   icono,
-  eyebrow,
   titulo,
+  descripcion,
   accesorio,
   children,
 }: {
-  icono: NombreIcono;
-  eyebrow: string;
+  icono: ReactNode;
   titulo: string;
+  descripcion: string;
   accesorio?: ReactNode;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
   const idTitulo = useId();
+  const idDescripcion = useId();
   useEffect(() => {
     const activo = document.activeElement;
     if (
@@ -51,18 +53,20 @@ function Tarjeta({
     <section
       ref={ref}
       tabIndex={-1}
-      aria-labelledby={idTitulo}
+      aria-labelledby={`${idTitulo} ${idDescripcion}`}
       className="my-6 rounded-[20px] bg-background outline-none [animation:chat-enter_360ms_var(--ease-brand)_both] focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-3 p-5">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
-          <Icono nombre={icono} />
+          {icono}
         </span>
         <div className="min-w-0 flex-1 basis-52">
-          <p className="m-0 text-sm text-muted-foreground">{eyebrow}</p>
           <h3 id={idTitulo} className="m-0 text-[17px] leading-snug font-medium">
             {titulo}
           </h3>
+          <p id={idDescripcion} className="m-0 mt-0.5 text-sm text-muted-foreground">
+            {descripcion}
+          </p>
         </div>
         {accesorio}
       </div>
@@ -217,16 +221,20 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   );
   if (!f.accion)
     return (
-      <Tarjeta icono="documento" eyebrow="El asistente necesita unos datos" titulo={f.titulo}>
+      <Tarjeta
+        icono={<Marca size={20} />}
+        titulo="El asistente necesita unos datos"
+        descripcion={f.titulo}
+      >
         {cuerpo}
       </Tarjeta>
     );
   return (
     <Collapsible open={abierto} onOpenChange={setAbierto}>
       <Tarjeta
-        icono="documento"
-        eyebrow="El asistente puede hacerlo por ti"
-        titulo={f.titulo}
+        icono={<Marca size={20} />}
+        titulo="El asistente puede hacerlo por ti"
+        descripcion={f.titulo}
         accesorio={
           <div className="ml-auto flex gap-2">
             {!abierto && (
@@ -271,9 +279,9 @@ function Confirmacion({ tramite, item }: { tramite: string; item: ItemPregunta }
   const huella = !web && app?.touchId && app.ajustes.touchIdEnConfirmaciones;
   return (
     <Tarjeta
-      icono={web ? 'web' : 'huella'}
-      eyebrow={web ? 'Abrir una web que no es oficial' : 'Necesito tu permiso'}
-      titulo={c.accion}
+      icono={<Icono nombre={web ? 'web' : 'huella'} />}
+      titulo={web ? 'Abrir una web que no es oficial' : 'Necesito tu permiso'}
+      descripcion={c.accion}
     >
       <div className="px-5 pb-5">
         {c.previas?.length ? (
@@ -307,14 +315,14 @@ function Confirmacion({ tramite, item }: { tramite: string; item: ItemPregunta }
   );
 }
 
-const MOTIVOS: Record<Ayuda['motivo'], { icono: NombreIcono; eyebrow: string }> = {
-  iniciar_sesion: { icono: 'candado', eyebrow: 'Inicia sesión tú' },
-  captcha: { icono: 'mano', eyebrow: 'Resuelve la comprobación' },
-  certificado: { icono: 'huella', eyebrow: 'Elige tu certificado' },
-  firma: { icono: 'huella', eyebrow: 'Firma tú con AutoFirma' },
-  pago: { icono: 'mano', eyebrow: 'El pago lo haces tú' },
-  adjuntar: { icono: 'documento', eyebrow: 'Adjunta el archivo' },
-  otro: { icono: 'mano', eyebrow: 'Te toca a ti' },
+const MOTIVOS: Record<Ayuda['motivo'], { icono: NombreIcono; titulo: string }> = {
+  iniciar_sesion: { icono: 'candado', titulo: 'Inicia sesión tú' },
+  captcha: { icono: 'mano', titulo: 'Resuelve la comprobación' },
+  certificado: { icono: 'huella', titulo: 'Elige tu certificado' },
+  firma: { icono: 'huella', titulo: 'Firma tú con AutoFirma' },
+  pago: { icono: 'mano', titulo: 'El pago lo haces tú' },
+  adjuntar: { icono: 'documento', titulo: 'Adjunta el archivo' },
+  otro: { icono: 'mano', titulo: 'Te toca a ti' },
 };
 
 function Ayuda({
@@ -331,7 +339,7 @@ function Ayuda({
   const a = item.pregunta.ayuda;
   const m = MOTIVOS[a.motivo];
   return (
-    <Tarjeta icono={m.icono} eyebrow={m.eyebrow} titulo={a.instrucciones}>
+    <Tarjeta icono={<Icono nombre={m.icono} />} titulo={m.titulo} descripcion={a.instrucciones}>
       <div className="px-5 pb-5">
         <p className="mt-0 mb-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
           Hazlo en el navegador de la derecha, en la web oficial. El asistente espera y no ve lo que

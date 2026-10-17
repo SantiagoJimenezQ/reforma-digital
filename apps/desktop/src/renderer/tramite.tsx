@@ -25,11 +25,15 @@ type Bloque =
   | { tipo: 'item'; item: ItemConversacion }
   | { tipo: 'actividad'; items: Extract<ItemConversacion, { tipo: 'actividad' }>[] };
 
+// Estas acciones ya se ven como su tarjeta: no cuentan entre las acciones del asistente.
+const CON_TARJETA = new Set(['preguntar', 'confirmar', 'pedir_ayuda']);
+
 /** Las acciones seguidas del asistente se muestran juntas, como un paso desplegable. */
 function agrupar(items: ItemConversacion[]): Bloque[] {
   const bloques: Bloque[] = [];
   for (const item of items) {
     const ultimo = bloques.at(-1);
+    if (item.tipo === 'actividad' && CON_TARJETA.has(item.herramienta)) continue;
     if (item.tipo === 'actividad' && ultimo?.tipo === 'actividad') ultimo.items.push(item);
     else if (item.tipo === 'actividad') bloques.push({ tipo: 'actividad', items: [item] });
     else bloques.push({ tipo: 'item', item });
