@@ -56,7 +56,7 @@ const formularioEntrada = z.object({
     .max(40)
     .optional()
     .describe(
-      'Si el formulario es para hacer el trámite, el botón que lo pone en marcha: «Pedir la cita»',
+      'Si el formulario es para hacer el trámite, el botón que lo pone en marcha, en infinitivo: «Pedir la cita» (la app añade «por mí»)',
     ),
   campos: z.array(campoEntrada).min(1).max(12),
 });

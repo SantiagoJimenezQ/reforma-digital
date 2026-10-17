@@ -61,7 +61,7 @@ function Tarjeta({
           {icono}
         </span>
         <div className="min-w-0 flex-1 basis-52">
-          <h3 id={idTitulo} className="m-0 text-[17px] leading-snug font-medium">
+          <h3 id={idTitulo} className="m-0 text-[17px] leading-snug font-medium text-balance">
             {titulo}
           </h3>
           <p id={idDescripcion} className="m-0 mt-0.5 text-sm text-muted-foreground">
@@ -123,6 +123,8 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   if (!f) return null;
   const faltan = f.campos.filter((c) => c.obligatorio !== false && !valores[c.clave]?.trim());
   const fijar = (clave: string, v: string) => setValores((x) => ({ ...x, [clave]: v }));
+  // Que quede claro quién lo hace: «Pedir la cita» → «Pedir la cita por mí».
+  const accion = f.accion && (/por m[ií]/i.test(f.accion) ? f.accion : `${f.accion} por mí`);
   const cuerpo = (
     <div className="px-5 pb-5">
       {f.explicacion && (
@@ -199,7 +201,7 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
         })}
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <Button type="submit" variant="sunset" size="lg" disabled={enviando || faltan.length > 0}>
-            {f.accion ?? 'Enviar respuestas'}
+            {accion ?? 'Enviar respuestas'}
           </Button>
           <Button
             type="button"
@@ -249,7 +251,7 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
                 <Button variant={abierto ? 'ghost' : 'sunset'} size={abierto ? 'icon-lg' : 'lg'} />
               }
             >
-              {abierto ? <Icono nombre="siguiente" className="-rotate-90" /> : f.accion}
+              {abierto ? <Icono nombre="siguiente" className="-rotate-90" /> : accion}
             </CollapsibleTrigger>
           </div>
         }
