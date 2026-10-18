@@ -143,7 +143,7 @@ function Huella({ aprobado }: { aprobado: boolean }) {
           cy="38"
           r="34"
           fill="none"
-          stroke={aprobado ? 'var(--brand-yellow)' : 'var(--brand)'}
+          stroke="var(--brand)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={vuelta}
@@ -152,7 +152,7 @@ function Huella({ aprobado }: { aprobado: boolean }) {
         />
       </svg>
       {aprobado ? (
-        <span className="absolute inset-0 grid animate-in place-items-center rounded-full bg-brand-yellow duration-300 zoom-in-75">
+        <span className="absolute inset-0 grid animate-in place-items-center rounded-full bg-brand text-white duration-300 zoom-in-75">
           <Icono nombre="check" size={30} />
         </span>
       ) : (
