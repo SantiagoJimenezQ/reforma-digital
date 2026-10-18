@@ -218,11 +218,31 @@ function variantes(clave: string, valor: string): string[] {
 }
 
 type Regla = { patron: RegExp; marcador: string; clave: string; valido?: (v: string) => boolean };
+/**
+ * Tipos de los datos que encuentra el detector o que trae una web (`{{nombre_1}}`, `{{dato_3}}`) y
+ * si son códigos: un código se reconoce aunque vaya pegado a letras y la última capa lo busca sin
+ * límites. Es la única lista: `TipoDato`, `DETECTADO` y las reglas salen de aquí.
+ */
+export const TIPOS_DATO = {
+  nombre: false,
+  apellido: false,
+  direccion: false,
+  documento: true,
+  cuenta: true,
+  telefono: true,
+  correo: true,
+  fecha: true,
+  referencia: true,
+  dato: false,
+} as const;
+const clavesDe = (tipos: string[]) => new RegExp(`^(${tipos.join('|')})_\\d+$`);
 /** Cualquier marcador, con su formato opcional: `{{fecha_nacimiento:dia}}`. */
 export const MARCADOR = /\{\{([a-z0-9_.]+)(?::([a-z/]+))?\}\}/gi;
 /** Claves de los datos que encuentra el detector o que trae una web: `{{nombre_1}}`, `{{dato_3}}`. */
-export const DETECTADO =
-  /^(nombre|apellido|direccion|documento|cuenta|telefono|correo|fecha|dato)_\d+$/;
+export const DETECTADO = clavesDe(Object.keys(TIPOS_DATO));
+const CODIGO_DETECTADO = clavesDe(
+  Object.entries(TIPOS_DATO).flatMap(([tipo, codigo]) => (codigo ? [tipo] : [])),
+);
 /** Aplica `fn` solo al texto que hay entre marcadores: un valor («Correo») no toca {{correo_1}}. */
 const fueraDeMarcadores = (texto: string, fn: (t: string) => string) =>
   texto
@@ -242,7 +262,7 @@ const CODIGOS = new Set([
   'email',
 ]);
 
-const sinSeparadores = (v: string) => v.replace(/[\s-]/g, '').toUpperCase();
+const sinSeparadores = (v: string) => v.replace(/[\s./-]/g, '').toUpperCase();
 function ibanValido(v: string) {
   const s = sinSeparadores(v);
   let resto = 0;
@@ -252,36 +272,175 @@ function ibanValido(v: string) {
   return resto === 1;
 }
 
-/** Identificadores de cualquier persona. Los que se pueden validar se ocultan siempre antes del modelo. */
-export const GENERICAS: readonly Regla[] = [
+/** CIF (Orden EHA/451/2008): A, B, E y H acaban en cifra; N, P, Q, R, S y W, en letra; el resto, en cualquiera. */
+function cifValido(v: string) {
+  const s = sinSeparadores(v);
+  const suma = [...s.slice(1, 8)].reduce((t, c, i) => {
+    const n = Number(c) * (i % 2 ? 1 : 2);
+    return t + Math.floor(n / 10) + (n % 10);
+  }, 0);
+  const cifra = (10 - (suma % 10)) % 10;
+  const control = s.at(-1)!;
+  if ('ABEH'.includes(s[0]!)) return control === String(cifra);
+  if ('NPQRSW'.includes(s[0]!)) return control === 'JABCDEFGHI'[cifra];
+  return control === String(cifra) || control === 'JABCDEFGHI'[cifra];
+}
+
+/** NUSS: provincia (2), número (8) y control (2) = resto entre 97 del número con la provincia delante. */
+function nussValido(v: string) {
+  const s = sinSeparadores(v);
+  const numero = Number(s.slice(2, 10));
+  // Si el número tiene menos de 8 cifras, se le quita el cero de la izquierda antes de unirlo.
+  const base = numero < 1e7 ? Number(s.slice(0, 2)) * 1e7 + numero : Number(s.slice(0, 10));
+  return base % 97 === Number(s.slice(10));
+}
+
+const PESOS_CCC = [1, 2, 4, 8, 5, 10, 9, 7, 3, 6];
+const digitoCcc = (cifras: string) => {
+  const d = 11 - ([...cifras].reduce((t, c, i) => t + Number(c) * PESOS_CCC[i]!, 0) % 11);
+  return d === 11 ? 0 : d === 10 ? 1 : d;
+};
+/** CCC: entidad y oficina (8), dos dígitos de control (módulo 11) y cuenta (10). */
+function cccValido(v: string) {
+  const s = sinSeparadores(v);
+  return `${digitoCcc(`00${s.slice(0, 8)}`)}${digitoCcc(s.slice(10))}` === s.slice(8, 10);
+}
+
+const PESOS_CATASTRO = [13, 15, 12, 5, 4, 17, 9, 21, 3, 7, 1];
+/** Las cifras valen lo que son; las letras, su posición en el alfabeto español (A = 1, Ñ = 15, Z = 27). */
+const valorCatastro = (c: string) =>
+  /\d/.test(c) ? Number(c) : 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.indexOf(c) + 1;
+const letraCatastro = (s: string) =>
+  'MQWERTYUIOPASDFGHJKLBZX'.charAt(
+    [...s].reduce((t, c, i) => t + valorCatastro(c) * PESOS_CATASTRO[i]!, 0) % 23,
+  );
+/** Referencia catastral: finca (7), hoja (7), cargo (4) y una letra de control por cada mitad. */
+function catastralValida(v: string) {
+  const s = sinSeparadores(v);
+  const cargo = s.slice(14, 18);
+  return (
+    letraCatastro(s.slice(0, 7) + cargo) + letraCatastro(s.slice(7, 14) + cargo) === s.slice(18)
+  );
+}
+
+const ARROBA = '@|\\s*[[({](?:at|arroba)[\\])}]\\s*|\\s+arroba\\s+';
+const PUNTO = '\\.|\\s*[[({](?:dot|punto)[\\])}]\\s*|\\s+punto\\s+';
+/**
+ * Plan de numeración (CNMC): son de una persona los móviles (6, 71-74) y los fijos geográficos
+ * (81-88, 91-98). Los de tarificación especial o gratuitos (800, 803, 806, 807, 900, 901, 902,
+ * 905…) y los cortos (060, 012) son de servicios y se quedan a la vista.
+ */
+const PERSONAL = '(?:6|7(?=[1-4])|[89](?=[1-8]))(?:[\\s.-]?\\d){8}';
+/** «600.000.000» es más a menudo un importe: así escrito, solo es teléfono si lo dice delante. */
+const CONTEXTO_TELEFONO = 'tel[eé]fono|tel\\.|tfno|m[oó]vil|fijo|fax|whatsapp|sms|ll[aá]m';
+const MONEDA = '€|\\$|eur(?:os?)?(?!\\p{L})';
+
+/** Un número de solo cifras no es un trozo de otro más largo: «2100-0418-45-…» no lleva un NUSS dentro. */
+const ANTES_CIFRAS = '(?<![\\p{L}\\p{N}]|\\p{N}[\\s./-])';
+const DESPUES_CIFRAS = '(?![\\p{L}\\p{N}]|[\\s./-]\\p{N})';
+
+/**
+ * Identificadores de cualquier persona. Los que tienen control (letra o dígitos) se validan con su
+ * algoritmo oficial y se ocultan siempre antes del modelo. Las letras separadas por un espacio solo
+ * cuentan en mayúscula: «12.000.000 y» es un importe, no un DNI.
+ */
+export const GENERICAS: readonly (Regla & { tipo: TipoDato })[] = [
   {
     clave: 'dni',
     marcador: '[DNI]',
-    patron: /(?<![\p{L}\p{N}])\d{8}[\s-]?[A-Z](?![\p{L}\p{N}])/giu,
+    tipo: 'documento',
+    patron: /(?<![\p{L}\p{N}])\d{2}([.\s]?)\d{3}\1\d{3}(?:[\s.-]?[A-Z]|-?[a-z])(?![\p{L}\p{N}])/gu,
     valido: (v) => letraDni(sinSeparadores(v).slice(0, 8)) === sinSeparadores(v).at(-1),
   },
   {
     clave: 'nie',
     marcador: '[NIE]',
-    patron: /(?<![\p{L}\p{N}])[XYZ][\s-]?\d{7}[\s-]?[A-Z](?![\p{L}\p{N}])/giu,
+    tipo: 'documento',
+    patron:
+      /(?<![\p{L}\p{N}])(?:[XYZ][\s.-]?\d{7}[\s.-]?[A-Z]|[XYZxyz]-?\d{7}-?[A-Za-z])(?![\p{L}\p{N}])/gu,
     valido: (v) => {
       const s = sinSeparadores(v);
       return letraDni('XYZ'.indexOf(s[0]!) + s.slice(1, 8)) === s.at(-1);
     },
   },
   {
+    // K (menores de 14 años), L (españoles no residentes) y M (extranjeros sin NIE): la letra del
+    // DNI calculada con las siete cifras.
+    clave: 'nif',
+    marcador: '[NIF]',
+    tipo: 'documento',
+    patron:
+      /(?<![\p{L}\p{N}])(?:[KLM][\s.-]?\d{7}[\s.-]?[A-Z]|[KLMklm]-?\d{7}-?[A-Za-z])(?![\p{L}\p{N}])/gu,
+    valido: (v) => letraDni(sinSeparadores(v).slice(1, 8)) === sinSeparadores(v).at(-1),
+  },
+  {
+    // Sin P, Q ni S (administraciones públicas): sus CIF salen en las webs oficiales y no son de nadie.
+    clave: 'cif',
+    marcador: '[CIF]',
+    tipo: 'documento',
+    patron: /(?<![\p{L}\p{N}])[ABCDEFGHJNRUVW]-?\d{7}[\dA-J](?![\p{L}\p{N}])/gu,
+    valido: cifValido,
+  },
+  {
+    clave: 'nuss',
+    marcador: '[NUSS]',
+    tipo: 'documento',
+    patron: new RegExp(`${ANTES_CIFRAS}\\d{2}[\\s/-]?\\d{8}[\\s/-]?\\d{2}${DESPUES_CIFRAS}`, 'gu'),
+    valido: nussValido,
+  },
+  {
     clave: 'iban',
     marcador: '[IBAN]',
+    tipo: 'cuenta',
+    // Cada grupo lleva alguna cifra o va en mayúsculas: si no, «… 1332 para el» se tragaba «para».
     patron:
-      /(?<![\p{L}\p{N}])[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){4,7}(?:\s?[A-Z0-9]{1,4})?(?![\p{L}\p{N}])/giu,
+      /(?<![\p{L}\p{N}])[A-Za-z]{2}\d{2}(?:\s?(?:[A-Z]{4}|(?=[A-Za-z]{0,3}\d)[A-Za-z\d]{4})){4,7}(?:\s?(?=[A-Za-z]{0,3}\d)[A-Za-z\d]{1,4})?(?![\p{L}\p{N}])/gu,
     valido: ibanValido,
   },
-  // Empieza donde empieza la palabra: sin ese límite, un texto largo sin espacios sería muy lento.
-  { clave: 'email', marcador: '[correo]', patron: /(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+/gu },
   {
+    // Después del IBAN, que la lleva dentro. En grupos de 4-4-2-10 o de cuatro en cuatro.
+    clave: 'ccc',
+    marcador: '[CCC]',
+    tipo: 'cuenta',
+    patron: new RegExp(
+      `${ANTES_CIFRAS}\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{2}(?:[\\s-]?\\d{10}|\\d{2}(?:[\\s-]?\\d{4}){2})${DESPUES_CIFRAS}`,
+      'gu',
+    ),
+    valido: cccValido,
+  },
+  {
+    clave: 'catastral',
+    marcador: '[referencia catastral]',
+    tipo: 'referencia',
+    patron: /(?<![\p{L}\p{N}])\d{5}[\dA-Z]{2}\s?[\dA-Z]{7}\s?\d{4}\s?[A-Z]{2}(?![\p{L}\p{N}])/gu,
+    valido: catastralValida,
+  },
+  // Empieza donde empieza la palabra: sin ese límite, un texto largo sin espacios sería muy lento.
+  // También escrito para que no lo lean los robots: «lucia arroba ejemplo punto es», «[at]», «(dot)».
+  {
+    clave: 'email',
+    marcador: '[correo]',
+    tipo: 'correo',
+    patron: new RegExp(`(?<![\\w.+-])[\\w.+-]+(?:${ARROBA})[\\w-]+(?:(?:${PUNTO})[\\w-]+)+`, 'giu'),
+  },
+  {
+    // Ni dentro de otro número ni junto a una moneda: «1.600.000.000», «600 000 000 €».
     clave: 'telefono',
     marcador: '[teléfono]',
-    patron: /(?<![\d+])(?:(?:\+|00)34[\s.-]?)?[6789](?:[\s.-]?\d){8}(?!\d)/gu,
+    tipo: 'telefono',
+    patron: new RegExp(
+      `(?<![\\p{N}+]|\\p{N}[.,]|[€$]\\s?)` +
+        `(?:(?:\\+|00)34[\\s.-]?|(?<=(?:${CONTEXTO_TELEFONO})\\D{0,25})|(?!\\d{3}\\.\\d{3}\\.\\d{3}(?!\\p{N})))` +
+        `${PERSONAL}(?![.,]?\\p{N})(?!\\s?(?:${MONEDA}))`,
+      'giu',
+    ),
+  },
+  {
+    // Con el prefijo internacional (E.164: hasta 15 cifras). El +34 sigue el plan español, arriba.
+    clave: 'telefono',
+    marcador: '[teléfono]',
+    tipo: 'telefono',
+    patron: /(?<![\p{L}\p{N}+])\+(?!34)[1-9](?:[\s.()-]{0,2}\d){7,14}(?![.,]?\p{N})/gu,
   },
 ];
 
@@ -296,8 +455,9 @@ export const normalizarValor = (v: string) =>
 
 /**
  * Sustituye los identificadores del perfil por su marcador. `usuario: true` añade los detectores
- * genéricos (DNI, NIE, IBAN, correo y teléfono de cualquiera) para las búsquedas. La última
- * comprobación (`laxo`) oculta además cualquier DNI, NIE o IBAN válido, venga de donde venga.
+ * genéricos (documentos, cuentas, correo y teléfono de cualquiera) para las búsquedas. La última
+ * comprobación (`laxo`) oculta además cualquier identificador con su control válido (DNI, NIE, NIF,
+ * CIF, NUSS, IBAN, CCC, referencia catastral), venga de donde venga.
  */
 export class Privacidad {
   private reglas: Regla[] = [];
@@ -315,8 +475,7 @@ export class Privacidad {
 
   actualizar(perfil: Perfil) {
     this.perfil = perfil;
-    const codigo = (clave: string) =>
-      CODIGOS.has(clave) || /^(documento|telefono|cuenta|correo|fecha)_\d+$/.test(clave);
+    const codigo = (clave: string) => CODIGOS.has(clave) || CODIGO_DETECTADO.test(clave);
     const reglas = (estricto: boolean) =>
       Object.entries(perfil)
         .filter(
@@ -358,7 +517,7 @@ export class Privacidad {
     return out;
   }
 
-  /** ¿Contiene el texto algún valor del perfil o un DNI, NIE o IBAN válido? Para la última comprobación. */
+  /** ¿Contiene el texto algún valor del perfil o un identificador válido? Para la última comprobación. */
   contieneDatos(texto: string): boolean {
     const sinMarcadores = texto.replace(MARCADOR, ' ');
     return [...this.laxas, ...this.reglas, ...VALIDADAS].some((r) =>
