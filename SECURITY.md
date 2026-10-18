@@ -28,6 +28,8 @@ La compatibilidad con validaciones personalizadas, restricciones del navegador, 
 
 No incluyas sesiones, documentos personales, tokens reales o datos identificativos en issues, fixtures, logs ni capturas. Para un fallo de seguridad, utiliza el canal privado de reporte del repositorio cuando esté habilitado; evita publicar detalles que expongan datos de usuarios.
 
+La app de escritorio (`apps/desktop`) tiene su propio protocolo: qué datos guarda, qué llega al proveedor de IA, las capas que lo impiden, lo que queda fuera y qué comprobar antes de cambiarlo. Consulta [apps/desktop/security-protocol.md](apps/desktop/security-protocol.md).
+
 Referencias técnicas consultadas:
 
 - [Content scripts y aislamiento de Chrome](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
