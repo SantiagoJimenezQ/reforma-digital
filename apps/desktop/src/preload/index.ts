@@ -4,7 +4,6 @@ import type { ApiRd, EventoApp } from '../shared/api';
 const metodos = [
   'estado',
   'guardarAjustes',
-  'probarConexion',
   'guardarProveedorPropio',
   'modelosDelProveedor',
   'crearTramite',

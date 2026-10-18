@@ -35,17 +35,11 @@ export const urlProveedor = z
   .transform((u) => u.replace(/\/+$/, ''));
 
 export const ajustesEsquema = z.object({
-  modelo: z
-    .string()
-    .regex(/^[\w.-]+\/[\w.:-]+$/)
-    .max(100),
   /** Pedir Touch ID antes de aprobar envíos, pagos y firmas. */
   touchIdEnConfirmaciones: z.boolean(),
-  /** Usar solo proveedores de IA que no guardan las peticiones (en Vercel exige el plan Pro). */
-  retencionCero: z.boolean(),
   /** Borrar las sesiones de las webs (cookies, inicios de sesión) al cerrar la app. */
   cerrarSesiones: z.boolean(),
-  /** El proveedor de IA: el de esta compilación de la app (por defecto) o uno que elige la persona. */
+  /** El proveedor de IA: el de Reforma Digital, a través de su servidor (por defecto), u otro. */
   proveedor: z.enum(['app', 'propio']),
   /** El otro proveedor: un servidor compatible con la API de OpenAI y su modelo. Sus claves van aparte. */
   proveedorPropio: z
@@ -135,8 +129,6 @@ export type DatoPerfil = { clave: string; guardado: boolean; vista: string };
 export type EstadoApp = {
   version: string;
   ajustes: Ajustes;
-  /** Temporal: el modelo de NaN Builders que usa el asistente (fijo), o `null` con Vercel AI Gateway. */
-  modeloNan: string | null;
   tramites: ResumenTramite[];
   campos: readonly CampoPerfil[];
   perfil: DatoPerfil[];
@@ -146,8 +138,6 @@ export type EstadoApp = {
   desarrollo: boolean;
   /** Avisos que salen de Mis datos, p. ej. un DNI a punto de caducar. */
   recordatorios: { texto: string; sugerencia: string }[];
-  /** Si esta compilación lleva la clave de su propio proveedor de IA. */
-  claveApp: boolean;
   /** Qué claves del otro proveedor hay guardadas (nunca su valor). */
   clavesPropias: { proveedor: boolean; exa: boolean };
 };
@@ -165,7 +155,6 @@ export type ApiRd = {
   estado(): Promise<EstadoApp>;
   guardarAjustes(a: Partial<Ajustes>): Promise<{ ok: true } | { ok: false; error: string }>;
   /** Prueba el modelo con retención cero, que es lo que más proveedores puede descartar. */
-  probarConexion(modelo: string): Promise<{ ok: boolean; error?: string }>;
   /**
    * Prueba el otro proveedor y, si responde, lo guarda y lo usa. Sin clave, sirve la guardada solo
    * si el servidor es el mismo al que se dio.

@@ -2,7 +2,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { APICallError, RetryError, simulateReadableStream } from 'ai';
+import { APICallError, generateText, RetryError, simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import {
   compactar,
@@ -21,6 +21,8 @@ import {
   guardaPrivacidad,
   pareceIrreversible,
   buscarEnElBoe,
+  buscarEnLaWeb,
+  crearProveedor,
   type Anfitrion,
   type Dialogo,
   type Formulario,
@@ -33,6 +35,7 @@ import {
 } from './index';
 import { direccionPrivada, htmlATexto, leerPagina } from './fetch';
 import { isOfficial } from '@reforma-digital/government/domains';
+import { tokenizar } from './rampart-edge';
 
 const perfil = {
   nombre: 'María José',
@@ -362,7 +365,7 @@ const ultimoResultado = (prompt: Prompt) => {
     : '';
 };
 
-/** Las reglas reales y, en lugar del modelo de Rampart, una lista de nombres. */
+/** Las reglas reales y, en lugar del modelo de Rampart Edge, una lista de nombres. */
 const NOMBRES: Record<string, TipoDato> = { Iker: 'nombre', Arrieta: 'apellido' };
 const detectorDePrueba: Detector = async (t) =>
   unir([
@@ -1583,9 +1586,30 @@ describe('reglas del detector', () => {
   });
 });
 
-const modelo = path.resolve(import.meta.dirname, '../.cache/rampart');
+const modelo = path.resolve(import.meta.dirname, '../.cache/rampart-edge');
 // Con el modelo de verdad (pnpm --filter @reforma-digital/agent detector): sin él, no se ejecuta.
-describe.skipIf(!existsSync(modelo))('detector con el modelo de Rampart', () => {
+describe.skipIf(!existsSync(modelo))('detector con el modelo de Rampart Edge', () => {
+  it('tokeniza igual que el tokenizador oficial del modelo', async () => {
+    // Los ids los dio el tokenizador de Hugging Face (BertTokenizer) para estos textos.
+    const casos = JSON.parse(
+      readFileSync(path.join(import.meta.dirname, 'tokenizador.fixture.json'), 'utf8'),
+    ) as { texto: string; ids: number[] }[];
+    const vocab = new Map(
+      readFileSync(path.join(modelo, 'vocab.txt'), 'utf8')
+        .split('\n')
+        .map((t, i) => [t.trim(), i]),
+    );
+    for (const { texto, ids } of casos) {
+      const piezas = tokenizar(texto, vocab);
+      expect(
+        piezas.map((p) => p.id),
+        texto,
+      ).toEqual(ids);
+      // Cada pieza señala su parte del texto original.
+      for (const p of piezas) expect(p.fin, texto).toBeGreaterThan(p.inicio);
+    }
+  });
+
   it('oculta nombres enteros sin partir palabras ni tapar trámites, oficinas o municipios', async () => {
     const d = await crearDetector(modelo);
     const proteger = (t: string, origen: 'persona' | 'pagina') =>
@@ -1831,5 +1855,45 @@ describe('lo que llega de la web', () => {
     expect(consulta.query.query_string.query).toBe(
       'titulo:("régimen local" and "ley 7/1985") and vigencia_agotada:N',
     );
+  });
+});
+
+describe('servidor de Reforma Digital', () => {
+  it('manda el modelo y la búsqueda a sus rutas, con la instalación y sin clave', async () => {
+    const pedidas: { url: string; cabeceras: Headers }[] = [];
+    vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+      pedidas.push({ url: String(url), cabeceras: new Headers(init.headers) });
+      return String(url).endsWith('/buscar')
+        ? Response.json({
+            resultados: [{ url: 'https://www.boe.es/x', titulo: 'Ley', extracto: 'Texto' }],
+            costeUsd: 0.001,
+          })
+        : Response.json({
+            id: 'r',
+            created: 0,
+            model: 'reforma',
+            choices: [
+              { index: 0, message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' },
+            ],
+            usage: { prompt_tokens: 1, completion_tokens: 1 },
+          });
+    });
+    try {
+      const instalacion = '6f1d2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b';
+      const p = crearProveedor({ tipo: 'reforma', url: 'https://servidor.example', instalacion });
+      await generateText({ model: p.modelo, prompt: 'Hola' });
+      const { resultados } = await buscarEnLaWeb('padrón', ['getafe.es'], p);
+      expect(resultados[0]?.titulo).toBe('Ley');
+      expect(pedidas.map((x) => x.url)).toEqual([
+        'https://servidor.example/api/escritorio/v1/chat/completions',
+        'https://servidor.example/api/escritorio/buscar',
+      ]);
+      for (const x of pedidas) {
+        expect(x.cabeceras.get('x-rd-instalacion')).toBe(instalacion);
+        expect(x.cabeceras.get('authorization')).toBeNull();
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

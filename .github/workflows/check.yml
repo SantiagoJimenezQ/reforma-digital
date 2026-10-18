@@ -48,7 +48,7 @@ jobs:
       - run: pnpm --filter @reforma-digital/desktop exec install-electron
       - uses: actions/cache@v4
         with:
-          path: packages/agent/.cache/rampart
+          path: packages/agent/.cache/rampart-edge
           key: detector-${{ hashFiles('packages/agent/scripts/detector.mjs') }}
       - run: pnpm --filter @reforma-digital/agent detector
       - run: pnpm --filter @reforma-digital/desktop build

@@ -42,8 +42,8 @@ type Registro = {
 export type Entorno = {
   perfil(): Perfil;
   guardarPerfil(valores: Perfil): Promise<void>;
-  /** Configuración del proveedor, o `null` si la compilación no lleva la clave. */
-  proveedor(): ConfigProveedor | null;
+  /** Configuración del proveedor: el servidor de Reforma Digital u otro que haya elegido la persona. */
+  proveedor(): ConfigProveedor;
   /** Touch ID para aprobar envíos; `true` si no está disponible o desactivado. */
   verificarIdentidad(motivo: string): Promise<boolean>;
   /** Detector local de datos personales; falla si el modelo no se puede cargar. */
@@ -77,9 +77,6 @@ type Espera = {
   tramite: string;
   resolver: (respuesta: Record<string, string> | boolean | null) => void;
 };
-
-export const SIN_CLAVE =
-  'Esta compilación de la app no lleva la clave del asistente. Elige otro proveedor en Ajustes, o compílala con AI_GATEWAY_API_KEY (o con NAN_API_KEY y EXA_API_KEY).';
 
 const archivo = (id: string) => `tramite-${id}.bin`;
 const ahora = () => new Date().toISOString();
@@ -270,7 +267,6 @@ export class Tramites {
       this.cambio(id);
       return;
     }
-    const config = this.entorno.proveedor();
     // Si escribe en vez de responder a una tarjeta que no se pudo retomar, se queda sin respuesta.
     for (const i of r.conversacion)
       if (i.tipo === 'pregunta' && i.estado === 'pendiente')
@@ -282,18 +278,7 @@ export class Tramites {
       protegidos: 0,
       mensajes: r.estado.mensajes.length,
     });
-    if (!config) {
-      r.conversacion.push({
-        tipo: 'aviso',
-        id: randomUUID(),
-        tono: 'error',
-        texto: SIN_CLAVE,
-      });
-      await this.guardar(r);
-      this.cambio(id);
-      return;
-    }
-    this.iniciar(r, texto, config);
+    this.iniciar(r, texto, this.entorno.proveedor());
   }
 
   /** Pone a trabajar al asistente; sin texto, retoma lo que esperaba a la persona. */

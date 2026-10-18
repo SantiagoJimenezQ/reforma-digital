@@ -19,7 +19,7 @@ const electronInstalado = existsSync(path.join(raiz, 'node_modules/electron/dist
 const preparada =
   electronInstalado &&
   existsSync(path.join(raiz, 'out/main.js')) &&
-  existsSync(path.join(raiz, 'out/modelos/rampart'));
+  existsSync(path.join(raiz, 'out/modelos/rampart-edge'));
 
 // En el trabajo de CI que la prepara (RD_ESCRITORIO=1), que falte algo es un fallo, no un salto.
 test.skip(
@@ -29,9 +29,12 @@ test.skip(
 
 const RESPUESTA = 'Hola, te ayudo con la renovación.';
 
-/** Un servidor que responde como la API de OpenAI y guarda lo que recibe. */
+/**
+ * Un servidor que responde como la API de OpenAI (en `/v1`, como otro proveedor, y en
+ * `/api/escritorio/v1`, como el de Reforma Digital) y guarda lo que recibe.
+ */
 function proveedorSimulado() {
-  const peticiones: string[] = [];
+  const peticiones: { ruta: string; instalacion: string; clave: string; cuerpo: string }[] = [];
   const servidor: Server = createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/v1/models') {
       res.setHeader('content-type', 'application/json');
@@ -40,7 +43,12 @@ function proveedorSimulado() {
     let cuerpo = '';
     req.on('data', (c: Buffer) => (cuerpo += c.toString('utf8')));
     req.on('end', () => {
-      peticiones.push(cuerpo);
+      peticiones.push({
+        ruta: req.url ?? '',
+        instalacion: String(req.headers['x-rd-instalacion'] ?? ''),
+        clave: String(req.headers.authorization ?? ''),
+        cuerpo,
+      });
       const base = { id: 'r', created: 0, model: 'guion' };
       const uso = { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 };
       if (!(JSON.parse(cuerpo) as { stream?: boolean }).stream) {
@@ -84,7 +92,11 @@ test.beforeAll(async () => {
   app = await electron.launch({
     executablePath: createRequire(path.join(raiz, 'package.json'))('electron') as string,
     args: [raiz, `--user-data-dir=${perfil}`, '--use-mock-keychain'],
-    env: env as Record<string, string>,
+    // El servidor de Reforma Digital es el simulado (solo sin empaquetar).
+    env: {
+      ...(env as Record<string, string>),
+      RD_SERVIDOR_LOCAL: `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`,
+    },
   });
 });
 
@@ -94,7 +106,11 @@ test.afterAll(async () => {
   if (perfil) rmSync(perfil, { recursive: true, force: true });
 });
 
-test('con otro proveedor, un DNI escrito en el chat no le llega y el trámite se guarda cifrado', async () => {
+/** Lo que recibió el modelo en una ruta del servidor simulado. */
+const recibido = (ruta: string) => peticiones.filter((p) => p.ruta === ruta);
+const DNI = '87654321X';
+
+test('con el servidor de Reforma Digital, la app se identifica, no lleva claves y no le llega un DNI', async () => {
   test.setTimeout(120_000);
   const ventana = await app!.firstWindow();
   // Bienvenida de la primera vez.
@@ -102,6 +118,25 @@ test('con otro proveedor, un DNI escrito en el chat no le llega y el trámite se
   await ventana.getByRole('button', { name: 'Continuar' }).click();
   await ventana.getByRole('button', { name: 'Empezar' }).click();
 
+  await ventana
+    .getByPlaceholder(/quiero pedir cita/)
+    .fill(`Quiero renovar el DNI de mi hijo, que es el ${DNI}, en Getafe`);
+  await ventana.getByRole('button', { name: 'Enviar' }).click();
+  await expect(ventana.getByText(RESPUESTA)).toBeVisible({ timeout: 60_000 });
+
+  const alServidor = recibido('/api/escritorio/v1/chat/completions');
+  expect(alServidor.length).toBeGreaterThan(0);
+  for (const p of alServidor) {
+    expect(p.instalacion).toMatch(/^[0-9a-f-]{36}$/);
+    expect(p.clave).toBe('');
+    expect(p.cuerpo).not.toContain(DNI.slice(0, 8));
+  }
+  expect(alServidor.map((p) => p.cuerpo).join('\n')).toMatch(/\{\{documento_\d+\}\}/);
+});
+
+test('con otro proveedor, un DNI escrito en el chat no le llega y el trámite se guarda cifrado', async () => {
+  test.setTimeout(120_000);
+  const ventana = await app!.firstWindow();
   await ventana.getByRole('button', { name: 'Ajustes' }).click();
   await ventana.getByText('Otro proveedor o un modelo en tu ordenador').click();
   const puerto = (servidor.address() as AddressInfo).port;
@@ -114,20 +149,24 @@ test('con otro proveedor, un DNI escrito en el chat no le llega y el trámite se
   await ventana.getByRole('button', { name: 'Nuevo trámite' }).click();
   await ventana
     .getByPlaceholder(/quiero pedir cita/)
-    .fill('Quiero renovar el DNI de mi hijo, que es el 87654321X, en Getafe');
+    .fill(`Quiero renovar el DNI de mi hijo, que es el ${DNI}, en Getafe`);
   await ventana.getByRole('button', { name: 'Enviar' }).click();
   await expect(ventana.getByText(RESPUESTA)).toBeVisible({ timeout: 60_000 });
 
-  const alModelo = peticiones.join('\n');
+  const alModelo = recibido('/v1/chat/completions')
+    .map((p) => p.cuerpo)
+    .join('\n');
   expect(alModelo).toContain('renovar el DNI');
-  expect(alModelo).not.toContain('87654321');
+  expect(alModelo).not.toContain(DNI.slice(0, 8));
   expect(alModelo).toMatch(/\{\{documento_\d+\}\}/);
 
   // Todo lo de la app queda en el perfil de prueba y cifrado: ni el mensaje ni el DNI en claro.
   const datos = path.join(perfil, 'datos');
   const tramites = readdirSync(datos).filter((f) => f.startsWith('tramite-'));
-  expect(tramites.length).toBe(1);
-  const guardado = readFileSync(path.join(datos, tramites[0]!)).toString('latin1');
-  expect(guardado).not.toContain('renovar');
-  expect(guardado).not.toContain('87654321');
+  expect(tramites.length).toBe(2);
+  for (const t of tramites) {
+    const guardado = readFileSync(path.join(datos, t)).toString('latin1');
+    expect(guardado).not.toContain('renovar');
+    expect(guardado).not.toContain(DNI.slice(0, 8));
+  }
 });

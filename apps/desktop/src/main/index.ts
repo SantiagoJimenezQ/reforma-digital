@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -25,6 +26,7 @@ import {
   validarCampo,
   type ConfigProveedor,
   type Detector,
+  type ServidorReforma,
   type Perfil,
 } from '@reforma-digital/agent';
 import {
@@ -37,7 +39,7 @@ import {
 } from '../shared/api';
 import { Almacen } from './almacen';
 import { esLectura } from './navegador';
-import { SIN_CLAVE, Tramites } from './tramites';
+import { Tramites } from './tramites';
 
 const RAIZ = import.meta.dirname;
 /** Fuera del ASAR: ONNX Runtime no lee modelos desde un archivo empaquetado. */
@@ -50,51 +52,43 @@ protocol.registerSchemesAsPrivileged([
 if (!app.requestSingleInstanceLock()) app.quit();
 
 /**
- * La clave de Vercel AI Gateway con la que la app llama al asistente, para que nadie tenga que
- * traer la suya. Se pone al compilar (AI_GATEWAY_API_KEY): va dentro de la app y se puede sacar
- * de ella, así que solo vale para compilaciones propias, no para repartir.
+ * El servidor de Reforma Digital (`apps/web`), que guarda las claves del modelo y del buscador: la
+ * app no lleva ninguna. Se fija al compilar (RD_SERVIDOR); sin empaquetar, RD_SERVIDOR_LOCAL lo
+ * cambia al arrancar, para desarrollar o probar con un servidor en local.
  */
-const CLAVE_GATEWAY = process.env.CLAVE_GATEWAY ?? '';
-/**
- * Temporal: si se compila con NAN_API_KEY y EXA_API_KEY, el asistente usa un modelo abierto de
- * NaN Builders (sin registro de peticiones, en la UE) y busca con Exa, en lugar de Vercel AI Gateway.
- */
-const NAN =
-  process.env.CLAVE_NAN && process.env.CLAVE_EXA
-    ? { clave: process.env.CLAVE_NAN, claveExa: process.env.CLAVE_EXA, modelo: 'deepseek-v4-flash' }
-    : null;
+const SERVIDOR = (
+  (!app.isPackaged && process.env['RD_SERVIDOR_LOCAL']) ||
+  process.env.RD_SERVIDOR ||
+  'https://reforma-digital.es'
+).replace(/\/+$/, '');
 
-/** El proveedor de esta compilación, o `null` si no lleva claves. */
-function proveedorApp(modelo: string, retencionCero: boolean): ConfigProveedor | null {
-  if (NAN) return { tipo: 'nan', ...NAN };
-  return CLAVE_GATEWAY ? { tipo: 'gateway', clave: CLAVE_GATEWAY, modelo, retencionCero } : null;
-}
+/** El de Reforma Digital, a través de su servidor; se identifica con la instalación. */
+const proveedorApp = (): ServidorReforma => ({
+  tipo: 'reforma',
+  url: SERVIDOR,
+  instalacion: secretos.instalacion,
+});
 
-/** Otro proveedor elegido por la persona; busca con su clave de Exa o, si no tiene, con la de la app. */
+/** Otro proveedor elegido por la persona; busca con su clave de Exa o, si no tiene, en el servidor. */
 function proveedorPropio(
   p: NonNullable<Ajustes['proveedorPropio']>,
   claves: Claves,
 ): ConfigProveedor {
-  const exa = claves.exa ?? NAN?.claveExa ?? process.env.CLAVE_EXA;
   return {
     tipo: 'compatible',
     url: p.url,
     modelo: p.modelo,
     ...(claves.proveedor ? { clave: claves.proveedor } : {}),
-    busqueda: exa
-      ? { tipo: 'exa', clave: exa }
-      : CLAVE_GATEWAY
-        ? { tipo: 'gateway', clave: CLAVE_GATEWAY }
-        : null,
+    busqueda: claves.exa ? { tipo: 'exa', clave: claves.exa } : proveedorApp(),
   };
 }
 
-/** El proveedor con el que habla el asistente ahora, o `null` si no hay ninguno con clave. */
-function configProveedor(): ConfigProveedor | null {
+/** El proveedor con el que habla el asistente ahora. */
+function configProveedor(): ConfigProveedor {
   const a = secretos.ajustes;
   if (a.proveedor === 'propio' && a.proveedorPropio)
     return proveedorPropio(a.proveedorPropio, secretos.claves ?? {});
-  return proveedorApp(a.modelo, a.retencionCero);
+  return proveedorApp();
 }
 
 /** La clave guardada del otro proveedor solo se manda al servidor para el que se dio. */
@@ -105,11 +99,10 @@ const claveGuardadaPara = (url: string) =>
 
 /** Las claves del otro proveedor: cifradas con lo demás y nunca enviadas a la interfaz. */
 type Claves = { proveedor?: string; exa?: string };
-type Secretos = { ajustes: Ajustes; claves?: Claves };
+/** `instalacion`: identificador aleatorio de esta instalación para el servidor; no dice nada de la persona. */
+type Secretos = { ajustes: Ajustes; claves?: Claves; instalacion: string };
 const AJUSTES_INICIALES: Ajustes = {
-  modelo: 'openai/gpt-6-luna',
   touchIdEnConfirmaciones: true,
-  retencionCero: false,
   cerrarSesiones: false,
   proveedor: 'app',
   proveedorPropio: null,
@@ -118,15 +111,17 @@ const AJUSTES_INICIALES: Ajustes = {
 let ventana: BrowserWindow | null = null;
 let almacen: Almacen;
 let tramites: Tramites;
-let secretos: Secretos = { ajustes: AJUSTES_INICIALES };
+let secretos: Secretos = { ajustes: AJUSTES_INICIALES, instalacion: randomUUID() };
 let perfil: Perfil = {};
 let detector: Promise<Detector> | undefined;
 /** Se carga una vez, del modelo que va dentro de la app; si falla, se reintenta en el siguiente turno. */
 const cargarDetector = () =>
-  (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart')).catch((e: unknown) => {
-    detector = undefined;
-    throw e;
-  }));
+  (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart-edge')).catch(
+    (e: unknown) => {
+      detector = undefined;
+      throw e;
+    },
+  ));
 
 const touchId = () => process.platform === 'darwin' && systemPreferences.canPromptTouchID();
 async function verificar(motivo: string, exigir: boolean) {
@@ -174,8 +169,6 @@ function estadoApp(): EstadoApp {
   return {
     version: app.getVersion(),
     ajustes: secretos.ajustes,
-    modeloNan: NAN?.modelo ?? null,
-    claveApp: Boolean(NAN || CLAVE_GATEWAY),
     clavesPropias: {
       proveedor: Boolean(secretos.claves?.proveedor),
       exa: Boolean(secretos.claves?.exa),
@@ -217,16 +210,6 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
       emitir({ tipo: 'estado', estado: estadoApp() });
       return { ok: true };
     },
-    probarConexion: async (modelo) => {
-      const cfg = proveedorApp(ajustesEsquema.shape.modelo.parse(modelo), true);
-      if (!cfg) return { ok: false, error: SIN_CLAVE };
-      try {
-        await probarConexion(cfg);
-        return { ok: true };
-      } catch (e) {
-        return { ok: false, error: mensajeDeError(e) };
-      }
-    },
     guardarProveedorPropio: async (entrada) => {
       const e = ajustesEsquema.shape.proveedorPropio
         .unwrap()
@@ -249,6 +232,7 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
         return { ok: false, error: `No responde: ${mensajeDeError(err)}` };
       }
       secretos = {
+        ...secretos,
         claves,
         ajustes: { ...secretos.ajustes, proveedor: 'propio', proveedorPropio: propio },
       };
@@ -507,8 +491,13 @@ app
       return net.fetch(pathToFileURL(destino).href);
     });
     almacen = await Almacen.abrir(path.join(app.getPath('userData'), 'datos'));
-    secretos = (await almacen.leer<Secretos>('secretos.bin')) ?? { ajustes: AJUSTES_INICIALES };
-    secretos.ajustes = { ...AJUSTES_INICIALES, ...secretos.ajustes };
+    const guardados = await almacen.leer<Partial<Secretos>>('secretos.bin');
+    secretos = {
+      ...guardados,
+      ajustes: { ...AJUSTES_INICIALES, ...guardados?.ajustes },
+      instalacion: guardados?.instalacion ?? randomUUID(),
+    };
+    if (!guardados?.instalacion) await almacen.escribir('secretos.bin', secretos);
     if (secretos.ajustes.proveedor === 'propio' && !secretos.ajustes.proveedorPropio)
       secretos.ajustes.proveedor = 'app';
     // Con «cerrar sesiones», las sesiones de las webs viven en memoria y se borran las que quedaran.

@@ -2,7 +2,7 @@ import { generateText } from 'ai';
 import { z } from 'zod';
 import { approvedSource, canonicalize } from '@reforma-digital/government';
 import { isOfficial } from '@reforma-digital/government/domains';
-import type { Proveedor } from './models';
+import { CABECERA_INSTALACION, type Proveedor, type ServidorReforma } from './models';
 
 export type Fuente = {
   id: string;
@@ -77,6 +77,7 @@ export async function buscarEnLaWeb(
       'La búsqueda no está disponible con el proveedor elegido en Ajustes. Lee con leer_pagina la web del organismo si la conoces.',
     );
   if (b.tipo === 'exa') return buscarConExa(consulta, dominios, b.clave, max, signal);
+  if (b.tipo === 'reforma') return buscarEnElServidor(consulta, dominios, b, signal);
   const r = await generateText({
     model: b.rapido,
     reasoning: 'none',
@@ -190,8 +191,33 @@ const respuestaExa = z.object({
   costDollars: z.object({ total: z.number() }).partial().nullish(),
 });
 
+const respuestaServidor = z.object({
+  resultados: z.array(z.object({ url: z.string(), titulo: z.string(), extracto: z.string() })),
+  costeUsd: z.number().nullable(),
+});
+
+/** La búsqueda del servidor de Reforma Digital, que hace Exa con su clave (`apps/web`). */
+async function buscarEnElServidor(
+  consulta: string,
+  dominios: string[],
+  servidor: ServidorReforma,
+  signal?: AbortSignal,
+) {
+  const res = await fetch(`${servidor.url}/api/escritorio/buscar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', [CABECERA_INSTALACION]: servidor.instalacion },
+    body: JSON.stringify({ consulta, dominios }),
+    signal: AbortSignal.any([AbortSignal.timeout(40000), ...(signal ? [signal] : [])]),
+  });
+  if (res.status === 429)
+    throw new Error('El buscador de Reforma Digital está saturado ahora mismo. Prueba más tarde.');
+  if (!res.ok)
+    throw new Error(`El buscador de Reforma Digital respondió con un error ${res.status}.`);
+  return respuestaServidor.parse(await res.json());
+}
+
 /** Exa: la búsqueda directa, sin pasar por un modelo, con fragmentos de cada página. */
-async function buscarConExa(
+export async function buscarConExa(
   consulta: string,
   dominios: string[],
   clave: string,
