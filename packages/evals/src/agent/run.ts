@@ -34,7 +34,7 @@ import {
 /** El mismo detector que la app (pnpm --filter @reforma-digital/agent detector lo descarga). */
 let detector: ReturnType<typeof crearDetector> | undefined;
 const detectorLocal = () =>
-  (detector ??= crearDetector(path.join(repo, 'packages/agent/.cache/rampart')));
+  (detector ??= crearDetector(path.join(repo, 'packages/agent/.cache/rampart-edge')));
 
 export type Config = {
   /** Las evaluaciones llaman al proveedor con su clave: no pasan por el servidor de Reforma Digital. */
@@ -45,7 +45,7 @@ export type Config = {
 
 /**
  * Para un escenario basta un modelo. Las pruebas sin coste pasan uno guionado y un detector solo
- * de reglas (el modelo de Rampart no está en CI).
+ * de reglas (el modelo de Rampart Edge no está en CI).
  */
 export type ConfigEscenario = Pick<Config, 'razonamiento'> & {
   proveedor: ConfigProveedor | Modelo;

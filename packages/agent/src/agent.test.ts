@@ -35,6 +35,7 @@ import {
 } from './index';
 import { direccionPrivada, htmlATexto, leerPagina } from './fetch';
 import { isOfficial } from '@reforma-digital/government/domains';
+import { tokenizar } from './rampart-edge';
 
 const perfil = {
   nombre: 'María José',
@@ -364,7 +365,7 @@ const ultimoResultado = (prompt: Prompt) => {
     : '';
 };
 
-/** Las reglas reales y, en lugar del modelo de Rampart, una lista de nombres. */
+/** Las reglas reales y, en lugar del modelo de Rampart Edge, una lista de nombres. */
 const NOMBRES: Record<string, TipoDato> = { Iker: 'nombre', Arrieta: 'apellido' };
 const detectorDePrueba: Detector = async (t) =>
   unir([
@@ -1585,9 +1586,30 @@ describe('reglas del detector', () => {
   });
 });
 
-const modelo = path.resolve(import.meta.dirname, '../.cache/rampart');
+const modelo = path.resolve(import.meta.dirname, '../.cache/rampart-edge');
 // Con el modelo de verdad (pnpm --filter @reforma-digital/agent detector): sin él, no se ejecuta.
-describe.skipIf(!existsSync(modelo))('detector con el modelo de Rampart', () => {
+describe.skipIf(!existsSync(modelo))('detector con el modelo de Rampart Edge', () => {
+  it('tokeniza igual que el tokenizador oficial del modelo', async () => {
+    // Los ids los dio el tokenizador de Hugging Face (BertTokenizer) para estos textos.
+    const casos = JSON.parse(
+      readFileSync(path.join(import.meta.dirname, 'tokenizador.fixture.json'), 'utf8'),
+    ) as { texto: string; ids: number[] }[];
+    const vocab = new Map(
+      readFileSync(path.join(modelo, 'vocab.txt'), 'utf8')
+        .split('\n')
+        .map((t, i) => [t.trim(), i]),
+    );
+    for (const { texto, ids } of casos) {
+      const piezas = tokenizar(texto, vocab);
+      expect(
+        piezas.map((p) => p.id),
+        texto,
+      ).toEqual(ids);
+      // Cada pieza señala su parte del texto original.
+      for (const p of piezas) expect(p.fin, texto).toBeGreaterThan(p.inicio);
+    }
+  });
+
   it('oculta nombres enteros sin partir palabras ni tapar trámites, oficinas o municipios', async () => {
     const d = await crearDetector(modelo);
     const proteger = (t: string, origen: 'persona' | 'pagina') =>
