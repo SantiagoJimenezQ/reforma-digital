@@ -113,7 +113,7 @@ function Cifrado({ de, a }: { de: string; a: string }) {
 }
 
 /** El final: qué ha pasado con tus datos en cada paso. */
-const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; texto: string }[] => [
+const RESUMEN: { icono: NombreIcono; titulo: string; texto: string }[] = [
   {
     icono: 'persona',
     titulo: 'Escribiste tu nombre, tu DNI y tu IBAN',
@@ -127,9 +127,7 @@ const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; text
   {
     icono: 'buscar',
     titulo: 'La IA preparó el 303 solo con marcadores',
-    texto: modeloNan
-      ? 'Modelos en la UE con retención cero: no guardan la petición.'
-      : 'Sabe que hay un dato, no cuál es.',
+    texto: 'Sabe que hay un dato, no cuál es.',
   },
   {
     icono: 'huella',
@@ -144,17 +142,17 @@ const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; text
 ];
 
 /** Lo que pasa con una petición: se ocultan los datos antes de salir del ordenador y la IA solo ve marcadores. */
-function Viaje({ modeloNan }: { modeloNan: boolean }) {
+function Viaje() {
   // Cada vuelta monta la escena de nuevo, desde el principio.
   const [vuelta, setVuelta] = useState(0);
   return (
     <>
-      <Escena key={vuelta} modeloNan={modeloNan} alAcabar={() => setVuelta((v) => v + 1)} />
+      <Escena key={vuelta} alAcabar={() => setVuelta((v) => v + 1)} />
       {/* La escena es decorativa: el lector de pantalla recibe su conclusión. */}
       <div className="sr-only">
         <p>0 datos tuyos han llegado a la IA.</p>
         <ol>
-          {resumen(modeloNan).map((r) => (
+          {RESUMEN.map((r) => (
             <li key={r.titulo}>
               {r.titulo}. {r.texto}
             </li>
@@ -165,7 +163,7 @@ function Viaje({ modeloNan }: { modeloNan: boolean }) {
   );
 }
 
-function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => void }) {
+function Escena({ alAcabar }: { alAcabar: () => void }) {
   // Sin movimiento, se queda en el momento que mejor lo explica.
   const [fase, setFase] = useState<Fase>(() => (quieto() ? 'resumen' : 'aparece'));
   const [letras, setLetras] = useState(() => (quieto() ? LETRAS : 0));
@@ -226,7 +224,7 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
               <span className="text-[17px] font-medium">datos tuyos han llegado a la IA</span>
             </span>
             <ol className="m-0 mt-5 p-0">
-              {resumen(modeloNan).map((r, i, todos) => (
+              {RESUMEN.map((r, i, todos) => (
                 <li
                   key={r.titulo}
                   style={{ animationDelay: `${300 + i * 450}ms` }}
@@ -416,7 +414,7 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
               <p className={cn(entradilla, 'text-[var(--text-secondary)]')}>
                 Así viaja una petición con tus datos.
               </p>
-              <Viaje modeloNan={Boolean(app?.modeloNan)} />
+              <Viaje />
               <p className="mt-6 mb-0 text-[15px] text-muted-foreground">
                 Es código abierto: puedes comprobarlo todo en{' '}
                 <button

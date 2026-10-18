@@ -8,8 +8,22 @@ import {
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { Privacidad } from './profile';
 
-/** Quién hace las búsquedas: Exa directamente, o Parallel a través de Vercel AI Gateway. */
-export type ConfigBusqueda = { tipo: 'exa'; clave: string } | { tipo: 'gateway'; clave: string };
+/**
+ * Quién hace las búsquedas: Exa directamente, Parallel a través de Vercel AI Gateway o el servidor
+ * de Reforma Digital, que guarda la clave de Exa.
+ */
+export type ConfigBusqueda =
+  | { tipo: 'exa'; clave: string }
+  | { tipo: 'gateway'; clave: string }
+  | ServidorReforma;
+
+/**
+ * El servidor de Reforma Digital (`apps/web`): guarda las claves del modelo y del buscador, y
+ * limita lo que gasta cada instalación. `instalacion` es un identificador aleatorio de la app.
+ */
+export type ServidorReforma = { tipo: 'reforma'; url: string; instalacion: string };
+/** Cabecera con la que la app se identifica ante el servidor de Reforma Digital. */
+export const CABECERA_INSTALACION = 'x-rd-instalacion';
 
 export type ConfigProveedor =
   | {
@@ -27,6 +41,7 @@ export type ConfigProveedor =
       claveExa: string;
       modelo: string;
     }
+  | ServidorReforma
   | {
       /** Un servidor compatible con la API de OpenAI que elige la persona: otro proveedor o un modelo en su ordenador. */
       tipo: 'compatible';
@@ -47,7 +62,7 @@ type BusquedaGateway = {
   /** Modelo pequeño que solo ejecuta la búsqueda. */
   rapido: Modelo;
 };
-export type Busqueda = { tipo: 'exa'; clave: string } | BusquedaGateway;
+export type Busqueda = { tipo: 'exa'; clave: string } | BusquedaGateway | ServidorReforma;
 
 export type Proveedor = { modelo: Modelo; busqueda: Busqueda | null };
 
@@ -123,13 +138,34 @@ export function crearProveedor(
     const rapido = envolver(gateway(MODELO_BUSQUEDA), [sinEntrenamiento(retencionCero)]);
     return { tipo: 'gateway', gateway, rapido };
   };
-  const compatible = (name: string, baseURL: string, apiKey?: string) =>
-    createOpenAICompatible({ name, baseURL, includeUsage: true, ...(apiKey ? { apiKey } : {}) });
+  const compatible = (
+    name: string,
+    baseURL: string,
+    apiKey?: string,
+    headers?: Record<string, string>,
+  ) =>
+    createOpenAICompatible({
+      name,
+      baseURL,
+      includeUsage: true,
+      ...(apiKey ? { apiKey } : {}),
+      ...(headers ? { headers } : {}),
+    });
   if (cfg.tipo === 'gateway') {
     const busqueda = busquedaGateway(cfg.clave, cfg.retencionCero);
     const modelo = busqueda.gateway(cfg.modelo);
     return { modelo: envolver(modelo, [sinEntrenamiento(cfg.retencionCero)]), busqueda };
   }
+  // El modelo lo elige el servidor: el nombre que se le pasa no cuenta.
+  if (cfg.tipo === 'reforma')
+    return {
+      modelo: envolver(
+        compatible('reforma', `${cfg.url}/api/escritorio/v1`, undefined, {
+          [CABECERA_INSTALACION]: cfg.instalacion,
+        })('reforma'),
+      ),
+      busqueda: cfg,
+    };
   if (cfg.tipo === 'nan')
     return {
       modelo: envolver(compatible('nan', 'https://api.nan.builders/v1', cfg.clave)(cfg.modelo)),
@@ -138,7 +174,7 @@ export function crearProveedor(
   const b = cfg.busqueda;
   return {
     modelo: envolver(compatible('propio', cfg.url, cfg.clave)(cfg.modelo)),
-    busqueda: !b ? null : b.tipo === 'exa' ? b : busquedaGateway(b.clave),
+    busqueda: !b ? null : b.tipo === 'gateway' ? busquedaGateway(b.clave) : b,
   };
 }
 

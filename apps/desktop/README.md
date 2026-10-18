@@ -21,13 +21,16 @@ pnpm --filter @reforma-digital/desktop package                 # la app, sin ins
 
 Si el terminal tiene `ELECTRON_RUN_AS_NODE=1` (lo definen algunas apps hechas con Electron), quítalo antes de `dev`: con esa variable Electron arranca como Node. La app empaquetada no se ve afectada porque el fusible `runAsNode` está desactivado.
 
-La app no pide ninguna clave: llama al asistente con la de **Vercel AI Gateway** que recibe al compilarse (`AI_GATEWAY_API_KEY`, del entorno o del `.env` de la raíz). Habla directamente con Vercel y con las webs oficiales, sin servidores de Reforma Digital. El modelo por defecto es `openai/gpt-6-luna`, el que mejor resultado y menor coste ha dado en las evaluaciones; se cambia en Ajustes.
+**La app no lleva claves.** Habla con el servidor de Reforma Digital (`apps/web`, en `https://reforma-digital.es`), que guarda las de [NaN Builders](https://nan.builders) y [Exa](https://exa.ai) en sus variables de entorno:
 
-**Temporal: NaN Builders y Exa.** Si al compilar también están `NAN_API_KEY` y `EXA_API_KEY`, la app usa en su lugar `deepseek-v4-flash`, un modelo abierto de [NaN Builders](https://nan.builders) (sin registro de peticiones, en la UE), y busca con [Exa](https://exa.ai). Ajustes muestra el modelo fijo en lugar de la lista de Vercel.
+- `POST /api/escritorio/v1/chat/completions` pasa las peticiones del modelo a NaN Builders (`deepseek-v4-flash`, modelo abierto alojado en la UE y sin registro de peticiones). Es compatible con la API de OpenAI. El modelo y el máximo de tokens los pone el servidor, y solo pasan los campos que usa el agente.
+- `POST /api/escritorio/buscar` busca en Exa.
+
+Las peticiones ya llegan sin datos personales (van como marcadores) y el servidor no las guarda. Solo cuenta, en Postgres: las peticiones de cada instalación (un identificador aleatorio que la app crea al arrancar por primera vez y envía en `x-rd-instalacion`) y de cada IP (con hash), por hora, y el gasto del día. Los límites están en `apps/web/lib/escritorio.ts`: 150 peticiones al modelo y 60 búsquedas por instalación y hora, 600 por IP y 5 $ al día entre todas las instalaciones. Una app que se reparte no puede guardar secretos: estos límites son lo que impide el abuso.
+
+En el servidor hacen falta `NAN_API_KEY`, `EXA_API_KEY` y el precio del modelo en dólares por millón de tokens (`ESCRITORIO_USD_MTOK_ENTRADA`, `ESCRITORIO_USD_MTOK_SALIDA`, del panel de NaN Builders). Sin ellos, las rutas responden 503 en lugar de gastar sin control. Para desarrollar con la web en local (`pnpm dev`), compila la app con `RD_SERVIDOR=http://localhost:3000` o, sin empaquetar, arráncala con `RD_SERVIDOR_LOCAL=http://localhost:3000`.
 
 **Otro proveedor.** En Ajustes, en lugar del de la app (el que viene elegido), se puede usar cualquier servidor compatible con la API de OpenAI: otro proveedor con su clave o un modelo en el propio ordenador (Ollama, LM Studio). La app lo prueba antes de guardarlo y ofrece los modelos que liste. Sus claves se guardan cifradas con lo demás y no vuelven a la interfaz. Para buscar usa la clave de Exa que se le dé o, si no hay, la búsqueda de la app; sin ninguna, el asistente solo lee las webs cuya dirección conoce. Con otro proveedor, sus condiciones deciden si guarda o entrena con las peticiones; los datos personales siguen llegando como marcadores.
-
-**Las claves quedan dentro de la app y cualquiera que la tenga puede sacarlas.** Sirve para compilaciones propias. Para repartir la app hace falta otra cosa: una clave aparte con presupuesto limitado en Vercel o, mejor, un servidor intermedio que guarde la clave y limite el uso. Sin clave, la app avisa al enviar un mensaje y no hace nada más.
 
 ## Cómo está hecha
 
@@ -36,7 +39,8 @@ flowchart LR
   UI["Interfaz · React + sistema Sol"] -- "window.rd (IPC validado)" --> Main["Proceso principal · Electron"]
   Main --> Almacen["Almacén cifrado · AES-256-GCM, clave en el llavero"]
   Main --> Agente["@reforma-digital/agent · bucle del agente"]
-  Agente --> Modelo["Vercel AI Gateway · temporal: NaN Builders + Exa"]
+  Agente --> Servidor["Servidor de Reforma Digital · apps/web"]
+  Servidor --> Modelo["NaN Builders (modelo) + Exa (búsqueda)"]
   Agente --> Oficiales["Webs oficiales · búsqueda y lectura"]
   Main --> Vista["Navegador del trámite · WebContentsView, sesión propia"]
   Agente -. "mismo script de página" .-> Vista
@@ -78,7 +82,7 @@ Se comprueban en el código de las herramientas y tienen pruebas en [`agent.test
 - **Diálogos de la web.** Los `alert`, `confirm` y `prompt` de una página no los muestra Electron: el preload del navegador del trámite los pasa a la app. El asistente los ve y los responde con `responder_dialogo`, y la persona también, en un cuadro de la app que se cierra si contesta antes el asistente. Aceptar un `confirm` o un `prompt` necesita el código de `confirmar`, salvo que lo haya abierto el botón que ya lo usó.
 - **Fuentes a la vista.** En los pasos de cada búsqueda, la app muestra las webs que encontró el asistente, con su icono; se abren en el navegador del trámite. La lista sale de lo que leyó, no de lo que dice el modelo. Lo que no hay es una comprobación de que cada dato de la respuesta salga de esas webs (ver [Limitaciones](#limitaciones)).
 
-Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, guardada para no tener que volver a entrar (en Ajustes se puede pedir que se cierren al cerrar la app); las peticiones solo van a proveedores de IA que no entrenan con ellas (con retención cero opcional); el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones ni abre páginas de la red local (router, `localhost`…); los certificados se eligen de los instalados en el sistema; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y la app empaquetada desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
+Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, guardada para no tener que volver a entrar (en Ajustes se puede pedir que se cierren al cerrar la app); el proveedor por defecto no registra las peticiones ni entrena con ellas; el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones ni abre páginas de la red local (router, `localhost`…); los certificados se eligen de los instalados en el sistema; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y la app empaquetada desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
 
 ### Herramientas del agente
 
@@ -150,6 +154,6 @@ Lo que SpainAssist tiene y esta app no: firma propia sin AutoFirma, DNIe con el 
 - **Linux necesita un llavero.** Sin GNOME Keyring o KWallet, la app no arranca: no tendría con qué proteger la clave de datos. En Ubuntu 24.04 o posterior, mejor el `.deb`, que instala el perfil de AppArmor que necesita Electron; el `.AppImage` puede no abrirse.
 - **Sin Mac con Intel.** ONNX Runtime 1.30, que usa el detector, ya no publica el binario para Intel: sin él la app no enviaría nada al asistente, así que no se empaqueta para Intel. Haría falta otro motor para el detector (por ejemplo, ONNX Runtime en WebAssembly).
 - **Sin probar en Windows ni Linux.** Se han empaquetado desde un Mac para comprobar la configuración (con el ONNX Runtime de macOS, así que no funcionan), pero la app no se ha abierto en esos sistemas.
-- **La clave del asistente va dentro de la app.** Ver [Puesta en marcha](#puesta-en-marcha).
+- **Los límites del servidor son por instalación, no por persona.** Quien reinstale la app o cambie su identificador obtiene otro cupo; el tope por IP y el presupuesto diario lo acotan. Ver [Puesta en marcha](#puesta-en-marcha).
 - **Webs que bloquean a los programas.** Algunas (interior.gob.es) rechazan las peticiones que no vienen de un navegador; la app las lee con una vista oculta de Chromium. En las evaluaciones, sin esa vista, el agente usa los extractos de la búsqueda.
 - **Interfaces comunitarias.** Aparecen en Ajustes como «Próximamente»: la app todavía no carga la extensión.

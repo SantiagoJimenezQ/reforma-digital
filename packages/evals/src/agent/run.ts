@@ -37,7 +37,8 @@ const detectorLocal = () =>
   (detector ??= crearDetector(path.join(repo, 'packages/agent/.cache/rampart')));
 
 export type Config = {
-  proveedor: ConfigProveedor;
+  /** Las evaluaciones llaman al proveedor con su clave: no pasan por el servidor de Reforma Digital. */
+  proveedor: Exclude<ConfigProveedor, { tipo: 'reforma' }>;
   razonamiento?: 'none' | 'minimal' | 'low' | 'medium' | 'high';
   juez: string;
 };

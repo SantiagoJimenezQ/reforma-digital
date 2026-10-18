@@ -26,12 +26,10 @@ const node = (entrada, archivo, formato) =>
     configFile: false,
     logLevel: 'warn',
     root: raiz,
-    // La clave del asistente va dentro de la app compilada (ver CLAVE_GATEWAY en src/main/index.ts).
+    // La app no lleva claves: habla con el servidor de Reforma Digital (ver SERVIDOR en src/main/index.ts).
     define: {
       'process.env.NODE_ENV': '"production"',
-      'process.env.CLAVE_GATEWAY': JSON.stringify(process.env.AI_GATEWAY_API_KEY ?? ''),
-      'process.env.CLAVE_NAN': JSON.stringify(process.env.NAN_API_KEY ?? ''),
-      'process.env.CLAVE_EXA': JSON.stringify(process.env.EXA_API_KEY ?? ''),
+      'process.env.RD_SERVIDOR': JSON.stringify(process.env.RD_SERVIDOR ?? ''),
     },
     ssr: { noExternal: true },
     resolve: { alias: { sharp: path.join(raiz, 'src/main/sin-imagenes.ts') } },
