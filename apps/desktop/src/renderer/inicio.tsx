@@ -148,7 +148,7 @@ export function Compositor({
         {/* Mientras trabaja, con texto se manda a la cola y sin texto se puede detener. */}
         {ocupado && alDetener && !texto.trim() ? (
           <Button
-            variant="outline"
+            variant="sunset"
             size="icon-lg"
             className="ml-auto rounded-full"
             aria-label="Detener al asistente"

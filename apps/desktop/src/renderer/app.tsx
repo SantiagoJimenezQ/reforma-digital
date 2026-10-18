@@ -11,7 +11,10 @@ import { Tramite } from './tramite';
 import type { ResumenTramite } from '../shared/api';
 
 export type Vista =
-  { tipo: 'inicio' } | { tipo: 'tramite'; id: string } | { tipo: 'datos' } | { tipo: 'ajustes' };
+  | { tipo: 'inicio' }
+  | { tipo: 'tramite'; id: string }
+  | { tipo: 'datos' }
+  | { tipo: 'ajustes'; privacidad?: boolean };
 
 /** Una fila de la barra lateral: compacta, con el fondo un poco más oscuro al pasar o al estar activa. */
 const fila = (activo: boolean) =>
@@ -38,8 +41,11 @@ function Estado({ t, nuevo }: { t: ResumenTramite; nuevo: boolean }) {
     );
   if (t.ejecucion === 'esperando')
     return (
-      <span title="El asistente espera tu respuesta" className="grid size-4 place-items-center">
-        <span className="size-1.5 rounded-full bg-brand" />
+      <span
+        title="El asistente espera tu respuesta"
+        className="grid size-4 place-items-center rounded-full bg-brand text-[11px] leading-none font-semibold text-white"
+      >
+        <span aria-hidden="true">!</span>
         <span className="sr-only">El asistente espera tu respuesta</span>
       </span>
     );
@@ -188,8 +194,10 @@ export function App() {
         {vista.tipo === 'tramite' && (
           <Tramite key={vista.id} id={vista.id} alBorrar={() => ir({ tipo: 'inicio' })} />
         )}
-        {vista.tipo === 'datos' && <MisDatos />}
-        {vista.tipo === 'ajustes' && <Ajustes />}
+        {vista.tipo === 'datos' && (
+          <MisDatos verPrivacidad={() => ir({ tipo: 'ajustes', privacidad: true })} />
+        )}
+        {vista.tipo === 'ajustes' && <Ajustes privacidad={vista.privacidad ?? false} />}
       </main>
     </div>
   );

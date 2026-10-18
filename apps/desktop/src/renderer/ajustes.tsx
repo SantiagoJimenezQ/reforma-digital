@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
 import { Checkbox } from '@reforma-digital/design/ui/checkbox';
@@ -151,9 +151,17 @@ function Opcion({
   );
 }
 
-export function Ajustes() {
+/** `privacidad`: llega desde Mis datos y baja hasta esa sección. */
+export function Ajustes({ privacidad }: { privacidad: boolean }) {
   const { app } = useEstado();
+  const seccion = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (privacidad) seccion.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [privacidad]);
   if (!app) return null;
+  const contexto = app.campos
+    .filter((c) => c.privacidad === 'contexto')
+    .map((c) => c.etiqueta.toLowerCase());
   const a = app.ajustes;
   return (
     <div className="h-full overflow-y-auto">
@@ -196,13 +204,29 @@ export function Ajustes() {
             </p>
           )}
         </section>
-        <section className="mb-3 rounded-[24px] bg-background p-6">
+        <section
+          ref={seccion}
+          id="privacidad"
+          className="mb-3 scroll-mt-6 rounded-[24px] bg-background p-6"
+        >
           <h2 className="mt-0 mb-3 text-[15px] font-medium">Privacidad</h2>
           <ul className="m-0 list-disc space-y-2 pl-5 text-[15px] marker:text-muted-foreground leading-relaxed text-[var(--text-secondary)]">
-            <li>Tus datos, conversaciones y trámites se guardan cifrados en este Mac.</li>
             <li>
-              La IA no ve tu nombre, tu DNI, tu dirección, tu teléfono ni tu correo: le llegan
-              marcadores en su lugar.
+              La IA solo ejecuta lo que le pides: busca, explica y rellena las webs. No lee tus
+              datos ni los guarda.
+            </li>
+            <li>
+              Tus datos, conversaciones y trámites se guardan cifrados en este Mac, con una clave
+              protegida por tu llavero. No salen de él ni pasan por servidores de Reforma Digital.
+            </li>
+            <li>
+              En lugar de tu nombre, tu DNI, tus fechas, tu dirección, tu teléfono, tu correo o tu
+              IBAN, a la IA le llegan marcadores ({'{{nombre}}'}, {'{{documento_numero}}'}). Sabe
+              que hay un dato, no cuál es.
+            </li>
+            <li>
+              Para investigar sí ve datos de contexto: {contexto.join(', ')}, tu edad y cuánto le
+              queda a tu documento.
             </li>
             <li>
               Un detector que funciona en este Mac también los tapa en lo que escribes y en las
@@ -211,6 +235,19 @@ export function Ajustes() {
             <li>La app pone el dato real solo al escribirlo en la web del trámite.</li>
             <li>Nada se envía, reserva, paga ni firma sin tu aprobación.</li>
             <li>Contraseñas, CAPTCHA, certificados, firmas y pagos los haces tú.</li>
+            <li>
+              Es código abierto: puedes leer cómo funciona todo esto en{' '}
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-foreground"
+                onClick={() =>
+                  void window.rd.abrirEnlace('https://github.com/samuelcorsan/reforma-digital')
+                }
+              >
+                github.com/samuelcorsan/reforma-digital
+              </button>
+              .
+            </li>
           </ul>
         </section>
         <section className="pt-5">

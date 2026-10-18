@@ -22,7 +22,7 @@ export function Cabecera({ titulo, entradilla }: { titulo: string; entradilla: s
 
 const GRUPOS: CampoPerfil['grupo'][] = ['Identidad', 'Documento', 'Contacto', 'Domicilio', 'Otros'];
 
-export function MisDatos() {
+export function MisDatos({ verPrivacidad }: { verPrivacidad: () => void }) {
   const { app } = useEstado();
   const [edicion, setEdicion] = useState<Record<string, string> | null>(null);
   const [errores, setErrores] = useState<Record<string, string>>({});
@@ -43,9 +43,6 @@ export function MisDatos() {
     setErrores(e);
     if (!Object.keys(e).length) setEdicion(null);
   };
-  const contexto = app.campos
-    .filter((c) => c.privacidad === 'contexto')
-    .map((c) => c.etiqueta.toLowerCase());
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-[820px] px-10 pb-16">
@@ -53,27 +50,14 @@ export function MisDatos() {
           titulo="Mis datos"
           entradilla="El asistente los usa para rellenar los formularios oficiales sin preguntarte cada vez. Se guardan cifrados en este Mac, con una clave protegida por tu llavero."
         />
-        <div className="mb-6 grid grid-cols-2 gap-3">
-          <div className="rounded-[24px] bg-background p-6">
-            <p className="m-0 mb-2 flex items-center gap-2 font-medium">
-              <Icono nombre="ver" /> Lo que ve la IA
-            </p>
-            <p className="m-0 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Solo datos de contexto para investigar: {contexto.join(', ')}, tu edad y cuánto le
-              queda a tu documento.
-            </p>
-          </div>
-          <div className="rounded-[24px] bg-background p-6">
-            <p className="m-0 mb-2 flex items-center gap-2 font-medium">
-              <Icono nombre="candado" /> Lo que nunca ve
-            </p>
-            <p className="m-0 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Tu nombre, documento, fechas, teléfono, correo, dirección, código postal e IBAN. Ni
-              los nombres, documentos, direcciones, teléfonos y correos, también de otras personas,
-              que un detector encuentre en lo que escribes o en las webs. Le llegan como marcadores
-              y la app pone el valor real al escribirlos en la web.
-            </p>
-          </div>
+        <div className="mb-6 flex items-center gap-4 rounded-[24px] bg-background p-5">
+          <Icono nombre="candado" className="shrink-0 text-muted-foreground" />
+          <p className="m-0 flex-1 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+            La IA no lee tus datos: solo hace lo que le pides.
+          </p>
+          <Button variant="outline" size="lg" onClick={verPrivacidad}>
+            Ver cómo se protegen
+          </Button>
         </div>
         <div className="mb-6 flex items-center gap-3">
           {edicion ? (
