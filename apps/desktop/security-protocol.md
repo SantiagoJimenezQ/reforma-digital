@@ -1,8 +1,8 @@
-# Protocolo de seguridad de la app para Mac
+# Protocolo de seguridad de la app de escritorio
 
-Este documento recoge cómo protege la app para Mac (`apps/desktop` y `packages/agent`) los datos de las personas, qué queda fuera de esa protección y qué hay que comprobar antes de cambiar cualquier cosa que toque esos datos. El funcionamiento general está en [el README de la app](README.md); los límites de seguridad del repositorio, en [SECURITY.md](../../SECURITY.md).
+Este documento recoge cómo protege la app de escritorio (`apps/desktop` y `packages/agent`) los datos de las personas, qué queda fuera de esa protección y qué hay que comprobar antes de cambiar cualquier cosa que toque esos datos. El funcionamiento general está en [el README de la app](README.md); los límites de seguridad del repositorio, en [SECURITY.md](../../SECURITY.md).
 
-El principio es este: **el modelo de IA no recibe datos personales, y lo que la app no puede proteger no sale del Mac**. Es una reducción del riesgo, no una garantía absoluta (ver [Lo que todavía puede llegar al modelo](#lo-que-todavía-puede-llegar-al-modelo)).
+El principio es este: **el modelo de IA no recibe datos personales, y lo que la app no puede proteger no sale del ordenador**. Es una reducción del riesgo, no una garantía absoluta (ver [Lo que todavía puede llegar al modelo](#lo-que-todavía-puede-llegar-al-modelo)).
 
 ## Qué datos maneja y dónde están
 
@@ -18,7 +18,7 @@ El principio es este: **el modelo de IA no recibe datos personales, y lo que la 
 
 «Borrar todo» en Ajustes destruye primero la clave de datos: lo que quedase en disco ya no se puede descifrar.
 
-## Qué sale del Mac y a quién
+## Qué sale del ordenador y a quién
 
 - **Proveedor de IA** (Vercel AI Gateway, con la clave con la que se compiló la app): las instrucciones y la conversación, con los datos personales sustituidos por marcadores. Las peticiones solo van a proveedores que no entrenan con ellas (`disallowPromptTraining`). Con **Retención cero** en Ajustes, solo a los que tampoco las guardan (`zeroDataRetention`, que en Vercel exige el plan Pro). Si el proveedor no puede cumplirlo, la petición falla: no se relaja. Temporalmente, si la app se compila con sus claves, el proveedor es **NaN Builders**, que según su web no registra las peticiones ni las respuestas, no entrena con ellas y procesa en la UE; la opción de Retención cero no se muestra.
 - **Buscador** (Parallel, a través del proveedor; con NaN Builders, Exa directamente): la consulta que escribe el agente, limpia de identificadores, y, si los pide, los dominios en los que buscar. Busca en toda la web: los resultados de dominios que no están en la lista de webs oficiales llegan al agente marcados «sin verificar».
@@ -59,7 +59,7 @@ La app empaquetada desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspecto
 - **Direcciones web dentro del texto** de una página: el detector no mira los parámetros de una URL escrita en el texto (los de los enlaces y la página sí se quitan).
 - **Lo que el modelo deduzca** de lo anterior.
 
-Para que nada salga del Mac haría falta un modelo de IA local. Está pendiente de decidir y de evaluar: con los modelos que caben en un portátil, el agente sería bastante peor.
+Para que nada salga del ordenador haría falta un modelo de IA local. Está pendiente de decidir y de evaluar: con los modelos que caben en un portátil, el agente sería bastante peor.
 
 ## Antes de cambiar algo que toque datos
 
