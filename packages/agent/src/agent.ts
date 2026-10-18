@@ -3,6 +3,7 @@ import {
   streamText,
   type LanguageModelMiddleware,
   type ModelMessage,
+  type ToolCallPart,
   type ToolResultPart,
   type ToolSet,
 } from 'ai';
@@ -59,6 +60,46 @@ const HERRAMIENTAS_DE_PAGINA = new Set([
   'esperar',
   'pedir_ayuda',
 ]);
+
+/**
+ * Herramientas que esperan a la persona. No se ejecutan dentro del paso: su llamada se guarda
+ * antes, así que, si se cierra la app mientras espera, el turno se retoma con la misma pregunta.
+ */
+const DE_LA_PERSONA = new Set(['preguntar', 'confirmar', 'pedir_ayuda']);
+
+/** Llamadas de la última respuesta del modelo que aún no tienen resultado: esperan a la persona. */
+export function pendientes(mensajes: ModelMessage[]): ToolCallPart[] {
+  const i = mensajes.map((m) => m.role).lastIndexOf('assistant');
+  const respuesta = mensajes[i];
+  if (respuesta?.role !== 'assistant' || typeof respuesta.content === 'string') return [];
+  const resueltas = new Set(
+    mensajes
+      .slice(i + 1)
+      .flatMap((m) => (m.role === 'tool' ? m.content : []))
+      .flatMap((p) => (p.type === 'tool-result' ? [p.toolCallId] : [])),
+  );
+  return respuesta.content.filter(
+    (p): p is ToolCallPart => p.type === 'tool-call' && !resueltas.has(p.toolCallId),
+  );
+}
+
+function anotar(mensajes: ModelMessage[], llamada: ToolCallPart, salida: unknown) {
+  const parte: ToolResultPart = {
+    type: 'tool-result',
+    toolCallId: llamada.toolCallId,
+    toolName: llamada.toolName,
+    output: { type: 'text', value: typeof salida === 'string' ? salida : JSON.stringify(salida) },
+  };
+  const ultimo = mensajes.at(-1);
+  if (ultimo?.role === 'tool') ultimo.content.push(parte);
+  else mensajes.push({ role: 'tool', content: [parte] });
+}
+
+/** Deja sin respuesta lo que esperaba a la persona: ya no se retoma. */
+export function sinResponder(mensajes: ModelMessage[]) {
+  for (const llamada of pendientes(mensajes))
+    anotar(mensajes, llamada, 'La persona detuvo al asistente sin responder.');
+}
 
 /** El final de una respuesta que ofrece hacer el trámite o pide algo a la persona. */
 const OFRECE =
@@ -228,7 +269,8 @@ export type OpcionesTurno = {
   proveedor: (guarda: LanguageModelMiddleware) => Proveedor;
   anfitrion: Anfitrion;
   estado: EstadoAgente;
-  texto: string;
+  /** Sin texto, el turno retoma lo que esperaba a la persona (al volver a abrir la app). */
+  texto?: string;
   evento: (e: EventoAgente) => void;
   /** Detector local de datos personales. Sin él no se envía nada al modelo. */
   detector: Detector;
@@ -248,7 +290,8 @@ export type ResultadoTurno = { estado: EstadoAgente; fin: FinTurno; error?: stri
 
 /**
  * Un turno del agente: el mensaje de la persona y todos los pasos (llamadas al modelo y
- * herramientas) hasta que responde, se cancela o llega a un límite.
+ * herramientas) hasta que responde, se cancela o llega a un límite. Sin mensaje, retoma las
+ * llamadas que esperaban a la persona.
  */
 export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   const limites = o.limites ?? LIMITES;
@@ -279,26 +322,50 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   const interno = new AbortController();
   const signal = AbortSignal.any([o.signal, interno.signal]);
   const tools = supervisar(crearHerramientas(ctx), ctx, (e) => interno.abort(e));
+  const enElPaso: ToolSet = Object.fromEntries(
+    Object.entries(tools).map(([n, t]) => [
+      n,
+      DE_LA_PERSONA.has(n) ? { ...t, execute: undefined } : t,
+    ]),
+  );
   const sincronizar = () => {
     estado.fuentes = ctx.fuentes.lista();
   };
-  try {
-    const mensaje = await proteger(ctx, o.texto, 'persona');
-    o.evento({ tipo: 'protegidos', cantidad: Privacidad.marcadores(mensaje).length });
-    // El título es la primera frase del primer mensaje, ya protegida: también se ve en las
-    // notificaciones y nombra la carpeta de descargas. Se corta entre palabras, sin partir un marcador.
-    estado.titulo ||= mensaje
-      .replace(/\s+/g, ' ')
-      .replace(/(?<=[.?!])\s.*$/, '')
-      .replace(/^(.{0,60})(\s.*)?$/, '$1')
-      .trim();
-    estado.mensajes.push({
-      role: 'user',
-      content: `${contextoDelTurno(perfil)}\n\n${mensaje}`,
-    });
-  } catch (e) {
-    return { estado: o.estado, fin: 'error', error: mensajeDeError(e) };
-  }
+  const atenderPendientes = async () => {
+    for (const llamada of pendientes(estado.mensajes)) {
+      const t = tools[llamada.toolName];
+      const salida: unknown = t?.execute
+        ? await t.execute(llamada.input, {
+            toolCallId: llamada.toolCallId,
+            messages: estado.mensajes,
+            abortSignal: signal,
+            context: undefined,
+          })
+        : `Error: no existe la herramienta ${llamada.toolName}.`;
+      anotar(estado.mensajes, llamada, salida);
+      await o.guardar?.(estado);
+    }
+  };
+  if (o.texto !== undefined)
+    try {
+      // Si escribe en vez de responder, lo que esperaba se queda sin respuesta.
+      sinResponder(estado.mensajes);
+      const mensaje = await proteger(ctx, o.texto, 'persona');
+      o.evento({ tipo: 'protegidos', cantidad: Privacidad.marcadores(mensaje).length });
+      // El título es la primera frase del primer mensaje, ya protegida: también se ve en las
+      // notificaciones y nombra la carpeta de descargas. Se corta entre palabras, sin partir un marcador.
+      estado.titulo ||= mensaje
+        .replace(/\s+/g, ' ')
+        .replace(/(?<=[.?!])\s.*$/, '')
+        .replace(/^(.{0,60})(\s.*)?$/, '$1')
+        .trim();
+      estado.mensajes.push({
+        role: 'user',
+        content: `${contextoDelTurno(perfil)}\n\n${mensaje}`,
+      });
+    } catch (e) {
+      return { estado: o.estado, fin: 'error', error: mensajeDeError(e) };
+    }
   const costeInicial = estado.uso.costeUsd;
   const tokensIniciales = estado.uso.entrada + estado.uso.salida;
   // Anthropic solo cachea con marcas explícitas: instrucciones y último mensaje de cada paso.
@@ -321,6 +388,7 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   let forzarPregunta = false;
   try {
     for (let paso = 0; ; paso++) {
+      await atenderPendientes();
       if (paso >= limites.pasos) return { estado, fin: 'limite_pasos' };
       // Si el proveedor no informa del coste, se para por tokens (unos 2 millones en un turno).
       const tokens = estado.uso.entrada + estado.uso.salida - tokensIniciales;
@@ -335,7 +403,7 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
           ? { role: 'system', content: INSTRUCCIONES, providerOptions: cache }
           : INSTRUCCIONES,
         messages: conCache(compactar(estado.mensajes)),
-        tools,
+        tools: enElPaso,
         ...(forzarPregunta ? { toolChoice: { type: 'tool' as const, toolName: 'preguntar' } } : {}),
         abortSignal: signal,
         maxRetries: 2,

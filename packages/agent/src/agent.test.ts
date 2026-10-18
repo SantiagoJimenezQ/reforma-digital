@@ -13,6 +13,7 @@ import {
   estadoInicial,
   mensajeDeError,
   Fuentes,
+  pendientes,
   perfilParaModelo,
   Privacidad,
   unir,
@@ -356,6 +357,7 @@ const turno = (
     estado?: EstadoAgente;
     limites?: { pasos: number; costeUsd: number };
     detector?: Detector;
+    signal?: AbortSignal;
   } = {},
 ) =>
   ejecutarTurno({
@@ -877,6 +879,63 @@ describe('formularios', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('si se corta mientras espera a la persona, un turno sin texto vuelve a hacer la misma pregunta', async () => {
+    const { nav } = navegadorFalso('https://sede.policia.gob.es');
+    const control = new AbortController();
+    const cortado = await turno(
+      modeloGuionado([
+        () => ({
+          llamadas: [
+            {
+              herramienta: 'preguntar',
+              entrada: {
+                titulo: 'Tu cita',
+                campos: [{ clave: 'oficina', etiqueta: 'Oficina', tipo: 'texto' }],
+              },
+            },
+          ],
+        }),
+      ]).model,
+      {
+        ...anfitrion(nav),
+        preguntar: (_f, signal) => {
+          control.abort(new Error('La app se cierra'));
+          return Promise.reject(signal.reason);
+        },
+      },
+      'Pide mi cita',
+      { signal: control.signal },
+    );
+    expect(cortado.fin).toBe('cancelado');
+    expect(pendientes(cortado.estado.mensajes).map((l) => l.toolName)).toEqual(['preguntar']);
+
+    const preguntas: string[] = [];
+    const { model, prompts } = modeloGuionado([() => ({ texto: 'Voy a por ella.' })]);
+    const retomado = await ejecutarTurno({
+      proveedor: () => proveedorDe(model),
+      anfitrion: {
+        ...anfitrion(nav),
+        preguntar: async (f) => {
+          preguntas.push(f.titulo);
+          return { oficina: 'Norte' };
+        },
+      },
+      estado: cortado.estado,
+      evento: () => {},
+      signal: new AbortController().signal,
+      detector: detectorDePrueba,
+    });
+    expect(retomado.fin).toBe('respondido');
+    expect(preguntas).toEqual(['Tu cita']);
+    expect(ultimoResultado(prompts[0]!)).toMatch(/^Respuestas:\n- oficina:/);
+    expect(prompts[0]!.filter((m) => m.role === 'user')).toHaveLength(1);
+
+    // Si en vez de responder escribe otra cosa, la pregunta se queda sin respuesta.
+    const otro = modeloGuionado([() => ({ texto: 'Vale' })]);
+    await turno(otro.model, anfitrion(nav), 'Mejor otro día', { estado: cortado.estado });
+    expect(JSON.stringify(otro.prompts[0])).toContain('detuvo al asistente sin responder');
   });
 });
 

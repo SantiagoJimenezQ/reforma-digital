@@ -7,6 +7,8 @@ import {
   LIMITES,
   estadoInicial,
   MARCADOR,
+  pendientes,
+  sinResponder,
   type Anfitrion,
   type ConfigProveedor,
   type Detector,
@@ -62,6 +64,9 @@ const RESULTADOS: Record<Pregunta['tipo'], [string, string]> = {
   ayuda: ['Hecho', 'No has podido'],
 };
 
+/** Al cerrar la app, lo que espera a la persona sigue pendiente: se retoma al volver a abrirla. */
+const CIERRE = new Error('La app se cierra');
+
 type Espera = {
   tramite: string;
   resolver: (respuesta: Record<string, string> | boolean | null) => void;
@@ -104,24 +109,30 @@ export class Tramites {
     for (const f of await this.almacen.lista('tramite-')) {
       const r = await this.almacen.leer<Registro>(f).catch(() => undefined);
       if (!r) continue;
-      // Lo que esperaba respuesta cuando se cerró la app ya no tiene a nadie esperando.
-      r.conversacion = r.conversacion.map((i) =>
-        i.tipo === 'pregunta' && i.estado === 'pendiente'
-          ? { ...i, estado: 'cancelada', resultado: 'Se cerró la app' }
-          : i,
-      );
-      // Un turno que no terminó (la app se cerró mientras trabajaba) se puede retomar.
-      const ultimo = r.conversacion.at(-1);
-      if (ultimo && ultimo.tipo !== 'asistente' && ultimo.tipo !== 'aviso')
-        r.conversacion.push({
-          tipo: 'aviso',
-          id: randomUUID(),
-          tono: 'info',
-          texto:
-            'La app se cerró mientras el asistente trabajaba. Pulsa «Continuar» para retomarlo donde lo dejó.',
-          continuar: true,
-        });
+      // Si esperaba a la persona cuando se cerró la app, el turno se retoma y vuelve a esperar su
+      // respuesta, con la misma tarjeta.
+      const config = pendientes(r.estado.mensajes).length ? this.entorno.proveedor() : null;
+      if (!config) {
+        // Si no, lo que esperaba respuesta ya no tiene a nadie esperando.
+        r.conversacion = r.conversacion.map((i) =>
+          i.tipo === 'pregunta' && i.estado === 'pendiente'
+            ? { ...i, estado: 'cancelada', resultado: 'Se cerró la app' }
+            : i,
+        );
+        // Un turno que no terminó (la app se cerró mientras trabajaba) se puede retomar.
+        const ultimo = r.conversacion.at(-1);
+        if (ultimo && ultimo.tipo !== 'asistente' && ultimo.tipo !== 'aviso')
+          r.conversacion.push({
+            tipo: 'aviso',
+            id: randomUUID(),
+            tono: 'info',
+            texto:
+              'La app se cerró mientras el asistente trabajaba. Pulsa «Continuar» para retomarlo donde lo dejó.',
+            continuar: true,
+          });
+      }
       this.registros.set(r.id, r);
+      if (config) this.iniciar(r, undefined, config);
     }
   }
 
@@ -211,6 +222,10 @@ export class Tramites {
     if (!r) throw new Error('Trámite no encontrado');
     if (this.ejecuciones.has(id)) throw new Error('El asistente sigue trabajando en este trámite');
     const config = this.entorno.proveedor();
+    // Si escribe en vez de responder a una tarjeta que no se pudo retomar, se queda sin respuesta.
+    for (const i of r.conversacion)
+      if (i.tipo === 'pregunta' && i.estado === 'pendiente')
+        Object.assign(i, { estado: 'cancelada', resultado: 'Sin responder' });
     r.conversacion.push({ tipo: 'usuario', id: randomUUID(), texto, protegidos: 0 });
     if (!config) {
       r.conversacion.push({
@@ -224,6 +239,16 @@ export class Tramites {
       this.cambio(id);
       return;
     }
+    this.iniciar(r, texto, config);
+  }
+
+  /** Pone a trabajar al asistente; sin texto, retoma lo que esperaba a la persona. */
+  private iniciar(
+    r: Registro,
+    texto: string | undefined,
+    config: NonNullable<ReturnType<Entorno['proveedor']>>,
+  ) {
+    const id = r.id;
     const control = new AbortController();
     this.ejecuciones.set(id, control);
     this.cambio(id);
@@ -244,16 +269,23 @@ export class Tramites {
   }
 
   private preguntar(r: Registro, pregunta: Pregunta, signal: AbortSignal) {
-    const id = randomUUID();
-    const item: Extract<ItemConversacion, { tipo: 'pregunta' }> = {
-      tipo: 'pregunta',
-      id,
+    // Al retomar el turno tras cerrar la app, la tarjeta ya está en la conversación.
+    const previa = r.conversacion.find(
+      (i): i is Extract<ItemConversacion, { tipo: 'pregunta' }> =>
+        i.tipo === 'pregunta' && i.estado === 'pendiente' && !this.esperas.has(i.id),
+    );
+    const item = previa ?? {
+      tipo: 'pregunta' as const,
+      id: randomUUID(),
       pregunta,
-      estado: 'pendiente',
+      estado: 'pendiente' as const,
     };
-    r.conversacion.push(item);
+    const id = item.id;
+    if (!previa) {
+      r.conversacion.push(item);
+      this.avisar(r, pregunta);
+    }
     this.cambio(r.id);
-    this.avisar(r, pregunta);
     return new Promise<Record<string, string> | boolean | null>((resolver, rechazar) => {
       const terminar = () => {
         this.esperas.delete(id);
@@ -272,7 +304,8 @@ export class Tramites {
         () => {
           if (!this.esperas.has(id)) return;
           terminar();
-          Object.assign(item, { estado: 'cancelada', resultado: 'Cancelada' });
+          if (signal.reason !== CIERRE)
+            Object.assign(item, { estado: 'cancelada', resultado: 'Cancelada' });
           rechazar(signal.reason);
         },
         { once: true },
@@ -388,7 +421,7 @@ export class Tramites {
 
   private async ejecutar(
     r: Registro,
-    texto: string,
+    texto: string | undefined,
     config: NonNullable<ReturnType<Entorno['proveedor']>>,
     control: AbortController,
   ) {
@@ -473,7 +506,7 @@ export class Tramites {
       escritos,
       anfitrion,
       estado: r.estado,
-      texto,
+      ...(texto === undefined ? {} : { texto }),
       evento,
       guardar: async (estado) => {
         r.estado = estado;
@@ -484,13 +517,15 @@ export class Tramites {
       razonamiento: config.razonamiento,
     });
     r.estado = resultado.estado;
+    // Solo al cerrar la app sigue algo esperando a la persona.
+    if (control.signal.reason !== CIERRE) sinResponder(r.estado.mensajes);
     marcarFuentes();
     const aviso = {
       limite_pasos:
         'He dado muchos pasos seguidos y me he parado para que lo revises. Pulsa «Continuar» si quieres que siga.',
       limite_coste:
         'He llegado al límite de gasto de este turno. Pulsa «Continuar» si quieres que siga.',
-      cancelado: 'Has detenido al asistente.',
+      cancelado: control.signal.reason === CIERRE ? '' : 'Has detenido al asistente.',
       error: resultado.error ?? 'Ha ocurrido un error.',
       respondido: '',
     }[resultado.fin];
@@ -542,6 +577,6 @@ export class Tramites {
   }
 
   detenerTodo() {
-    for (const c of this.ejecuciones.values()) c.abort(new Error('La app se cierra'));
+    for (const c of this.ejecuciones.values()) c.abort(CIERRE);
   }
 }
