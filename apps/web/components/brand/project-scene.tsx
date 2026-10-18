@@ -1,17 +1,7 @@
-'use client';
-import { Input } from '@reforma-digital/design/ui/input';
-
-import { Button } from '@reforma-digital/design/ui/button';
-
-// Escenas del buscador y de la extensión, para los proyectos de la portada.
-import { useId, useState } from 'react';
-import { useRouter } from 'next/navigation';
-
-import { savePendingQuestion } from '../../lib/pending-question';
+// Escena decorativa de la extensión, para los proyectos de la portada.
 import { catalogo as cifras } from './catalogo';
 import { Icon } from './icon';
 
-const pregunta = '¿Dónde pido cita para la renta?';
 const { resultadosRenta: resultados, total } = cifras;
 
 function Navegador({ children }: { children: React.ReactNode }) {
@@ -45,68 +35,8 @@ function Navegador({ children }: { children: React.ReactNode }) {
   );
 }
 
-// El compositor de la portada abre el chat con la pregunta. Sin JavaScript, el formulario solo
-// abre /chat: el campo no tiene name para que la pregunta no viaje en la URL.
-function Compositor() {
-  const id = useId();
-  const router = useRouter();
-  const [texto, setTexto] = useState('');
-  return (
-    <form
-      className={
-        'rc-pieza absolute [inset:0] rc-hero [--ring:var(--background)] flex flex-col items-center justify-center [gap:6cqi] [padding:6cqi] [background:var(--brand-gradient)] [color:var(--background)] text-center'
-      }
-      action="/chat"
-      onSubmit={(e) => {
-        e.preventDefault();
-        savePendingQuestion(texto.trim());
-        router.push('/chat');
-      }}
-    >
-      <label
-        className={
-          'rc-hero-titulo [margin-top:-8cqi] [font-family:var(--font-brand-heading)] [font-size:clamp(28px,_8cqi,_52px)] [line-height:1] [letter-spacing:-0.02em]'
-        }
-        htmlFor={id}
-      >
-        ¿Qué necesitas hacer?
-      </label>
-      <span
-        className={
-          'rc-compositor flex items-center gap-3 [width:min(100%,_440px)] min-h-16 [padding:5px_5px_5px_20px] [border:1px_solid_var(--foreground)] [border-radius:999px] [background:var(--background)] [box-shadow:var(--shadow-overlay)] [color:var(--foreground)] text-left [pointer-events:auto] [&:has(.rc-compositor-texto:focus-visible)]:[outline:2px_solid_var(--ring)] [&:has(.rc-compositor-texto:focus-visible)]:[outline-offset:2px]'
-        }
-      >
-        <Input
-          id={id}
-          className={
-            'rc-compositor-texto flex-1 self-stretch h-auto min-w-0 rounded-none border-0 p-0 text-base md:text-base focus-visible:ring-0 [text-overflow:ellipsis] [user-select:text]'
-          }
-          type="text"
-          autoComplete="off"
-          placeholder={pregunta}
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-        />
-        <Button
-          type="submit"
-          aria-label="Enviar pregunta"
-          disabled={texto.trim().length < 4}
-          size="icon-lg"
-          variant="sunset"
-          className="size-13 rounded-full [--ring:var(--foreground)]"
-        >
-          <Icon name="enviar" size={20} />
-        </Button>
-      </span>
-    </form>
-  );
-}
-
-// Escenas: piezas de la interfaz. Solo el compositor del buscador es real; el resto es decorativo
-// y el texto de cada paso ya cuenta lo que muestra.
-export function ProjectScene({ project }: { project: 'search' | 'extension' }) {
-  if (project === 'search') return <Compositor />;
-
+// El texto del paso ya cuenta lo que muestra la escena.
+export function ProjectScene() {
   return (
     <div
       className={

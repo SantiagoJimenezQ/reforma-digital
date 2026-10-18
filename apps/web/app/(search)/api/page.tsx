@@ -20,7 +20,7 @@ const title = 'API de Reforma Digital';
 const description =
   'La API de Reforma Digital sirve de forma abierta los datos del Congreso de los Diputados: votaciones, preguntas, Diarios de Sesiones y datasets en JSON, sin autenticación y con licencia CC BY 4.0.';
 
-export const metadata: Metadata = pageMetadata({ title, description, path: '/api', og: 'fuentes' });
+export const metadata: Metadata = pageMetadata({ title, description, path: '/api', og: 'portada' });
 
 const graph = [webPage({ name: title, description, path: '/api' }), breadcrumbs('API', '/api')];
 

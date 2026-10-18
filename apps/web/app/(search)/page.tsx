@@ -1,10 +1,8 @@
 import { cn } from '@reforma-digital/design/lib/utils';
 import { buttonVariants } from '@reforma-digital/design/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@reforma-digital/design/ui/card';
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { sources } from '@reforma-digital/government';
 
 import { Icon } from '../../components/brand/icon';
 import { Header } from '../../components/brand/header';
@@ -26,7 +24,7 @@ import { Contribution } from '../../components/brand/contribution';
 
 const title = 'Reforma Digital · Lo público, a la altura de las personas';
 const description =
-  'Iniciativa abierta para hacer más sencillos los trámites con la Administración: buscador con fuentes oficiales, extensión para Chrome y código abierto.';
+  'Iniciativa abierta para hacer más sencillos los trámites con la Administración: extensión para Chrome, actividad del Congreso y código abierto.';
 
 export const metadata: Metadata = pageMetadata({ title, description, path: '/', og: 'portada' });
 
@@ -43,19 +41,6 @@ const graph = [
     publisher: { '@id': organizationId },
   },
   organization,
-  {
-    '@type': 'WebApplication',
-    name: 'Buscador de trámites',
-    url: absolute('/chat'),
-    description:
-      'Pregunta con tus palabras y recibe respuestas con enlaces y fragmentos de fuentes oficiales.',
-    applicationCategory: 'ReferenceApplication',
-    operatingSystem: 'Web',
-    inLanguage: 'es-ES',
-    isAccessibleForFree: true,
-    offers: free,
-    publisher: { '@id': organizationId },
-  },
   {
     '@type': 'SoftwareApplication',
     name: 'Reforma Digital para Chrome',
@@ -218,39 +203,6 @@ export default function HomePage() {
             }
             steps={[
               {
-                title: 'Encuentra por dónde empezar.',
-                label: (
-                  <span
-                    className={
-                      'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                    }
-                  >
-                    01 · Buscador de trámites
-                  </span>
-                ),
-                text: (
-                  <>
-                    <p
-                      className={
-                        't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
-                      }
-                    >
-                      Pregunta con tus palabras. El buscador te orienta con respuestas, enlaces y
-                      fragmentos de fuentes oficiales que puedes consultar.
-                    </p>
-                    <Link
-                      className={cn(buttonVariants({ variant: 'sunset' }))}
-                      data-slot="button"
-                      data-variant="sunset"
-                      href="/chat"
-                    >
-                      Abrir el buscador <Icon name="derecha" size={16} />
-                    </Link>
-                  </>
-                ),
-                scene: <ProjectScene project="search" />,
-              },
-              {
                 title: 'La web oficial, más fácil de usar.',
                 label: (
                   <span
@@ -258,7 +210,7 @@ export default function HomePage() {
                       'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
                     }
                   >
-                    02 · Extensión para Chrome
+                    01 · Extensión para Chrome
                   </span>
                 ),
                 text: (
@@ -289,69 +241,7 @@ export default function HomePage() {
                       'rc-pieza absolute [inset:0] in-proyecto-sol [background:radial-gradient(_100%_100%_at_100%_0%,_color-mix(in_oklch,_var(--brand-yellow),_var(--background)_60%)_0%,_transparent_70%_),_linear-gradient(_150deg,_var(--brand-yellow)_35%,_color-mix(in_oklch,_var(--brand-yellow),_var(--brand-orange)_55%)_100%_)]'
                     }
                   >
-                    <ProjectScene project="extension" />
-                  </div>
-                ),
-              },
-              {
-                title: 'La información tiene un origen.',
-                label: (
-                  <span
-                    className={
-                      'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
-                    }
-                  >
-                    03 · Mapa de fuentes
-                  </span>
-                ),
-                text: (
-                  <>
-                    <p
-                      className={
-                        't-texto-l [font-family:var(--font-brand-text)] [font-size:clamp(17px,_1.4vw,_19px)] [line-height:1.6] text-pretty'
-                      }
-                    >
-                      Explora los organismos oficiales que consulta el buscador y accede a sus webs.
-                      Un punto de partida para conocer su cobertura y comprobar la información.
-                    </p>
-                    <Link
-                      className={
-                        'in-enlace flex items-center gap-2 min-h-11 [width:fit-content] [text-decoration:underline] [text-underline-offset:0.25em]'
-                      }
-                      href="/sources"
-                    >
-                      Explorar las fuentes <Icon name="derecha" size={16} />
-                    </Link>
-                  </>
-                ),
-                scene: (
-                  <div
-                    className={
-                      'rc-pieza absolute [inset:0] rc-sobre-sol flex items-center justify-center [padding:6cqi]'
-                    }
-                    aria-hidden="true"
-                  >
-                    <Card className="rc-respuesta w-full max-w-sm [box-shadow:var(--shadow-overlay)]">
-                      <CardHeader>
-                        <span className="font-mono text-xs font-medium tracking-wider uppercase">
-                          Fuentes oficiales
-                        </span>
-                      </CardHeader>
-                      <CardContent className="divide-y divide-border">
-                        {sources.slice(0, 3).map((source) => (
-                          <div className="grid gap-1 py-3 first:pt-0 last:pb-0" key={source.id}>
-                            <strong>{source.name}</strong>
-                            <span className="font-mono text-xs break-all">
-                              {new URL(source.baseUrl).hostname}
-                            </span>
-                          </div>
-                        ))}
-                      </CardContent>
-                      <CardFooter className="gap-2 border-border text-xs">
-                        <span>Consulta el origen de cada dato</span>
-                        <Icon name="fuentes" size={16} />
-                      </CardFooter>
-                    </Card>
+                    <ProjectScene />
                   </div>
                 ),
               },
@@ -363,7 +253,7 @@ export default function HomePage() {
                       'in-proyecto-tipo [justify-self:start] [color:var(--brand)] [font-family:var(--font-brand-mono)] text-xs font-medium [line-height:1.3] [letter-spacing:0.08em] uppercase'
                     }
                   >
-                    04 · El Congreso
+                    02 · El Congreso
                   </span>
                 ),
                 text: (

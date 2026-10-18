@@ -59,8 +59,8 @@ export function ProjectTour({
           'rc-cuerpo [@media(min-width:_960px)]:[--rc-alto:min((100cqi_-_64px)_*_7_/_12_*_4_/_5,_100svh_-_80px_-_2_*_24px_-_32px)] [@media(min-width:_960px)]:[container-type:inline-size] [@media(min-width:_960px)]:grid [@media(min-width:_960px)]:[grid-template-columns:minmax(0,_5fr)_minmax(0,_7fr)] [@media(min-width:_960px)]:gap-16 [@media(min-width:_960px)]:pt-10'
         }
       >
-        {/* El escenario va antes que los pasos en el DOM y CSS lo pinta a la derecha: así el compositor
-            del buscador es la primera parada del teclado, justo cuando su escena está activa. */}
+        {/* El escenario va antes que los pasos en el DOM y CSS lo pinta a la derecha: así, si una escena
+            es interactiva, es la primera parada del teclado cuando está activa. */}
         <div
           className={
             'rc-fijo [@media(max-width:_959px)]:hidden [@media(min-width:_960px)]:[grid-area:1_/_2] [@media(min-width:_960px)]:sticky [@media(min-width:_960px)]:[top:calc(80px_+_(100svh_-_80px_-_var(--rc-alto)_-_32px)_/_2)] [@media(min-width:_960px)]:[align-self:start] [@media(min-width:_960px)]:grid [@media(min-width:_960px)]:gap-4'
@@ -139,7 +139,7 @@ export function ProjectTour({
                 </h3>
                 <Fragment key="text">{p.text}</Fragment>
               </div>
-              {/* Cada escena marca como decorativo lo que lo es: la del buscador lleva un compositor real.
+              {/* Cada escena marca como decorativo lo que lo es.
                   En cada ancho solo se muestra una de las dos copias; la otra, con display: none, no recibe foco. */}
               <div
                 className={

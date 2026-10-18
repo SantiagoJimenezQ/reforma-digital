@@ -2,6 +2,7 @@
 
 ## 0.1.0 · En desarrollo
 
+- La web deja de incluir el chat: se retiran `/chat`, `/api/search`, `/api/feedback`, las páginas de fuentes y de funcionamiento del buscador y el panel `/admin/evals`. `/chat`, `/sources` y `/how-it-works` redirigen a la portada. El pipeline de búsqueda (`packages/ai`) y sus evaluaciones (`pnpm eval`) se conservan.
 - El chat sustituye datos personales en el navegador con Rampart antes de enviar la consulta, y no la envía si esa protección falla.
 - Monorepo con una extensión Chrome, laboratorio local y paquetes comunes.
 - Subproyectos por portal, con pantallas y conexiones organizadas por carpeta.

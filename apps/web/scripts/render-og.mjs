@@ -12,28 +12,6 @@ const pages = [
     texto: 'Herramientas y propuestas para una Administración más clara, accesible y sencilla.',
   },
   {
-    slug: 'buscador',
-    escena: 'producto',
-    etiqueta: 'Buscador de trámites',
-    titular: '¿Qué necesitas hacer?',
-    texto: 'Pregunta con tus palabras. Te orientamos con fuentes oficiales que puedes comprobar.',
-  },
-  {
-    slug: 'fuentes',
-    escena: 'marca',
-    etiqueta: 'Información con origen',
-    titular: 'Las fuentes importan.',
-    texto: 'Cada respuesta se construye con documentos de organismos oficiales aprobados.',
-  },
-  {
-    slug: 'como-funciona',
-    escena: 'marca',
-    etiqueta: 'Cómo funciona',
-    titular: 'De la pregunta al trámite.',
-    texto:
-      'Un punto de partida para entender la Administración, con el documento oficial al alcance.',
-  },
-  {
     slug: 'equipo',
     escena: 'marca',
     etiqueta: 'Equipo',
@@ -44,8 +22,8 @@ const pages = [
     slug: 'privacidad',
     escena: 'marca',
     etiqueta: 'Privacidad',
-    titular: 'Pregunta sin identificarte.',
-    texto: 'Sin cuenta. Tu navegador intenta ocultar los datos personales antes de enviar nada.',
+    titular: 'Navega sin identificarte.',
+    texto: 'Sin cuenta y sin cookies publicitarias. Esta web no te pide datos personales.',
   },
 ];
 
