@@ -26,7 +26,6 @@ import {
   IconTrashOutline18,
   IconTriangleWarningOutline18,
   IconUserOutline18,
-  IconWandSparkleOutline18,
   IconXmarkOutline18,
   IconEyeOpenOutline18,
 } from 'nucleo-ui-essential-outline-18';
@@ -89,7 +88,6 @@ const iconos = {
   buscar: IconMagnifierOutline18,
   mas: IconPlusOutline18,
   fijar: IconPinTackOutline18,
-  varita: IconWandSparkleOutline18,
   recargar: IconRefresh2Outline18,
   escudo: IconShieldCheckOutline18,
   papelera: IconTrashOutline18,

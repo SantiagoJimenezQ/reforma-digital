@@ -34,8 +34,11 @@ function Estado({ t, nuevo }: { t: ResumenTramite; nuevo: boolean }) {
     );
   if (t.aviso === 'oferta')
     return (
-      <span title="El asistente puede hacerlo por ti" className="text-brand">
-        <Icono nombre="varita" size={16} />
+      <span
+        title="El asistente puede hacerlo por ti"
+        className="grid size-4 place-items-center rounded-full bg-brand-yellow text-[11px] leading-none font-semibold text-foreground"
+      >
+        <span aria-hidden="true">!</span>
         <span className="sr-only">El asistente puede hacerlo por ti</span>
       </span>
     );
