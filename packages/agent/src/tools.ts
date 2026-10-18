@@ -504,7 +504,9 @@ export function crearHerramientas(ctx: Contexto) {
             // cantidad o una explicación (y estas, sin los datos que encuentre el detector). Un
             // identificador de «Mis datos», un nombre, una fecha o un número de documento le
             // llegan siempre como marcador, aunque pida verlos.
+            // La provincia es un dato de contexto, como la de «Mis datos»: el modelo la necesita.
             privado:
+              c.tipo !== 'provincia' &&
               esIdentificador(c.clave) &&
               !(
                 !perfil &&

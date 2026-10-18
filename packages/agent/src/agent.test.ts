@@ -1762,6 +1762,7 @@ describe('lo que llega de la web', () => {
     const provincia = recibido?.campos[0];
     expect(provincia?.tipo).toBe('opcion');
     expect(provincia?.opciones).toHaveLength(52);
+    expect(provincia?.privado).toBe(false);
     expect(provincia?.opciones).toEqual(
       [...provincia!.opciones!].sort((x, y) => x.localeCompare(y, 'es')),
     );
