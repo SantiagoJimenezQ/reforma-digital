@@ -182,6 +182,15 @@ export const escenarios: Escenario[] = [
     exito: (s) => citaCorrecta(s),
   },
   {
+    id: 'dialogos',
+    descripcion: 'La web avisa con alert al entrar y pide «¿Seguro?» con confirm al confirmar',
+    sede: { dialogos: true },
+    perfil: PERSONA,
+    respuestas: PERSONA,
+    mensaje: pedirCita,
+    exito: (s) => citaCorrecta(s),
+  },
+  {
     id: 'cookies',
     descripcion: 'Un aviso de cookies tapa los botones hasta cerrarlo',
     sede: { cookies: true },

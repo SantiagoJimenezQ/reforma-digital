@@ -57,7 +57,7 @@ const proveedorDe = (
 ): Proveedor =>
   'tipo' in p
     ? crearProveedor(p, capas)
-    : { tipo: 'nan', modelo: wrapLanguageModel({ model: p, middleware: capas }), claveExa: '' };
+    : { modelo: wrapLanguageModel({ model: p, middleware: capas }), busqueda: null };
 
 type Traza = {
   herramientas: Record<string, number>;

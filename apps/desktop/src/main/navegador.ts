@@ -252,6 +252,16 @@ export class NavegadorTramite implements Navegador {
     return this.abierto;
   }
 
+  /** Se cumple cuando la web abre un diálogo: la página queda parada hasta que se responda. */
+  private cuandoDialogo() {
+    let quitar = () => {};
+    const abierto = new Promise<void>((resolver) => {
+      this.alAbrirDialogo.add(resolver);
+      quitar = () => this.alAbrirDialogo.delete(resolver);
+    });
+    return { abierto, quitar };
+  }
+
   async responderDialogo(aceptar: boolean, texto?: string) {
     await this.view.webContents.debugger.sendCommand('Page.handleJavaScriptDialog', {
       accept: aceptar,
@@ -322,14 +332,19 @@ export class NavegadorTramite implements Navegador {
   async abrir(url: string) {
     await this.listo;
     this.asegurarEnVentana();
+    // Un diálogo mientras carga la deja a medias hasta que se responda: se vuelve para verlo.
+    const d = this.cuandoDialogo();
     await aTiempo(
-      this.webContents.loadURL(url).catch((e: Error) => {
-        // Una redirección o una navegación nueva cancelan la anterior: no es un error.
-        if (!/ERR_ABORTED/.test(e.message)) throw e;
-      }),
+      Promise.race([
+        this.webContents.loadURL(url).catch((e: Error) => {
+          // Una redirección o una navegación nueva cancelan la anterior: no es un error.
+          if (!/ERR_ABORTED/.test(e.message)) throw e;
+        }),
+        d.abierto,
+      ]),
       30000,
       'La web no ha cargado a tiempo. Puede que siga cargando: mírala con ver.',
-    );
+    ).finally(d.quitar);
     await this.esperar(200);
   }
 
@@ -341,20 +356,18 @@ export class NavegadorTramite implements Navegador {
   evaluar<T>(expresion: string): Promise<T> {
     if (this.abierto) return Promise.reject(new Error('La web tiene un diálogo abierto.'));
     // Si la web abre un diálogo mientras tanto, la página no responderá hasta que se conteste.
-    let avisar = () => {};
-    const dialogo = new Promise<never>((_, rechazar) => {
-      avisar = () => rechazar(new Error('La web ha abierto un diálogo.'));
-      this.alAbrirDialogo.add(avisar);
-    });
+    const d = this.cuandoDialogo();
     return aTiempo(
       Promise.race([
         this.webContents.executeJavaScriptInIsolatedWorld(MUNDO, [
           { code: expresion },
         ]) as Promise<T>,
-        dialogo,
+        d.abierto.then(() => {
+          throw new Error('La web ha abierto un diálogo.');
+        }),
       ]),
       20000,
-    ).finally(() => this.alAbrirDialogo.delete(avisar));
+    ).finally(d.quitar);
   }
 
   async clic(x: number, y: number) {
@@ -392,7 +405,9 @@ export class NavegadorTramite implements Navegador {
   async esperar(ms = 400) {
     await dormir(ms);
     const wc = this.webContents;
-    if (wc.isLoading()) await Promise.race([once(wc, 'did-stop-loading'), dormir(20000)]);
+    if (!wc.isLoading() || this.abierto) return;
+    const d = this.cuandoDialogo();
+    await Promise.race([once(wc, 'did-stop-loading'), dormir(20000), d.abierto]).finally(d.quitar);
   }
 
   descargas() {
