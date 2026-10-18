@@ -11,11 +11,27 @@ import type { Razonamiento } from '../shared/api';
 import { useEstado } from './estado';
 import { Icono, type NombreIcono } from './icono';
 
+/** Cada sugerencia pone en el compositor una petición con [huecos] que rellena la persona. */
 const SUGERENCIAS = [
-  'Renovar el DNI',
-  'Empadronarme',
-  'Descargar mi vida laboral',
-  'Pedir el paro',
+  {
+    titulo: 'Renovar el DNI',
+    texto: 'Quiero renovar mi DNI en [municipio]. Me caduca el [fecha].',
+  },
+  {
+    titulo: 'Empadronarme',
+    texto:
+      'Quiero empadronarme en [municipio]. Vivo allí desde [fecha], [de alquiler / en propiedad / con familiares].',
+  },
+  {
+    titulo: 'Descargar mi vida laboral',
+    texto:
+      'Quiero descargar mi informe de vida laboral. Tengo [Cl@ve / certificado digital / ninguno].',
+  },
+  {
+    titulo: 'Pedir el paro',
+    texto:
+      'Quiero pedir el paro. Mi contrato terminó el [fecha] y he trabajado [tiempo] en los últimos 6 años.',
+  },
 ];
 
 const RAZONAMIENTO = [
@@ -85,7 +101,12 @@ export function Compositor({
   useEffect(() => {
     if (!borrador) return;
     setTexto(borrador.texto);
-    ref.current?.focus();
+    // Deja seleccionado el primer [hueco] para escribir encima.
+    requestAnimationFrame(() => {
+      const hueco = /\[[^\]]*\]/.exec(borrador.texto);
+      ref.current?.focus();
+      if (hueco) ref.current?.setSelectionRange(hueco.index, hueco.index + hueco[0].length);
+    });
   }, [borrador]);
   const enviar = async () => {
     const t = texto.trim();
@@ -173,6 +194,9 @@ const PROMESAS: { icono: NombreIcono; titulo: string; texto: string }[] = [
 export function Inicio({ abrir }: { abrir: (id: string) => void }) {
   const { app } = useEstado();
   const [razonamiento, setRazonamiento] = useState<Razonamiento>('medium');
+  const [borrador, setBorrador] = useState<{ texto: string }>();
+  // El municipio de Mis datos, si está guardado, ya va puesto.
+  const municipio = app?.perfil.find((d) => d.clave === 'municipio' && d.guardado)?.vista;
   const crear = async (texto: string) => abrir(await window.rd.crearTramite(texto, razonamiento));
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
@@ -212,17 +236,22 @@ export function Inicio({ abrir }: { abrir: (id: string) => void }) {
             alEnviar={crear}
             razonamiento={razonamiento}
             alRazonar={setRazonamiento}
+            borrador={borrador}
           />
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {SUGERENCIAS.map((s) => (
               <Button
-                key={s}
+                key={s.titulo}
                 variant="outline"
                 size="lg"
                 className="rounded-full px-3.5 text-[15px] font-normal"
-                onClick={() => void crear(s)}
+                onClick={() =>
+                  setBorrador({
+                    texto: municipio ? s.texto.replace('[municipio]', municipio) : s.texto,
+                  })
+                }
               >
-                {s}
+                {s.titulo}
               </Button>
             ))}
           </div>

@@ -96,9 +96,11 @@ function anotar(mensajes: ModelMessage[], llamada: ToolCallPart, salida: unknown
 }
 
 /** Deja sin respuesta lo que esperaba a la persona: ya no se retoma. */
-export function sinResponder(mensajes: ModelMessage[]) {
-  for (const llamada of pendientes(mensajes))
-    anotar(mensajes, llamada, 'La persona detuvo al asistente sin responder.');
+export function sinResponder(
+  mensajes: ModelMessage[],
+  motivo = 'La persona detuvo al asistente sin responder.',
+) {
+  for (const llamada of pendientes(mensajes)) anotar(mensajes, llamada, motivo);
 }
 
 /** El final de una respuesta que ofrece hacer el trámite o pide algo a la persona. */

@@ -433,7 +433,8 @@ export function crearHerramientas(ctx: Contexto) {
           };
         });
         const respuestas = await ctx.anfitrion.preguntar({ ...f, campos }, signalDe(opts));
-        if (!respuestas) return 'La persona ha cerrado el formulario sin responder.';
+        if (!respuestas)
+          return 'La persona ha cerrado el formulario sin responder: no lo vuelvas a ofrecer en este turno.';
         const paraPerfil: Perfil = {};
         const lineas: string[] = [];
         for (const c of campos) {

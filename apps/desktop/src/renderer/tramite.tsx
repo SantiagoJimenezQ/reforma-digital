@@ -318,7 +318,7 @@ function Conversacion({
                     {i.redirigido && (
                       <span className="flex items-center gap-1.5">
                         <Icono nombre="redirigir" size={16} />
-                        Lo mandaste para redirigir al asistente
+                        Interrumpiste al asistente con este mensaje
                       </span>
                     )}
                     {i.protegidos > 0 && (
@@ -406,7 +406,7 @@ function Conversacion({
 
 /**
  * Lo que la persona ha escrito mientras el asistente trabaja: sale cuando termine, o ya con
- * «Redirigir», que lo mete en lo que está haciendo.
+ * «Interrumpir», que lo mete en lo que está haciendo.
  */
 function Cola({ vista }: { vista: TramiteVista }) {
   if (!vista.cola.length) return null;
@@ -427,7 +427,7 @@ function Cola({ vista }: { vista: TramiteVista }) {
             onClick={() => void window.rd.redirigir(vista.id, m.id)}
           >
             <Icono nombre="redirigir" size={16} />
-            Redirigir
+            Interrumpir
           </Button>
           <Button
             variant="ghost"
@@ -610,9 +610,11 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
             placeholder={
               trabajando
                 ? 'Añade otra petición para cuando termine'
-                : ocupado
-                  ? 'Responde a la tarjeta o añade otra petición'
-                  : 'Escribe al asistente'
+                : vista.aviso === 'oferta'
+                  ? 'Responde a la tarjeta o escribe otra cosa'
+                  : ocupado
+                    ? 'Responde a la tarjeta o añade otra petición'
+                    : 'Escribe al asistente'
             }
             borrador={borrador}
             ocupado={ocupado}

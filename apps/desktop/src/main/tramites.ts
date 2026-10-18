@@ -66,6 +66,11 @@ const RESULTADOS: Record<Pregunta['tipo'], [string, string]> = {
 
 /** Al cerrar la app, lo que espera a la persona sigue pendiente: se retoma al volver a abrirla. */
 const CIERRE = new Error('La app se cierra');
+/**
+ * Si el asistente ofrece hacer el trámite y la persona escribe otra cosa, la oferta se cancela y su
+ * mensaje va en un turno nuevo: el asistente decide si volver a ofrecerlo.
+ */
+const OTRO_MENSAJE = new Error('La persona escribe otra cosa');
 
 type ItemActividad = Extract<ItemConversacion, { tipo: 'actividad' }>;
 
@@ -249,8 +254,20 @@ export class Tramites {
   async enviar(id: string, texto: string) {
     const r = this.registros.get(id);
     if (!r) throw new Error('Trámite no encontrado');
-    if (this.ejecuciones.has(id)) {
-      this.colas.set(id, [...(this.colas.get(id) ?? []), { id: randomUUID(), texto }]);
+    const ejecucion = this.ejecuciones.get(id);
+    if (ejecucion) {
+      const oferta = r.conversacion.some(
+        (i) =>
+          i.tipo === 'pregunta' &&
+          this.esperas.has(i.id) &&
+          i.pregunta.tipo === 'formulario' &&
+          Boolean(i.pregunta.formulario.accion),
+      );
+      // Delante en la cola: al cancelar la oferta, es lo primero que sale.
+      const mensaje = { id: randomUUID(), texto };
+      const cola = this.colas.get(id) ?? [];
+      this.colas.set(id, oferta ? [mensaje, ...cola] : [...cola, mensaje]);
+      if (oferta) ejecucion.abort(OTRO_MENSAJE);
       this.cambio(id);
       return;
     }
@@ -305,7 +322,7 @@ export class Tramites {
         const redirigidos = this.redirecciones.get(id) ?? [];
         this.redirecciones.delete(id);
         const cola = this.colas.get(id) ?? [];
-        if (control.signal.aborted)
+        if (control.signal.aborted && control.signal.reason !== OTRO_MENSAJE)
           return void cola.unshift(...redirigidos.map((t) => ({ id: randomUUID(), texto: t })));
         const siguiente = redirigidos.length ? redirigidos.join('\n\n') : cola.shift()?.texto;
         if (siguiente && this.registros.has(id))
@@ -617,13 +634,23 @@ export class Tramites {
     });
     r.estado = resultado.estado;
     // Solo al cerrar la app sigue algo esperando a la persona.
-    if (control.signal.reason !== CIERRE) sinResponder(r.estado.mensajes);
+    if (control.signal.reason === OTRO_MENSAJE)
+      sinResponder(
+        r.estado.mensajes,
+        'La persona no ha rellenado el formulario: ha escrito el mensaje siguiente.',
+      );
+    else if (control.signal.reason !== CIERRE) sinResponder(r.estado.mensajes);
     const aviso = {
       limite_pasos:
         'He dado muchos pasos seguidos y me he parado para que lo revises. Pulsa «Continuar» si quieres que siga.',
       limite_coste:
         'He llegado al límite de gasto de este turno. Pulsa «Continuar» si quieres que siga.',
-      cancelado: control.signal.reason === CIERRE ? '' : 'Has detenido al asistente.',
+      cancelado:
+        control.signal.aborted &&
+        control.signal.reason !== CIERRE &&
+        control.signal.reason !== OTRO_MENSAJE
+          ? 'Has detenido al asistente.'
+          : '',
       error: resultado.error ?? 'Ha ocurrido un error.',
       respondido: '',
     }[resultado.fin];
