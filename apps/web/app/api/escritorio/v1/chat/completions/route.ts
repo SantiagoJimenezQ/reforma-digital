@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { apuntarGasto, leerCuerpo, rechazo } from '../../../../../../lib/escritorio';
+import {
+  admitir,
+  apuntarGasto,
+  leerCuerpo,
+  USD_POR_MILLON_DE_TOKENS,
+} from '../../../../../../lib/escritorio';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -27,13 +32,6 @@ const peticionEsquema = z.object({
 });
 
 const usoEsquema = z.object({ prompt_tokens: z.number(), completion_tokens: z.number() });
-
-/** Precio del modelo en dólares por millón de tokens, del panel de NaN Builders. */
-function precios() {
-  const entrada = Number(process.env.ESCRITORIO_USD_MTOK_ENTRADA);
-  const salida = Number(process.env.ESCRITORIO_USD_MTOK_SALIDA);
-  return entrada > 0 && salida > 0 ? { entrada, salida } : null;
-}
 
 /** Deja pasar la respuesta en streaming tal cual y apunta lo que ha costado al terminar. */
 function contarUso(apuntar: (uso: unknown) => Promise<void>) {
@@ -65,15 +63,13 @@ function contarUso(apuntar: (uso: unknown) => Promise<void>) {
 
 export async function POST(request: Request) {
   const clave = process.env.NAN_API_KEY;
-  const precio = precios();
-  // Sin precios no se puede vigilar el presupuesto: no se pasa nada.
-  if (!clave || !precio)
+  if (!clave)
     return Response.json(
       { error: 'El servidor del asistente no está configurado.' },
       { status: 503 },
     );
-  const parada = await rechazo(request, 'modelo');
-  if (parada) return parada;
+  const quien = await admitir(request);
+  if (quien instanceof Response) return quien;
   const texto = await leerCuerpo(request, MAX_BYTES);
   if (texto === null) return Response.json({ error: 'Petición demasiado grande' }, { status: 413 });
   let json: unknown;
@@ -99,7 +95,8 @@ export async function POST(request: Request) {
     const u = usoEsquema.safeParse(uso);
     if (u.success)
       await apuntarGasto(
-        (u.data.prompt_tokens * precio.entrada + u.data.completion_tokens * precio.salida) / 1e6,
+        quien,
+        ((u.data.prompt_tokens + u.data.completion_tokens) / 1e6) * USD_POR_MILLON_DE_TOKENS,
       );
   };
   const tipo = res.headers.get('content-type') ?? 'application/json';

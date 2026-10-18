@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST as modelo } from '../apps/web/app/api/escritorio/v1/chat/completions/route';
 import { POST as buscar } from '../apps/web/app/api/escritorio/buscar/route';
-import { LIMITES } from '../apps/web/lib/escritorio';
+import { LIMITES, USD_POR_MILLON_DE_TOKENS } from '../apps/web/lib/escritorio';
 
 /** Las rutas del servidor de la app de escritorio, con NaN Builders y Exa simulados. */
 const peticion = (url: string, cuerpo: unknown, instalacion: string | null = randomUUID()) =>
@@ -17,6 +17,8 @@ const peticion = (url: string, cuerpo: unknown, instalacion: string | null = ran
 const alModelo = (cuerpo: unknown, instalacion?: string | null) =>
   modelo(peticion('/api/escritorio/v1/chat/completions', cuerpo, instalacion));
 const mensajes = { messages: [{ role: 'user', content: 'Hola' }] };
+/** Tokens que cuestan `usd` dólares. */
+const tokens = (usd: number) => Math.ceil((usd / USD_POR_MILLON_DE_TOKENS) * 1e6);
 
 /** Una respuesta en streaming de la API de OpenAI, partida en trozos que cortan las líneas. */
 function streaming(uso: { prompt_tokens: number; completion_tokens: number }) {
@@ -39,13 +41,15 @@ function streaming(uso: { prompt_tokens: number; completion_tokens: number }) {
 
 let enviados: { url: string; cuerpo: Record<string, unknown>; auth: string | null }[] = [];
 let respuesta: () => Response;
+let dia = 0;
 
 beforeEach(() => {
   enviados = [];
+  // Un día propio en cada prueba: el gasto de una no cuenta en otra.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(Date.UTC(2030, 0, 1 + dia++, 12)));
   vi.stubEnv('NAN_API_KEY', 'clave-nan');
   vi.stubEnv('EXA_API_KEY', 'clave-exa');
-  vi.stubEnv('ESCRITORIO_USD_MTOK_ENTRADA', '1');
-  vi.stubEnv('ESCRITORIO_USD_MTOK_SALIDA', '2');
   vi.stubEnv('DATABASE_URL', '');
   respuesta = () =>
     Response.json({ choices: [], usage: { prompt_tokens: 1, completion_tokens: 1 } });
@@ -84,17 +88,13 @@ describe('servidor de la app de escritorio', () => {
     expect(cuerpo).not.toHaveProperty('user');
   });
 
-  it('rechaza sin instalación, con un cuerpo enorme o con una petición que no es del agente', async () => {
+  it('rechaza sin instalación, con un cuerpo enorme, con una petición que no es del agente o sin claves', async () => {
     expect((await alModelo(mensajes, null)).status).toBe(400);
     expect((await alModelo(mensajes, 'no-es-un-uuid')).status).toBe(400);
     expect((await alModelo('x'.repeat(2_000_001))).status).toBe(413);
     expect((await alModelo({ messages: [] })).status).toBe(400);
     expect((await alModelo('{')).status).toBe(400);
-    expect(enviados).toHaveLength(0);
-  });
-
-  it('no pasa nada si faltan la clave o los precios del modelo', async () => {
-    vi.stubEnv('ESCRITORIO_USD_MTOK_SALIDA', '');
+    vi.stubEnv('NAN_API_KEY', '');
     expect((await alModelo(mensajes)).status).toBe(503);
     vi.stubEnv('EXA_API_KEY', '');
     expect((await buscar(peticion('/api/escritorio/buscar', { consulta: 'padrón' }))).status).toBe(
@@ -103,28 +103,42 @@ describe('servidor de la app de escritorio', () => {
     expect(enviados).toHaveLength(0);
   });
 
-  it('limita las peticiones de cada instalación por hora', async () => {
+  it('corta a cada persona al llegar a su gasto del día, también en streaming', async () => {
     const instalacion = randomUUID();
-    for (let i = 0; i < LIMITES.modelo; i++)
-      expect((await alModelo(mensajes, instalacion)).status).toBe(200);
-    expect((await alModelo(mensajes, instalacion)).status).toBe(429);
-    // Otra instalación sigue pudiendo.
+    // Cada respuesta cuesta medio límite: la tercera ya no pasa.
+    respuesta = () =>
+      streaming({ prompt_tokens: tokens(LIMITES.usdPorUsuario / 2), completion_tokens: 0 });
+    const primera = await alModelo({ ...mensajes, stream: true }, instalacion);
+    expect(await primera.text()).toContain('"content":"Hola"');
+    expect(enviados[0]!.cuerpo.stream_options).toEqual({ include_usage: true });
+    expect(await (await alModelo({ ...mensajes, stream: true }, instalacion)).text()).toContain(
+      '[DONE]',
+    );
+    expect((await alModelo({ ...mensajes, stream: true }, instalacion)).status).toBe(429);
+    expect(enviados).toHaveLength(2);
+    // Otra persona sigue pudiendo.
     expect((await alModelo(mensajes)).status).toBe(200);
   });
 
-  it('deja pasar el streaming tal cual, apunta su gasto y corta al agotar el presupuesto', async () => {
-    // Un día propio: el presupuesto no depende de lo que hayan gastado las otras pruebas.
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date('2030-01-01T12:00:00Z'));
-    // Cada respuesta cuesta la mitad del presupuesto del día: (prompt × 1 + salida × 2) / 1e6 $.
-    const mitad = (LIMITES.usdAlDia / 2) * 1e6;
-    respuesta = () => streaming({ prompt_tokens: mitad, completion_tokens: 0 });
-    const primera = await alModelo({ ...mensajes, stream: true });
-    expect(await primera.text()).toContain('"content":"Hola"');
-    expect(enviados[0]!.cuerpo.stream_options).toEqual({ include_usage: true });
-    expect(await (await alModelo({ ...mensajes, stream: true })).text()).toContain('[DONE]');
-    const agotado = await alModelo({ ...mensajes, stream: true });
-    expect(agotado.status).toBe(429);
-    expect(enviados).toHaveLength(2);
+  it('cuenta las búsquedas con lo que cobra Exa', async () => {
+    const instalacion = randomUUID();
+    respuesta = () => Response.json({ results: [], costDollars: { total: LIMITES.usdPorUsuario } });
+    const busqueda = () =>
+      buscar(peticion('/api/escritorio/buscar', { consulta: 'padrón Getafe' }, instalacion));
+    expect((await busqueda()).status).toBe(200);
+    expect(enviados[0]!.url).toBe('https://api.exa.ai/search');
+    expect((await busqueda()).status).toBe(429);
+    expect((await alModelo(mensajes, instalacion)).status).toBe(429);
+  });
+
+  it('corta también por IP, aunque se reinstale la app para tener otra instalación', async () => {
+    respuesta = () =>
+      Response.json({
+        choices: [],
+        usage: { prompt_tokens: tokens(LIMITES.usdPorUsuario), completion_tokens: 0 },
+      });
+    for (let i = 0; i < LIMITES.usdPorIp / LIMITES.usdPorUsuario; i++)
+      expect((await alModelo(mensajes)).status).toBe(200);
+    expect((await alModelo(mensajes)).status).toBe(429);
   });
 });

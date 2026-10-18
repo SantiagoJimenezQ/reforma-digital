@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { buscarConExa } from '@reforma-digital/agent/research';
-import { apuntarGasto, leerCuerpo, rechazo } from '../../../../lib/escritorio';
+import { admitir, apuntarGasto, leerCuerpo } from '../../../../lib/escritorio';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -25,8 +25,8 @@ const peticionEsquema = z.object({
 export async function POST(request: Request) {
   const clave = process.env.EXA_API_KEY;
   if (!clave) return Response.json({ error: 'El buscador no está configurado.' }, { status: 503 });
-  const parada = await rechazo(request, 'busqueda');
-  if (parada) return parada;
+  const quien = await admitir(request);
+  if (quien instanceof Response) return quien;
   const texto = await leerCuerpo(request, 4000);
   if (texto === null) return Response.json({ error: 'Petición demasiado grande' }, { status: 413 });
   let json: unknown;
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
   const p = peticionEsquema.safeParse(json);
   if (!p.success) return Response.json({ error: 'Petición no válida' }, { status: 400 });
   const r = await buscarConExa(p.data.consulta, p.data.dominios, clave, 8, request.signal);
-  await apuntarGasto(r.costeUsd ?? 0);
+  // Exa suele decir lo que ha costado; si no, cuenta como una búsqueda cara.
+  await apuntarGasto(quien, r.costeUsd ?? 0.025);
   return Response.json(r);
 }

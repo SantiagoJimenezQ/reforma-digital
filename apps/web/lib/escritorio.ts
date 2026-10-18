@@ -4,43 +4,45 @@ import { CABECERA_INSTALACION } from '@reforma-digital/agent/models';
 
 /**
  * El servidor de la app de escritorio guarda las claves del modelo (NaN Builders) y del buscador
- * (Exa): una app que se reparte no puede guardar secretos. Lo que impide el abuso son estos
- * límites, por instalación y por IP, y un presupuesto diario para todas.
+ * (Exa): una app que se reparte no puede guardar secretos. Lo que impide el abuso es un gasto
+ * máximo al día por persona (cada instalación de la app) y por IP.
  */
 export const LIMITES = {
-  /** Peticiones al modelo por instalación y hora: un turno que hace un trámite da hasta 25 pasos. */
-  modelo: 150,
-  /** Búsquedas por instalación y hora. */
-  busqueda: 60,
-  /** Peticiones por IP y hora, para muchas instalaciones desde el mismo sitio. */
-  ip: 600,
-  /** Gasto máximo al día entre todas las instalaciones, en dólares. */
-  usdAlDia: 5,
+  /** Dólares al día por instalación. */
+  usdPorUsuario: 1,
+  /** Dólares al día por IP: quien reinstale la app para empezar de cero sigue contando aquí. */
+  usdPorIp: 5,
 };
 
-type Ventana = 'hour' | 'day';
-const DURACION: Record<Ventana, number> = { hour: 3_600_000, day: 86_400_000 };
-const memoria = new Map<string, { inicio: number; cuenta: number }>();
+/**
+ * Lo que vale un millón de tokens de NaN Builders. No cobra por token: la suscripción cuesta
+ * 70 € al mes con 3.000 millones de tokens de deepseek-v4-flash (nan.builders, octubre de 2026),
+ * unos 0,027 $ por millón. Se redondea hacia arriba.
+ */
+export const USD_POR_MILLON_DE_TOKENS = 0.03;
+
+const DIA = 86_400_000;
+const memoria = new Map<string, { dia: number; cuenta: number }>();
 
 /**
- * Suma `cuanto` al contador de la ventana en curso (la hora o el día, en UTC) y devuelve el total.
- * En Postgres si lo hay; si no (en local), en memoria.
+ * Suma `cuanto` al contador del día (UTC) y devuelve el total: en Postgres si lo hay, si no (en
+ * local) en memoria. El gasto se cuenta en millonésimas de dólar, porque el contador es un entero.
  */
-async function sumar(clave: string, ventana: Ventana, cuanto: number): Promise<number> {
+async function sumar(clave: string, cuanto: number): Promise<number> {
   if (databaseAvailable()) {
     const filas = await connection()`INSERT INTO request_buckets(key, window_start, count)
-      VALUES (${clave}, date_trunc(${ventana}, now()), ${cuanto})
+      VALUES (${clave}, date_trunc('day', now()), ${cuanto})
       ON CONFLICT (key) DO UPDATE SET
-        count = CASE WHEN request_buckets.window_start < date_trunc(${ventana}, now())
+        count = CASE WHEN request_buckets.window_start < date_trunc('day', now())
           THEN ${cuanto} ELSE request_buckets.count + ${cuanto} END,
-        window_start = date_trunc(${ventana}, now())
+        window_start = date_trunc('day', now())
       RETURNING count`;
     return Number(filas[0]?.count);
   }
-  const inicio = Math.floor(Date.now() / DURACION[ventana]) * DURACION[ventana];
+  const dia = Math.floor(Date.now() / DIA);
   const fila = memoria.get(clave);
-  const cuenta = (fila?.inicio === inicio ? fila.cuenta : 0) + cuanto;
-  memoria.set(clave, { inicio, cuenta });
+  const cuenta = (fila?.dia === dia ? fila.cuenta : 0) + cuanto;
+  memoria.set(clave, { dia, cuenta });
   return cuenta;
 }
 
@@ -53,23 +55,16 @@ const contador = (tipo: string, valor: string) =>
     .update(valor)
     .digest('hex')}`;
 
-/** El gasto se cuenta en millonésimas de dólar: el contador es un entero. */
-const GASTO = 'escritorio:gasto';
-export const apuntarGasto = async (usd: number) => {
-  if (usd > 0) await sumar(GASTO, 'day', Math.round(usd * 1e6));
-};
+/** Quien hace la petición: su instalación y su IP, ya como contadores. */
+export type Quien = { usuario: string; ip: string };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Antes de pasar una petición: la instalación tiene que identificarse y estar dentro de sus
- * límites, y el presupuesto del día no puede estar agotado. Devuelve la respuesta de rechazo, o
- * `null` si se puede pasar.
+ * Antes de pasar una petición: la instalación tiene que identificarse y no haber gastado su límite
+ * del día, ni su IP el suyo. Devuelve quién es, o la respuesta de rechazo.
  */
-export async function rechazo(
-  request: Request,
-  uso: 'modelo' | 'busqueda',
-): Promise<Response | null> {
+export async function admitir(request: Request): Promise<Quien | Response> {
   const instalacion = request.headers.get(CABECERA_INSTALACION) ?? '';
   if (!UUID.test(instalacion))
     return Response.json({ error: 'Falta la instalación de la app.' }, { status: 400 });
@@ -77,18 +72,24 @@ export async function rechazo(
   const ip = process.env.VERCEL
     ? (request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ?? 'desconocida')
     : 'local';
-  const saturado = Response.json(
-    { error: 'Has hecho muchas peticiones. Espera un rato y vuelve a intentarlo.' },
-    { status: 429 },
-  );
-  if ((await sumar(contador('ip', ip), 'hour', 1)) > LIMITES.ip) return saturado;
-  if ((await sumar(contador(uso, instalacion), 'hour', 1)) > LIMITES[uso]) return saturado;
-  if ((await sumar(GASTO, 'day', 0)) >= LIMITES.usdAlDia * 1e6)
+  const quien = { usuario: contador('usuario', instalacion), ip: contador('ip', ip) };
+  if (
+    (await sumar(quien.usuario, 0)) >= LIMITES.usdPorUsuario * 1e6 ||
+    (await sumar(quien.ip, 0)) >= LIMITES.usdPorIp * 1e6
+  )
     return Response.json(
-      { error: 'El asistente ha llegado a su límite de hoy. Vuelve a intentarlo mañana.' },
+      { error: 'Has llegado al límite de uso del asistente por hoy. Vuelve a intentarlo mañana.' },
       { status: 429 },
     );
-  return null;
+  return quien;
+}
+
+/** Apunta lo que ha costado una petición a su instalación y a su IP. */
+export async function apuntarGasto(quien: Quien, usd: number) {
+  const micro = Math.round(usd * 1e6);
+  if (micro <= 0) return;
+  await sumar(quien.usuario, micro);
+  await sumar(quien.ip, micro);
 }
 
 /** Lee el cuerpo sin pasar de `max` bytes; `null` si es más grande. */
