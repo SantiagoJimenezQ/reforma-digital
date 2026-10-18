@@ -8,6 +8,7 @@ import {
 import { Input } from '@reforma-digital/design/ui/input';
 import { Textarea } from '@reforma-digital/design/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
+import { cn } from '@reforma-digital/design/lib/utils';
 import type { Ayuda, ItemConversacion } from '../shared/api';
 import { useEstado } from './estado';
 import { Icono, Marca, type NombreIcono } from './icono';
@@ -102,29 +103,138 @@ function useConMarcadores() {
     });
 }
 
+type Campo = Extract<
+  ItemPregunta['pregunta'],
+  { tipo: 'formulario' }
+>['formulario']['campos'][number];
+
+function Entrada({
+  c,
+  id,
+  valor,
+  fijar,
+}: {
+  c: Campo;
+  id: string;
+  valor: string;
+  fijar: (v: string) => void;
+}) {
+  const ayuda = c.privado ? 'Se guarda cifrado en tu Mac. El asistente no verá el valor.' : c.ayuda;
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-[15px] font-medium">
+        {c.privado && <Icono nombre="candado" size={16} className="text-muted-foreground" />}
+        {c.etiqueta}
+        {c.obligatorio === false && (
+          <span className="font-normal text-muted-foreground">(opcional)</span>
+        )}
+      </label>
+      {c.tipo === 'si_no' || (c.tipo === 'opcion' && c.opciones?.length) ? (
+        <RadioGroup
+          id={id}
+          aria-label={c.etiqueta}
+          value={valor}
+          onValueChange={(v) => fijar(String(v))}
+          className="grid gap-2 sm:grid-cols-2"
+        >
+          {(c.tipo === 'si_no' ? ['Sí', 'No'] : (c.opciones ?? [])).map((o) => (
+            <label
+              key={o}
+              className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-border px-3 text-[15px] has-data-checked:border-foreground has-data-checked:font-medium"
+            >
+              <RadioGroupItem value={o} />
+              {o}
+            </label>
+          ))}
+        </RadioGroup>
+      ) : c.tipo === 'texto_largo' ? (
+        <Textarea id={id} maxLength={2000} value={valor} onChange={(e) => fijar(e.target.value)} />
+      ) : (
+        <Input
+          id={id}
+          className="h-11 text-base"
+          type={TIPO_INPUT[c.tipo] ?? 'text'}
+          autoComplete="off"
+          maxLength={2000}
+          value={valor}
+          onChange={(e) => fijar(e.target.value)}
+        />
+      )}
+      {ayuda && <p className="mt-1.5 mb-0 text-sm text-muted-foreground">{ayuda}</p>}
+    </div>
+  );
+}
+
+/** Una respuesta como se lee: las fechas, «31/12/1990». */
+const legible = (c: Campo, v = '') =>
+  (c.tipo === 'fecha' && /^\d{4}-\d{2}-\d{2}$/.test(v)
+    ? v.split('-').reverse().join('/')
+    : v.trim()) || '—';
+
+/** Los pasos que marca el asistente o, si no los marca todos, de tres en tres. */
+function enPasos(campos: Campo[]) {
+  const pasos: { nombre: string; campos: Campo[] }[] = [];
+  for (const c of campos) {
+    const p = pasos.find((x) => x.nombre === c.paso);
+    if (p) p.campos.push(c);
+    else if (c.paso) pasos.push({ nombre: c.paso, campos: [c] });
+  }
+  if (pasos.length > 1 && campos.every((c) => c.paso)) return pasos;
+  return Array.from({ length: Math.ceil(campos.length / 3) }, (_, n) => {
+    const grupo = campos.slice(n * 3, n * 3 + 3);
+    return { nombre: grupo[0]!.etiqueta, campos: grupo };
+  });
+}
+
 /**
  * Si el formulario ofrece hacer el trámite, llega plegado bajo la explicación del asistente, con
  * el botón de la acción («Pedir la cita»): al pulsarlo se despliega con los datos que hacen falta.
+ * Con más de cuatro datos va por pasos y termina con un resumen para revisarlos.
  */
 function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) {
   const base = useId();
   const f = item.pregunta.tipo === 'formulario' ? item.pregunta.formulario : null;
   const [valores, setValores] = useState<Record<string, string>>({});
   const [abierto, setAbierto] = useState(!f?.accion);
+  const [paso, setPaso] = useState(0);
+  const [atras, setAtras] = useState(false);
   const formulario = useRef<HTMLFormElement>(null);
   const { enviando, responder } = useResponder(tramite, item);
   const plegable = Boolean(f?.accion);
   useEffect(() => {
     if (abierto && plegable)
       formulario.current
-        ?.querySelector<HTMLElement>('input:not([aria-hidden]), textarea, [role="radio"]')
+        ?.querySelector<HTMLElement>(
+          'input:not([aria-hidden]), textarea, [role="radio"], button[type="submit"]',
+        )
         ?.focus();
-  }, [abierto, plegable]);
+  }, [abierto, plegable, paso]);
   if (!f) return null;
-  const faltan = f.campos.filter((c) => c.obligatorio !== false && !valores[c.clave]?.trim());
+  const pendiente = (c: Campo) => c.obligatorio !== false && !valores[c.clave]?.trim();
+  const faltan = f.campos.filter(pendiente);
   const fijar = (clave: string, v: string) => setValores((x) => ({ ...x, [clave]: v }));
   // Que quede claro quién lo hace: «Pedir la cita» → «Pedir la cita por mí».
   const accion = f.accion && (/por m[ií]/i.test(f.accion) ? f.accion : `${f.accion} por mí`);
+  const pasos = f.accion && f.campos.length > 4 ? enPasos(f.campos) : null;
+  const revisar = pasos !== null && paso === pasos.length;
+  const visibles = pasos ? (pasos[paso]?.campos ?? []) : f.campos;
+  const faltanAqui = revisar ? faltan : visibles.filter(pendiente);
+  const ir = (n: number) => {
+    setAtras(n < paso);
+    setPaso(n);
+  };
+  const campos = visibles.map((c) => (
+    <Entrada
+      key={c.clave}
+      c={c}
+      id={`${base}-${c.clave}`}
+      valor={valores[c.clave] ?? ''}
+      fijar={(v) => fijar(c.clave, v)}
+    />
+  ));
+  const faltanTexto = faltanAqui.length > 0 && (
+    <span className="text-sm text-muted-foreground">Faltan {faltanAqui.length} por completar.</span>
+  );
   const cuerpo = (
     <div className="px-5 pb-5">
       {f.explicacion && (
@@ -134,90 +244,109 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
       )}
       <form
         ref={formulario}
-        className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!faltan.length) responder(valores);
+          if (faltanAqui.length) return;
+          if (pasos && !revisar) ir(paso + 1);
+          else responder(valores);
         }}
       >
-        {f.campos.map((c) => {
-          const idCampo = `${base}-${c.clave}`;
-          const ayuda = c.privado
-            ? 'Se guarda cifrado en tu Mac. El asistente no verá el valor.'
-            : c.ayuda;
-          return (
-            <div key={c.clave}>
-              <label
-                htmlFor={idCampo}
-                className="mb-1.5 flex items-center gap-1.5 text-[15px] font-medium"
-              >
-                {c.privado && (
-                  <Icono nombre="candado" size={16} className="text-muted-foreground" />
-                )}
-                {c.etiqueta}
-                {c.obligatorio === false && (
-                  <span className="font-normal text-muted-foreground">(opcional)</span>
-                )}
-              </label>
-              {c.tipo === 'si_no' || (c.tipo === 'opcion' && c.opciones?.length) ? (
-                <RadioGroup
-                  id={idCampo}
-                  aria-label={c.etiqueta}
-                  value={valores[c.clave] ?? ''}
-                  onValueChange={(v) => fijar(c.clave, String(v))}
-                  className="grid gap-2 sm:grid-cols-2"
+        {pasos ? (
+          <div className="rounded-[22px] bg-muted p-1.5">
+            <ol className="m-0 flex list-none gap-3 px-4 pt-2 pb-3 text-[15px]">
+              {[...pasos.map((p) => p.nombre), 'Revisar'].map((nombre, n) => (
+                <li
+                  key={n}
+                  aria-current={n === paso ? 'step' : undefined}
+                  className={cn(
+                    'min-w-0 flex-1 truncate text-center transition-colors',
+                    n === paso ? 'text-foreground' : 'text-muted-foreground',
+                  )}
                 >
-                  {(c.tipo === 'si_no' ? ['Sí', 'No'] : (c.opciones ?? [])).map((o) => (
-                    <label
-                      key={o}
-                      className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-border px-3 text-[15px] has-data-checked:border-foreground has-data-checked:font-medium"
-                    >
-                      <RadioGroupItem value={o} />
-                      {o}
-                    </label>
-                  ))}
-                </RadioGroup>
-              ) : c.tipo === 'texto_largo' ? (
-                <Textarea
-                  id={idCampo}
-                  maxLength={2000}
-                  value={valores[c.clave] ?? ''}
-                  onChange={(e) => fijar(c.clave, e.target.value)}
-                />
-              ) : (
-                <Input
-                  id={idCampo}
-                  className="h-11 text-base"
-                  type={TIPO_INPUT[c.tipo] ?? 'text'}
-                  autoComplete="off"
-                  maxLength={2000}
-                  value={valores[c.clave] ?? ''}
-                  onChange={(e) => fijar(c.clave, e.target.value)}
-                />
-              )}
-              {ayuda && <p className="mt-1.5 mb-0 text-sm text-muted-foreground">{ayuda}</p>}
+                  <span className="tabular-nums">{n + 1}.</span> {nombre}
+                </li>
+              ))}
+            </ol>
+            <div className="rounded-[18px] bg-background p-6">
+              <div
+                key={paso}
+                className={cn(
+                  'space-y-4',
+                  atras
+                    ? '[animation:chat-slide-back_280ms_var(--ease-brand)_both]'
+                    : '[animation:chat-slide-forward_280ms_var(--ease-brand)_both]',
+                )}
+              >
+                <h4 className="mb-5 text-[17px] leading-snug font-medium">
+                  {revisar ? 'Revisa los datos' : pasos[paso]!.nombre}
+                </h4>
+                {revisar ? (
+                  <dl className="m-0 grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-6 gap-y-2.5 text-[15px]">
+                    {f.campos.map((c) => (
+                      <div key={c.clave} className="contents">
+                        <dt className="text-muted-foreground">{c.etiqueta}</dt>
+                        <dd className="m-0 break-words">{legible(c, valores[c.clave])}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  campos
+                )}
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {paso > 0 ? (
+                  <Button type="button" variant="ghost" size="lg" onClick={() => ir(paso - 1)}>
+                    Atrás
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="lg"
+                    disabled={enviando}
+                    onClick={() => responder(null)}
+                  >
+                    Ahora no
+                  </Button>
+                )}
+                {faltanTexto}
+                <Button
+                  type="submit"
+                  variant="sunset"
+                  size="lg"
+                  className="ml-auto"
+                  disabled={enviando || faltanAqui.length > 0}
+                >
+                  {revisar ? accion : 'Continuar'}
+                </Button>
+              </div>
             </div>
-          );
-        })}
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Button type="submit" variant="sunset" size="lg" disabled={enviando || faltan.length > 0}>
-            {accion ?? 'Enviar respuestas'}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            disabled={enviando}
-            onClick={() => responder(null)}
-          >
-            Ahora no
-          </Button>
-          {faltan.length > 0 && (
-            <span className="text-sm text-muted-foreground">
-              Faltan {faltan.length} por completar.
-            </span>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {campos}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <Button
+                type="submit"
+                variant="sunset"
+                size="lg"
+                disabled={enviando || faltan.length > 0}
+              >
+                {accion ?? 'Enviar respuestas'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="lg"
+                disabled={enviando}
+                onClick={() => responder(null)}
+              >
+                Ahora no
+              </Button>
+              {faltanTexto}
+            </div>
+          </div>
+        )}
       </form>
     </div>
   );

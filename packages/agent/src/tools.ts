@@ -46,6 +46,13 @@ const campoEntrada = z.object({
     .describe(
       'false si necesitas leer la respuesta: solo vale en si_no, opcion, numero y texto_largo',
     ),
+  paso: z
+    .string()
+    .max(24)
+    .optional()
+    .describe(
+      'Si pides más de 4 datos, el paso del formulario en el que va, con un nombre corto («Tus datos», «La cita»); los del mismo paso, seguidos',
+    ),
 });
 const formularioEntrada = z.object({
   titulo: z.string().min(3).max(90),
