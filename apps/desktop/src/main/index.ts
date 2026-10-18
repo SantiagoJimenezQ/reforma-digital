@@ -9,6 +9,7 @@ import {
   Menu,
   net,
   protocol,
+  session,
   shell,
   systemPreferences,
   type MenuItemConstructorOptions,
@@ -256,6 +257,8 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
         tramites.detenerTodo();
         await tramites.borrarTodo();
         await almacen.destruir();
+        // Lo que guarda la interfaz: la bienvenida vuelve a salir y se olvida qué trámites se han visto.
+        await session.defaultSession.clearStorageData({ storages: ['localstorage'] });
         app.relaunch();
         app.exit(0);
       }
