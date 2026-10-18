@@ -10,7 +10,7 @@ import {
   type Span,
   type TokenClassifier,
 } from '@nationaldesignstudio/rampart';
-import { GENERICAS } from './profile';
+import { GENERICAS, type TIPOS_DATO } from './profile';
 
 /**
  * Detector local de datos personales para lo que no está en «Mis datos»: el nombre del hijo que
@@ -19,16 +19,7 @@ import { GENERICAS } from './profile';
  * (CC BY 4.0, National Design Studio), un modelo de 15 MB que reconoce nombres y direcciones.
  * Corre en este ordenador: lo que analiza no sale de él.
  */
-export type TipoDato =
-  | 'nombre'
-  | 'apellido'
-  | 'direccion'
-  | 'documento'
-  | 'cuenta'
-  | 'telefono'
-  | 'correo'
-  | 'fecha'
-  | 'dato';
+export type TipoDato = keyof typeof TIPOS_DATO;
 export type DatoDetectado = { inicio: number; fin: number; tipo: TipoDato };
 /** Lo que escribe la persona o lo que muestra una web. */
 export type OrigenTexto = 'persona' | 'pagina';
@@ -75,24 +66,69 @@ function fiable(s: Span, texto: string, origen: OrigenTexto) {
   return !(origen === 'pagina' && suelto && /^ \p{Ll}/u.test(texto.slice(s.end, s.end + 2)));
 }
 
-const TIPO_GENERICO: Record<string, TipoDato> = {
-  dni: 'documento',
-  nie: 'documento',
-  iban: 'cuenta',
-  email: 'correo',
-  telefono: 'telefono',
-};
 const VIA =
   'c\\/|calle|avda\\.?|avenida|av\\.|plaza|pza\\.?|paseo|p[º°]|carretera|ctra\\.?|ronda|traves[ií]a|glorieta|callej[oó]n|urbanizaci[oó]n|urb\\.|pasaje|rambla';
 const PALABRA = "[\\p{L}\\p{N}][\\p{L}\\p{N}.'’-]*";
-/** «Calle Mayor 1, 2º B», «Avda. de la Constitución, nº 45»: el tipo de vía, el nombre y el número. */
+/** El nombre de la vía y el número o «s/n», con el piso, la escalera o la puerta. */
+const RESTO_DIRECCION = `${PALABRA}(?:\\s+${PALABRA}){0,5}?,?\\s*(?:n[º°.]\\s*)?(?:\\d{1,4}(?:\\s?[a-z](?![\\p{L}]))?|s\\/n)(?:,?\\s*(?:\\d{1,2}\\s?\\.?[º°ª]\\s?[a-z]{0,4}\\.?|bajo|[áa]tico|esc(?:alera)?\\.?\\s*\\w+|puerta\\s*\\w+|piso\\s*\\w+))*`;
+/** Tras una abreviatura («c/mayor», «avda.»), el nombre puede ir pegado. */
+const TIPO_VIA = `(?:${VIA})(?:(?<=[./º°])\\s*|\\s+)`;
+/**
+ * «Calle Mayor 1, 2º B», «Avda. de la Constitución, nº 45»: el tipo de vía, el nombre y el número.
+ * Detrás de «Domicilio:» o «Dirección:» basta con el nombre y el número, y se oculta sin la etiqueta.
+ */
 const DIRECCION = new RegExp(
-  `(?<![\\p{L}\\p{N}])(?:${VIA})\\s+${PALABRA}(?:\\s+${PALABRA}){0,5}?,?\\s*(?:n[º°.]\\s*)?\\d{1,4}(?:\\s?[a-z](?![\\p{L}]))?(?:,?\\s*(?:\\d{1,2}\\s?\\.?[º°ª]\\s?[a-z]{0,4}\\.?|bajo|[áa]tico|esc(?:alera)?\\.?\\s*\\w+|puerta\\s*\\w+|piso\\s*\\w+))*`,
-  'giu',
+  `(?<![\\p{L}\\p{N}])(?:(?:domicilio|direcci[oó]n)(?:\\s+postal)?\\s*:\\s*((?:${TIPO_VIA})?${RESTO_DIRECCION})|${TIPO_VIA}${RESTO_DIRECCION})`,
+  'dgiu',
 );
 /** Una fecha poco después de «nacido», «nacimiento»…: la de nacimiento, sea de quien sea. */
 const NACIMIENTO =
   /(?:naci(?:d[oa]s?|miento|ó)|f\.\s*nac\.?)\D{0,30}?(\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}|\d{1,2}\s+de\s+\p{L}+\s+(?:de|del)\s+(?:19|20)\d{2}|(?:19|20)\d{2}-\d{2}-\d{2})/dgiu;
+
+/**
+ * Identificadores sin letra ni dígitos de control (pasaporte, soporte, expediente, localizador…):
+ * sin algoritmo que los valide, solo cuentan detrás de la etiqueta que dice qué son, con al menos
+ * cinco letras o cifras y alguna cifra («expediente nº 2024/000123», no «expediente 2024»).
+ */
+const NUMERO_ID = '(?=[\\p{L}\\p{N}./-]*\\d)[\\p{L}\\p{N}](?:[./-]?[\\p{L}\\p{N}]){4,}';
+/** Matrículas: la actual (0000 BBB, sin vocales) y la provincial (M-1234-AB). */
+const MATRICULA = '\\d{4}[\\s-]?[B-DF-HJ-NP-TV-Z]{3}|[A-Z]{1,2}[\\s-]?\\d{4}[\\s-]?[A-Z]{1,2}';
+/** Entre la etiqueta y el valor, «nº», «núm.», «:» o «es» («mi pasaporte es …»). */
+const etiquetado = (etiquetas: string, valor = NUMERO_ID, hueco = '(?:\\s+es)?') =>
+  new RegExp(
+    `(?<![\\p{L}\\p{N}])(?:${etiquetas})${hueco}[\\s:.#º°ª-]*(?:n(?:[uú]m(?:ero)?)?[\\s:.#º°ª-]+)?(${valor})(?![\\p{L}\\p{N}])`,
+    'dgiu',
+  );
+const ETIQUETADOS: [RegExp, TipoDato][] = [
+  [etiquetado('pasaporte|soporte|idesp'), 'documento'],
+  [
+    etiquetado(
+      'expediente|localizador|justificante|csv|c[oó]digo\\s+seguro\\s+de\\s+verificaci[oó]n',
+    ),
+    'referencia',
+  ],
+  // El formato de la matrícula es tan concreto que admite unas palabras en medio: «la matrícula del coche es».
+  [etiquetado('matr[ií]cula', MATRICULA, '(?:\\s+\\p{L}+){0,4}?'), 'referencia'],
+];
+
+const PARENTESCO =
+  'hij[oa]|madre|padre|marido|mujer|espos[oa]|pareja|herman[oa]|abuel[oa]|niet[oa]|t[ií][oa]|sobrin[oa]|prim[oa]|suegr[oa]|cuñad[oa]|yerno|nuera|novi[oa]|beb[ée]|niñ[oa]';
+/**
+ * Lo que presenta un nombre: «me llamo», «a nombre de», «Titular:», «D.ª», «mi hija». Detrás va el
+ * nombre propio, en mayúscula (`NOMBRE_PROPIO`), aunque el modelo no lo reconozca. «Don» y «doña»
+ * solo van delante de un nombre de pila; «Sr.» no basta, porque también va delante de un cargo
+ * («Sr. Ministro de Hacienda»): cuenta solo seguido de «D.» o «Dña.».
+ */
+const PRESENTA_NOMBRE = new RegExp(
+  `(?<![\\p{L}\\p{N}])(?:(?:me\\s+llamo|mi\\s+nombre\\s+es|a\\s+nombre\\s+de|(?:mi|tu|su|nuestr[oa])\\s+(?:${PARENTESCO}))\\s+|(?:nombre(?:\\s+y\\s+apellidos)?|apellidos|titular)\\s*:[^\\S\\n]*|(?:(?:dña|d)\\.\\s*|(?:dª|don|doña)\\s+)+)`,
+  'giu',
+);
+/**
+ * Palabras en mayúscula, con «de», «del» o «de la» entre ellas: «María de la Fuente». Una palabra
+ * seguida de «:» es otra etiqueta de un formulario vacío («Nombre: Apellidos:»), no un nombre.
+ */
+const NOMBRE_PROPIO =
+  /\p{Lu}[\p{L}'’-]+(?:\s+(?:del?\s+(?:l[ao]s?\s+)?)?\p{Lu}[\p{L}'’-]+){0,4}(?![\p{L}'’-]|\s*:)/uy;
 
 /** Lo que encuentran las reglas, sin el modelo. */
 export function datosPorReglas(texto: string): DatoDetectado[] {
@@ -103,13 +139,29 @@ export function datosPorReglas(texto: string): DatoDetectado[] {
         datos.push({
           inicio: m.index,
           fin: m.index + m[0].length,
-          tipo: TIPO_GENERICO[r.clave] ?? 'dato',
+          tipo: r.tipo,
         });
-  for (const m of texto.matchAll(DIRECCION))
-    datos.push({ inicio: m.index, fin: m.index + m[0].length, tipo: 'direccion' });
-  for (const m of texto.matchAll(NACIMIENTO)) {
-    const [inicio, fin] = m.indices![1]!;
-    datos.push({ inicio, fin, tipo: 'fecha' });
+  const grupo = (re: RegExp, tipo: TipoDato) => {
+    for (const m of texto.matchAll(re)) {
+      const [inicio, fin] = m.indices!.slice(1).find(Boolean) ?? m.indices![0]!;
+      datos.push({ inicio, fin, tipo });
+    }
+  };
+  grupo(DIRECCION, 'direccion');
+  grupo(NACIMIENTO, 'fecha');
+  for (const [re, tipo] of ETIQUETADOS) grupo(re, tipo);
+  // El nombre de pila y, aparte, los apellidos: el agente puede escribirlos en campos distintos.
+  for (const m of texto.matchAll(PRESENTA_NOMBRE)) {
+    NOMBRE_PROPIO.lastIndex = m.index + m[0].length;
+    const nombre = NOMBRE_PROPIO.exec(texto);
+    if (!nombre) continue;
+    const pila = /^\S+/.exec(nombre[0])![0];
+    datos.push({ inicio: nombre.index, fin: nombre.index + pila.length, tipo: 'nombre' });
+    const resto = nombre[0].slice(pila.length).trimStart();
+    if (resto) {
+      const fin = nombre.index + nombre[0].length;
+      datos.push({ inicio: fin - resto.length, fin, tipo: 'apellido' });
+    }
   }
   return unir(datos);
 }

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { APICallError, RetryError, simulateReadableStream } from 'ai';
@@ -1039,6 +1039,522 @@ describe('marcadores y formatos', () => {
     const enviado = JSON.stringify(prompts);
     expect(enviado).toContain('personas: 3');
     expect(enviado).not.toContain('281234567840');
+  });
+});
+
+/** Generador determinista (mulberry32): las mismas pruebas en cada ejecución. */
+function generador(semilla: number) {
+  let s = semilla;
+  return (n: number) => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * n);
+  };
+}
+const azar = generador(20261018);
+const elige = <T>(xs: readonly T[]): T => xs[azar(xs.length)]!;
+const cifras = (n: number) => Array.from({ length: n }, () => azar(10)).join('');
+const letras = (n: number, de = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') =>
+  Array.from({ length: n }, () => de.charAt(azar(de.length))).join('');
+/** Otro carácter del mismo alfabeto: el control deja de cuadrar. */
+const otro = (c: string, de: string) =>
+  de.charAt((de.indexOf(c) + 1 + azar(de.length - 1)) % de.length);
+const VECES = 300;
+
+// Los controles calculados aquí, aparte de la implementación, con la definición oficial.
+const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
+const letraDni = (n: string) => LETRAS_DNI.charAt(Number(n) % 23);
+const controlCif = (cuerpo: string) => {
+  let suma = 0;
+  for (let i = 0; i < 7; i++) {
+    const n = Number(cuerpo[i]) * (i % 2 === 0 ? 2 : 1);
+    suma += n > 9 ? n - 9 : n;
+  }
+  const d = (10 - (suma % 10)) % 10;
+  return { cifra: String(d), letra: 'JABCDEFGHI'.charAt(d) };
+};
+const dcCcc = (s: string) => {
+  const r =
+    11 - ([1, 2, 4, 8, 5, 10, 9, 7, 3, 6].reduce((t, p, i) => t + p * Number(s[i]), 0) % 11);
+  return String(r === 11 ? 0 : r === 10 ? 1 : r);
+};
+const ALFABETO = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+const letraCatastro = (s: string) => {
+  const pesos = [13, 15, 12, 5, 4, 17, 9, 21, 3, 7, 1];
+  const suma = [...s].reduce(
+    (t, c, i) => t + (/\d/.test(c) ? Number(c) : ALFABETO.indexOf(c) + 1) * pesos[i]!,
+    0,
+  );
+  return 'MQWERTYUIOPASDFGHJKLBZX'.charAt(suma % 23);
+};
+const mod97 = (s: string) => [...s].reduce((r, c) => (r * 10 + Number(c)) % 97, 0);
+const ccc = () => {
+  const banco = cifras(8);
+  const cuenta = cifras(10);
+  return `${banco}${dcCcc(`00${banco}`)}${dcCcc(cuenta)}${cuenta}`;
+};
+
+type Identificador = {
+  nombre: string;
+  tipo: TipoDato;
+  marcador: string;
+  /** El identificador válido y el mismo con el control cambiado. */
+  generar: () => [string, string];
+  formatos: ((s: string) => string)[];
+};
+const IDENTIFICADORES: Identificador[] = [
+  {
+    nombre: 'DNI',
+    tipo: 'documento',
+    marcador: '[DNI]',
+    generar: () => {
+      const n = cifras(8);
+      const l = letraDni(n);
+      return [n + l, n + otro(l, LETRAS_DNI)];
+    },
+    formatos: [
+      (s) => s,
+      (s) => `${s.slice(0, 2)}.${s.slice(2, 5)}.${s.slice(5, 8)}-${s[8]}`,
+      (s) => `${s.slice(0, 2)}.${s.slice(2, 5)}.${s.slice(5, 8)}${s[8]}`,
+      (s) => `${s.slice(0, 2)} ${s.slice(2, 5)} ${s.slice(5, 8)} ${s[8]}`,
+      (s) => `${s.slice(0, 8)}-${s[8]}`,
+      (s) => s.toLowerCase(),
+    ],
+  },
+  {
+    nombre: 'NIE',
+    tipo: 'documento',
+    marcador: '[NIE]',
+    generar: () => {
+      const x = azar(3);
+      const n = cifras(7);
+      const l = letraDni(`${x}${n}`);
+      return ['XYZ'[x] + n + l, 'XYZ'[x] + n + otro(l, LETRAS_DNI)];
+    },
+    formatos: [
+      (s) => s,
+      (s) => `${s[0]}-${s.slice(1, 8)}-${s[8]}`,
+      (s) => `${s[0]} ${s.slice(1, 8)} ${s[8]}`,
+    ],
+  },
+  {
+    nombre: 'NIF K, L o M',
+    tipo: 'documento',
+    marcador: '[NIF]',
+    generar: () => {
+      const k = elige(['K', 'L', 'M']);
+      const n = cifras(7);
+      const l = letraDni(n);
+      return [k + n + l, k + n + otro(l, LETRAS_DNI)];
+    },
+    formatos: [(s) => s, (s) => `${s[0]}-${s.slice(1, 8)}-${s[8]}`],
+  },
+  {
+    nombre: 'CIF',
+    tipo: 'documento',
+    marcador: '[CIF]',
+    generar: () => {
+      const tipo = elige([...'ABCDEFGHJNRUVW']);
+      const cuerpo = cifras(7);
+      const { cifra, letra } = controlCif(cuerpo);
+      const conLetra = 'NRW'.includes(tipo) || (!'ABEH'.includes(tipo) && azar(2) === 1);
+      return conLetra
+        ? [tipo + cuerpo + letra, tipo + cuerpo + otro(letra, 'ABCDEFGHIJ')]
+        : [tipo + cuerpo + cifra, tipo + cuerpo + otro(cifra, '0123456789')];
+    },
+    formatos: [(s) => s, (s) => `${s[0]}-${s.slice(1)}`],
+  },
+  {
+    nombre: 'NUSS',
+    tipo: 'documento',
+    marcador: '[NUSS]',
+    generar: () => {
+      const provincia = String(1 + azar(52)).padStart(2, '0');
+      // La mitad con número de menos de 8 cifras, que se calcula sin el cero de la izquierda.
+      const numero = azar(2) ? `0${cifras(7)}` : `${1 + azar(9)}${cifras(7)}`;
+      const base =
+        Number(numero) < 1e7 ? `${Number(provincia)}${numero.slice(1)}` : provincia + numero;
+      const control = mod97(base);
+      const malo = (control + 1 + azar(96)) % 97;
+      const dos = (n: number) => String(n).padStart(2, '0');
+      return [provincia + numero + dos(control), provincia + numero + dos(malo)];
+    },
+    formatos: [
+      (s) => s,
+      (s) => `${s.slice(0, 2)}/${s.slice(2, 10)}/${s.slice(10)}`,
+      (s) => `${s.slice(0, 2)} ${s.slice(2, 10)} ${s.slice(10)}`,
+    ],
+  },
+  {
+    nombre: 'CCC',
+    tipo: 'cuenta',
+    marcador: '[CCC]',
+    generar: () => {
+      const c = ccc();
+      return [c, c.slice(0, 8) + otro(c[8]!, '0123456789') + c.slice(9)];
+    },
+    formatos: [
+      (s) => s,
+      (s) => `${s.slice(0, 4)} ${s.slice(4, 8)} ${s.slice(8, 10)} ${s.slice(10)}`,
+      (s) => `${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 10)}-${s.slice(10)}`,
+      (s) => s.match(/.{4}/g)!.join(' '),
+    ],
+  },
+  {
+    nombre: 'IBAN',
+    tipo: 'cuenta',
+    marcador: '[IBAN]',
+    generar: () => {
+      const c = ccc();
+      const control = String(98 - mod97(`${c}142800`)).padStart(2, '0');
+      return [`ES${control}${c}`, `ES${otro(control[0]!, '0123456789')}${control[1]}${c}`];
+    },
+    formatos: [(s) => s, (s) => s.match(/.{1,4}/g)!.join(' ')],
+  },
+  {
+    nombre: 'referencia catastral',
+    tipo: 'referencia',
+    marcador: '[referencia catastral]',
+    generar: () => {
+      const LETRA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      // Urbana (finca, hoja del plano) o rústica (municipio, sector, polígono y parcela).
+      const finca = azar(2)
+        ? `${cifras(7)}${letras(2, LETRA)}${cifras(4)}${letras(1, LETRA)}`
+        : `${cifras(5)}${letras(1, LETRA)}${cifras(8)}`;
+      const cargo = cifras(4);
+      const dc = letraCatastro(finca.slice(0, 7) + cargo) + letraCatastro(finca.slice(7) + cargo);
+      return [finca + cargo + dc, finca + cargo + dc[0] + otro(dc[1]!, LETRA)];
+    },
+    formatos: [
+      (s) => s,
+      (s) => `${s.slice(0, 7)} ${s.slice(7, 14)} ${s.slice(14, 18)} ${s.slice(18)}`,
+    ],
+  },
+];
+
+const vistos = (t: string) =>
+  datosPorReglas(t).map((d) => ({ valor: t.slice(d.inicio, d.fin), tipo: d.tipo }));
+
+describe('reglas del detector', () => {
+  it('valida ejemplos conocidos', () => {
+    // Referencia catastral de la documentación del Catastro, el IBAN de ejemplo habitual y su CCC,
+    // un CIF de empresa y el NUSS que ya usan estas pruebas. El de la AEAT (Q, administración
+    // pública) se queda a la vista.
+    const ejemplos = {
+      'Referencia catastral 9872023VH5797S0001WX': '9872023VH5797S0001WX',
+      'IBAN ES91 2100 0418 4502 0005 1332': 'ES91 2100 0418 4502 0005 1332',
+      'CCC 2100 0418 45 0200051332': '2100 0418 45 0200051332',
+      'La empresa A58818501': 'A58818501',
+      'Mi NUSS es 28/12345678/40': '28/12345678/40',
+    };
+    for (const [t, valor] of Object.entries(ejemplos))
+      expect(vistos(t).map((v) => v.valor)).toEqual([valor]);
+    expect(vistos('Agencia Tributaria, NIF Q2826000H')).toEqual([]);
+  });
+
+  describe.each(IDENTIFICADORES)('$nombre', ({ tipo, marcador, generar, formatos }) => {
+    const casos = Array.from({ length: VECES }, () => {
+      const [bueno, malo] = generar();
+      const formato = elige(formatos);
+      return { valido: formato(bueno), invalido: formato(malo) };
+    });
+
+    it(`encuentra ${VECES} válidos generados, en cualquier formato, y la última capa los oculta`, () => {
+      for (const { valido } of casos) {
+        const t = `Te paso el número ${valido} para el trámite.`;
+        expect(vistos(t), t).toEqual([{ valor: valido, tipo }]);
+        expect(new Privacidad({}).limpiar(t, { laxo: true })).toBe(t.replace(valido, marcador));
+      }
+    });
+
+    it(`no toma por identificador ${VECES} con el control equivocado`, () => {
+      for (const { invalido } of casos) {
+        const t = `Te paso el número ${invalido} para el trámite.`;
+        expect(vistos(t), t).toEqual([]);
+        expect(new Privacidad({}).limpiar(t, { laxo: true })).toBe(t);
+      }
+    });
+  });
+
+  it('teléfonos: solo los móviles y fijos geográficos del plan de numeración, en cualquier formato', () => {
+    const personal = (n: string) => /^(6|7[1-4]|[89][1-8])/.test(n);
+    const formatos = [
+      (n: string) => n,
+      (n: string) => `${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`,
+      (n: string) => `${n.slice(0, 3)} ${n.slice(3, 5)} ${n.slice(5, 7)} ${n.slice(7)}`,
+      (n: string) => `${n.slice(0, 2)} ${n.slice(2, 5)} ${n.slice(5, 7)} ${n.slice(7)}`,
+      (n: string) => `${n.slice(0, 3)}-${n.slice(3, 6)}-${n.slice(6)}`,
+      (n: string) => `+34 ${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`,
+      (n: string) => `0034${n}`,
+    ];
+    let personales = 0;
+    for (let i = 0; i < 2000; i++) {
+      const n = `${5 + azar(5)}${cifras(8)}`;
+      const escrito = elige(formatos)(n);
+      const t = `Puedes llamar al ${escrito} por la mañana.`;
+      expect(vistos(t), t).toEqual(personal(n) ? [{ valor: escrito, tipo: 'telefono' }] : []);
+      if (personal(n)) personales++;
+    }
+    expect(personales).toBeGreaterThan(500);
+    for (const t of [
+      'SEPE: 901 502 050 o 060',
+      'Información tributaria: 901 33 55 33',
+      'Llama gratis al 900 100 200',
+      'Desde el extranjero: +34 901 502 050',
+      'Teléfono de emergencias 112 y de la Administración 060',
+    ])
+      expect(vistos(t), t).toEqual([]);
+  });
+
+  it('teléfonos internacionales con el prefijo +', () => {
+    for (let i = 0; i < VECES; i++) {
+      const prefijo = String(1 + azar(999));
+      if (prefijo.startsWith('34')) continue;
+      const resto = cifras(8 + azar(4));
+      const escrito = `+${prefijo} ${resto.slice(0, 3)} ${resto.slice(3)}`;
+      const t = `Mi número en el extranjero es ${escrito}, gracias.`;
+      expect(vistos(t), t).toEqual([{ valor: escrito, tipo: 'telefono' }]);
+    }
+  });
+
+  it('un importe no es un teléfono, salvo que lo diga delante', () => {
+    for (let i = 0; i < VECES; i++) {
+      const n = `6${cifras(8)}`;
+      const puntos = `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6)}`;
+      const espacios = `${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`;
+      for (const t of [
+        `El presupuesto es de ${puntos} €.`,
+        `El presupuesto es de ${espacios} euros.`,
+        `Importe: ${puntos}`,
+        `Importe: ${puntos},00`,
+        `Importe: €${espacios}`,
+        `Importe: ${n.slice(0, 3)}.${n.slice(3, 6)},${n.slice(6, 8)}`,
+        `Teléfono: ${puntos} €`,
+      ])
+        expect(vistos(t), t).toEqual([]);
+      for (const t of [`Teléfono: ${puntos}`, `Llámame al ${puntos}`, `móvil ${puntos}.`])
+        expect(vistos(t), t).toEqual([{ valor: puntos, tipo: 'telefono' }]);
+    }
+  });
+
+  it('correos escritos para que no los lean los robots', () => {
+    const arrobas = ['@', ' arroba ', ' [at] ', '(at)', ' {arroba} ', ' (AT) '];
+    const puntos = ['.', ' punto ', ' [dot] ', '(punto)', ' (DOT) '];
+    for (let i = 0; i < VECES; i++) {
+      const palabra = () => letras(3 + azar(6)).toLowerCase();
+      const punto = elige(puntos);
+      const correo = `${palabra()}${elige(['', '.', '_'])}${palabra()}${elige(arrobas)}${palabra()}${punto}${palabra()}${azar(2) ? `${punto}es` : ''}`;
+      const t = `Escríbele a ${correo} cuando puedas`;
+      expect(vistos(t), t).toEqual([{ valor: correo, tipo: 'correo' }]);
+    }
+    for (const t of ['Pague una arroba de trigo', 'Pulsa el punto y la arroba'])
+      expect(vistos(t), t).toEqual([]);
+  });
+
+  it('identificadores sin control solo detrás de la etiqueta que dice qué son', () => {
+    const etiquetas: [string, TipoDato][] = [
+      ['pasaporte', 'documento'],
+      ['Pasaporte nº', 'documento'],
+      ['número de pasaporte:', 'documento'],
+      ['IDESP', 'documento'],
+      ['número de soporte', 'documento'],
+      ['expediente n.º', 'referencia'],
+      ['Expediente:', 'referencia'],
+      ['localizador', 'referencia'],
+      ['CSV:', 'referencia'],
+      ['código seguro de verificación', 'referencia'],
+      ['justificante núm.', 'referencia'],
+    ];
+    for (let i = 0; i < VECES; i++) {
+      const [etiqueta, tipo] = elige(etiquetas);
+      const valor = elige([
+        () => `${letras(3)}${cifras(6)}`,
+        () => `${cifras(4)}/${cifras(6)}`,
+        () => `${letras(2)}-${cifras(5)}-${letras(1)}`,
+        () => `${letras(4)}${cifras(4)}${letras(4)}`,
+      ])();
+      const t = `Te dejo el ${etiqueta} ${valor} por si acaso`;
+      expect(vistos(t), t).toEqual([{ valor, tipo }]);
+      // Sin la etiqueta, nada indica qué es.
+      expect(vistos(`Te dejo el ${valor} por si acaso`)).toEqual([]);
+      const matricula = elige([
+        () => `${cifras(4)} ${letras(3, 'BCDFGHJKLMNPRSTVWXYZ')}`,
+        () => `${letras(1 + azar(2))}-${cifras(4)}-${letras(1 + azar(2))}`,
+      ])();
+      expect(vistos(`La matrícula del coche es ${matricula}.`)).toEqual([
+        { valor: matricula, tipo: 'referencia' },
+      ]);
+    }
+    for (const t of [
+      'El estado del expediente 2024',
+      'Descarga el justificante de pago',
+      'Plazo de matrícula del curso 2026/2027',
+      'Matrícula 2026-2027 en la universidad',
+      'Verificación mediante CSV del documento',
+      'Pasaporte: se renueva en la comisaría',
+    ])
+      expect(vistos(t), t).toEqual([]);
+  });
+
+  it('nombres en mayúscula detrás de lo que presenta un nombre', () => {
+    const silabas = [
+      'ka',
+      'lo',
+      'mi',
+      'ren',
+      'sa',
+      'tu',
+      'vi',
+      'ne',
+      'ar',
+      'zu',
+      'bel',
+      'to',
+      'ñe',
+      'lú',
+    ];
+    const palabra = () => {
+      const p = Array.from({ length: 2 + azar(2) }, () => elige(silabas)).join('');
+      return p[0]!.toUpperCase() + p.slice(1);
+    };
+    const presentaciones = [
+      'Me llamo',
+      'mi nombre es',
+      'a nombre de',
+      'Titular:',
+      'Nombre y apellidos:',
+      'D.',
+      'Dña.',
+      'Dª',
+      'don',
+      'Doña',
+      'Sr. D.',
+      'Sra. Dña.',
+      'mi hija',
+      'su padre',
+      'nuestro abuelo',
+    ];
+    for (let i = 0; i < VECES; i++) {
+      const nombre = palabra();
+      const apellidos = elige([
+        () => palabra(),
+        () => `${palabra()} ${palabra()}`,
+        () => `${palabra()} de la ${palabra()}`,
+      ])();
+      const mayusculas = azar(4) === 0;
+      const [n, a] = mayusculas
+        ? [nombre.toUpperCase(), apellidos.toUpperCase()]
+        : [nombre, apellidos];
+      const t = `Hola, ${elige(presentaciones)} ${n} ${a}, y necesito cita.`;
+      expect(vistos(t), t).toEqual([
+        { valor: n, tipo: 'nombre' },
+        { valor: a, tipo: 'apellido' },
+      ]);
+    }
+    for (const t of [
+      'Me llamo para pedir cita',
+      'Sr./Sra. D./Dña. ________',
+      'Excmo. Sr. Ministro de Hacienda',
+      'Nombre:\nApellidos:\nDNI:',
+      'Nombre: Apellidos: Teléfono:',
+      'Sra. Directora General',
+      'Titular de la cuenta',
+      'a nombre de la persona interesada',
+      'Mi hija tiene que renovar el DNI',
+    ])
+      expect(vistos(t), t).toEqual([]);
+  });
+
+  it('direcciones con tipo de vía en minúscula o detrás de «Domicilio:» o «Dirección:»', () => {
+    const vias = ['Calle', 'c/', 'C/ ', 'avda. ', 'Avenida', 'pza. ', 'Plaza', 'Pº ', 'ctra. '];
+    for (let i = 0; i < VECES; i++) {
+      const nombre = Array.from({ length: 1 + azar(3) }, () =>
+        letras(3 + azar(5)).toLowerCase(),
+      ).join(' ');
+      const numero = elige([String(1 + azar(300)), 's/n', `${1 + azar(99)}, ${1 + azar(9)}º B`]);
+      const via = elige(vias);
+      const conVia = `${via}${via.endsWith(' ') || via.endsWith('/') ? '' : ' '}${nombre} ${numero}`;
+      expect(vistos(`Vivo en ${conVia}, en Getafe`)).toEqual([
+        { valor: conVia, tipo: 'direccion' },
+      ]);
+      const sinVia = `${nombre} ${numero}`;
+      const etiqueta = elige(['Domicilio:', 'Dirección:', 'DIRECCIÓN POSTAL:']);
+      expect(vistos(`${etiqueta} ${sinVia}, Getafe`)).toEqual([
+        { valor: sinVia, tipo: 'direccion' },
+      ]);
+      expect(vistos(`Vivo en ${sinVia}, en Getafe`)).toEqual([]);
+    }
+  });
+
+  it('en texto oficial real no encuentra más que los teléfonos y el correo que el plan y el formato no distinguen de los de una persona', () => {
+    // HTML capturado de las sedes públicas (sites/*/fixtures, sin datos personales) y las
+    // preguntas de las evaluaciones, salvo la que lleva un número de expediente.
+    const sites = path.resolve(import.meta.dirname, '../../../sites');
+    const paginas = readdirSync(sites).flatMap((s) => {
+      const dir = path.join(sites, s, 'fixtures');
+      return existsSync(dir)
+        ? readdirSync(dir)
+            .filter((f) => f.endsWith('.html'))
+            .map(
+              (f) =>
+                htmlATexto(readFileSync(path.join(dir, f), 'utf8'), new URL('https://sede.gob.es/'))
+                  .texto,
+            )
+        : [];
+    });
+    const evals = path.resolve(import.meta.dirname, '../../evals/datasets');
+    const preguntas = readdirSync(evals).flatMap((f) => {
+      const datos: {
+        cases: { id: string; query: string; expected: { mustContainFacts?: string[] } }[];
+      } = JSON.parse(readFileSync(path.join(evals, f), 'utf8'));
+      return datos.cases
+        .filter((c) => c.id !== 'unanswerable-005')
+        .flatMap((c) => [c.query, ...(c.expected.mustContainFacts ?? [])]);
+    });
+    expect(paginas.length).toBeGreaterThanOrEqual(13);
+    expect(preguntas.length).toBeGreaterThan(150);
+    const corpus = [...paginas, ...preguntas];
+    const encontrados = corpus.flatMap(vistos);
+    expect(encontrados).toEqual([
+      // Números de la Administración en rangos de personas: el SMS de cita (móvil) y dos fijos de Madrid.
+      { valor: '600 124 377', tipo: 'telefono' },
+      { valor: 'citaprevia_extranjeria.madrid@correo.gob.es', tipo: 'correo' },
+      { valor: '91 333 5 333', tipo: 'telefono' },
+      { valor: '91 554 87 70', tipo: 'telefono' },
+    ]);
+    const todo = corpus.join('\n');
+    // Los de servicios se quedan a la vista y la última capa no toca nada.
+    for (const n of ['902 022 222', '060']) expect(todo).toContain(n);
+    for (const t of corpus) expect(new Privacidad({}).limpiar(t, { laxo: true })).toBe(t);
+  });
+
+  it('textos largos sin espacios o repetitivos se analizan rápido', () => {
+    const k = 200_000;
+    const textos = [
+      'a'.repeat(k),
+      '1'.repeat(k),
+      'a.'.repeat(k / 2),
+      '12 '.repeat(k / 3),
+      '6.'.repeat(k / 2),
+      '+1 '.repeat(k / 3),
+      'Calle Mayor Mayor Mayor Mayor Mayor '.repeat(k / 36),
+      'expediente nº '.repeat(k / 14),
+      'me llamo Sr. D. '.repeat(k / 16),
+      'Domicilio: '.repeat(k / 11),
+      'lucia arroba ejemplo punto '.repeat(k / 27),
+      'teléfono '.repeat(k / 9) + '600.000.000',
+      '1-'.repeat(k / 2),
+      'Don Ab '.repeat(k / 7),
+      'ES12 ABCD '.repeat(k / 10),
+      'a [at] b [dot] '.repeat(k / 15),
+    ];
+    const inicio = performance.now();
+    for (const t of textos) {
+      datosPorReglas(t);
+      new Privacidad({}).limpiar(t, { laxo: true, usuario: true });
+    }
+    expect(performance.now() - inicio).toBeLessThan(3000);
   });
 });
 
