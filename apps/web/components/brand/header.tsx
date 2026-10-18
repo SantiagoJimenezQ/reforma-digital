@@ -1,21 +1,12 @@
 import { cn } from '@reforma-digital/design/lib/utils';
 import { buttonVariants } from '@reforma-digital/design/ui/button';
 
-import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Icon } from './icon';
 import { Logo } from './logo';
 import { MobileMenu } from './mobile-menu';
 
-export function Header({
-  current,
-  action,
-  className,
-}: {
-  current?: string;
-  action?: ReactNode;
-  className?: string;
-}) {
+export function Header({ current, className }: { current?: string; className?: string }) {
   const links = [
     { href: '/#iniciativa', text: 'La iniciativa', current: false },
     { href: '/#proyectos', text: 'Proyectos', current: false },
@@ -48,18 +39,15 @@ export function Header({
             {link.text}
           </Link>
         ))}
-        {!action && (
-          <Link
-            href="/#participar"
-            data-slot="button"
-            data-variant="outline"
-            className={cn(buttonVariants({ variant: 'outline', className: 'text-foreground' }))}
-          >
-            Participar <Icon name="derecha" size={16} />
-          </Link>
-        )}
+        <Link
+          href="/#participar"
+          data-slot="button"
+          data-variant="outline"
+          className={cn(buttonVariants({ variant: 'outline', className: 'text-foreground' }))}
+        >
+          Participar <Icon name="derecha" size={16} />
+        </Link>
       </nav>
-      {action}
       <MobileMenu links={links} />
     </header>
   );

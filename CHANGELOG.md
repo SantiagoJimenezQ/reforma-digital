@@ -7,7 +7,7 @@
 - App de escritorio: también para Windows y Linux; otro proveedor de IA compatible con OpenAI o un modelo local (el de la app sigue por defecto); los diálogos de las webs se ven y se responden; espera a que aparezca un texto; llamada guiada; búsqueda de normas en el BOE; preguntas de varias respuestas, provincia y condicionales; el aviso del certificado dice en qué web se usa. A la IA no le llega lo que una persona no ve en una web ni los caracteres invisibles, y el detector valida con su algoritmo NIF, CIF, NUSS, CCC y referencia catastral, sigue el plan de numeración para los teléfonos y reconoce datos tras su etiqueta.
 - `packages/agent`: el agente, sus herramientas y garantías, reutilizable fuera de Electron. `pnpm eval:agent` lo evalúa en una sede ficticia y con casos del dataset del buscador.
 - `packages/government/src/domains.ts`: sufijos de dominio de las administraciones públicas españolas.
-
+- La web deja de incluir el chat: se retiran `/chat`, `/api/search`, `/api/feedback`, las páginas de fuentes y de funcionamiento del buscador y el panel `/admin/evals`. `/chat`, `/sources` y `/how-it-works` redirigen a la portada. El pipeline de búsqueda (`packages/ai`) y sus evaluaciones (`pnpm eval`) se conservan.
 - El chat sustituye datos personales en el navegador con Rampart antes de enviar la consulta, y no la envía si esa protección falla.
 - Monorepo con una extensión Chrome, laboratorio local y paquetes comunes.
 - Subproyectos por portal, con pantallas y conexiones organizadas por carpeta.

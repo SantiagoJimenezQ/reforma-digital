@@ -3,12 +3,10 @@ import { siteUrl } from '../lib/site';
 import { congressBase, congressSections } from '../lib/congreso/routes';
 import { electionOrder, electionsHref } from '../lib/elecciones/pages';
 
-// Solo páginas indexables: /chat y /admin llevan noindex.
+// Solo páginas indexables.
 const pages = [
   '/',
   '/equipo',
-  '/sources',
-  '/how-it-works',
   '/privacy',
   '/api',
   ...congressSections.flatMap(({ pages }) =>

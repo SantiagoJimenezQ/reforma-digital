@@ -30,8 +30,6 @@ No incluyas sesiones, documentos personales, tokens reales o datos identificativ
 
 La app de escritorio (`apps/desktop`) tiene su propio protocolo: qué datos guarda, qué llega al proveedor de IA, las capas que lo impiden, lo que queda fuera y qué comprobar antes de cambiarlo. Consulta [apps/desktop/security-protocol.md](apps/desktop/security-protocol.md).
 
-El chat de `apps/web` no forma parte de la extensión. Sustituye datos personales en el navegador antes de enviar la consulta y no la envía si esa protección falla. `/api/search` exige el mismo origen, pasa por Vercel BotID (`checkBotId()`) antes de cualquier llamada al modelo y limita las peticiones por IP. Consulta [docs/search.md](docs/search.md#datos-personales).
-
 Referencias técnicas consultadas:
 
 - [Content scripts y aislamiento de Chrome](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)

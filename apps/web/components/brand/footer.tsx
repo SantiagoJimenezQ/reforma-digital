@@ -10,12 +10,9 @@ import { Logo } from './logo';
 
 const secciones = [
   ['La iniciativa', '/#iniciativa'],
-  ['Buscador', '/chat'],
   ['El Congreso', congressBase],
   ['Elecciones', electionsBase],
   ['Equipo', '/equipo'],
-  ['Cómo funciona', '/how-it-works'],
-  ['Fuentes oficiales', '/sources'],
 ] as const;
 
 export function Footer() {

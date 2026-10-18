@@ -44,16 +44,14 @@ Una interfaz más clara puede ahorrar dudas a quien hace un trámite, trabajo re
 
 ## De la comunidad a las sedes
 
-Empezamos con dos herramientas que permiten poner la propuesta a prueba:
+Empezamos con herramientas que permiten poner la propuesta a prueba:
 
-- **Un buscador de trámites.** Preguntas en lenguaje natural y recibes respuestas con enlaces y fragmentos de fuentes oficiales.
 - **Una extensión de Chrome.** Añade interfaces más claras a pantallas concretas de las sedes: buscadores, pasos y campos conectados a sus controles originales.
+- **El Congreso.** Qué se debate, cómo se vota y quién te representa, con datos electorales y enlaces a las fuentes oficiales.
 
 A partir de esas experiencias queremos construir un sistema de diseño público y abierto: componentes, criterios y ejemplos que los equipos de una sede puedan incorporar a su propio código. El objetivo a largo plazo es que las mejoras lleguen a las webs oficiales y que la extensión deje de hacer falta. Es el horizonte de la iniciativa; la integración actual sigue siendo experimental.
 
 La extensión funciona localmente. Los formularios, las sesiones, la validación y los envíos siguen perteneciendo a la web oficial; solo se guarda la preferencia de activar o desactivar un portal. Puedes volver a la interfaz original con **«Ver original»**. Si una pantalla no se reconoce o sus controles cambian, se conserva o restaura el original.
-
-El buscador utiliza servicios de IA y búsqueda web. Es independiente de la extensión y tiene sus propios límites de privacidad, explicados en [la documentación del buscador](docs/search.md#datos-personales).
 
 **Proyecto independiente, sin vinculación con la Administración. Las adaptaciones son experimentales.**
 
@@ -83,20 +81,17 @@ CAPTCHA, audio, contraseñas, certificados, firmas y archivos se mantienen como 
 
 ## En este repositorio
 
-| Directorio                           | Qué contiene                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| [`apps/web`](apps/web)               | Web pública, buscador, API y laboratorio de evaluaciones con Next.js.                       |
-| [`apps/extension`](apps/extension)   | Extensión de Chrome Manifest V3 y popup.                                                    |
-| [`apps/desktop`](apps/desktop)       | App de escritorio con el asistente de trámites. Ver [su README](apps/desktop/README.md).    |
-| [`apps/playground`](apps/playground) | Laboratorio local para trabajar con datos ficticios.                                        |
-| [`sites`](sites)                     | Adaptaciones por portal, con configuración, pantallas, fixtures y pruebas.                  |
-| [`packages`](packages)               | Conexiones al DOM, componentes React, diseño, registro, runtime y capacidades del buscador. |
+| Directorio                           | Qué contiene                                                                             |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| [`apps/web`](apps/web)               | Web pública, El Congreso y su API con Next.js.                                           |
+| [`apps/extension`](apps/extension)   | Extensión de Chrome Manifest V3 y popup.                                                 |
+| [`apps/desktop`](apps/desktop)       | App de escritorio con el asistente de trámites. Ver [su README](apps/desktop/README.md). |
+| [`apps/playground`](apps/playground) | Laboratorio local para trabajar con datos ficticios.                                     |
+| [`sites`](sites)                     | Adaptaciones por portal, con configuración, pantallas, fixtures y pruebas.               |
+| [`packages`](packages)               | Conexiones al DOM, componentes React, diseño, registro, runtime y pipeline de búsqueda.  |
 
 ```mermaid
 flowchart LR
-  Persona["Tu pregunta"] --> Buscador["Buscador · Next.js"]
-  Buscador --> OpenRouter["IA y búsqueda web · OpenRouter"]
-  OpenRouter --> Respuesta["Respuesta con fuentes oficiales"]
   Extension["Extensión · Chrome"] --> Interfaz["Interfaz comunitaria · React"]
   Interfaz -->|controles originales| Portal["Web oficial · validación y envíos"]
 ```
@@ -109,10 +104,10 @@ Requiere **Node.js 22.18+** y **pnpm 11**. Desde la raíz:
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm dev                     # Web y buscador en http://localhost:3000
+pnpm dev                     # Web en http://localhost:3000
 ```
 
-Sin credenciales, el buscador muestra ejemplos locales. Para usar búsqueda real, configura `OPENROUTER_API_KEY` en `.env`. `SEARCH_MODE=preview` fuerza los ejemplos sin llamadas a proveedores. PostgreSQL es opcional para feedback e informes; la extensión no depende de estos servicios. Configuración y evaluaciones en [docs/search.md](docs/search.md).
+El pipeline de búsqueda con IA (`packages/ai`) ya no tiene interfaz en la web; se ejecuta con las evaluaciones (`pnpm eval`). La extensión no depende de estos servicios. Configuración y evaluaciones en [docs/search.md](docs/search.md).
 
 Para trabajar en la extensión:
 
@@ -163,7 +158,7 @@ Los recorridos reales abren una ventana visible, se ejecutan una sola vez y se d
 - [Contribuir](CONTRIBUTING.md): crear portales, conectar controles y verificar cambios.
 - [Arquitectura](docs/ARCHITECTURE.md): paquetes, runtime, restauración y límites.
 - [Sistema de diseño](DESIGN.md): tokens, componentes y temas compartidos.
-- [Buscador](docs/search.md): puesta en marcha, fuentes, privacidad y evaluaciones.
+- [Búsqueda y evaluaciones](docs/search.md): pipeline, fuentes y evaluaciones.
 - [Seguridad y privacidad](SECURITY.md): medidas implementadas y límites conocidos.
 
 ## Licencia

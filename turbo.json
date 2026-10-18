@@ -4,15 +4,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"],
-      "env": [
-        "DATABASE_URL",
-        "ADMIN_TOKEN",
-        "SEARCH_MODE",
-        "FEEDBACK_SECRET",
-        "APP_ORIGIN",
-        "VERCEL_PROJECT_PRODUCTION_URL",
-        "OPENROUTER_API_KEY"
-      ]
+      "env": ["DATABASE_URL", "APP_ORIGIN", "VERCEL_PROJECT_PRODUCTION_URL"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],

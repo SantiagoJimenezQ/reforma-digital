@@ -20,15 +20,15 @@ export default function NotFound() {
           'info-entradilla [max-width:65ch] mb-10 [color:var(--text-secondary)] text-lg [line-height:1.6]'
         }
       >
-        No encontramos esta página. Vuelve al buscador para encontrar tu trámite.
+        No encontramos esta página. Vuelve a la portada para conocer los proyectos.
       </p>
       <Link
         className={cn(buttonVariants({ variant: 'sunset' }))}
         data-slot="button"
         data-variant="sunset"
-        href="/chat"
+        href="/"
       >
-        Ir al buscador
+        Ir a la portada
       </Link>
     </InfoPage>
   );
