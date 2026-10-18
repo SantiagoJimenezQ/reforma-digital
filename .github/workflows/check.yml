@@ -53,3 +53,5 @@ jobs:
       - run: pnpm --filter @reforma-digital/agent detector
       - run: pnpm --filter @reforma-digital/desktop build
       - run: pnpm exec playwright test tests/e2e/escritorio.spec.ts
+        env:
+          RD_ESCRITORIO: '1'

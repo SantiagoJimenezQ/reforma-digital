@@ -76,8 +76,10 @@ const SCRIPT = String.raw`(function () {
     return id;
   }
   function estilo(el) { try { return el.ownerDocument.defaultView.getComputedStyle(el); } catch (e) { return null; } }
+  // aria-hidden no esconde nada a la vista (suele ser la versión visual de un texto que se repite
+  // para los lectores de pantalla): lo que cuenta es lo que ve una persona.
   function visible(el, s) {
-    if (el.hidden || el.getAttribute('aria-hidden') === 'true') return false;
+    if (el.hidden) return false;
     if (!s) return true;
     if (s.display === 'none' || s.visibility === 'hidden' || s.visibility === 'collapse') return false;
     if (s.display === 'contents') return true;
@@ -86,13 +88,13 @@ const SCRIPT = String.raw`(function () {
   /** Medida de un recorte ("10px" o "50%") en píxeles, sobre el tamaño de la caja. */
   function medida(v, total) { var n = parseFloat(v); return /%$/.test(v) ? (n / 100) * total : n; }
   /**
-   * Lo que está en la página pero una persona no ve: transparente, recortado hasta no dejar nada a
-   * la vista, de 1 px con lo que sobra escondido o colocado fuera de la página. Es como se esconde
-   * el texto solo para lectores de pantalla, y como una web puede esconder órdenes para un asistente.
+   * Lo que está en la página pero una persona no ve: recortado hasta no dejar nada a la vista, de
+   * 1 px con lo que sobra escondido o colocado fuera de la página. Es como se esconde el texto solo
+   * para lectores de pantalla, y como una web puede esconder órdenes para un asistente. Lo
+   * transparente no cuenta: muchas webs lo muestran al bajar por la página.
    */
   function oculto(el, s) {
     if (!s || s.display === 'contents') return false;
-    if (Number(s.opacity) === 0) return true;
     var r = el.getBoundingClientRect(), w = el.ownerDocument.defaultView;
     if ((r.width <= 1 || r.height <= 1) && /hidden|clip/.test(s.overflowX + ' ' + s.overflowY)) return true;
     if (r.right + w.scrollX < 0 || r.bottom + w.scrollY < 0) return true;
@@ -114,7 +116,8 @@ const SCRIPT = String.raw`(function () {
   }
   /** Un control escondido cuya etiqueta sí se ve (las casillas con estilo propio) se usa pulsando la etiqueta. */
   function etiquetaALaVista(el) {
-    return Array.prototype.some.call(el.labels || [], function (l) { var s = estilo(l); return visible(l, s) && !oculto(l, s); });
+    var por = (el.getAttribute('aria-labelledby') || '').split(/\s+/).map(function (id) { return id && el.ownerDocument.getElementById(id); });
+    return Array.prototype.concat.call(Array.prototype.slice.call(el.labels || []), por).some(function (l) { if (!l) return false; var s = estilo(l); return visible(l, s) && !oculto(l, s); });
   }
   function rol(el) {
     var r = el.getAttribute('role');

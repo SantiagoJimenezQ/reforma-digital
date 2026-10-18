@@ -162,11 +162,13 @@ export function compactar(mensajes: ModelMessage[]): ModelMessage[] {
  * Si el detector falla, `cortar` para el turno: lo que no se ha podido proteger no sale.
  */
 /**
- * Caracteres que no se ven: de formato (ancho cero, control de dirección, las «etiquetas» Unicode)
- * y selectores de variante. Una web puede esconder en ellos instrucciones o partir un DNI para que
- * no se reconozca, así que no llegan al modelo.
+ * Caracteres que no se ven: los de formato (ancho cero, control de dirección, las «etiquetas»
+ * Unicode) y los que Unicode marca como ignorables (selectores de variante, rellenos Hangul…). Una
+ * web puede esconder en ellos instrucciones o partir un DNI para que no se reconozca, así que no
+ * llegan al modelo.
  */
-export const sinInvisibles = (t: string) => t.replace(/[\p{Cf}\p{Variation_Selector}]/gu, '');
+export const sinInvisibles = (t: string) =>
+  t.replace(/[\p{Cf}\p{Default_Ignorable_Code_Point}]/gu, '');
 
 function supervisar(tools: ToolSet, ctx: Contexto, cortar: (e: Error) => void): ToolSet {
   const historial: { clave: string; resultado: unknown }[] = [];

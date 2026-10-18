@@ -213,6 +213,13 @@ const host = (url: string) => {
   }
 };
 
+/**
+ * Números de tarificación adicional del plan español de numeración (servicios de pago, concursos,
+ * información de abonados): las administraciones no los usan para atender.
+ */
+const tarificacionAdicional = (telefono: string) =>
+  /^(?:80[367]|905|118)/.test(telefono.replace(/\D/g, '').replace(/^(?:0034|34)(?=\d{9}$)/, ''));
+
 /** Un texto para buscarlo en otro sin mayúsculas, tildes ni espacios de más. */
 const comparable = (t: string) =>
   t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -486,12 +493,19 @@ export function crearHerramientas(ctx: Contexto) {
         const ocupada = f.campos.find((c) => DETECTADO.test(c.clave));
         if (ocupada)
           return `La clave ${ocupada.clave} es de un dato ya encontrado ({{${ocupada.clave}}}). Usa otra, p. ej. nombre_hijo.`;
+        // La condición apunta a otro campo con opciones, y a una de ellas tal cual.
         const malCondicionado = f.campos.find((c) => {
-          const de = c.solo_si && f.campos.find((o) => o.clave === c.solo_si!.campo);
-          return c.solo_si && (!de || !['opcion', 'varias', 'si_no'].includes(de.tipo));
+          if (!c.solo_si) return false;
+          const de = f.campos.find((o) => o.clave === c.solo_si!.campo);
+          const opciones = de?.tipo === 'si_no' ? ['Sí', 'No'] : (de?.opciones ?? []);
+          return (
+            !de ||
+            !['opcion', 'varias', 'si_no'].includes(de.tipo) ||
+            !opciones.includes(c.solo_si.valor)
+          );
         });
         if (malCondicionado)
-          return `solo_si de ${malCondicionado.clave} tiene que apuntar a otro campo del formulario de tipo opcion, varias o si_no.`;
+          return `solo_si de ${malCondicionado.clave} tiene que apuntar a otro campo del formulario de tipo opcion, varias o si_no, y a una de sus opciones tal cual (en si_no, «Sí» o «No»).`;
         const campos: CampoFormulario[] = f.campos.map((c) => {
           const perfil = campoPerfil(c.clave);
           // La provincia es un desplegable con todas; la persona no tiene que escribirla.
@@ -817,7 +831,7 @@ export function crearHerramientas(ctx: Contexto) {
 
     responder_dialogo: tool({
       description:
-        'Responde al diálogo que ha abierto la web (alert, confirm o prompt). Aceptar uno que envía, confirma, paga o anula algo necesita el código de confirmar, salvo que lo haya abierto un botón que ya lo usó.',
+        'Responde al diálogo que ha abierto la web (alert, confirm o prompt). Aceptar un confirm o un prompt necesita el código de confirmar, salvo que lo haya abierto el botón que ya lo usó; un alert solo se cierra.',
       inputSchema: z.object({
         aceptar: z.boolean(),
         texto: z
@@ -832,14 +846,21 @@ export function crearHerramientas(ctx: Contexto) {
         const d = nav.dialogo?.();
         if (!d || !nav.responderDialogo)
           return verPagina(ctx, nav, 'No hay ningún diálogo abierto.');
+        // Un «¿Seguro?» no dice siempre qué confirma: aceptarlo pide siempre el código, salvo
+        // que lo haya abierto el botón aprobado. Un aviso (alert) solo se cierra.
         let v: Permiso = { ok: true };
-        if (aceptar && d.tipo !== 'alert' && d.id !== dialogoAprobado) {
-          v = codigoValido(
-            { nombre: d.mensaje, rol: 'button', paginaConfirmacion: false },
-            confirmacion,
-            nav.url(),
-          );
-          if (!v.ok) return v.error;
+        if (
+          aceptar &&
+          d.tipo !== 'alert' &&
+          d.tipo !== 'beforeunload' &&
+          d.id !== dialogoAprobado
+        ) {
+          const aprobada = confirmacion ? ctx.confirmaciones.get(confirmacion) : undefined;
+          if (!confirmacion || !aprobada)
+            return `Aceptar «${d.mensaje}» puede enviar o confirmar algo. Antes llama a confirmar con lo que se enviará y pasa aquí el código, o cancélalo.`;
+          if (aprobada.host && aprobada.host !== host(nav.url()))
+            return `Ese código se aprobó para ${aprobada.host}, no para esta web.`;
+          v = { ok: true, codigo: confirmacion, accion: aprobada.accion };
         }
         const resuelto = texto ? resolver(texto) : { texto: undefined };
         if ('error' in resuelto) return resuelto.error;
@@ -858,6 +879,8 @@ export function crearHerramientas(ctx: Contexto) {
       execute: async (l, opts) => {
         if (!ctx.anfitrion.pedirLlamada)
           return 'Aquí no se puede pedir una llamada: explica en el chat a qué teléfono llamar y qué preguntar.';
+        if (tarificacionAdicional(l.telefono))
+          return `${l.telefono} es de tarificación adicional (803, 806, 807, 905, 118…): no lo propongas. Busca en la web oficial su teléfono gratuito o de tarifa normal.`;
         const r = await ctx.anfitrion.pedirLlamada(l, signalDe(opts));
         const notas = r.notas?.trim() ? await proteger(ctx, r.notas, 'persona') : '';
         if (!r.hecho)

@@ -114,15 +114,22 @@ const ETIQUETADOS: [RegExp, TipoDato][] = [
 const PARENTESCO =
   'hij[oa]|madre|padre|marido|mujer|espos[oa]|pareja|herman[oa]|abuel[oa]|niet[oa]|t[ií][oa]|sobrin[oa]|prim[oa]|suegr[oa]|cuñad[oa]|yerno|nuera|novi[oa]|beb[ée]|niñ[oa]';
 /**
- * Lo que presenta un nombre: «me llamo», «a nombre de», «Titular:», «D.ª», «mi hija». Detrás va el
+ * Lo que presenta un nombre: «me llamo», «a nombre de», «Titular:», «mi hija» y, aparte
+ * (`TRATAMIENTO`), «D.ª» o «Don». Detrás va el
  * nombre propio, en mayúscula (`NOMBRE_PROPIO`), aunque el modelo no lo reconozca. «Don» y «doña»
  * solo van delante de un nombre de pila; «Sr.» no basta, porque también va delante de un cargo
  * («Sr. Ministro de Hacienda»): cuenta solo seguido de «D.» o «Dña.».
  */
 const PRESENTA_NOMBRE = new RegExp(
-  `(?<![\\p{L}\\p{N}])(?:(?:me\\s+llamo|mi\\s+nombre\\s+es|a\\s+nombre\\s+de|(?:mi|tu|su|nuestr[oa])\\s+(?:${PARENTESCO}))\\s+|(?:nombre(?:\\s+y\\s+apellidos)?|apellidos|titular)\\s*:[^\\S\\n]*|(?:(?:dña|d)\\.\\s*|(?:dª|don|doña)\\s+)+)`,
+  `(?<![\\p{L}\\p{N}])(?:(?:me\\s+llamo|mi\\s+nombre\\s+es|a\\s+nombre\\s+de|(?:mi|tu|su|nuestr[oa])\\s+(?:${PARENTESCO}))\\s+|(?:nombre(?:\\s+y\\s+apellidos)?|apellidos|titular)\\s*:[^\\S\\n]*)`,
   'giu',
 );
+/**
+ * Los tratamientos delante de un nombre: «don» y «doña», y sus abreviaturas en mayúscula y sin otra
+ * delante. «d.» en minúscula es la letra de un apartado («d. El certificado…») y «R.D.», un real
+ * decreto.
+ */
+const TRATAMIENTO = /(?<![\p{L}\p{N}.])(?:D\.?ª\s*|(?:Dña|D)\.\s*|[Dd](?:on|oña)\s+)+/gu;
 /**
  * Palabras en mayúscula, con «de», «del» o «de la» entre ellas: «María de la Fuente». Una palabra
  * seguida de «:» es otra etiqueta de un formulario vacío («Nombre: Apellidos:»), no un nombre.
@@ -151,7 +158,7 @@ export function datosPorReglas(texto: string): DatoDetectado[] {
   grupo(NACIMIENTO, 'fecha');
   for (const [re, tipo] of ETIQUETADOS) grupo(re, tipo);
   // El nombre de pila y, aparte, los apellidos: el agente puede escribirlos en campos distintos.
-  for (const m of texto.matchAll(PRESENTA_NOMBRE)) {
+  for (const m of [...texto.matchAll(PRESENTA_NOMBRE), ...texto.matchAll(TRATAMIENTO)]) {
     NOMBRE_PROPIO.lastIndex = m.index + m[0].length;
     const nombre = NOMBRE_PROPIO.exec(texto);
     if (!nombre) continue;

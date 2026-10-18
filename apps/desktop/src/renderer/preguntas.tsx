@@ -127,9 +127,20 @@ type Campo = Extract<
 /** Las respuestas de un campo de varias opciones van juntas, separadas así. */
 const SEPARADOR = '; ';
 const marcadas = (v = '') => v.split(SEPARADOR).filter(Boolean);
-/** Un campo con solo_si se pregunta solo si el otro campo tiene esa respuesta. */
-const seVe = (c: Campo, valores: Record<string, string>) =>
-  !c.solo_si || marcadas(valores[c.solo_si.campo]).includes(c.solo_si.valor);
+/**
+ * Un campo con solo_si se pregunta solo si el otro campo se ve y tiene esa respuesta (A → B → C:
+ * si A oculta B, C también se va, aunque B conserve lo que se respondió).
+ */
+function seVe(c: Campo, campos: Campo[], valores: Record<string, string>, vistos = 0): boolean {
+  if (!c.solo_si) return true;
+  const de = campos.find((o) => o.clave === c.solo_si!.campo);
+  // Con un ciclo (A depende de B y B de A), ninguno se ve.
+  if (!de || vistos > campos.length) return false;
+  return (
+    seVe(de, campos, valores, vistos + 1) &&
+    marcadas(valores[c.solo_si.campo]).includes(c.solo_si.valor)
+  );
+}
 /** Con más opciones que estas, un desplegable en lugar de botones. */
 const MAX_BOTONES = 8;
 
@@ -277,7 +288,7 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   if (!f) return null;
   const pendiente = (c: Campo) => c.obligatorio !== false && !valores[c.clave]?.trim();
   // Los campos que dependen de otra respuesta entran y salen según lo que se va respondiendo.
-  const enJuego = f.campos.filter((c) => seVe(c, valores));
+  const enJuego = f.campos.filter((c) => seVe(c, f.campos, valores));
   const faltan = enJuego.filter(pendiente);
   const fijar = (clave: string, v: string) => setValores((x) => ({ ...x, [clave]: v }));
   // Que quede claro quién lo hace: «Pedir la cita» → «Pedir la cita por mí».
@@ -541,6 +552,10 @@ function Ayuda({
   );
 }
 
+/** El primer número de un texto como «91 123 45 67 / 91 765 43 21» o «901 50 20 50, opción 3». */
+const primerNumero = (t: string) =>
+  (/\+?\d[\d\s.-]{1,}\d/.exec(t)?.[0] ?? '').replace(/[^\d+]/g, '');
+
 /** La llamada que no se puede evitar: a quién, qué conseguir y qué preguntar, y lo que le dicen. */
 function Llamada({ tramite, item }: { tramite: string; item: ItemPregunta }) {
   const { enviando, responder } = useResponder(tramite, item);
@@ -575,7 +590,7 @@ function Llamada({ tramite, item }: { tramite: string; item: ItemPregunta }) {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => void window.rd.abrirEnlace(`tel:${l.telefono.replace(/[^\d+]/g, '')}`)}
+            onClick={() => void window.rd.abrirEnlace(`tel:${primerNumero(l.telefono)}`)}
           >
             <Icono nombre="telefono" size={16} />
             Llamar

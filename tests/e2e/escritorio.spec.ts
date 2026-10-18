@@ -21,7 +21,11 @@ const preparada =
   existsSync(path.join(raiz, 'out/main.js')) &&
   existsSync(path.join(raiz, 'out/modelos/rampart'));
 
-test.skip(!preparada, 'Falta Electron o la app compilada con el modelo del detector.');
+// En el trabajo de CI que la prepara (RD_ESCRITORIO=1), que falte algo es un fallo, no un salto.
+test.skip(
+  !preparada && !process.env.RD_ESCRITORIO,
+  'Falta Electron o la app compilada con el modelo del detector.',
+);
 
 const RESPUESTA = 'Hola, te ayudo con la renovación.';
 

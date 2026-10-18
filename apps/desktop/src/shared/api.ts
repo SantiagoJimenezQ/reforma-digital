@@ -31,7 +31,8 @@ export const urlProveedor = z
       url.protocol === 'https:' ||
       (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))
     );
-  }, 'Usa una dirección https, o http solo en este ordenador (localhost).');
+  }, 'Usa una dirección https, o http solo en este ordenador (localhost).')
+  .transform((u) => u.replace(/\/+$/, ''));
 
 export const ajustesEsquema = z.object({
   modelo: z
@@ -166,8 +167,8 @@ export type ApiRd = {
   /** Prueba el modelo con retención cero, que es lo que más proveedores puede descartar. */
   probarConexion(modelo: string): Promise<{ ok: boolean; error?: string }>;
   /**
-   * Prueba el otro proveedor y, si responde, lo guarda y lo usa. Una clave sin dar se queda como
-   * estaba; vacía, se borra.
+   * Prueba el otro proveedor y, si responde, lo guarda y lo usa. Sin clave, sirve la guardada solo
+   * si el servidor es el mismo al que se dio.
    */
   guardarProveedorPropio(p: {
     url: string;

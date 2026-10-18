@@ -97,6 +97,12 @@ function configProveedor(): ConfigProveedor | null {
   return proveedorApp(a.modelo, a.retencionCero);
 }
 
+/** La clave guardada del otro proveedor solo se manda al servidor para el que se dio. */
+const claveGuardadaPara = (url: string) =>
+  URL.parse(url)?.origin === URL.parse(secretos.ajustes.proveedorPropio?.url ?? '')?.origin
+    ? secretos.claves?.proveedor
+    : undefined;
+
 /** Las claves del otro proveedor: cifradas con lo demás y nunca enviadas a la interfaz. */
 type Claves = { proveedor?: string; exa?: string };
 type Secretos = { ajustes: Ajustes; claves?: Claves };
@@ -200,7 +206,8 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
   {
     estado: async () => estadoApp(),
     guardarAjustes: async (entrada) => {
-      const a = ajustesEsquema.partial().safeParse(entrada);
+      // El otro proveedor solo se cambia probándolo, con guardarProveedorPropio.
+      const a = ajustesEsquema.omit({ proveedorPropio: true }).partial().safeParse(entrada);
       if (!a.success) return { ok: false, error: 'Revisa los ajustes.' };
       const ajustes = { ...secretos.ajustes, ...a.data };
       if (ajustes.proveedor === 'propio' && !ajustes.proveedorPropio)
@@ -221,10 +228,9 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
       }
     },
     guardarProveedorPropio: async (entrada) => {
-      const e = z
-        .object({
-          url: urlProveedor,
-          modelo: z.string().trim().min(1).max(200),
+      const e = ajustesEsquema.shape.proveedorPropio
+        .unwrap()
+        .extend({
           clave: z.string().trim().max(500).optional(),
           claveExa: z.string().trim().max(200).optional(),
         })
@@ -232,13 +238,11 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
       if (!e.success)
         return { ok: false, error: e.error.issues[0]?.message ?? 'Revisa los datos.' };
       const { url, modelo, clave, claveExa } = e.data;
-      // Sin dar, se queda la que había; vacía, se borra.
       const claves: Claves = { ...secretos.claves };
       if (clave) claves.proveedor = clave;
-      else if (clave === '') delete claves.proveedor;
+      else if (!claveGuardadaPara(url)) delete claves.proveedor;
       if (claveExa) claves.exa = claveExa;
-      else if (claveExa === '') delete claves.exa;
-      const propio = { url: url.replace(/\/+$/, ''), modelo };
+      const propio = { url, modelo };
       try {
         await probarConexion(proveedorPropio(propio, claves));
       } catch (err) {
@@ -257,9 +261,9 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
         .object({ url: urlProveedor, clave: z.string().trim().max(500).optional() })
         .safeParse(entrada);
       if (!e.success) return [];
-      const clave = e.data.clave ?? secretos.claves?.proveedor;
+      const clave = e.data.clave || claveGuardadaPara(e.data.url);
       try {
-        const res = await net.fetch(`${e.data.url.replace(/\/+$/, '')}/models`, {
+        const res = await net.fetch(`${e.data.url}/models`, {
           headers: clave ? { authorization: `Bearer ${clave}` } : {},
           redirect: 'error',
           signal: AbortSignal.timeout(5000),

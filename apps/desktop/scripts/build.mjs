@@ -51,6 +51,7 @@ const node = (entrada, archivo, formato) =>
 
 await node('src/main/index.ts', 'main.js', 'es');
 await node('src/preload/index.ts', 'preload.cjs', 'cjs');
+await node('src/preload/navegador.ts', 'preload-navegador.cjs', 'cjs');
 await build({
   configFile: false,
   logLevel: 'warn',

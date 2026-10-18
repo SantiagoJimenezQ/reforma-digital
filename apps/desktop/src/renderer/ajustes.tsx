@@ -81,6 +81,9 @@ function FormularioProveedor({ alGuardar }: { alGuardar: () => void }) {
   const [estado, setEstado] = useState<{ probando: boolean; error?: string }>({ probando: false });
   const id = useId();
   if (!app) return null;
+  // La clave guardada solo sirve para el servidor al que se dio.
+  const hayClave =
+    app.clavesPropias.proveedor && URL.parse(url)?.origin === URL.parse(actual?.url ?? '')?.origin;
   const buscarModelos = () => {
     if (url.trim())
       void window.rd.modelosDelProveedor({ url, ...(clave ? { clave } : {}) }).then(setModelos);
@@ -131,9 +134,7 @@ function FormularioProveedor({ alGuardar }: { alGuardar: () => void }) {
           autoComplete="off"
           className="h-11 bg-background text-base"
           placeholder={
-            app.clavesPropias.proveedor
-              ? 'Guardada. Escribe otra para cambiarla'
-              : 'Si el servidor la pide'
+            hayClave ? 'Guardada. Escribe otra para cambiarla' : 'Si el servidor la pide'
           }
           value={clave}
           onChange={(e) => setClave(e.target.value)}

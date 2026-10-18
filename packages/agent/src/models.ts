@@ -148,7 +148,6 @@ export async function probarConexion(cfg: ConfigProveedor) {
   await generateText({
     model: p.modelo,
     prompt: 'Responde solo: OK',
-    maxOutputTokens: 16,
     abortSignal: AbortSignal.timeout(30000),
   });
 }
