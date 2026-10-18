@@ -9,9 +9,9 @@ import { CABECERA_INSTALACION } from '@reforma-digital/agent/models';
  */
 export const LIMITES = {
   /** Dólares al día por instalación. */
-  usdPorUsuario: 1,
+  usdPorUsuario: 0.5,
   /** Dólares al día por IP: quien reinstale la app para empezar de cero sigue contando aquí. */
-  usdPorIp: 5,
+  usdPorIp: 2.5,
 };
 
 /**
