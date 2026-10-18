@@ -229,8 +229,10 @@ export function Ajustes({ privacidad }: { privacidad: boolean }) {
               queda a tu documento.
             </li>
             <li>
-              Un detector que funciona en este Mac también los tapa en lo que escribes y en las
-              webs, aunque sean de otras personas. Si falla, no se envía nada.
+              Antes de enviar nada a la IA, un modelo de privacidad que se ejecuta en tu Mac, sin
+              conexión, busca nombres, DNI, direcciones, teléfonos y correos en lo que escribes y en
+              las webs, también de otras personas, y los cambia por marcadores. Si ese modelo falla,
+              no se envía nada.
             </li>
             <li>La app pone el dato real solo al escribirlo en la web del trámite.</li>
             <li>Nada se envía, reserva, paga ni firma sin tu aprobación.</li>
