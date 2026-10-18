@@ -211,7 +211,8 @@ async function buscarEnElServidor(
   });
   if (res.status === 429)
     throw new Error('El buscador de Reforma Digital está saturado ahora mismo. Prueba más tarde.');
-  if (!res.ok) throw new Error(`El buscador de Reforma Digital respondió con un error ${res.status}.`);
+  if (!res.ok)
+    throw new Error(`El buscador de Reforma Digital respondió con un error ${res.status}.`);
   return respuestaServidor.parse(await res.json());
 }
 

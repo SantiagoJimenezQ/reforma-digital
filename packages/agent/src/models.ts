@@ -13,9 +13,7 @@ import type { Privacidad } from './profile';
  * de Reforma Digital, que guarda la clave de Exa.
  */
 export type ConfigBusqueda =
-  | { tipo: 'exa'; clave: string }
-  | { tipo: 'gateway'; clave: string }
-  | ServidorReforma;
+  { tipo: 'exa'; clave: string } | { tipo: 'gateway'; clave: string } | ServidorReforma;
 
 /**
  * El servidor de Reforma Digital (`apps/web`): guarda las claves del modelo y del buscador, y
