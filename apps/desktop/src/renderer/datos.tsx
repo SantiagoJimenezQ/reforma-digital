@@ -71,7 +71,7 @@ export function MisDatos() {
               Tu nombre, documento, fechas, teléfono, correo, dirección, código postal e IBAN. Ni
               los nombres, documentos, direcciones, teléfonos y correos, también de otras personas,
               que un detector encuentre en lo que escribes o en las webs. Le llegan como marcadores
-              y la app los escribe solo en webs oficiales.
+              y la app pone el valor real al escribirlos en la web.
             </p>
           </div>
         </div>

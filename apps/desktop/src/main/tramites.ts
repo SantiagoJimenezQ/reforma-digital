@@ -294,7 +294,6 @@ export class Tramites {
     if (
       item.pregunta.tipo === 'confirmacion' &&
       respuesta === true &&
-      item.pregunta.confirmacion.tipo !== 'abrir_web' &&
       !(await this.entorno.verificarIdentidad(item.pregunta.confirmacion.accion))
     )
       return false;

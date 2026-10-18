@@ -28,7 +28,6 @@ export type EstadoAgente = {
   titulo: string;
   fuentes: Fuente[];
   datosTramite: Perfil;
-  sitiosPermitidos: string[];
   vinculantes: { accion: string; fecha: string }[];
   mensajes: ModelMessage[];
   uso: Uso;
@@ -38,7 +37,6 @@ export const estadoInicial = (titulo = ''): EstadoAgente => ({
   titulo,
   fuentes: [],
   datosTramite: {},
-  sitiosPermitidos: [],
   vinculantes: [],
   mensajes: [],
   uso: usoVacio(),
@@ -244,7 +242,6 @@ export type OpcionesTurno = {
   signal: AbortSignal;
   limites?: Limites;
   razonamiento?: 'none' | 'minimal' | 'low' | 'medium' | 'high';
-  hostDePrueba?: (url: string) => boolean;
 };
 
 export type ResultadoTurno = { estado: EstadoAgente; fin: FinTurno; error?: string };
@@ -273,8 +270,6 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
     detector: o.detector,
     escritos: o.escritos ?? new Map(),
     datosTramite: estado.datosTramite,
-    sitiosPermitidos: new Set(estado.sitiosPermitidos),
-    ...(o.hostDePrueba ? { hostDePrueba: o.hostDePrueba } : {}),
     confirmaciones: new Map(),
     hostActual: null,
     vinculantes: estado.vinculantes,
@@ -286,7 +281,6 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   const tools = supervisar(crearHerramientas(ctx), ctx, (e) => interno.abort(e));
   const sincronizar = () => {
     estado.fuentes = ctx.fuentes.lista();
-    estado.sitiosPermitidos = [...ctx.sitiosPermitidos];
   };
   try {
     const mensaje = await proteger(ctx, o.texto, 'persona');

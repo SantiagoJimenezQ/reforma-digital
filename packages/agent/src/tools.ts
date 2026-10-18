@@ -4,7 +4,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { officialLevel } from '@reforma-digital/government/domains';
 import type { Detector, OrigenTexto } from './detector';
-import { FetchError, leerPaginaOficial } from './fetch';
+import { FetchError, leerPagina } from './fetch';
 import type { Proveedor } from './models';
 import {
   elegirOpcion,
@@ -81,8 +81,7 @@ const ayudaEntrada = z.object({
 export type CampoFormulario = z.infer<typeof campoEntrada>;
 export type Formulario = z.infer<typeof formularioEntrada>;
 export type Ayuda = z.infer<typeof ayudaEntrada>;
-export type Confirmacion = Omit<z.infer<typeof confirmacionEntrada>, 'tipo'> & {
-  tipo: z.infer<typeof confirmacionEntrada>['tipo'] | 'abrir_web';
+export type Confirmacion = z.infer<typeof confirmacionEntrada> & {
   /** Acciones vinculantes ya hechas en este trámite: la persona las ve antes de aprobar otra. */
   previas?: string[];
 };
@@ -153,10 +152,6 @@ export type Contexto = {
   escritos: Map<string, string>;
   /** Respuestas privadas de este trámite que no son de «Mis datos» (DNI de un hijo, referencias…). */
   datosTramite: Perfil;
-  /** Webs no oficiales que la persona ha permitido abrir en este trámite. */
-  sitiosPermitidos: Set<string>;
-  /** Hosts adicionales de confianza: solo en desarrollo y evaluaciones (la sede de pruebas). */
-  hostDePrueba?: (url: string) => boolean;
   /** Códigos de confirmación aprobados y la web en la que se aprobaron. */
   confirmaciones: Map<string, { accion: string; host: string | null }>;
   /** Host de la última página vista en el navegador. */
@@ -167,8 +162,6 @@ export type Contexto = {
   evento: (e: EventoAgente) => void;
 };
 
-const oficial = (ctx: Contexto, url: string) =>
-  Boolean(officialLevel(url)) || Boolean(ctx.hostDePrueba?.(url));
 const host = (url: string) => {
   try {
     return new URL(url).host;
@@ -200,9 +193,6 @@ async function verPagina(ctx: Contexto, nav: Navegador, aviso = ''): Promise<str
   }
   const descargas = nav.descargas?.() ?? [];
   const avisos = [
-    oficial(ctx, p.url)
-      ? ''
-      : '⚠ Esta página no es de una administración: no escribas datos personales.',
     p.captcha ? '⚠ Hay un CAPTCHA: no lo resuelvas tú; usa pedir_ayuda con motivo «captcha».' : '',
     p.contrasenas
       ? '⚠ Hay un campo de contraseña: el inicio de sesión lo hace la persona (pedir_ayuda, motivo «iniciar_sesion»).'
@@ -256,13 +246,7 @@ export function crearHerramientas(ctx: Contexto) {
   const signalDe = (o: { abortSignal?: AbortSignal }) =>
     o.abortSignal ?? new AbortController().signal;
   const navegador = () => ctx.anfitrion.navegador();
-  const resolver = (texto: string, url: string) => {
-    const marcas = Privacidad.marcadores(texto);
-    if (marcas.length && !oficial(ctx, url))
-      return {
-        error:
-          'Solo escribo tus datos en webs oficiales. Si hace falta aquí, usa pedir_ayuda para que lo escriba la persona.',
-      };
+  const resolver = (texto: string) => {
     const datos = new Privacidad(todosLosDatos(ctx)).resolver(texto);
     if (datos.faltan.length)
       return {
@@ -275,23 +259,6 @@ export function crearHerramientas(ctx: Contexto) {
     .int()
     .positive()
     .describe('Número del elemento entre corchetes en la página');
-  /** Webs que no son de la Administración: solo con permiso de la persona, y sin escribir datos. */
-  const permitirWeb = async (url: string, signal: AbortSignal) => {
-    const u = new URL(url);
-    if (oficial(ctx, u.href) || ctx.sitiosPermitidos.has(u.host)) return true;
-    if (u.protocol !== 'https:') return false;
-    const ok = await ctx.anfitrion.confirmar(
-      {
-        tipo: 'abrir_web',
-        accion: `Abrir ${u.host}`,
-        detalles: ['No es una web de la Administración. No escribiré tus datos en ella.'],
-        sitio: u.host,
-      },
-      signal,
-    );
-    if (ok) ctx.sitiosPermitidos.add(u.host);
-    return ok;
-  };
   /** Un paso vinculante necesita un código aprobado para esta misma web. */
   type Permiso = { ok: true; codigo?: string; accion?: string } | { ok: false; error: string };
   const codigoValido = (info: InfoElemento, codigo: string | undefined, url: string): Permiso => {
@@ -329,7 +296,7 @@ export function crearHerramientas(ctx: Contexto) {
   return {
     mis_datos: tool({
       description:
-        'Qué datos de la persona hay guardados en «Mis datos». Los identificadores aparecen como marcadores {{clave}}: no conoces su valor, pero puedes escribirlos en webs oficiales con escribir o elegir.',
+        'Qué datos de la persona hay guardados en «Mis datos». Los identificadores aparecen como marcadores {{clave}}: no conoces su valor, pero puedes escribirlos con escribir o elegir.',
       inputSchema: z.object({}),
       execute: async () => {
         const extra = Object.keys(ctx.datosTramite);
@@ -390,17 +357,14 @@ export function crearHerramientas(ctx: Contexto) {
 
     leer_pagina: tool({
       description:
-        'Lee el texto de una página o PDF de una web oficial o de un resultado de buscar (https). Queda como fuente citable. Usa desde para seguir leyendo.',
+        'Lee el texto de una página o PDF (https). Queda como fuente citable. Usa desde para seguir leyendo.',
       inputSchema: z.object({ url: z.string(), desde: z.number().int().min(0).optional() }),
       execute: async ({ url, desde = 0 }, opts) => {
         const previa = ctx.fuentes.obtener(url);
         const destino = previa?.url ?? url;
         let p: { url: string; titulo: string; texto: string };
         try {
-          p = await leerPaginaOficial(destino, {
-            signal: signalDe(opts),
-            ...(previa && !previa.nivel ? { encontrada: new URL(previa.url).hostname } : {}),
-          });
+          p = await leerPagina(destino, signalDe(opts));
         } catch (e) {
           // Solo cuando una web oficial responde con un error HTTP (suele ser un filtro contra
           // programas): nunca si el dominio no es oficial o apunta a una red privada.
@@ -415,7 +379,7 @@ export function crearHerramientas(ctx: Contexto) {
           if (!officialLevel(p.url)) return `${host(p.url)} no es una web oficial.`;
         }
         const f = ctx.fuentes.añadir(p.url, p.titulo, p.texto, 'pagina');
-        if (!f) return `${host(p.url)} no es una web oficial.`;
+        if (!f) return `${host(p.url)} no usa https.`;
         ctx.evento({ tipo: 'fuentes', fuentes: ctx.fuentes.lista() });
         const trozo = p.texto.slice(desde, desde + 12000);
         const resto =
@@ -539,10 +503,9 @@ export function crearHerramientas(ctx: Contexto) {
       description:
         'Abre una URL en el navegador del trámite y devuelve la página con sus elementos numerados.',
       inputSchema: z.object({ url: z.string() }),
-      execute: enOrden(async ({ url }, opts) => {
-        if (!URL.canParse(url)) return 'URL no válida.';
-        if (!(await permitirWeb(url, signalDe(opts))))
-          return 'La persona no quiere abrir esa web (o no es https). Busca la página oficial.';
+      execute: enOrden(async ({ url }) => {
+        if (!URL.canParse(url) || new URL(url).protocol !== 'https:')
+          return 'URL no válida: solo se abren webs https.';
         const nav = await navegador();
         await nav.abrir(url);
         return verPagina(ctx, nav);
@@ -582,7 +545,7 @@ export function crearHerramientas(ctx: Contexto) {
       description:
         'Pulsa un botón, enlace u opción. Los botones que envían, confirman, reservan, pagan o firman necesitan el código de confirmar.',
       inputSchema: z.object({ ref, confirmacion: z.string().optional() }),
-      execute: enOrden(async ({ ref: r, confirmacion }, opts) => {
+      execute: enOrden(async ({ ref: r, confirmacion }) => {
         const nav = await navegador();
         const info = await infoElemento(nav, r);
         if (!info) return 'Ese elemento ya no está en la página. Vuelve a verla con ver.';
@@ -590,8 +553,6 @@ export function crearHerramientas(ctx: Contexto) {
           return `«${info.nombre}» está desactivado. Revisa si falta algún dato.`;
         const v = codigoValido(info, confirmacion, nav.url());
         if (!v.ok) return v.error;
-        if (/^https?:/i.test(info.href) && !(await permitirWeb(info.href, signalDe(opts))))
-          return 'Ese enlace lleva a una web que no es oficial y la persona no quiere abrirla.';
         const p = await puntoElemento(nav, r);
         if (!p || p.invisible) return 'No puedo pulsarlo: no está visible.';
         if (p.tapado)
@@ -609,15 +570,13 @@ export function crearHerramientas(ctx: Contexto) {
       inputSchema: z.object({ ref, texto: z.string().max(2000) }),
       execute: enOrden(async ({ ref: r, texto }) => {
         const nav = await navegador();
-        if (!oficial(ctx, nav.url()) && !ctx.sitiosPermitidos.has(host(nav.url())))
-          return 'Esta web no es oficial y la persona no la ha permitido: no escribo en ella.';
         const info = await infoElemento(nav, r);
         if (!info) return 'Ese elemento ya no está en la página. Vuelve a verla con ver.';
         if (info.contrasena)
           return 'Las contraseñas las escribe la persona: usa pedir_ayuda con motivo «iniciar_sesion».';
         if (info.rol !== 'textbox')
           return `«${info.nombre}» no es un campo de texto (${info.rol || info.tag}). Usa elegir, marcar o pulsar.`;
-        const resuelto = resolver(texto, nav.url());
+        const resuelto = resolver(texto);
         if ('error' in resuelto) return resuelto.error;
         const p = await puntoElemento(nav, r);
         if (p && !p.invisible && !p.tapado) await nav.clic(p.x, p.y);
@@ -640,7 +599,7 @@ export function crearHerramientas(ctx: Contexto) {
       inputSchema: z.object({ ref, opcion: z.string().max(200) }),
       execute: enOrden(async ({ ref: r, opcion }) => {
         const nav = await navegador();
-        const resuelto = resolver(opcion, nav.url());
+        const resuelto = resolver(opcion);
         if ('error' in resuelto) return resuelto.error;
         // Con marcadores, el modelo solo ve el marcador, nunca la opción resuelta.
         const conMarcas = Privacidad.marcadores(opcion).length > 0;

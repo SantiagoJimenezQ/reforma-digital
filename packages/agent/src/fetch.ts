@@ -1,7 +1,6 @@
 import { lookup as dnsLookup } from 'node:dns';
 import https from 'node:https';
 import net from 'node:net';
-import { officialLevel } from '@reforma-digital/government/domains';
 
 export class FetchError extends Error {
   /** Código HTTP cuando la web ha respondido con un error. */
@@ -13,7 +12,7 @@ export class FetchError extends Error {
   }
 }
 
-// Direcciones a las que nunca se conecta, aunque un dominio oficial resuelva a ellas. BlockList
+// Direcciones a las que nunca se conecta, aunque un dominio público resuelva a ellas. BlockList
 // también compara las IPv6 que llevan una IPv4 dentro (::ffff:127.0.0.1, ::ffff:7f00:1).
 const privadas = new net.BlockList();
 for (const [red, bits] of [
@@ -100,9 +99,7 @@ function pedir(url: URL, signal?: AbortSignal) {
         res.on('error', reject);
       },
     );
-    req.on('timeout', () =>
-      req.destroy(new FetchError('La web oficial no ha respondido a tiempo.')),
-    );
+    req.on('timeout', () => req.destroy(new FetchError('La web no ha respondido a tiempo.')));
     req.on('error', reject);
     req.end();
   });
@@ -111,23 +108,15 @@ function pedir(url: URL, signal?: AbortSignal) {
 export type Pagina = { url: string; titulo: string; texto: string; tipo: 'html' | 'pdf' };
 
 /**
- * Descarga una página de una administración y la devuelve como texto. Solo HTTPS y solo dominios
- * oficiales, también en cada redirección: las herramientas del agente no pueden sacar datos a
- * terceros ni llegar a la red local. `encontrada` es otra web que se puede leer porque la devolvió
- * el buscador, nunca una dirección escrita por el modelo.
+ * Descarga una página y la devuelve como texto. Solo HTTPS, también en cada redirección, y nunca a
+ * la red local.
  */
-export async function leerPaginaOficial(
-  url: string,
-  opciones: { signal?: AbortSignal; encontrada?: string } = {},
-): Promise<Pagina> {
+export async function leerPagina(url: string, signal?: AbortSignal): Promise<Pagina> {
   let actual = new URL(url);
   for (let saltos = 0; saltos <= 5; saltos++) {
-    const permitida =
-      officialLevel(actual.href) ||
-      (actual.protocol === 'https:' && actual.hostname === opciones.encontrada);
-    if (!permitida)
-      throw new FetchError(`${actual.hostname} no es una web oficial: no se puede leer.`);
-    const res = await pedir(actual, opciones.signal);
+    if (actual.protocol !== 'https:')
+      throw new FetchError(`${actual.hostname} no usa https: no se puede leer.`);
+    const res = await pedir(actual, signal);
     if (res.status >= 300 && res.status < 400 && res.headers.location) {
       actual = new URL(String(res.headers.location), actual);
       // Algunas sedes redirigen a http y de ahí otra vez a https: se pide directamente por https.
@@ -135,7 +124,7 @@ export async function leerPaginaOficial(
       continue;
     }
     if (res.status >= 400)
-      throw new FetchError(`La web oficial respondió con un error ${res.status}.`, res.status);
+      throw new FetchError(`La web respondió con un error ${res.status}.`, res.status);
     const tipo = String(res.headers['content-type'] ?? '');
     if (tipo.includes('pdf') || res.body.subarray(0, 5).toString() === '%PDF-') {
       const { extractText } = await import('unpdf');

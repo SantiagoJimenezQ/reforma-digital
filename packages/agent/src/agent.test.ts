@@ -27,7 +27,7 @@ import {
   type Proveedor,
   type TipoDato,
 } from './index';
-import { direccionPrivada, htmlATexto, leerPaginaOficial } from './fetch';
+import { direccionPrivada, htmlATexto, leerPagina } from './fetch';
 import { officialLevel } from '@reforma-digital/government/domains';
 
 const perfil = {
@@ -125,7 +125,7 @@ describe('errores del proveedor', () => {
   });
 });
 
-describe('lectura de páginas oficiales', () => {
+describe('lectura de páginas', () => {
   it('extrae el contenido principal, los enlaces y las entidades', () => {
     const { titulo, texto } = htmlATexto(
       '<html><head><title>Cita &amp; DNI</title><script>x()</script></head><body><nav>menú</nav><main><h1>Renovaci&oacute;n</h1><p>Necesitas <a href="/foto">una foto</a>.</p><ul><li>DNI anterior</li></ul>' +
@@ -155,15 +155,8 @@ describe('lectura de páginas oficiales', () => {
     expect(direccionPrivada('8.8.8.8')).toBe(false);
   });
 
-  it('rechaza webs que no son oficiales sin conectar', async () => {
-    await expect(leerPaginaOficial('https://example.com/')).rejects.toThrow(
-      /no es una web oficial/,
-    );
-    await expect(leerPaginaOficial('http://www.boe.es/')).rejects.toThrow(/no es una web oficial/);
-    // Una web que devolvió el buscador no abre la puerta a otras.
-    await expect(
-      leerPaginaOficial('https://example.com/', { encontrada: 'ayto-villacanada.es' }),
-    ).rejects.toThrow(/no es una web oficial/);
+  it('rechaza lo que no es https sin conectar', async () => {
+    await expect(leerPagina('http://www.boe.es/')).rejects.toThrow(/no usa https/);
   });
 });
 
@@ -425,7 +418,7 @@ describe('agente', () => {
     expect(clics).toEqual([10]);
   });
 
-  it('escribe datos personales solo en webs oficiales y los devuelve como marcador', async () => {
+  it('escribe datos personales en cualquier web y los devuelve como marcador', async () => {
     const pasos = (esperado: RegExp) =>
       modeloGuionado([
         () => ({
@@ -447,13 +440,9 @@ describe('agente', () => {
     );
     expect(oficial.escrito).toEqual(['12345678Z']);
 
-    const otra = navegadorFalso('https://citas-dni-rapidas.example/form');
-    await turno(
-      pasos(/no es oficial y la persona no la ha permitido/).model,
-      anfitrion(otra.nav),
-      'Rellena',
-    );
-    expect(otra.escrito).toEqual([]);
+    const otra = navegadorFalso('https://citas.clinica-ejemplo.es/form');
+    await turno(pasos(/"DNI" = "\{\{documento_numero\}\}"/).model, anfitrion(otra.nav), 'Rellena');
+    expect(otra.escrito).toEqual(['12345678Z']);
   });
 
   it('hace de una en una, en orden, las acciones que el modelo pide a la vez', async () => {
@@ -593,22 +582,19 @@ describe('agente: garantías', () => {
     expect(f.clics).toEqual([10]);
   });
 
-  it('un enlace a una web que no es oficial necesita el permiso de la persona', async () => {
+  it('sigue enlaces a webs que no son oficiales sin pedir permiso', async () => {
     const elementos = {
-      4: { tag: 'a', rol: 'link', nombre: 'Gestoría rápida', href: 'https://gestoria.example/dni' },
+      4: { tag: 'a', rol: 'link', nombre: 'Pedir cita', href: 'https://citas.clinica-ejemplo.es/' },
     };
     const f = navegadorFalso('https://sede.policia.gob.es/cita', elementos);
     const { model } = modeloGuionado([
       () => ({ llamadas: [{ herramienta: 'pulsar', entrada: { ref: 4 } }] }),
-      (p) => {
-        expect(ultimoResultado(p)).toMatch(/no es oficial/);
-        return { texto: 'Vale' };
-      },
+      () => ({ texto: 'Vale' }),
     ]);
     const a = anfitrion(f.nav, false);
     await turno(model, a, 'Mira');
-    expect(a.confirmaciones).toBe(1);
-    expect(f.clics).toEqual([]);
+    expect(a.confirmaciones).toBe(0);
+    expect(f.clics).toEqual([40]);
   });
 
   it('las partes de un dato elegidas con formato vuelven al modelo como marcador', async () => {

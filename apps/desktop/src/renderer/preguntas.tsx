@@ -277,14 +277,9 @@ function Confirmacion({ tramite, item }: { tramite: string; item: ItemPregunta }
   const { enviando, responder } = useResponder(tramite, item);
   if (item.pregunta.tipo !== 'confirmacion') return null;
   const c = item.pregunta.confirmacion;
-  const web = c.tipo === 'abrir_web';
-  const huella = !web && app?.touchId && app.ajustes.touchIdEnConfirmaciones;
+  const huella = app?.touchId && app.ajustes.touchIdEnConfirmaciones;
   return (
-    <Tarjeta
-      icono={<Icono nombre={web ? 'web' : 'huella'} />}
-      titulo={web ? 'Abrir una web que no es oficial' : 'Necesito tu permiso'}
-      descripcion={c.accion}
-    >
+    <Tarjeta icono={<Icono nombre="huella" />} titulo="Necesito tu permiso" descripcion={c.accion}>
       <div className="px-5 pb-5">
         {c.previas?.length ? (
           <p className="mt-0 mb-3 flex gap-2 rounded-xl bg-[var(--warning)] px-3 py-2.5 text-sm text-[var(--warning-foreground)]">
@@ -306,7 +301,7 @@ function Confirmacion({ tramite, item }: { tramite: string; item: ItemPregunta }
         <div className="flex flex-wrap gap-3">
           <Button variant="sunset" size="lg" disabled={enviando} onClick={() => responder(true)}>
             {huella && <Icono nombre="huella" />}
-            {web ? 'Abrir' : 'Aprobar'}
+            Aprobar
           </Button>
           <Button variant="outline" size="lg" disabled={enviando} onClick={() => responder(false)}>
             No
