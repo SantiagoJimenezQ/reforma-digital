@@ -80,7 +80,7 @@ const FASES = [
   ['huella', 2000],
   ['aprobado', 700],
   ['exito', 3000],
-  ['resumen', 7500],
+  ['resumen', 12000],
   ['sale', 600],
 ] as const;
 type Fase = (typeof FASES)[number][0];
@@ -143,7 +143,7 @@ function Huella({ aprobado }: { aprobado: boolean }) {
           cy="38"
           r="34"
           fill="none"
-          stroke="var(--brand)"
+          stroke={aprobado ? 'var(--brand-yellow)' : 'var(--brand)'}
           strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={vuelta}
@@ -152,12 +152,9 @@ function Huella({ aprobado }: { aprobado: boolean }) {
         />
       </svg>
       {aprobado ? (
-        <Icono
-          key="check"
-          nombre="check"
-          size={30}
-          className="animate-in text-brand duration-300 zoom-in-50"
-        />
+        <span className="absolute inset-0 grid animate-in place-items-center rounded-full bg-brand-yellow duration-300 zoom-in-75">
+          <Icono nombre="check" size={30} />
+        </span>
       ) : (
         <Icono nombre="huella" size={34} className="text-brand" />
       )}
@@ -366,7 +363,14 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
                     {i < todos.length - 1 && (
                       <span className="absolute top-7 bottom-0 left-3 w-px bg-border" />
                     )}
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand/[0.08] text-brand">
+                    <span
+                      className={cn(
+                        'grid size-6 shrink-0 place-items-center rounded-full',
+                        i % 2
+                          ? 'bg-brand-yellow/15 text-brand-yellow'
+                          : 'bg-brand/[0.08] text-brand',
+                      )}
+                    >
                       <Icono nombre={r.icono} size={14} />
                     </span>
                     <span className="pt-0.5">
