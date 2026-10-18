@@ -7,11 +7,10 @@ import {
   CollapsibleTrigger,
 } from '@reforma-digital/design/ui/collapsible';
 import { cn } from '@reforma-digital/design/lib/utils';
-import { officialLevel } from '@reforma-digital/government/domains';
 import type { FuenteVista, ItemConversacion, TramiteVista } from '../shared/api';
 import { cargarTramite, useEstado } from './estado';
 import { duracion, host } from './formato';
-import { Favicon, FuentesRespuesta, origen, sitio } from './fuentes';
+import { Favicon, origen, sitio } from './fuentes';
 import { Icono } from './icono';
 import { Compositor } from './inicio';
 import { Pregunta } from './preguntas';
@@ -187,6 +186,10 @@ function Actividad({
 }) {
   const [abierta, setAbierta] = useState(enCurso);
   useSegundero(enCurso && items.length > 0);
+  // Al terminar se pliega: queda solo «Ha trabajado 8 s».
+  useEffect(() => {
+    if (!enCurso) setAbierta(false);
+  }, [enCurso]);
   if (!items.length)
     return (
       <div role="status" className="my-4 py-1 text-[15px]">
@@ -320,12 +323,6 @@ function Conversacion({
                 >
                   {i.texto}
                 </Response>
-                {i.fuentes && (
-                  <FuentesRespuesta
-                    fuentes={vista.fuentes.filter((f) => i.fuentes?.includes(f.id))}
-                    abrir={abrirFuente}
-                  />
-                )}
               </div>
             );
           if (i.tipo === 'pregunta')
@@ -398,7 +395,6 @@ function PanelNavegador({ vista }: { vista: TramiteVista }) {
   const ayuda = vista.conversacion.find(
     (i) => i.tipo === 'pregunta' && i.estado === 'pendiente' && i.pregunta.tipo === 'ayuda',
   );
-  const oficial = nav?.url ? Boolean(officialLevel(nav.url)) : false;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
@@ -421,17 +417,8 @@ function PanelNavegador({ vista }: { vista: TramiteVista }) {
           <Icono nombre="recargar" />
         </Button>
         <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm">
-          <Icono
-            nombre={oficial ? 'escudo' : 'web'}
-            size={16}
-            className={oficial ? 'shrink-0 text-[#05603A]' : 'shrink-0 text-muted-foreground'}
-          />
+          <Icono nombre="web" size={16} className="shrink-0 text-muted-foreground" />
           <span className="truncate">{nav?.url ? host(nav.url) : 'Sin página'}</span>
-          {nav?.url && (
-            <span className="ml-auto shrink-0 text-muted-foreground">
-              {oficial ? 'Web oficial' : 'No es una web oficial'}
-            </span>
-          )}
         </div>
       </div>
       {ayuda && ayuda.tipo === 'pregunta' && ayuda.pregunta.tipo === 'ayuda' && (
@@ -455,8 +442,8 @@ function PanelNavegador({ vista }: { vista: TramiteVista }) {
       ) : (
         <div className="flex flex-1 items-center justify-center p-10 text-center text-[15px] leading-relaxed text-muted-foreground">
           <p className="max-w-[40ch]">
-            El navegador se abre cuando el asistente visita una web oficial. Verás aquí todo lo que
-            hace y podrás tomar el control cuando quieras.
+            El navegador se abre cuando el asistente visita una web. Verás aquí todo lo que hace y
+            podrás tomar el control cuando quieras.
           </p>
         </div>
       )}
@@ -487,9 +474,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
     if (pideNavegador) setVerNavegador(true);
   }, [clave, pideNavegador]);
   if (!vista) return null;
-  // Las webs oficiales se abren en el navegador del trámite; las demás, en el navegador del Mac.
   const abrirFuente = (url: string) => {
-    if (!officialLevel(url)) return void window.rd.abrirEnlace(url);
     setVerNavegador(true);
     void window.rd.abrirEnTramite(vista.id, url);
   };
@@ -550,6 +535,8 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
             ocupado={ocupado}
             alEnviar={(t) => window.rd.enviar(vista.id, t)}
             alDetener={() => void window.rd.detener(vista.id)}
+            razonamiento={vista.razonamiento}
+            alRazonar={(razonamiento) => void window.rd.ajustarTramite(vista.id, { razonamiento })}
           />
         </div>
       </section>

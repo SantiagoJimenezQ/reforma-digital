@@ -14,15 +14,14 @@ export type Razonamiento = 'low' | 'medium' | 'high';
 
 export type Ajustes = {
   modelo: string;
-  razonamiento: Razonamiento;
-  /** Gasto máximo de un turno del asistente, en dólares. */
-  limiteTurnoUsd: number;
   /** Pedir Touch ID antes de aprobar envíos, pagos y firmas. */
   touchIdEnConfirmaciones: boolean;
   /** Cargar la extensión de Reforma Digital en el navegador de los trámites (experimental). */
   interfacesComunitarias: boolean;
   /** Usar solo proveedores de IA que no guardan las peticiones (en Vercel exige el plan Pro). */
   retencionCero: boolean;
+  /** Borrar las sesiones de las webs (cookies, inicios de sesión) al cerrar la app. */
+  cerrarSesiones: boolean;
 };
 
 export type Pregunta =
@@ -32,8 +31,7 @@ export type Pregunta =
 
 export type ItemConversacion =
   | { tipo: 'usuario'; id: string; texto: string; protegidos: number }
-  /** `fuentes`: las webs oficiales consultadas en el turno, en la última respuesta de ese turno. */
-  | { tipo: 'asistente'; id: string; texto: string; fuentes?: string[] }
+  | { tipo: 'asistente'; id: string; texto: string }
   | {
       tipo: 'actividad';
       id: string;
@@ -73,6 +71,13 @@ export type ResumenTramite = {
   id: string;
   titulo: string;
   ejecucion: EstadoEjecucion;
+  /**
+   * `oferta`: espera a que la persona diga si el asistente lo hace por ella; `terminado`: acabó
+   * con una respuesta.
+   */
+  aviso: 'oferta' | 'terminado' | null;
+  fijado: boolean;
+  razonamiento: Razonamiento;
   actualizado: string;
   costeUsd: number;
 };
@@ -119,7 +124,12 @@ export type ApiRd = {
     modelo: string;
     retencionCero?: boolean;
   }): Promise<{ ok: boolean; error?: string }>;
-  crearTramite(texto: string): Promise<string>;
+  crearTramite(texto: string, razonamiento: Razonamiento): Promise<string>;
+  /** Fija el trámite arriba de la lista o cambia cuánto piensa el asistente en él. */
+  ajustarTramite(
+    id: string,
+    cambios: { fijado?: boolean; razonamiento?: Razonamiento },
+  ): Promise<void>;
   verTramite(id: string): Promise<TramiteVista | null>;
   enviar(id: string, texto: string): Promise<void>;
   detener(id: string): Promise<void>;
@@ -132,7 +142,7 @@ export type ApiRd = {
   /** `null` oculta el navegador del trámite. */
   colocarNavegador(id: string, rect: Rect | null): Promise<void>;
   navegar(id: string, accion: 'atras' | 'recargar'): Promise<void>;
-  /** Abre una web oficial en el navegador del trámite. */
+  /** Abre una web en el navegador del trámite. */
   abrirEnTramite(id: string, url: string): Promise<void>;
   revelarPerfil(): Promise<Record<string, string> | null>;
   guardarPerfil(valores: Record<string, string>): Promise<Record<string, string>>;

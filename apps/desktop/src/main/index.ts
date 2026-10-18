@@ -66,11 +66,10 @@ function configProveedor(modelo: string, retencionCero: boolean): ConfigProveedo
 type Secretos = { ajustes: Ajustes };
 const AJUSTES_INICIALES: Ajustes = {
   modelo: 'openai/gpt-6-luna',
-  razonamiento: 'medium',
-  limiteTurnoUsd: 0.5,
   touchIdEnConfirmaciones: true,
   interfacesComunitarias: false,
   retencionCero: false,
+  cerrarSesiones: false,
 };
 
 let ventana: BrowserWindow | null = null;
@@ -153,14 +152,14 @@ const ajustesEsquema = z
       .string()
       .regex(/^[\w.-]+\/[\w.:-]+$/)
       .max(100),
-    razonamiento: z.enum(['low', 'medium', 'high']),
-    limiteTurnoUsd: z.number().min(0.05).max(10),
     touchIdEnConfirmaciones: z.boolean(),
     interfacesComunitarias: z.boolean(),
     retencionCero: z.boolean(),
+    cerrarSesiones: z.boolean(),
   })
   .partial();
 const texto = z.string().trim().min(1).max(4000);
+const razonamiento = z.enum(['low', 'medium', 'high']);
 const id = z.string().uuid();
 const rect = z
   .object({ x: z.number(), y: z.number(), width: z.number().min(0), height: z.number().min(0) })
@@ -192,7 +191,12 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
         return { ok: false, error: mensajeDeError(e) };
       }
     },
-    crearTramite: async (t) => tramites.crear(texto.parse(t)),
+    crearTramite: async (t, r) => tramites.crear(texto.parse(t), razonamiento.parse(r)),
+    ajustarTramite: async (t, c) =>
+      tramites.ajustar(
+        id.parse(t),
+        z.object({ fijado: z.boolean(), razonamiento }).partial().strict().parse(c),
+      ),
     verTramite: async (t) => tramites.vista(id.parse(t)),
     enviar: async (t, m) => tramites.enviar(id.parse(t), texto.parse(m)),
     detener: async (t) => tramites.detener(id.parse(t)),
@@ -214,8 +218,11 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
       else nav.webContents.reload();
     },
     abrirEnTramite: async (t, u) => {
-      const url = z.string().url().parse(u);
-      if (!officialLevel(url)) throw new Error('Solo se abren webs oficiales desde las fuentes');
+      const url = z
+        .string()
+        .url()
+        .refine((u) => u.startsWith('https://'))
+        .parse(u);
       await tramites.navegador(id.parse(t)).abrir(url);
     },
     revelarPerfil: async () =>
@@ -402,29 +409,25 @@ app
         return new Response('No encontrado', { status: 404 });
       return net.fetch(pathToFileURL(destino).href);
     });
-    // Las sesiones de los trámites ya no se guardan en disco: se borran las de versiones anteriores.
-    await fs.rm(path.join(app.getPath('userData'), 'Partitions'), { recursive: true, force: true });
     almacen = await Almacen.abrir(path.join(app.getPath('userData'), 'datos'));
     secretos = (await almacen.leer<Secretos>('secretos.bin')) ?? { ajustes: AJUSTES_INICIALES };
     secretos.ajustes = { ...AJUSTES_INICIALES, ...secretos.ajustes };
+    // Con «cerrar sesiones», las sesiones de las webs viven en memoria y se borran las que quedaran.
+    if (secretos.ajustes.cerrarSesiones)
+      await fs.rm(path.join(app.getPath('userData'), 'Partitions'), {
+        recursive: true,
+        force: true,
+      });
     perfil = (await almacen.leer<Perfil>('perfil.bin')) ?? {};
     tramites = new Tramites(almacen, {
       perfil: () => perfil,
       guardarPerfil: async (v) => guardarPerfil({ ...perfil, ...v }),
-      proveedor: () => {
-        const cfg = configProveedor(secretos.ajustes.modelo, secretos.ajustes.retencionCero);
-        return cfg
-          ? {
-              cfg,
-              razonamiento: secretos.ajustes.razonamiento,
-              limiteTurnoUsd: secretos.ajustes.limiteTurnoUsd,
-            }
-          : null;
-      },
+      proveedor: () => configProveedor(secretos.ajustes.modelo, secretos.ajustes.retencionCero),
+      sesionesGuardadas: () => !secretos.ajustes.cerrarSesiones,
       verificarIdentidad: (motivo) => verificar(motivo, secretos.ajustes.touchIdEnConfirmaciones),
       detector: cargarDetector,
-      extension: () =>
-        secretos.ajustes.interfacesComunitarias ? path.join(DESEMPAQUETADO, 'extension') : null,
+      // Las interfaces comunitarias llegarán más adelante: de momento no se cargan.
+      extension: () => null,
       ventana: () => ventana,
       emitir,
       alCambiarLista: () => emitir({ tipo: 'estado', estado: estadoApp() }),

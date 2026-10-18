@@ -6,6 +6,7 @@ const metodos = [
   'guardarAjustes',
   'probarConexion',
   'crearTramite',
+  'ajustarTramite',
   'verTramite',
   'enviar',
   'detener',

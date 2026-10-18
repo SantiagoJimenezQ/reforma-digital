@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
-import { Input } from '@reforma-digital/design/ui/input';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
 import { Checkbox } from '@reforma-digital/design/ui/checkbox';
-import type { Razonamiento } from '../shared/api';
+import { cn } from '@reforma-digital/design/lib/utils';
 import { Cabecera } from './datos';
 import { useEstado } from './estado';
 import { dolares } from './formato';
@@ -38,11 +37,14 @@ function Modelo() {
     return (
       <div>
         <h2 className="mt-0 mb-3 text-[15px] font-medium">Modelo</h2>
-        <p className="m-0 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-          De momento, el asistente usa {app.modeloNan}, un modelo abierto de NaN Builders, que no
-          guarda las peticiones y funciona en la Unión Europea. Las búsquedas en webs oficiales las
-          hace Exa.
-        </p>
+        <ul className="m-0 list-disc space-y-2 pl-5 text-[15px] marker:text-muted-foreground leading-relaxed text-[var(--text-secondary)]">
+          <li>Usamos modelos abiertos, alojados en la Unión Europea.</li>
+          <li>
+            Con ZDR (retención cero de datos): el proveedor no guarda tus peticiones ni entrena con
+            ellas.
+          </li>
+          <li>Las búsquedas en la web las hace Exa, sin tus datos personales.</li>
+        </ul>
       </div>
     );
   return (
@@ -113,132 +115,102 @@ function RetencionCero() {
   );
 }
 
+/** Un ajuste de sí o no, con su explicación debajo. */
+function Opcion({
+  activo,
+  alCambiar,
+  titulo,
+  children,
+  proximamente = false,
+}: {
+  activo: boolean;
+  alCambiar?: (v: boolean) => void;
+  titulo: string;
+  children: ReactNode;
+  proximamente?: boolean;
+}) {
+  return (
+    <label className={cn('flex items-start gap-3', proximamente && 'opacity-60')}>
+      <Checkbox
+        checked={activo}
+        disabled={proximamente}
+        onCheckedChange={(v) => alCambiar?.(v === true)}
+        className="mt-0.5"
+      />
+      <span>
+        <span className="flex items-center gap-2 text-[15px] font-medium">
+          {titulo}
+          {proximamente && (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+              Próximamente
+            </span>
+          )}
+        </span>
+        <span className="block text-sm leading-relaxed text-muted-foreground">{children}</span>
+      </span>
+    </label>
+  );
+}
+
 export function Ajustes() {
   const { app } = useEstado();
   if (!app) return null;
   const a = app.ajustes;
-  const RAZONAMIENTO: { id: Razonamiento; nombre: string }[] = [
-    { id: 'low', nombre: 'Rápido' },
-    { id: 'medium', nombre: 'Equilibrado' },
-    { id: 'high', nombre: 'Cuidadoso' },
-  ];
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-[760px] px-10 pb-16">
-        <Cabecera titulo="Ajustes" entradilla="El modelo y los límites del asistente." />
+        <Cabecera titulo="Ajustes" entradilla="Cómo trabaja el asistente y qué guarda la app." />
+        <section className="mb-3 flex flex-col gap-6 rounded-[24px] bg-background p-6">
+          <Opcion
+            activo={a.touchIdEnConfirmaciones}
+            alCambiar={(v) => void window.rd.guardarAjustes({ touchIdEnConfirmaciones: v })}
+            titulo="Pedir Touch ID para aprobar envíos, reservas, pagos y firmas"
+          >
+            {app.touchId
+              ? 'Touch ID está disponible en este Mac.'
+              : 'Este Mac no tiene Touch ID: bastará con tu aprobación.'}
+          </Opcion>
+          <Opcion
+            activo={a.cerrarSesiones}
+            alCambiar={(v) => void window.rd.guardarAjustes({ cerrarSesiones: v })}
+            titulo="Cerrar las sesiones de las webs al cerrar la app"
+          >
+            Si lo activas, al volver a abrir la app tendrás que iniciar sesión otra vez en las webs
+            de tus trámites. Si no, siguen abiertas, guardadas en este Mac.
+          </Opcion>
+          <Opcion activo={false} titulo="Interfaces comunitarias" proximamente>
+            Interfaces más claras de Reforma Digital para algunas webs oficiales, como la cita del
+            DNI o la Agencia Tributaria, sin quitar sus controles.
+          </Opcion>
+        </section>
         <section className="mb-3 rounded-[24px] bg-background p-6">
           <Modelo />
-          <p className="mt-4 mb-0 text-sm text-muted-foreground">
-            Gasto en IA de todos tus trámites:{' '}
-            {dolares(app.tramites.reduce((n, t) => n + t.costeUsd, 0))}
-          </p>
-        </section>
-        <section className="mb-3 flex flex-col gap-6 rounded-[24px] bg-background p-6">
-          <fieldset className="m-0 border-0 p-0">
-            <legend className="mb-3 text-[15px] font-medium">Cuánto piensa antes de actuar</legend>
-            <RadioGroup
-              value={a.razonamiento}
-              onValueChange={(v) => {
-                if (v === 'low' || v === 'medium' || v === 'high')
-                  void window.rd.guardarAjustes({ razonamiento: v });
-              }}
-              className="grid grid-cols-3 gap-3"
-            >
-              {RAZONAMIENTO.map((r) => (
-                <label key={r.id} className={opcion}>
-                  <RadioGroupItem value={r.id} className="mt-0.5" />
-                  <span className="text-[15px]">{r.nombre}</span>
-                </label>
-              ))}
-            </RadioGroup>
-          </fieldset>
-          <div>
-            <label htmlFor="limite" className="mb-1.5 block text-[15px] font-medium">
-              Gasto máximo por turno (dólares)
-            </label>
-            <Input
-              id="limite"
-              type="number"
-              min={0.05}
-              max={10}
-              step={0.05}
-              className="h-11 w-40 text-base"
-              defaultValue={a.limiteTurnoUsd}
-              onBlur={(e) => {
-                const n = Number(e.target.value);
-                if (n >= 0.05 && n <= 10) void window.rd.guardarAjustes({ limiteTurnoUsd: n });
-              }}
-            />
-            <p className="mt-1.5 mb-0 text-sm text-muted-foreground">
-              Al llegar al límite, el asistente se para y te pregunta si sigue.
-            </p>
-          </div>
-          <label className="flex items-start gap-3">
-            <Checkbox
-              checked={a.touchIdEnConfirmaciones}
-              onCheckedChange={(v) =>
-                void window.rd.guardarAjustes({ touchIdEnConfirmaciones: v === true })
-              }
-              className="mt-0.5"
-            />
-            <span>
-              <span className="block text-[15px] font-medium">
-                Pedir Touch ID para aprobar envíos, reservas, pagos y firmas
-              </span>
-              <span className="block text-sm text-muted-foreground">
-                {app.touchId
-                  ? 'Touch ID está disponible en este Mac.'
-                  : 'Este Mac no tiene Touch ID: bastará con tu aprobación.'}
-              </span>
-            </span>
-          </label>
-          <label className="flex items-start gap-3">
-            <Checkbox
-              checked={a.interfacesComunitarias}
-              onCheckedChange={(v) =>
-                void window.rd.guardarAjustes({ interfacesComunitarias: v === true })
-              }
-              className="mt-0.5"
-            />
-            <span>
-              <span className="block text-[15px] font-medium">
-                Interfaces comunitarias en las webs oficiales (experimental)
-              </span>
-              <span className="block text-sm leading-relaxed text-muted-foreground">
-                Muestra en el navegador del trámite las interfaces más claras de Reforma Digital
-                para la cita del DNI, Extranjería, la Agencia Tributaria y el Registro de
-                Asociaciones. Conservan los controles oficiales y tienen «Ver original».
-              </span>
-            </span>
-          </label>
-        </section>
-        <section className="mb-3 rounded-[24px] bg-background p-6">
-          <h2 className="mt-0 mb-3 text-[15px] font-medium">Privacidad</h2>
-          <ul className="m-0 space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-            <li>
-              Tus datos, conversaciones y trámites se guardan cifrados en este Mac. Las sesiones de
-              las webs oficiales solo viven en memoria: al cerrar la app hay que volver a entrar.
-            </li>
-            <li>
-              Al proveedor de IA solo le llegan marcadores en lugar de tus datos personales: los de
-              Mis datos y los que un detector, que funciona en este Mac, encuentra en lo que
-              escribes y en las webs (nombres, documentos, direcciones, teléfonos y correos). De los
-              campos de texto solo ve lo que escribe él. Si el detector falla, no se envía nada.
-            </li>
-            <li>
-              El asistente busca en toda la web y marca las que no son de la lista de webs
-              oficiales. Para abrir una de ellas te pide permiso, y tus datos solo los escribe en
-              webs oficiales.
-            </li>
-            <li>
-              Contraseñas, CAPTCHA, certificados, firmas y pagos los haces tú en la web oficial.
-            </li>
-          </ul>
           {!app.modeloNan && (
             <div className="mt-6">
               <RetencionCero />
             </div>
           )}
+          <p className="mt-4 mb-0 text-sm text-muted-foreground">
+            Gasto en IA de todos tus trámites:{' '}
+            {dolares(app.tramites.reduce((n, t) => n + t.costeUsd, 0))}
+          </p>
+        </section>
+        <section className="mb-3 rounded-[24px] bg-background p-6">
+          <h2 className="mt-0 mb-3 text-[15px] font-medium">Privacidad</h2>
+          <ul className="m-0 list-disc space-y-2 pl-5 text-[15px] marker:text-muted-foreground leading-relaxed text-[var(--text-secondary)]">
+            <li>Tus datos, conversaciones y trámites se guardan cifrados en este Mac.</li>
+            <li>
+              La IA no ve tu nombre, tu DNI, tu dirección, tu teléfono ni tu correo: le llegan
+              marcadores en su lugar.
+            </li>
+            <li>
+              Un detector que funciona en este Mac también los tapa en lo que escribes y en las
+              webs, aunque sean de otras personas. Si falla, no se envía nada.
+            </li>
+            <li>La app pone el dato real solo al escribirlo en la web del trámite.</li>
+            <li>Nada se envía, reserva, paga ni firma sin tu aprobación.</li>
+            <li>Contraseñas, CAPTCHA, certificados, firmas y pagos los haces tú.</li>
+          </ul>
         </section>
         <section className="pt-5">
           <Button

@@ -8,6 +8,7 @@ import { hace } from './formato';
 import { Icono, Marca } from './icono';
 import { Inicio } from './inicio';
 import { Tramite } from './tramite';
+import type { ResumenTramite } from '../shared/api';
 
 export type Vista =
   { tipo: 'inicio' } | { tipo: 'tramite'; id: string } | { tipo: 'datos' } | { tipo: 'ajustes' };
@@ -19,9 +20,90 @@ const fila = (activo: boolean) =>
     activo ? 'bg-foreground/[0.07] font-medium' : 'hover:bg-foreground/[0.04]',
   );
 
+/** Lo que dice un trámite a la derecha de su fila: que espera, que ha terminado o cuándo cambió. */
+function Estado({ t, nuevo }: { t: ResumenTramite; nuevo: boolean }) {
+  if (t.ejecucion === 'trabajando')
+    return (
+      <span title="Trabajando" className="grid size-4 place-items-center">
+        <span className="size-1.5 rounded-full bg-foreground/50 motion-safe:animate-pulse" />
+        <span className="sr-only">Trabajando</span>
+      </span>
+    );
+  if (t.aviso === 'oferta')
+    return (
+      <span title="El asistente puede hacerlo por ti" className="text-brand">
+        <Icono nombre="varita" size={16} />
+        <span className="sr-only">El asistente puede hacerlo por ti</span>
+      </span>
+    );
+  if (t.ejecucion === 'esperando')
+    return (
+      <span title="El asistente espera tu respuesta" className="grid size-4 place-items-center">
+        <span className="size-1.5 rounded-full bg-brand" />
+        <span className="sr-only">El asistente espera tu respuesta</span>
+      </span>
+    );
+  if (t.aviso === 'terminado' && nuevo)
+    return (
+      <span
+        title="Ha terminado"
+        className="grid size-4 place-items-center rounded-full bg-blue-500 text-white"
+      >
+        <Icono nombre="check" size={10} />
+        <span className="sr-only">Ha terminado</span>
+      </span>
+    );
+  return <span className="text-sm text-muted-foreground">{hace(t.actualizado)}</span>;
+}
+
+/** Lo que ha visto la persona de cada trámite: el azul de «ha terminado» sale hasta que lo abre. */
+function useVistos(tramites: ResumenTramite[], activo: ResumenTramite | undefined) {
+  const [vistos, setVistos] = useState<Record<string, string>>(() => {
+    const guardados = localStorage.getItem('vistos');
+    return guardados
+      ? (JSON.parse(guardados) as Record<string, string>)
+      : Object.fromEntries(tramites.map((t) => [t.id, t.actualizado]));
+  });
+  useEffect(() => {
+    if (!activo || vistos[activo.id] === activo.actualizado) return;
+    const nuevos = { ...vistos, [activo.id]: activo.actualizado };
+    localStorage.setItem('vistos', JSON.stringify(nuevos));
+    setVistos(nuevos);
+  }, [activo, vistos]);
+  return vistos;
+}
+
 function Barra({ vista, ir }: { vista: Vista; ir: (v: Vista) => void }) {
   const { app } = useEstado();
   const tramites = app?.tramites ?? [];
+  const activo = tramites.find((t) => vista.tipo === 'tramite' && vista.id === t.id);
+  const vistos = useVistos(tramites, activo);
+  const filaTramite = (t: ResumenTramite) => (
+    <li key={t.id} className="group relative">
+      <button
+        type="button"
+        aria-current={t === activo ? 'page' : undefined}
+        className={cn(fila(t === activo), 'pr-2')}
+        onClick={() => ir({ tipo: 'tramite', id: t.id })}
+      >
+        <span className="min-w-0 flex-1 truncate">{t.titulo}</span>
+        <span className="flex shrink-0 items-center transition-opacity group-focus-within:opacity-0 group-hover:opacity-0">
+          <Estado t={t} nuevo={t !== activo && vistos[t.id] !== t.actualizado} />
+        </span>
+      </button>
+      <button
+        type="button"
+        aria-label={t.fijado ? 'Dejar de fijar' : 'Fijar'}
+        title={t.fijado ? 'Dejar de fijar' : 'Fijar'}
+        onClick={() => void window.rd.ajustarTramite(t.id, { fijado: !t.fijado })}
+        className="absolute top-1/2 right-1.5 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-foreground/[0.06] hover:text-foreground"
+      >
+        <Icono nombre="fijar" size={16} className={t.fijado ? 'rotate-45' : ''} />
+      </button>
+    </li>
+  );
+  const fijados = tramites.filter((t) => t.fijado);
+  const resto = tramites.filter((t) => !t.fijado);
   return (
     <nav
       aria-label="Trámites"
@@ -47,55 +129,26 @@ function Barra({ vista, ir }: { vista: Vista; ir: (v: Vista) => void }) {
           Mis datos
         </button>
       </div>
-      <h2 className="mx-5 mt-6 mb-1 text-sm font-normal text-muted-foreground">Trámites</h2>
-      <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2.5 pb-3">
-        {tramites.length === 0 && (
-          <li className="px-2.5 py-2 text-sm text-muted-foreground">Aún no hay ninguno.</li>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-3">
+        {fijados.length > 0 && (
+          <>
+            <h2 className="mx-2.5 mt-6 mb-1 text-sm font-normal text-muted-foreground">Fijados</h2>
+            <ul className="m-0 space-y-0.5 p-0">{fijados.map(filaTramite)}</ul>
+          </>
         )}
-        {tramites.map((t) => {
-          const activo = vista.tipo === 'tramite' && vista.id === t.id;
-          const esperando = t.ejecucion === 'esperando';
-          const trabajando = t.ejecucion === 'trabajando';
-          return (
-            <li key={t.id}>
-              <button
-                type="button"
-                aria-current={activo ? 'page' : undefined}
-                className={cn(fila(activo), 'gap-2 pl-2')}
-                onClick={() => ir({ tipo: 'tramite', id: t.id })}
-              >
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'size-1.5 shrink-0 rounded-full',
-                    esperando && 'bg-brand',
-                    trabajando && 'bg-foreground/50 motion-safe:animate-pulse',
-                  )}
-                />
-                <span className="min-w-0 flex-1 truncate">{t.titulo}</span>
-                {/* El punto ya dice que trabaja: el texto, solo para lectores de pantalla. */}
-                {trabajando ? (
-                  <span className="sr-only">Trabajando</span>
-                ) : (
-                  <span
-                    className={cn(
-                      'shrink-0 text-sm',
-                      esperando
-                        ? 'font-medium text-foreground'
-                        : 'font-normal text-muted-foreground',
-                    )}
-                  >
-                    {esperando ? 'Te toca' : hace(t.actualizado)}
-                  </span>
-                )}
-              </button>
+        <h2 className="mx-2.5 mt-6 mb-1 text-sm font-normal text-muted-foreground">Trámites</h2>
+        <ul className="m-0 space-y-0.5 p-0">
+          {resto.length === 0 && (
+            <li className="px-2.5 py-2 text-sm text-muted-foreground">
+              {tramites.length ? 'Todos están fijados.' : 'Aún no hay ninguno.'}
             </li>
-          );
-        })}
-      </ul>
+          )}
+          {resto.map(filaTramite)}
+        </ul>
+      </div>
       <div className="flex h-14 shrink-0 items-center gap-2.5 border-t border-border px-4">
         <Marca size={18} />
-        <span className="font-[family-name:var(--font-brand-logo)] text-[15px] font-bold">
+        <span className="font-[family-name:var(--font-brand-logo)] text-[15px]">
           Reforma Digital
         </span>
         <Button

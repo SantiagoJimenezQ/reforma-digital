@@ -28,12 +28,15 @@ export const TIPO_INPUT: Partial<Record<string, string>> = {
  */
 function Tarjeta({
   icono,
+  sinFondo = false,
   titulo,
   descripcion,
   accesorio,
   children,
 }: {
   icono: ReactNode;
+  /** La marca de Reforma Digital va sola, sin el cuadro de color. */
+  sinFondo?: boolean;
   titulo: string;
   descripcion: string;
   accesorio?: ReactNode;
@@ -58,7 +61,12 @@ function Tarjeta({
       className="my-6 rounded-[20px] bg-background outline-none [animation:chat-enter_360ms_var(--ease-brand)_both] focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-3 p-5">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
+        <span
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-xl text-brand',
+            !sinFondo && 'bg-brand/[0.08]',
+          )}
+        >
           {icono}
         </span>
         <div className="min-w-0 flex-1 basis-52">
@@ -353,7 +361,8 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   if (!f.accion)
     return (
       <Tarjeta
-        icono={<Marca size={20} />}
+        icono={<Marca size={28} />}
+        sinFondo
         titulo="El asistente necesita unos datos"
         descripcion={f.titulo}
       >
@@ -363,7 +372,8 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   return (
     <Collapsible open={abierto} onOpenChange={setAbierto}>
       <Tarjeta
-        icono={<Marca size={20} />}
+        icono={<Marca size={28} />}
+        sinFondo
         titulo="El asistente puede hacerlo por ti"
         descripcion={f.titulo}
         accesorio={

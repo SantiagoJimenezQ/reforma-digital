@@ -19,8 +19,12 @@ const MUNDO = 1000;
 const ZOOM = 0.8;
 const configuradas = new WeakSet<Session>();
 
-/** En memoria: cookies, caché y lo que guarden las webs desaparecen al cerrar la app. */
-export const particion = (tramite: string) => `tramite-${tramite}`;
+/**
+ * La sesión del navegador de un trámite. Persistente, se guarda en disco y la persona sigue dentro
+ * de las webs al volver a abrir la app; si no, vive en memoria y desaparece al cerrarla.
+ */
+export const particion = (tramite: string, persistente: boolean) =>
+  `${persistente ? 'persist:' : ''}tramite-${tramite}`;
 const sesionLectura = () => session.fromPartition('lectura');
 export const esLectura = (ses: Session) => ses === sesionLectura();
 /** Lo que se abre dentro del navegador del trámite; AutoFirma se abre fuera y el resto se ignora. */
@@ -154,13 +158,14 @@ export class NavegadorTramite implements Navegador {
   constructor(
     readonly tramite: string,
     private opciones: {
+      persistente: boolean;
       carpetaDescargas: () => string;
       ventana: () => BrowserWindow | null;
       alCambiar: () => void;
       alDescargar: (d: Descarga) => void;
     },
   ) {
-    const ses = session.fromPartition(particion(tramite));
+    const ses = session.fromPartition(particion(tramite, opciones.persistente));
     this.configurar(ses);
     this.view = new WebContentsView({
       webPreferences: {

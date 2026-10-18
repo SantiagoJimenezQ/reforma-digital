@@ -4,7 +4,6 @@ import { app, Notification, session, type BrowserWindow } from 'electron';
 import {
   crearProveedor,
   ejecutarTurno,
-  LIMITES,
   estadoInicial,
   MARCADOR,
   pendientes,
@@ -35,21 +34,22 @@ type Registro = {
   estado: EstadoAgente;
   conversacion: ItemConversacion[];
   descargas: Descarga[];
+  fijado?: boolean;
+  /** Cuánto piensa el asistente en este trámite; lo elige la persona en el compositor. */
+  razonamiento?: Razonamiento;
 };
 
 export type Entorno = {
   perfil(): Perfil;
   guardarPerfil(valores: Perfil): Promise<void>;
   /** Configuración del proveedor, o `null` si la compilación no lleva la clave. */
-  proveedor(): {
-    cfg: ConfigProveedor;
-    razonamiento: Razonamiento;
-    limiteTurnoUsd: number;
-  } | null;
+  proveedor(): ConfigProveedor | null;
   /** Touch ID para aprobar envíos; `true` si no está disponible o desactivado. */
   verificarIdentidad(motivo: string): Promise<boolean>;
   /** Detector local de datos personales; falla si el modelo no se puede cargar. */
   detector(): Promise<Detector>;
+  /** Si las sesiones de las webs se guardan al cerrar la app. */
+  sesionesGuardadas(): boolean;
   /** Ruta de la extensión si la persona ha activado las interfaces comunitarias. */
   extension(): string | null;
   ventana(): BrowserWindow | null;
@@ -146,10 +146,31 @@ export class Tramites {
 
   private resumen(r: Registro): ResumenTramite {
     const esperando = [...this.esperas.values()].some((e) => e.tramite === r.id);
+    const ejecucion = esperando
+      ? 'esperando'
+      : this.ejecuciones.has(r.id)
+        ? 'trabajando'
+        : 'inactivo';
+    const ultimo = r.conversacion.at(-1);
+    const oferta = r.conversacion.some(
+      (i) =>
+        i.tipo === 'pregunta' &&
+        i.estado === 'pendiente' &&
+        i.pregunta.tipo === 'formulario' &&
+        Boolean(i.pregunta.formulario.accion),
+    );
     return {
       id: r.id,
       titulo: mostrar(r)(r.estado.titulo || 'Nuevo trámite'),
-      ejecucion: esperando ? 'esperando' : this.ejecuciones.has(r.id) ? 'trabajando' : 'inactivo',
+      ejecucion,
+      aviso:
+        esperando && oferta
+          ? 'oferta'
+          : ejecucion === 'inactivo' && ultimo?.tipo === 'asistente'
+            ? 'terminado'
+            : null,
+      fijado: Boolean(r.fijado),
+      razonamiento: r.razonamiento ?? 'medium',
       actualizado: r.actualizado,
       costeUsd: r.estado.uso.costeUsd,
     };
@@ -202,7 +223,7 @@ export class Tramites {
     return escritura;
   }
 
-  async crear(texto: string): Promise<string> {
+  async crear(texto: string, razonamiento: Razonamiento): Promise<string> {
     const id = randomUUID();
     // El título lo pone el asistente: el mensaje puede llevar datos personales y el título se ve
     // en las notificaciones y nombra la carpeta de descargas.
@@ -212,6 +233,7 @@ export class Tramites {
       estado: estadoInicial(),
       conversacion: [],
       descargas: [],
+      razonamiento,
     };
     this.registros.set(id, r);
     await this.guardar(r);
@@ -245,11 +267,7 @@ export class Tramites {
   }
 
   /** Pone a trabajar al asistente; sin texto, retoma lo que esperaba a la persona. */
-  private iniciar(
-    r: Registro,
-    texto: string | undefined,
-    config: NonNullable<ReturnType<Entorno['proveedor']>>,
-  ) {
+  private iniciar(r: Registro, texto: string | undefined, config: ConfigProveedor) {
     const id = r.id;
     const control = new AbortController();
     this.ejecuciones.set(id, control);
@@ -382,6 +400,7 @@ export class Tramites {
     if (!nav) {
       const r = this.registros.get(id);
       nav = new NavegadorTramite(id, {
+        persistente: this.entorno.sesionesGuardadas(),
         ventana: () => this.entorno.ventana(),
         carpetaDescargas: () =>
           path.join(
@@ -424,26 +443,14 @@ export class Tramites {
   private async ejecutar(
     r: Registro,
     texto: string | undefined,
-    config: NonNullable<ReturnType<Entorno['proveedor']>>,
+    config: ConfigProveedor,
     control: AbortController,
   ) {
     let actual: Extract<ItemConversacion, { tipo: 'asistente' }> | null = null;
-    // Las fuentes van debajo de la respuesta a la que sirvieron: las consultadas desde la anterior.
-    // Se ponen al terminar el turno y antes de cada pregunta, para que se vean mientras espera.
-    const respuestas: Extract<ItemConversacion, { tipo: 'asistente' }>[] = [];
-    let desde = ahora();
-    const marcarFuentes = () => {
-      const ultima = respuestas.at(-1);
-      const usadas = r.estado.fuentes.filter((f) => f.consultada >= desde).map((f) => f.id);
-      if (!ultima || !usadas.length) return;
-      ultima.fuentes = [...new Set([...(ultima.fuentes ?? []), ...usadas])];
-      desde = ahora();
-    };
     // Desde cuándo trabaja el asistente en lo que sigue: el inicio del turno, el final de su último
     // texto o la respuesta de la persona. Es lo que tarda cada tanda de acciones.
     let trabajaDesde = ahora();
     const esperar = async (pregunta: Pregunta, signal: AbortSignal) => {
-      marcarFuentes();
       const v = await this.preguntar(r, pregunta, signal);
       trabajaDesde = ahora();
       return v;
@@ -467,7 +474,6 @@ export class Tramites {
       if (e.tipo === 'texto') {
         if (!actual) {
           actual = { tipo: 'asistente', id: randomUUID(), texto: '' };
-          respuestas.push(actual);
           r.conversacion.push(actual);
         }
         actual.texto += e.delta;
@@ -520,7 +526,7 @@ export class Tramites {
       return;
     }
     const resultado = await ejecutarTurno({
-      proveedor: (guarda) => crearProveedor(config.cfg, guarda),
+      proveedor: (guarda) => crearProveedor(config, guarda),
       detector,
       escritos,
       anfitrion,
@@ -532,13 +538,11 @@ export class Tramites {
         await this.guardar(r);
       },
       signal: control.signal,
-      limites: { ...LIMITES, costeUsd: config.limiteTurnoUsd },
-      razonamiento: config.razonamiento,
+      razonamiento: r.razonamiento ?? 'medium',
     });
     r.estado = resultado.estado;
     // Solo al cerrar la app sigue algo esperando a la persona.
     if (control.signal.reason !== CIERRE) sinResponder(r.estado.mensajes);
-    marcarFuentes();
     const aviso = {
       limite_pasos:
         'He dado muchos pasos seguidos y me he parado para que lo revises. Pulsa «Continuar» si quieres que siga.',
@@ -575,11 +579,20 @@ export class Tramites {
     this.navegadores.delete(id);
     this.escritos.delete(id);
     await nav?.cerrar();
-    await session.fromPartition(particion(id)).clearStorageData();
+    for (const persistente of [true, false])
+      await session.fromPartition(particion(id, persistente)).clearStorageData();
     await this.escrituras.get(id)?.catch(() => undefined);
     this.escrituras.delete(id);
     await this.almacen.borrar(archivo(id));
     this.entorno.alCambiarLista();
+  }
+
+  async ajustar(id: string, cambios: Pick<Registro, 'fijado' | 'razonamiento'>) {
+    const r = this.registros.get(id);
+    if (!r) return;
+    Object.assign(r, cambios);
+    await this.guardar(r);
+    this.cambio(id);
   }
 
   /** Aplica el ajuste de interfaces comunitarias a los navegadores ya abiertos. */

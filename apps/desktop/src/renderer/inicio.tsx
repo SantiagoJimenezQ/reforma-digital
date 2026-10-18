@@ -24,17 +24,20 @@ const RAZONAMIENTO = [
   { value: 'high', label: 'Cuidadoso' },
 ] satisfies { value: Razonamiento; label: string }[];
 
-/** Cuánto piensa el asistente antes de actuar: el mismo ajuste que en Ajustes, a mano al escribir. */
-function Razonar() {
-  const { app } = useEstado();
-  if (!app) return null;
+/** Cuánto piensa el asistente antes de actuar, en este trámite. */
+function Razonar({
+  valor,
+  alCambiar,
+}: {
+  valor: Razonamiento;
+  alCambiar: (v: Razonamiento) => void;
+}) {
   return (
     <Select
-      value={app.ajustes.razonamiento}
+      value={valor}
       items={RAZONAMIENTO}
       onValueChange={(v) => {
-        if (v === 'low' || v === 'medium' || v === 'high')
-          void window.rd.guardarAjustes({ razonamiento: v });
+        if (v === 'low' || v === 'medium' || v === 'high') alCambiar(v);
       }}
     >
       {/* Dentro del compositor no hay un segundo borde (DESIGN.md §8.5). */}
@@ -61,12 +64,16 @@ export function Compositor({
   ocupado,
   alEnviar,
   alDetener,
+  razonamiento,
+  alRazonar,
   autoFocus = false,
 }: {
   placeholder: string;
   ocupado: boolean;
   alEnviar: (texto: string) => Promise<void> | void;
   alDetener?: () => void;
+  razonamiento: Razonamiento;
+  alRazonar: (v: Razonamiento) => void;
   autoFocus?: boolean;
 }) {
   const [texto, setTexto] = useState('');
@@ -108,14 +115,7 @@ export function Compositor({
         className="field-sizing-content block max-h-60 min-h-[60px] w-full resize-none bg-transparent px-5 pt-4 text-base leading-6 outline-none placeholder:text-muted-foreground"
       />
       <div className="flex items-center gap-1 px-2.5 pt-1 pb-2.5">
-        <span
-          className="flex items-center gap-1.5 px-2.5 text-sm text-muted-foreground"
-          title="Al asistente le llegan marcadores en lugar de tu nombre, tu documento o tu dirección."
-        >
-          <Icono nombre="candado" size={16} />
-          Datos protegidos
-        </span>
-        <Razonar />
+        <Razonar valor={razonamiento} alCambiar={alRazonar} />
         {ocupado && alDetener ? (
           <Button
             variant="outline"
@@ -163,7 +163,8 @@ const PROMESAS: { icono: NombreIcono; titulo: string; texto: string }[] = [
 
 export function Inicio({ abrir }: { abrir: (id: string) => void }) {
   const { app } = useEstado();
-  const crear = async (texto: string) => abrir(await window.rd.crearTramite(texto));
+  const [razonamiento, setRazonamiento] = useState<Razonamiento>('medium');
+  const crear = async (texto: string) => abrir(await window.rd.crearTramite(texto, razonamiento));
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
       {/* El atardecer de Sol, solo como luz de fondo bajo el contenido. */}
@@ -200,6 +201,8 @@ export function Inicio({ abrir }: { abrir: (id: string) => void }) {
             placeholder="Por ejemplo: quiero pedir cita para renovar el DNI en Sevilla"
             ocupado={false}
             alEnviar={crear}
+            razonamiento={razonamiento}
+            alRazonar={setRazonamiento}
           />
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {SUGERENCIAS.map((s) => (

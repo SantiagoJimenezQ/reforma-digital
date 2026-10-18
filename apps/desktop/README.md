@@ -49,15 +49,15 @@ El bucle del agente hace un paso del modelo cada vez (Vercel AI SDK 7): guarda e
 
 Archivos de la app:
 
-| Ruta                    | Qué hay                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| `src/main/index.ts`     | Ventana, protocolo `app://`, menú, IPC validado con zod, Touch ID, certificados, ajustes y perfil.      |
-| `src/main/almacen.ts`   | Archivos cifrados con AES-256-GCM; la clave la protege el llavero (`safeStorage`).                      |
-| `src/main/tramites.ts`  | Turnos del agente, preguntas pendientes, notificaciones e insignia del Dock.                            |
-| `src/main/navegador.ts` | Navegador de cada trámite (`WebContentsView`, sesión en memoria), descargas, AutoFirma y lector oculto. |
-| `src/preload`           | `window.rd`, el único puente entre la interfaz y el proceso principal.                                  |
-| `src/renderer`          | Interfaz React con `@reforma-digital/design` (Sol).                                                     |
-| `build/icon.svg`        | Icono; `icon.png` se genera con `qlmanage -t -s 1024 -o build build/icon.svg` y se renombra.            |
+| Ruta                    | Qué hay                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `src/main/index.ts`     | Ventana, protocolo `app://`, menú, IPC validado con zod, Touch ID, certificados, ajustes y perfil.           |
+| `src/main/almacen.ts`   | Archivos cifrados con AES-256-GCM; la clave la protege el llavero (`safeStorage`).                           |
+| `src/main/tramites.ts`  | Turnos del agente, preguntas pendientes, notificaciones e insignia del Dock.                                 |
+| `src/main/navegador.ts` | Navegador de cada trámite (`WebContentsView`, una sesión por trámite), descargas, AutoFirma y lector oculto. |
+| `src/preload`           | `window.rd`, el único puente entre la interfaz y el proceso principal.                                       |
+| `src/renderer`          | Interfaz React con `@reforma-digital/design` (Sol).                                                          |
+| `build/icon.svg`        | Icono; `icon.png` se genera con `qlmanage -t -s 1024 -o build build/icon.svg` y se renombra.                 |
 
 Los datos de la app están en `~/Library/Application Support/Reforma Digital/datos`, cifrados. Los documentos que descargan los trámites van a `~/Downloads/Reforma Digital/<trámite>/`.
 
@@ -69,9 +69,9 @@ Se comprueban en el código de las herramientas y tienen pruebas en [`agent.test
 - **Nada vinculante sin permiso.** Los botones que envían, confirman, reservan, pagan o firman necesitan un código de un solo uso que solo da `confirmar` cuando la persona lo aprueba (con Touch ID si está activado). El código vale solo en la web donde se pidió y se gasta al pulsar. Intro y Espacio sobre un botón vinculante o en un formulario que se enviaría también lo necesitan. Si en el trámite ya se hizo un envío, la confirmación lo recuerda para no repetirlo.
 - **Webs sin lista cerrada.** El asistente busca, lee y abre cualquier web https sin pedir permiso, y escribe los datos de la persona donde lo necesite el trámite. Marca como «sin verificar» los resultados cuyo dominio no está en la lista de webs oficiales (`packages/government/src/domains.ts`); las instrucciones le piden basar requisitos, plazos y costes solo en webs de una administración. Nunca escribe en campos de contraseña.
 - **Lectura segura.** `leer_pagina` solo usa HTTPS, comprueba cada redirección y conecta con la IP que ha comprobado (no puede llegar a la red local).
-- **Fuentes a la vista.** Debajo de cada respuesta, la app muestra en un desplegable las webs que el asistente consultó en ese turno, con su icono y la marca «sin verificar» si no están en la lista; las oficiales se abren en el navegador del trámite y las demás en el del Mac. La lista sale de lo que leyó, no de lo que dice el modelo. Lo que no hay es una comprobación de que cada dato de la respuesta salga de esas webs (ver [Limitaciones](#limitaciones)).
+- **Fuentes a la vista.** En los pasos de cada búsqueda, la app muestra las webs que encontró el asistente, con su icono; se abren en el navegador del trámite. La lista sale de lo que leyó, no de lo que dice el modelo. Lo que no hay es una comprobación de que cada dato de la respuesta salga de esas webs (ver [Limitaciones](#limitaciones)).
 
-Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, en memoria (al cerrar la app hay que volver a iniciar sesión, y no queda nada en disco); las peticiones solo van a proveedores de IA que no entrenan con ellas (con retención cero opcional); el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones; los certificados se eligen del llavero de macOS; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y el `.app` desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
+Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, guardada para no tener que volver a entrar (en Ajustes se puede pedir que se cierren al cerrar la app); las peticiones solo van a proveedores de IA que no entrenan con ellas (con retención cero opcional); el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones; los certificados se eligen del llavero de macOS; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y el `.app` desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
 
 ### Herramientas del agente
 
