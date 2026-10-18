@@ -168,22 +168,24 @@ export function Ajustes({ privacidad }: { privacidad: boolean }) {
       <div className="mx-auto max-w-[760px] px-10 pb-16">
         <Cabecera titulo="Ajustes" entradilla="Cómo trabaja el asistente y qué guarda la app." />
         <section className="mb-3 flex flex-col gap-6 rounded-[24px] bg-background p-6">
-          <Opcion
-            activo={a.touchIdEnConfirmaciones}
-            alCambiar={(v) => void window.rd.guardarAjustes({ touchIdEnConfirmaciones: v })}
-            titulo="Pedir Touch ID para aprobar envíos, reservas, pagos y firmas"
-          >
-            {app.touchId
-              ? 'Touch ID está disponible en este Mac.'
-              : 'Este Mac no tiene Touch ID: bastará con tu aprobación.'}
-          </Opcion>
+          {app.plataforma === 'darwin' && (
+            <Opcion
+              activo={a.touchIdEnConfirmaciones}
+              alCambiar={(v) => void window.rd.guardarAjustes({ touchIdEnConfirmaciones: v })}
+              titulo="Pedir Touch ID para aprobar envíos, reservas, pagos y firmas"
+            >
+              {app.touchId
+                ? 'Touch ID está disponible en este Mac.'
+                : 'Este Mac no tiene Touch ID: bastará con tu aprobación.'}
+            </Opcion>
+          )}
           <Opcion
             activo={a.cerrarSesiones}
             alCambiar={(v) => void window.rd.guardarAjustes({ cerrarSesiones: v })}
             titulo="Cerrar las sesiones de las webs al cerrar la app"
           >
             Si lo activas, al volver a abrir la app tendrás que iniciar sesión otra vez en las webs
-            de tus trámites. Si no, siguen abiertas, guardadas en este Mac.
+            de tus trámites. Si no, siguen abiertas, guardadas en este ordenador.
           </Opcion>
           <Opcion activo={false} titulo="Interfaces comunitarias" proximamente>
             Interfaces más claras de Reforma Digital para algunas webs oficiales, como la cita del
@@ -216,8 +218,9 @@ export function Ajustes({ privacidad }: { privacidad: boolean }) {
               datos ni los guarda.
             </li>
             <li>
-              Tus datos, conversaciones y trámites se guardan cifrados en este Mac, con una clave
-              protegida por tu llavero. No salen de él ni pasan por servidores de Reforma Digital.
+              Tus datos, conversaciones y trámites se guardan cifrados en este ordenador, con una
+              clave protegida por el sistema. No salen de él ni pasan por servidores de Reforma
+              Digital.
             </li>
             <li>
               En lugar de tu nombre, tu DNI, tus fechas, tu dirección, tu teléfono, tu correo o tu
@@ -229,10 +232,10 @@ export function Ajustes({ privacidad }: { privacidad: boolean }) {
               queda a tu documento.
             </li>
             <li>
-              Antes de enviar nada a la IA, un modelo de privacidad que se ejecuta en tu Mac, sin
-              conexión, busca nombres, DNI, direcciones, teléfonos y correos en lo que escribes y en
-              las webs, también de otras personas, y los cambia por marcadores. Si ese modelo falla,
-              no se envía nada.
+              Antes de enviar nada a la IA, un modelo de privacidad que se ejecuta en tu ordenador,
+              sin conexión, busca nombres, DNI, direcciones, teléfonos y correos en lo que escribes
+              y en las webs, también de otras personas, y los cambia por marcadores. Si ese modelo
+              falla, no se envía nada.
             </li>
             <li>La app pone el dato real solo al escribirlo en la web del trámite.</li>
             <li>Nada se envía, reserva, paga ni firma sin tu aprobación.</li>
@@ -269,7 +272,7 @@ export function Ajustes({ privacidad }: { privacidad: boolean }) {
             Borrar todo y empezar de cero
           </Button>
           <p className="mt-6 mb-0 text-sm text-muted-foreground">
-            Reforma Digital para Mac {app.version} · Código abierto con licencia MIT · Proyecto
+            Reforma Digital {app.version} · Código abierto con licencia MIT · Proyecto
             independiente, sin vinculación con la Administración.
           </p>
         </section>

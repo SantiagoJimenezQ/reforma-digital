@@ -109,6 +109,7 @@ export type EstadoApp = {
   campos: readonly CampoPerfil[];
   perfil: DatoPerfil[];
   touchId: boolean;
+  plataforma: NodeJS.Platform;
   /** La app sin empaquetar: muestra datos para desarrollar, como el gasto. */
   desarrollo: boolean;
   /** Avisos que salen de Mis datos, p. ej. un DNI a punto de caducar. */

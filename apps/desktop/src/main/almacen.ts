@@ -7,8 +7,9 @@ const CABECERA = Buffer.from('RDA1');
 
 /**
  * Todo lo que la app guarda va cifrado con AES-256-GCM: perfil, trámites, conversaciones y la
- * clave del proveedor. La clave de datos es aleatoria y la protege el llavero de macOS mediante
- * safeStorage, así que los archivos no se pueden leer fuera de esta cuenta de usuario.
+ * clave del proveedor. La clave de datos es aleatoria y la protege el sistema mediante safeStorage
+ * (llavero de macOS, DPAPI en Windows, GNOME Keyring o KWallet en Linux), así que los archivos no se
+ * pueden leer fuera de esta cuenta de usuario.
  * El nombre del archivo forma parte de los datos autenticados: no se pueden intercambiar.
  */
 export class Almacen {
@@ -22,6 +23,11 @@ export class Almacen {
     if (!(await safeStorage.isAsyncEncryptionAvailable()))
       throw new Error(
         'El llavero del sistema no está disponible: no se pueden proteger los datos.',
+      );
+    // Sin llavero, Linux protege la clave con una contraseña fija: sería como guardarla sin cifrar.
+    if (process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text')
+      throw new Error(
+        'No hay ningún llavero para proteger los datos. Instala o desbloquea GNOME Keyring o KWallet y vuelve a abrir la app.',
       );
     const ruta = path.join(dir, 'clave.bin');
     let clave: Buffer;

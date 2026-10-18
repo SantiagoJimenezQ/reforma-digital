@@ -388,7 +388,7 @@ function Conversacion({
                       size="lg"
                       onClick={() => void window.rd.mostrarArchivo(i.archivo!)}
                     >
-                      Mostrar en Finder
+                      Mostrar en la carpeta
                     </Button>
                   ) : undefined
                 }
@@ -548,7 +548,12 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
         className={cn('flex min-w-0 flex-col', verNavegador ? 'w-[400px] shrink-0' : 'flex-1')}
         aria-label="Conversación"
       >
-        <header className="arrastrar flex h-[52px] shrink-0 items-center gap-2 px-6">
+        <header
+          className={cn(
+            'arrastrar flex h-[52px] shrink-0 items-center gap-2 px-6',
+            !verNavegador && 'hueco-botones',
+          )}
+        >
           <h1 className="m-0 truncate text-[15px] font-medium">{vista.titulo}</h1>
           {!verNavegador && (
             <Button
@@ -611,7 +616,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
           aria-label="Navegador del trámite"
           className="flex min-w-0 flex-1 flex-col border-l border-border bg-background"
         >
-          <div className="arrastrar flex h-[52px] shrink-0 items-center gap-2 px-4">
+          <div className="arrastrar hueco-botones flex h-[52px] shrink-0 items-center gap-2 px-4">
             <span className="text-[15px] font-medium">Navegador</span>
             <Button
               variant="ghost"

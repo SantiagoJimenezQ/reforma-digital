@@ -82,14 +82,21 @@ const ortCommon = path.resolve(
   '../../..',
 );
 const binario = `bin/napi-v6/${process.platform}/${process.arch}`;
-// En Linux solo se compila para comprobar el build (CI); la app es para Mac.
-const libreria = process.platform === 'darwin' ? 'libonnxruntime.1.dylib' : 'libonnxruntime.so.1';
-for (const f of [
-  'package.json',
-  'dist',
-  `${binario}/onnxruntime_binding.node`,
-  `${binario}/${libreria}`,
-]) {
+// El binding y la librería que carga (en macOS hay otra copia igual con la versión completa en el
+// nombre). En Windows, DirectML y los dx*.dll solo se cargan si se pide la GPU; el detector usa CPU.
+const libreria = {
+  darwin: 'libonnxruntime.1.dylib',
+  linux: 'libonnxruntime.so.1',
+  win32: 'onnxruntime.dll',
+}[process.platform];
+const archivos = ['package.json', 'dist'];
+if (existsSync(path.join(ortNode, binario)))
+  archivos.push(`${binario}/onnxruntime_binding.node`, `${binario}/${libreria}`);
+else
+  console.warn(
+    `ONNX Runtime no trae binarios para ${process.platform}-${process.arch} (los Mac con Intel, por ejemplo): sin el detector, la app no enviará nada al asistente.`,
+  );
+for (const f of archivos) {
   const destino = path.join(out, 'node_modules/onnxruntime-node', f);
   await mkdir(path.dirname(destino), { recursive: true });
   await cp(path.join(ortNode, f), destino, { recursive: true });

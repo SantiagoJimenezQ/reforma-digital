@@ -33,7 +33,7 @@ const COMPARACION: { que: string; general: string; nuestro: string }[] = [
   {
     que: 'Tus conversaciones',
     general: 'Van al proveedor y se guardan según su política.',
-    nuestro: 'La IA no recibe tus datos y el historial queda cifrado en tu Mac.',
+    nuestro: 'La IA no recibe tus datos y el historial queda cifrado en tu ordenador.',
   },
   {
     que: 'Los trámites',
@@ -43,7 +43,7 @@ const COMPARACION: { que: string; general: string; nuestro: string }[] = [
   {
     que: 'Envíos y pagos',
     general: 'Depende de la herramienta y de cómo la configures.',
-    nuestro: 'Siempre con tu aprobación y Touch ID. Contraseñas, CAPTCHA y firmas, tú.',
+    nuestro: 'Siempre con tu aprobación. Contraseñas, CAPTCHA y firmas, tú.',
   },
 ];
 
@@ -117,11 +117,11 @@ const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; text
   {
     icono: 'persona',
     titulo: 'Escribiste tu nombre, tu DNI y tu IBAN',
-    texto: 'En tu Mac, donde se guardan cifrados con tu llavero.',
+    texto: 'En tu ordenador, donde se guardan cifrados.',
   },
   {
     icono: 'escudo',
-    titulo: 'Se ocultaron antes de salir del Mac',
+    titulo: 'Se ocultaron antes de salir de tu ordenador',
     texto: 'Un modelo de privacidad, sin conexión, los cambió por marcadores.',
   },
   {
@@ -133,17 +133,17 @@ const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; text
   },
   {
     icono: 'huella',
-    titulo: 'Tú lo aprobaste con Touch ID',
+    titulo: 'Tú lo aprobaste',
     texto: 'Sin tu permiso no se envía, ni se paga, nada.',
   },
   {
     icono: 'web',
     titulo: 'Tus datos reales, solo en la web de la Agencia Tributaria',
-    texto: 'La app los escribió allí desde tu Mac.',
+    texto: 'La app los escribió allí desde tu ordenador.',
   },
 ];
 
-/** Lo que pasa con una petición: se ocultan los datos antes de salir del Mac y la IA solo ve marcadores. */
+/** Lo que pasa con una petición: se ocultan los datos antes de salir del ordenador y la IA solo ve marcadores. */
 function Viaje({ modeloNan }: { modeloNan: boolean }) {
   // Cada vuelta monta la escena de nuevo, desde el principio.
   const [vuelta, setVuelta] = useState(0);
@@ -332,7 +332,7 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
               </h1>
               <p className={cn(entradilla, 'text-[var(--text-secondary)]')}>
                 Un asistente que investiga el trámite en las webs oficiales, te explica los pasos y
-                rellena los formularios por ti, sin que tus datos salgan de tu Mac.
+                rellena los formularios por ti, sin que tus datos salgan de tu ordenador.
               </p>
               <ul className="m-0 grid grid-cols-3 gap-3 p-0 text-left">
                 {COMO.map((c, i) => (

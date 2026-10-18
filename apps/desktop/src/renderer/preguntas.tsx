@@ -127,7 +127,9 @@ function Entrada({
   valor: string;
   fijar: (v: string) => void;
 }) {
-  const ayuda = c.privado ? 'Se guarda cifrado en tu Mac. El asistente no verá el valor.' : c.ayuda;
+  const ayuda = c.privado
+    ? 'Se guarda cifrado en tu ordenador. El asistente no verá el valor.'
+    : c.ayuda;
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-[15px] font-medium">
