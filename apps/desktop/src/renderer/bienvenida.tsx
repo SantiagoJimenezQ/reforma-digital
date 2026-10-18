@@ -4,7 +4,7 @@ import { cn } from '@reforma-digital/design/lib/utils';
 import { useEstado } from './estado';
 import { Icono, Marca, type NombreIcono } from './icono';
 
-const COMO: { icono: NombreIcono; titulo: string; texto: string }[] = [
+const COMO: { icono: NombreIcono; titulo: string; texto: string; amarillo?: boolean }[] = [
   {
     icono: 'buscar',
     titulo: 'Le cuentas qué necesitas',
@@ -12,6 +12,7 @@ const COMO: { icono: NombreIcono; titulo: string; texto: string }[] = [
   },
   {
     icono: 'web',
+    amarillo: true,
     titulo: 'Abre la web y la rellena',
     texto: 'Con lo que guardaste en Mis datos, en un navegador dentro de la app y a la vista.',
   },
@@ -135,7 +136,14 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
                 {COMO.map((c, i) => (
                   <li key={c.titulo} className="list-none rounded-[24px] bg-background p-6">
                     <span className="mb-4 flex items-center justify-between">
-                      <span className="grid size-10 place-items-center rounded-xl bg-brand/[0.08] text-brand">
+                      <span
+                        className={cn(
+                          'grid size-10 place-items-center rounded-xl',
+                          c.amarillo
+                            ? 'bg-brand-yellow/[0.15] text-brand-yellow'
+                            : 'bg-brand/[0.08] text-brand',
+                        )}
+                      >
                         <Icono nombre={c.icono} />
                       </span>
                       <span className="text-sm text-muted-foreground">{i + 1}</span>
