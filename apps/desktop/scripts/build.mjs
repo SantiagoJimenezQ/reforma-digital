@@ -2,7 +2,6 @@
 // porque los preloads con sandbox no admiten ESM) e interfaz (React + sistema de diseño).
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { cp, mkdir, rm } from 'node:fs/promises';
 import { builtinModules, createRequire } from 'node:module';
@@ -12,7 +11,7 @@ import { designPostcss } from '@reforma-digital/design/postcss';
 const raiz = path.resolve(import.meta.dirname, '..');
 const repo = path.resolve(raiz, '../..');
 const out = path.join(raiz, 'out');
-// ONNX Runtime es nativo: va aparte, en out/node_modules, con solo el binario de este Mac.
+// ONNX Runtime es nativo: va aparte, en out/node_modules, con solo el binario de este sistema.
 const externos = [
   'electron',
   'onnxruntime-node',
@@ -83,19 +82,17 @@ const ortCommon = path.resolve(
   '../../..',
 );
 const binario = `bin/napi-v6/${process.platform}/${process.arch}`;
+// En Linux solo se compila para comprobar el build (CI); la app es para Mac.
+const libreria = process.platform === 'darwin' ? 'libonnxruntime.1.dylib' : 'libonnxruntime.so.1';
 for (const f of [
   'package.json',
   'dist',
   `${binario}/onnxruntime_binding.node`,
-  `${binario}/libonnxruntime.1.dylib`,
+  `${binario}/${libreria}`,
 ]) {
   const destino = path.join(out, 'node_modules/onnxruntime-node', f);
   await mkdir(path.dirname(destino), { recursive: true });
   await cp(path.join(ortNode, f), destino, { recursive: true });
 }
 await cp(ortCommon, path.join(out, 'node_modules/onnxruntime-common'), { recursive: true });
-// La extensión de Reforma Digital: la app la carga en el navegador de los trámites si la persona
-// activa las interfaces comunitarias en Ajustes.
-execFileSync(process.execPath, ['scripts/build.mjs'], { cwd: repo, stdio: 'ignore' });
-await cp(path.join(repo, 'dist'), path.join(out, 'extension'), { recursive: true });
 console.log('App compilada en', path.relative(process.cwd(), out));

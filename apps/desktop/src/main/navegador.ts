@@ -1,5 +1,6 @@
 import { once } from 'node:events';
 import { existsSync, mkdirSync } from 'node:fs';
+import { isIP } from 'node:net';
 import { setTimeout as dormir } from 'node:timers/promises';
 import path from 'node:path';
 import {
@@ -11,7 +12,8 @@ import {
   type Session,
 } from 'electron';
 import { llamar, type Navegador } from '@reforma-digital/agent';
-import { officialLevel } from '@reforma-digital/government/domains';
+import { direccionPrivada } from '@reforma-digital/agent/fetch';
+import { isOfficial } from '@reforma-digital/government/domains';
 import type { Descarga, Rect } from '../shared/api';
 
 /** Mundo aislado donde corre el script de lectura: la página no puede ver ni tocar sus variables. */
@@ -30,16 +32,12 @@ export const esLectura = (ses: Session) => ses === sesionLectura();
 /** Lo que se abre dentro del navegador del trámite; AutoFirma se abre fuera y el resto se ignora. */
 const EN_VISTA = /^(https?|blob):/i;
 
-/**
- * Carga o quita la extensión de Reforma Digital en una sesión. Sus interfaces comunitarias solo
- * aparecen en los portales que tienen adaptación y conservan los controles oficiales.
- */
-export async function interfacesComunitarias(ses: Session, ruta: string | null) {
-  const cargada = ses.extensions
-    .getAllExtensions()
-    .find((e) => e.path === ruta || e.name.startsWith('Reforma Digital'));
-  if (ruta && !cargada) await ses.extensions.loadExtension(ruta);
-  if (!ruta && cargada) ses.extensions.removeExtension(cargada.id);
+/** Si el host es, o resuelve a, una dirección de la red local (router, impresora, localhost…). */
+async function enRedLocal(ses: Session, host: string) {
+  const h = host.replace(/^\[|\]$/g, '');
+  if (isIP(h)) return direccionPrivada(h);
+  const r = await ses.resolveHost(h).catch(() => null);
+  return Boolean(r?.endpoints.some((e) => direccionPrivada(e.address)));
 }
 
 /** Sin permisos de cámara, ubicación ni notificaciones, y con el agente de usuario de Chrome. */
@@ -81,7 +79,7 @@ export async function leerConNavegador(url: string, signal: AbortSignal) {
   const wc = view.webContents;
   // Solo sigue redirecciones y navegaciones a webs oficiales por HTTPS: nunca a la red local.
   const soloOficiales = (e: { url: string; preventDefault(): void }) => {
-    if (!officialLevel(e.url)) e.preventDefault();
+    if (!isOfficial(e.url)) e.preventDefault();
   };
   wc.on('will-navigate', soloOficiales);
   wc.on('will-redirect', soloOficiales);
@@ -156,7 +154,7 @@ export class NavegadorTramite implements Navegador {
   private enVentana: BrowserWindow | null = null;
 
   constructor(
-    readonly tramite: string,
+    tramite: string,
     private opciones: {
       persistente: boolean;
       carpetaDescargas: () => string;
@@ -209,6 +207,11 @@ export class NavegadorTramite implements Navegador {
     if (configuradas.has(ses)) return;
     configuradas.add(ses);
     prepararSesion(ses);
+    // Ni el asistente ni una web pueden llevar el navegador del trámite a la red local.
+    ses.webRequest.onBeforeRequest((d, responder) => {
+      if (d.resourceType !== 'mainFrame' && d.resourceType !== 'subFrame') return responder({});
+      void enRedLocal(ses, new URL(d.url).hostname).then((cancel) => responder({ cancel }));
+    });
     // AutoFirma lanzada desde un iframe no pasa por will-navigate: llega como permiso para abrir
     // una app externa. Se deniega y, si es AutoFirma, se abre tras preguntar.
     ses.setPermissionRequestHandler((_wc, permiso, responder, detalles) => {

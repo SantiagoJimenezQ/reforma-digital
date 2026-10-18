@@ -92,7 +92,10 @@ export function validarCampo(clave: string, valor: string): string | null {
   if (tipo === 'telefono' && !/^(\+\d{2,3})?[\d\s.-]{9,14}$/.test(v)) return 'Revisa el teléfono.';
   if (clave === 'codigo_postal' && !/^(0[1-9]|[1-4]\d|5[0-2])\d{3}$/.test(v))
     return 'El código postal tiene 5 cifras.';
-  if (clave === 'iban' && !/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/i.test(v.replace(/\s/g, '')))
+  if (
+    clave === 'iban' &&
+    (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/i.test(sinSeparadores(v)) || !ibanValido(v))
+  )
     return 'Revisa el IBAN.';
   return null;
 }

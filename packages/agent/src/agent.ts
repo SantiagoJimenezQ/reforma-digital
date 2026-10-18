@@ -117,7 +117,7 @@ const textoDeSalida = (o: Salida) =>
 /**
  * Reduce el contexto sin perder lo necesario: solo la última página del navegador va completa
  * (las anteriores quedan como su primera línea) y los resultados de investigación antiguos se
- * recortan, porque el texto sigue guardado en sus fuentes.
+ * recortan, porque se pueden volver a leer con leer_pagina.
  */
 export function compactar(mensajes: ModelMessage[]): ModelMessage[] {
   const resultados = mensajes.flatMap((m) =>
@@ -143,7 +143,9 @@ export function compactar(mensajes: ModelMessage[]): ModelMessage[] {
               !recientes.has(part) &&
               texto.length > 800
             )
-              nuevo = texto.slice(0, 600) + '\n[recortado: el texto sigue guardado en su fuente]';
+              nuevo =
+                texto.slice(0, 600) +
+                '\n[recortado: vuelve a leerlo con leer_pagina si lo necesitas]';
             return nuevo === texto
               ? part
               : { ...part, output: { type: 'text' as const, value: nuevo } };

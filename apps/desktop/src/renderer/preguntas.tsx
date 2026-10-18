@@ -240,8 +240,38 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
       fijar={(v) => fijar(c.clave, v)}
     />
   ));
-  const faltanTexto = faltanAqui.length > 0 && (
-    <span className="text-sm text-muted-foreground">Faltan {faltanAqui.length} por completar.</span>
+  const acciones = (
+    <div className={cn('flex flex-wrap items-center gap-3', pasos ? 'mt-6' : 'mt-5')}>
+      {paso > 0 ? (
+        <Button type="button" variant="ghost" size="lg" onClick={() => ir(paso - 1)}>
+          Atrás
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          variant="ghost"
+          size="lg"
+          disabled={enviando}
+          onClick={() => responder(null)}
+        >
+          Ahora no
+        </Button>
+      )}
+      {faltanAqui.length > 0 && (
+        <span className="text-sm text-muted-foreground">
+          Faltan {faltanAqui.length} por completar.
+        </span>
+      )}
+      <Button
+        type="submit"
+        variant="sunset"
+        size="lg"
+        className="ml-auto"
+        disabled={enviando || faltanAqui.length > 0}
+      >
+        {pasos && !revisar ? 'Continuar' : (accion ?? 'Enviar respuestas')}
+      </Button>
+    </div>
   );
   const cuerpo = (
     <div className="px-5 pb-5">
@@ -301,59 +331,14 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
                   campos
                 )}
               </div>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                {paso > 0 ? (
-                  <Button type="button" variant="ghost" size="lg" onClick={() => ir(paso - 1)}>
-                    Atrás
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="lg"
-                    disabled={enviando}
-                    onClick={() => responder(null)}
-                  >
-                    Ahora no
-                  </Button>
-                )}
-                {faltanTexto}
-                <Button
-                  type="submit"
-                  variant="sunset"
-                  size="lg"
-                  className="ml-auto"
-                  disabled={enviando || faltanAqui.length > 0}
-                >
-                  {revisar ? accion : 'Continuar'}
-                </Button>
-              </div>
+              {acciones}
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {campos}
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <Button
-                type="submit"
-                variant="sunset"
-                size="lg"
-                disabled={enviando || faltan.length > 0}
-              >
-                {accion ?? 'Enviar respuestas'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="lg"
-                disabled={enviando}
-                onClick={() => responder(null)}
-              >
-                Ahora no
-              </Button>
-              {faltanTexto}
-            </div>
-          </div>
+          <>
+            <div className="space-y-4">{campos}</div>
+            {acciones}
+          </>
         )}
       </form>
     </div>

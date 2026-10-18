@@ -4,7 +4,6 @@ import type { ComponentType } from 'react';
 import {
   IconAlarmClockOutline18,
   IconArrowDottedRotateAnticlockwiseOutline18,
-  IconCalendarOutline18,
   IconCheckOutline18,
   IconChevronDownOutline18,
   IconChevronLeftOutline18,
@@ -12,11 +11,9 @@ import {
   IconCircleInfoOutline18,
   IconFileContentOutline18,
   IconFingerprintOutline18,
-  IconFolderOpenOutline18,
   IconGear2Outline18,
   IconGlobePointerOutline18,
   IconHandOutline18,
-  IconLinkOutline18,
   IconLockOutline18,
   IconMagnifierOutline18,
   IconPinTackOutline18,
@@ -27,7 +24,6 @@ import {
   IconTriangleWarningOutline18,
   IconUserOutline18,
   IconXmarkOutline18,
-  IconEyeOpenOutline18,
 } from 'nucleo-ui-essential-outline-18';
 
 type Svg = ComponentType<{ size?: number; className?: string; 'aria-hidden'?: true }>;
@@ -71,7 +67,6 @@ function Redirigir({ size, className }: { size?: number; className?: string }) {
 }
 
 const iconos = {
-  calendario: IconCalendarOutline18,
   check: IconCheckOutline18,
   abajo: IconChevronDownOutline18,
   atras: IconChevronLeftOutline18,
@@ -79,11 +74,9 @@ const iconos = {
   info: IconCircleInfoOutline18,
   documento: IconFileContentOutline18,
   huella: IconFingerprintOutline18,
-  carpeta: IconFolderOpenOutline18,
   ajustes: IconGear2Outline18,
   web: IconGlobePointerOutline18,
   mano: IconHandOutline18,
-  enlace: IconLinkOutline18,
   candado: IconLockOutline18,
   buscar: IconMagnifierOutline18,
   mas: IconPlusOutline18,
@@ -94,7 +87,6 @@ const iconos = {
   aviso: IconTriangleWarningOutline18,
   persona: IconUserOutline18,
   cerrar: IconXmarkOutline18,
-  ver: IconEyeOpenOutline18,
   detener: Detener,
   enviar: FlechaArriba,
   redirigir: Redirigir,

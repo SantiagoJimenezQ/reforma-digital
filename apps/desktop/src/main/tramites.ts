@@ -26,7 +26,7 @@ import type {
   TramiteVista,
 } from '../shared/api';
 import type { Almacen } from './almacen';
-import { interfacesComunitarias, leerConNavegador, NavegadorTramite, particion } from './navegador';
+import { leerConNavegador, NavegadorTramite, particion } from './navegador';
 
 type Registro = {
   id: string;
@@ -50,8 +50,6 @@ export type Entorno = {
   detector(): Promise<Detector>;
   /** Si las sesiones de las webs se guardan al cerrar la app. */
   sesionesGuardadas(): boolean;
-  /** Ruta de la extensión si la persona ha activado las interfaces comunitarias. */
-  extension(): string | null;
   ventana(): BrowserWindow | null;
   emitir(e: EventoApp): void;
   alCambiarLista(): void;
@@ -78,6 +76,9 @@ type Espera = {
   tramite: string;
   resolver: (respuesta: Record<string, string> | boolean | null) => void;
 };
+
+export const SIN_CLAVE =
+  'Esta compilación de la app no lleva la clave del asistente. Compílala con AI_GATEWAY_API_KEY o con NAN_API_KEY y EXA_API_KEY.';
 
 const archivo = (id: string) => `tramite-${id}.bin`;
 const ahora = () => new Date().toISOString();
@@ -191,12 +192,9 @@ export class Tramites {
     const nav = this.navegadores.get(id);
     return {
       ...this.resumen(r),
-      // El texto de las páginas se queda en el proceso principal: la interfaz no lo necesita.
-      fuentes: r.estado.fuentes.map(({ texto: _texto, ...f }) => f),
+      fuentes: r.estado.fuentes,
       conversacion: textos(r.conversacion, mostrar(r)),
       cola: this.colas.get(id) ?? [],
-      uso: r.estado.uso,
-      descargas: r.descargas,
       navegador: nav
         ? {
             url: nav.url(),
@@ -288,8 +286,7 @@ export class Tramites {
         tipo: 'aviso',
         id: randomUUID(),
         tono: 'error',
-        texto:
-          'Esta compilación de la app no lleva la clave del asistente. Compílala con AI_GATEWAY_API_KEY.',
+        texto: SIN_CLAVE,
       });
       await this.guardar(r);
       this.cambio(id);
@@ -463,12 +460,6 @@ export class Tramites {
     n.show();
   }
 
-  private cargarExtension(nav: NavegadorTramite) {
-    return interfacesComunitarias(nav.webContents.session, this.entorno.extension()).catch(
-      () => undefined,
-    );
-  }
-
   private actualizarInsignia() {
     app.dock?.setBadge(this.esperas.size ? String(this.esperas.size) : '');
   }
@@ -477,6 +468,8 @@ export class Tramites {
     let nav = this.navegadores.get(id);
     if (!nav) {
       const r = this.registros.get(id);
+      // Un aviso tardío de la interfaz no debe crear el navegador de un trámite ya borrado.
+      if (!r) throw new Error('Trámite no encontrado');
       nav = new NavegadorTramite(id, {
         persistente: this.entorno.sesionesGuardadas(),
         ventana: () => this.entorno.ventana(),
@@ -484,26 +477,25 @@ export class Tramites {
           path.join(
             app.getPath('downloads'),
             'Reforma Digital',
-            sinMarcadores(r?.estado.titulo || id)
+            sinMarcadores(r.estado.titulo || id)
               .replace(/[/\\:]/g, '-')
               .slice(0, 60),
           ),
         alCambiar: () => this.cambio(id),
         alDescargar: (d) => {
-          r?.descargas.push(d);
-          r?.conversacion.push({
+          r.descargas.push(d);
+          r.conversacion.push({
             tipo: 'aviso',
             id: randomUUID(),
             tono: 'info',
             texto: `Descargado «${d.nombre}» en tu carpeta de Descargas.`,
             archivo: d.ruta,
           });
-          if (r) void this.guardar(r).catch((e: unknown) => console.error(e));
+          void this.guardar(r).catch((e: unknown) => console.error(e));
           this.cambio(id);
         },
       });
       this.navegadores.set(id, nav);
-      void this.cargarExtension(nav);
     }
     return nav;
   }
@@ -699,13 +691,9 @@ export class Tramites {
     this.cambio(id);
   }
 
-  /** Aplica el ajuste de interfaces comunitarias a los navegadores ya abiertos. */
-  async aplicarExtension() {
-    for (const nav of this.navegadores.values()) await this.cargarExtension(nav);
-  }
-
-  registro(id: string) {
-    return this.registros.get(id);
+  /** Si el archivo lo ha descargado algún trámite. */
+  esDescarga(ruta: string) {
+    return [...this.registros.values()].some((r) => r.descargas.some((d) => d.ruta === ruta));
   }
 
   async borrarTodo() {

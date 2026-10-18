@@ -179,7 +179,17 @@ export function Inicio({ abrir }: { abrir: (id: string) => void }) {
   const [borrador, setBorrador] = useState<{ texto: string }>();
   // El municipio de Mis datos, si está guardado, ya va puesto.
   const municipio = app?.perfil.find((d) => d.clave === 'municipio' && d.guardado)?.vista;
-  const crear = async (texto: string) => abrir(await window.rd.crearTramite(texto, razonamiento));
+  // Un doble clic en un recordatorio no debe crear dos trámites.
+  const creando = useRef(false);
+  const crear = async (texto: string) => {
+    if (creando.current) return;
+    creando.current = true;
+    try {
+      abrir(await window.rd.crearTramite(texto, razonamiento));
+    } finally {
+      creando.current = false;
+    }
+  };
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
       {/* El atardecer de Sol, solo como luz de fondo bajo el contenido. */}

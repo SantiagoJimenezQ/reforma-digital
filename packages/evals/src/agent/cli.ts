@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
+import type { ConfigProveedor } from '@reforma-digital/agent';
 import { evaluar, type Config } from './run';
 
 const { values: v } = parseArgs({
@@ -11,7 +12,7 @@ const { values: v } = parseArgs({
     modelo: { type: 'string', default: 'openai/gpt-6-luna' },
     proveedor: {
       type: 'string',
-      default: process.env.AI_GATEWAY_API_KEY ? 'gateway' : 'openrouter',
+      default: process.env.AI_GATEWAY_API_KEY ? 'gateway' : 'nan',
     },
     razonamiento: { type: 'string' },
     solo: { type: 'string', default: '' },
@@ -20,20 +21,20 @@ const { values: v } = parseArgs({
     comparar: { type: 'string' },
   },
 });
-const tipo = z.enum(['gateway', 'openrouter', 'nan']).parse(v.proveedor);
-const variable = {
-  gateway: 'AI_GATEWAY_API_KEY',
-  openrouter: 'OPENROUTER_API_KEY',
-  nan: 'NAN_API_KEY',
-}[tipo];
+const tipo = z.enum(['gateway', 'nan']).parse(v.proveedor);
+const variable = tipo === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'NAN_API_KEY';
 const clave = process.env[variable];
 if (!clave) throw new Error(`Falta ${variable}: las evaluaciones del agente usan un modelo real.`);
-// Con NaN Builders, las búsquedas las hace Exa.
-const claveExa = process.env.EXA_API_KEY;
-if (tipo === 'nan' && !claveExa) throw new Error('Falta EXA_API_KEY: con NaN Builders busca Exa.');
+let proveedor: ConfigProveedor = { tipo: 'gateway', clave, modelo: v.modelo };
+if (tipo === 'nan') {
+  // Con NaN Builders, las búsquedas las hace Exa.
+  const claveExa = process.env.EXA_API_KEY;
+  if (!claveExa) throw new Error('Falta EXA_API_KEY: con NaN Builders busca Exa.');
+  proveedor = { tipo, clave, claveExa, modelo: v.modelo };
+}
 const suite = z.enum(['ejecucion', 'investigacion', 'todo']).parse(v.suite);
 const cfg: Config = {
-  proveedor: { tipo, clave, modelo: v.modelo, ...(claveExa ? { claveExa } : {}) },
+  proveedor,
   juez: v.juez,
   razonamiento: z
     .enum(['none', 'minimal', 'low', 'medium', 'high'])

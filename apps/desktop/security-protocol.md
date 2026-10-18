@@ -20,9 +20,9 @@ El principio es este: **el modelo de IA no recibe datos personales, y lo que la 
 
 ## Qué sale del Mac y a quién
 
-- **Proveedor de IA** (Vercel AI Gateway, con la clave con la que se compiló la app): las instrucciones y la conversación, con los datos personales sustituidos por marcadores. Las peticiones solo van a proveedores que no entrenan con ellas (`disallowPromptTraining` en Vercel, `data_collection: deny` en OpenRouter). Con **Retención cero** en Ajustes, solo a los que tampoco las guardan (`zeroDataRetention`, que en Vercel exige el plan Pro; `zdr` en OpenRouter). Si el proveedor no puede cumplirlo, la petición falla: no se relaja. Temporalmente, si la app se compila con sus claves, el proveedor es **NaN Builders**, que según su web no registra las peticiones ni las respuestas, no entrena con ellas y procesa en la UE; la opción de Retención cero no se muestra.
+- **Proveedor de IA** (Vercel AI Gateway, con la clave con la que se compiló la app): las instrucciones y la conversación, con los datos personales sustituidos por marcadores. Las peticiones solo van a proveedores que no entrenan con ellas (`disallowPromptTraining`). Con **Retención cero** en Ajustes, solo a los que tampoco las guardan (`zeroDataRetention`, que en Vercel exige el plan Pro). Si el proveedor no puede cumplirlo, la petición falla: no se relaja. Temporalmente, si la app se compila con sus claves, el proveedor es **NaN Builders**, que según su web no registra las peticiones ni las respuestas, no entrena con ellas y procesa en la UE; la opción de Retención cero no se muestra.
 - **Buscador** (Parallel, a través del proveedor; con NaN Builders, Exa directamente): la consulta que escribe el agente, limpia de identificadores, y, si los pide, los dominios en los que buscar. Busca en toda la web: los resultados de dominios que no están en la lista de webs oficiales llegan al agente marcados «sin verificar».
-- **Webs**: las que el agente lee o abre en el navegador del trámite, cualquiera por https y sin pedir permiso. Los datos reales se escriben en la web donde el agente pone el marcador. Como el modelo puede escribir cualquier dirección, puede sacar en ella lo que ve (nunca los datos ocultos tras un marcador).
+- **Webs**: las que el agente lee o abre en el navegador del trámite, cualquiera por https y sin pedir permiso, salvo las de la red local. Los datos reales se escriben en la web donde el agente pone el marcador. Como el modelo puede escribir cualquier dirección, puede sacar en ella lo que ve (nunca los datos ocultos tras un marcador).
 - **Google** (los iconos de las fuentes): el origen de cada web que aparece debajo de una respuesta (`https://sede.policia.gob.es`), sin ruta, sin parámetros y sin referer, cuando se muestra. Google sabe así qué webs se han consultado; no recibe la pregunta ni los datos.
 - **Nadie más**: no hay servidores de Reforma Digital, analítica ni informes de errores. El modelo del detector va dentro de la app; no se descarga al usarla.
 
@@ -90,10 +90,7 @@ Con `openai/gpt-6-luna` como agente y como juez, en la sede ficticia y con datos
   - Lo encontrado en las páginas tapaba el texto de las webs oficiales que se usa para citar.
   - Lo que traía un campo se veía si el agente lo copiaba a otro.
   - El título con datos llegaba a las notificaciones durante el primer paso.
-- **Versión final**:
-  - Ejecución: 9 de 10 escenarios con éxito, 0 fugas, 0 violaciones y ninguna actuación de la última capa. El fallo es `hueco-ocupado`, donde el agente no aceptó las 12:00 como «por la mañana»; no hay datos ocultos en ese recorrido.
-  - Investigación: completitud, respaldo de citas y abstención del 100 %, con 0 fugas.
-  - Una versión anterior del detector dio 10 de 10 en ejecución.
+- **Versión final**: en ejecución, 0 fugas y ninguna actuación de la última capa. Los resultados de calidad están en [el README](README.md#evaluaciones).
 - **El detector de fugas de la evaluación** busca cada valor como palabra entera: antes contaba «Lucía» dentro de «Andalucía».
 - **Con el modelo real** (prueba que se ejecuta si está descargado), estas frases se protegen sin partir palabras ni tapar trámites, oficinas o municipios: «Cita para mi hijo Iker Arrieta y para mi madre Carmen López», «Rellena el Modelo 030 de Hacienda para el empadronamiento de Getafe», «Elija la oficina. Bienvenida, LUCÍA ORTUZAR».
 - **En la app**, compilada y empaquetada:

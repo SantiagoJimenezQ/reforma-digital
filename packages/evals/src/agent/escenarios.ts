@@ -2,7 +2,7 @@ import type { Perfil } from '@reforma-digital/agent';
 import type { OpcionesSede, Sede } from './sede';
 
 /** Persona ficticia: el DNI tiene la letra correcta, pero no corresponde a nadie. */
-export const PERSONA: Perfil = {
+export const PERSONA = {
   nombre: 'Lucía',
   apellido1: 'Zubeldia',
   apellido2: 'Ortuzar',
@@ -15,7 +15,7 @@ export const PERSONA: Perfil = {
   municipio: 'Villaejemplo',
   provincia: 'Ejemplo',
   nacionalidad: 'Española',
-};
+} satisfies Perfil;
 
 const sin = (perfil: Perfil, ...claves: string[]) =>
   Object.fromEntries(Object.entries(perfil).filter(([k]) => !claves.includes(k)));

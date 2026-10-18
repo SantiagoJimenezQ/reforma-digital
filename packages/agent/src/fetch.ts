@@ -116,6 +116,10 @@ export async function leerPagina(url: string, signal?: AbortSignal): Promise<Pag
   for (let saltos = 0; saltos <= 5; saltos++) {
     if (actual.protocol !== 'https:')
       throw new FetchError(`${actual.hostname} no usa https: no se puede leer.`);
+    // Con una IP en la URL, Node no pasa por lookupSeguro: se comprueba aquí.
+    const ip = actual.hostname.replace(/^\[|\]$/g, '');
+    if (net.isIP(ip) && direccionPrivada(ip))
+      throw new FetchError('La dirección es de una red privada.');
     const res = await pedir(actual, signal);
     if (res.status >= 300 && res.status < 400 && res.headers.location) {
       actual = new URL(String(res.headers.location), actual);

@@ -7,10 +7,10 @@ import {
   CollapsibleTrigger,
 } from '@reforma-digital/design/ui/collapsible';
 import { cn } from '@reforma-digital/design/lib/utils';
-import type { FuenteVista, ItemConversacion, TramiteVista } from '../shared/api';
+import type { Fuente, ItemConversacion, TramiteVista } from '../shared/api';
 import { cargarTramite, useEstado } from './estado';
 import { duracion, host } from './formato';
-import { Favicon, origen, sitio } from './fuentes';
+import { Favicon } from './fuentes';
 import { Icono } from './icono';
 import { Compositor } from './inicio';
 import { Pregunta } from './preguntas';
@@ -82,7 +82,7 @@ function useSegundero(activo: boolean) {
 }
 
 /** De quién es la web; en la ficha va solo el título, porque el icono ya dice de quién es. */
-const deQuien = (f: FuenteVista) => f.organismo?.split(' · ')[0] ?? sitio(f.url);
+const deQuien = (f: Fuente) => f.organismo?.split(' · ')[0] ?? host(f.url);
 
 const entra = '[animation:chat-stage-change_280ms_var(--ease-brand)_both]';
 
@@ -94,7 +94,7 @@ function Paso({
   conLinea,
 }: {
   items: ItemActividad[];
-  fuentes: FuenteVista[];
+  fuentes: Fuente[];
   abrir: (url: string) => void;
   conLinea: boolean;
 }) {
@@ -153,7 +153,7 @@ function Paso({
                   entra,
                 )}
               >
-                <Favicon web={origen(f.url)} className="size-4 rounded-[4px]" />
+                <Favicon url={f.url} className="size-4 rounded-[4px]" />
                 <span className="truncate">{f.titulo || deQuien(f)}</span>
               </button>
             ))}
@@ -181,7 +181,7 @@ function Actividad({
 }: {
   items: ItemActividad[];
   enCurso: boolean;
-  fuentes: FuenteVista[];
+  fuentes: Fuente[];
   abrir: (url: string) => void;
 }) {
   const [abierta, setAbierta] = useState(enCurso);
@@ -471,9 +471,6 @@ function PanelNavegador({ vista }: { vista: TramiteVista }) {
       void window.rd.colocarNavegador(vista.id, null);
     };
   }, [vista.id, hayVista]);
-  const ayuda = vista.conversacion.find(
-    (i) => i.tipo === 'pregunta' && i.estado === 'pendiente' && i.pregunta.tipo === 'ayuda',
-  );
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
@@ -500,22 +497,6 @@ function PanelNavegador({ vista }: { vista: TramiteVista }) {
           <span className="truncate">{nav?.url ? host(nav.url) : 'Sin página'}</span>
         </div>
       </div>
-      {ayuda && ayuda.tipo === 'pregunta' && ayuda.pregunta.tipo === 'ayuda' && (
-        <div className="flex items-center gap-3 bg-[var(--warning)] px-4 py-3 text-[15px] text-[var(--warning-foreground)]">
-          <Icono nombre="mano" className="shrink-0" />
-          <p className="m-0 flex-1">
-            <strong className="font-medium">Te toca a ti:</strong>{' '}
-            {ayuda.pregunta.ayuda.instrucciones}
-          </p>
-          <Button
-            variant="sunset"
-            size="lg"
-            onClick={() => void window.rd.responder(vista.id, ayuda.id, true)}
-          >
-            Ya está
-          </Button>
-        </div>
-      )}
       {hayVista ? (
         <div ref={hueco} className="min-h-0 flex-1 bg-background" />
       ) : (

@@ -27,5 +27,5 @@
     "onlyLoadAppFromAsar": true,
     "grantFileProtocolExtraPrivileges": false
   },
-  "asarUnpack": ["out/extension/**", "out/modelos/**", "out/node_modules/onnxruntime-node/bin/**"]
+  "asarUnpack": ["out/modelos/**", "out/node_modules/onnxruntime-node/bin/**"]
 }

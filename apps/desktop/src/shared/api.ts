@@ -1,28 +1,27 @@
-/** Contrato entre el proceso principal, el preload y la interfaz. Solo tipos. */
-import type {
-  Ayuda,
-  CampoPerfil,
-  Confirmacion,
-  Formulario,
-  Fuente,
-  Uso,
-} from '@reforma-digital/agent';
+/**
+ * Contrato entre el proceso principal, el preload y la interfaz. Tipos, y el esquema de los ajustes
+ * que valida el proceso principal (la interfaz solo importa tipos, así que zod no entra en ella).
+ */
+import { z } from 'zod';
+import type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente } from '@reforma-digital/agent';
 
-export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente, Uso };
+export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente };
 
 export type Razonamiento = 'low' | 'medium' | 'high';
 
-export type Ajustes = {
-  modelo: string;
+export const ajustesEsquema = z.object({
+  modelo: z
+    .string()
+    .regex(/^[\w.-]+\/[\w.:-]+$/)
+    .max(100),
   /** Pedir Touch ID antes de aprobar envíos, pagos y firmas. */
-  touchIdEnConfirmaciones: boolean;
-  /** Cargar la extensión de Reforma Digital en el navegador de los trámites (experimental). */
-  interfacesComunitarias: boolean;
+  touchIdEnConfirmaciones: z.boolean(),
   /** Usar solo proveedores de IA que no guardan las peticiones (en Vercel exige el plan Pro). */
-  retencionCero: boolean;
+  retencionCero: z.boolean(),
   /** Borrar las sesiones de las webs (cookies, inicios de sesión) al cerrar la app. */
-  cerrarSesiones: boolean;
-};
+  cerrarSesiones: z.boolean(),
+});
+export type Ajustes = z.infer<typeof ajustesEsquema>;
 
 export type Pregunta =
   | { tipo: 'formulario'; formulario: Formulario }
@@ -91,16 +90,11 @@ export type ResumenTramite = {
   costeUsd: number;
 };
 
-/** Una fuente como la ve la interfaz: sin su texto, que se queda en el proceso principal. */
-export type FuenteVista = Omit<Fuente, 'texto'>;
-
 export type TramiteVista = ResumenTramite & {
-  fuentes: FuenteVista[];
+  fuentes: Fuente[];
   conversacion: ItemConversacion[];
   /** Lo escrito mientras trabaja, que sale cuando termine. */
   cola: { id: string; texto: string }[];
-  uso: Uso;
-  descargas: Descarga[];
   navegador: { url: string; puedeVolver: boolean } | null;
 };
 
@@ -133,10 +127,8 @@ export type EventoApp =
 export type ApiRd = {
   estado(): Promise<EstadoApp>;
   guardarAjustes(a: Partial<Ajustes>): Promise<{ ok: true } | { ok: false; error: string }>;
-  probarConexion(a: {
-    modelo: string;
-    retencionCero?: boolean;
-  }): Promise<{ ok: boolean; error?: string }>;
+  /** Prueba el modelo con retención cero, que es lo que más proveedores puede descartar. */
+  probarConexion(modelo: string): Promise<{ ok: boolean; error?: string }>;
   crearTramite(texto: string, razonamiento: Razonamiento): Promise<string>;
   /** Fija el trámite arriba de la lista o cambia cuánto piensa el asistente en él. */
   ajustarTramite(

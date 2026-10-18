@@ -77,7 +77,7 @@ function RetencionCero() {
   const cambiar = async (activar: boolean) => {
     if (activar) {
       setEstado({ probando: true });
-      const prueba = await window.rd.probarConexion({ modelo: a.modelo, retencionCero: true });
+      const prueba = await window.rd.probarConexion(a.modelo);
       if (!prueba.ok) return setEstado({ probando: false, error: prueba.error });
     }
     setEstado({ probando: false });

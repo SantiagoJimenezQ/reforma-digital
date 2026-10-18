@@ -57,15 +57,8 @@ const PETICION: { t: string; m?: string }[] = [
   { t: 'ES91 2100 0418 4502 0005 1332', m: '{{iban}}' },
   { t: '.' },
 ];
-/** Lo que pide la IA en su formulario, también inventado. */
-const CAMPOS = [
-  { etiqueta: 'Ingresos del trimestre, sin IVA', valor: '4.250,00 €' },
-  { etiqueta: 'IVA de tus gastos', valor: '310,00 €' },
-];
 const LETRAS = PETICION.reduce((n, p) => n + p.t.length, 0);
-const CIFRAS = CAMPOS.reduce((n, c) => n + c.valor.length, 0);
 const POR_LETRA = 26;
-const POR_CIFRA = 110;
 
 /** Cada fase y cuánto dura, en milisegundos. Al acabar vuelve a empezar. */
 const FASES = [
@@ -73,19 +66,12 @@ const FASES = [
   ['escribe', LETRAS * POR_LETRA + 500],
   ['envia', 400],
   ['detecta', 1000],
-  ['cifra', 1500],
-  ['llega', 1700],
-  ['rellena', CIFRAS * POR_CIFRA + 1200],
-  ['pulsa', 600],
-  ['huella', 2000],
-  ['aprobado', 700],
-  ['exito', 3000],
+  ['cifra', 2200],
   ['resumen', 12000],
   ['sale', 600],
 ] as const;
 type Fase = (typeof FASES)[number][0];
 const orden = (f: Fase) => FASES.findIndex(([n]) => n === f);
-const marcador = 'rounded-md bg-brand-yellow/25 px-1 font-mono text-sm';
 const SIGNOS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#$%&*+=?';
 
 const quieto = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -126,42 +112,6 @@ function Cifrado({ de, a }: { de: string; a: string }) {
   );
 }
 
-/** El anillo de Touch ID: se llena al tocar el sensor y acaba en un check. */
-function Huella({ aprobado }: { aprobado: boolean }) {
-  const [lleno, setLleno] = useState(false);
-  useEffect(() => {
-    const r = requestAnimationFrame(() => setLleno(true));
-    return () => cancelAnimationFrame(r);
-  }, []);
-  const vuelta = 2 * Math.PI * 34;
-  return (
-    <span className="relative grid size-[76px] place-items-center">
-      <svg viewBox="0 0 76 76" className="absolute inset-0 -rotate-90">
-        <circle cx="38" cy="38" r="34" fill="none" stroke="var(--border)" strokeWidth="3" />
-        <circle
-          cx="38"
-          cy="38"
-          r="34"
-          fill="none"
-          stroke="var(--brand)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray={vuelta}
-          strokeDashoffset={lleno ? 0 : vuelta}
-          className="transition-[stroke-dashoffset] duration-[1300ms] ease-out"
-        />
-      </svg>
-      {aprobado ? (
-        <span className="absolute inset-0 grid animate-in place-items-center rounded-full bg-brand text-white duration-300 zoom-in-75">
-          <Icono nombre="check" size={30} />
-        </span>
-      ) : (
-        <Icono nombre="huella" size={34} className="text-brand" />
-      )}
-    </span>
-  );
-}
-
 /** El final: qué ha pasado con tus datos en cada paso. */
 const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; texto: string }[] => [
   {
@@ -193,18 +143,32 @@ const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; text
   },
 ];
 
-/** Lo que pasa con una petición: se ocultan los datos, la IA pide lo que falta y tú lo apruebas. */
+/** Lo que pasa con una petición: se ocultan los datos antes de salir del Mac y la IA solo ve marcadores. */
 function Viaje({ modeloNan }: { modeloNan: boolean }) {
   // Cada vuelta monta la escena de nuevo, desde el principio.
   const [vuelta, setVuelta] = useState(0);
-  return <Escena key={vuelta} modeloNan={modeloNan} alAcabar={() => setVuelta((v) => v + 1)} />;
+  return (
+    <>
+      <Escena key={vuelta} modeloNan={modeloNan} alAcabar={() => setVuelta((v) => v + 1)} />
+      {/* La escena es decorativa: el lector de pantalla recibe su conclusión. */}
+      <div className="sr-only">
+        <p>0 datos tuyos han llegado a la IA.</p>
+        <ol>
+          {resumen(modeloNan).map((r) => (
+            <li key={r.titulo}>
+              {r.titulo}. {r.texto}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </>
+  );
 }
 
 function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => void }) {
   // Sin movimiento, se queda en el momento que mejor lo explica.
   const [fase, setFase] = useState<Fase>(() => (quieto() ? 'resumen' : 'aparece'));
   const [letras, setLetras] = useState(() => (quieto() ? LETRAS : 0));
-  const [cifras, setCifras] = useState(() => (quieto() ? CIFRAS : 0));
   const p = orden(fase);
   useEffect(() => {
     if (quieto()) return;
@@ -216,13 +180,11 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
     return () => clearTimeout(t);
   }, [p, alAcabar]);
   useEffect(() => {
-    if (fase !== 'escribe' && fase !== 'rellena') return;
-    const [poner, tope, ritmo] =
-      fase === 'escribe' ? [setLetras, LETRAS, POR_LETRA] : [setCifras, CIFRAS, POR_CIFRA];
-    const t = setInterval(() => poner((n) => Math.min(n + 1, tope)), ritmo);
+    if (fase !== 'escribe') return;
+    const t = setInterval(() => setLetras((n) => Math.min(n + 1, LETRAS)), POR_LETRA);
     return () => clearInterval(t);
   }, [fase]);
-  const grande = p < orden('llega');
+  const resumida = p >= orden('resumen');
   let quedan = letras;
   const escrito = PETICION.map((parte, i) => {
     const visible = parte.t.slice(0, Math.max(0, quedan));
@@ -242,19 +204,6 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
       </span>
     );
   });
-  let sinEscribir = cifras;
-  const valores = CAMPOS.map((c) => {
-    const v = c.valor.slice(0, Math.max(0, sinEscribir));
-    sinEscribir -= c.valor.length;
-    return {
-      ...c,
-      v,
-      escribiendo: fase === 'rellena' && v.length > 0 && v.length < c.valor.length,
-    };
-  });
-  const cursor = (
-    <span className="ml-px inline-block h-5 w-px translate-y-1 animate-pulse bg-foreground" />
-  );
   return (
     <div
       aria-hidden="true"
@@ -263,175 +212,79 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
         fase === 'sale' && 'opacity-0',
       )}
     >
-      {/* La tarjeta del asistente: pide lo que falta, se aprueba con Touch ID y confirma. */}
-      {!grande && (
+      {/* El final: qué ha pasado con tus datos. Entra cuando el compositor ya se ha ido. */}
+      {resumida && (
         <div
-          // Entra cuando el compositor ya ha bajado.
-          style={{ animationDelay: '700ms' }}
-          className={cn(
-            'absolute inset-x-0 top-0 flex animate-in flex-col rounded-[24px] bg-background p-6 transition-[height] duration-700 fill-mode-both fade-in slide-in-from-bottom-6',
-            fase === 'resumen' ? 'h-[400px]' : 'h-[328px]',
-          )}
+          style={{ animationDelay: '300ms' }}
+          className="absolute inset-x-0 top-0 flex h-[400px] animate-in flex-col rounded-[24px] bg-background p-6 duration-700 fill-mode-both fade-in slide-in-from-bottom-6"
         >
-          {p < orden('huella') && (
-            <>
-              <div className="flex items-start gap-3">
-                <Marca size={28} />
-                <span>
-                  <span className="block text-[17px] font-medium">Necesito dos datos más</span>
-                  <span className="block text-[15px] text-[var(--text-secondary)]">
-                    Para presentar el modelo 303 del tercer trimestre.
-                  </span>
-                </span>
-              </div>
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                {valores.map((c) => (
-                  <span key={c.etiqueta}>
-                    <span className="block text-sm text-[var(--text-secondary)]">{c.etiqueta}</span>
-                    <span
-                      className={cn(
-                        'mt-1.5 flex h-10 items-center rounded-xl border px-3 text-[15px]',
-                        c.escribiendo ? 'border-foreground' : 'border-border',
-                      )}
-                    >
-                      {c.v}
-                      {c.escribiendo && cursor}
-                    </span>
-                  </span>
-                ))}
-              </div>
-              <div className="mt-auto flex justify-end gap-2">
-                <span className="flex h-9 items-center rounded-full px-4 text-[15px] text-[var(--text-secondary)]">
-                  Ahora no
-                </span>
-                <span
-                  className={cn(
-                    'flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-[15px] text-primary-foreground transition-[scale,opacity] duration-200',
-                    fase === 'pulsa' && 'scale-95',
-                    p < orden('pulsa') && cifras < CIFRAS && 'opacity-40',
-                  )}
+          <div className="my-auto">
+            <span className="flex items-baseline gap-3">
+              <span className="text-[40px] leading-none font-semibold text-brand tabular-nums">
+                0
+              </span>
+              <span className="text-[17px] font-medium">datos tuyos han llegado a la IA</span>
+            </span>
+            <ol className="m-0 mt-5 p-0">
+              {resumen(modeloNan).map((r, i, todos) => (
+                <li
+                  key={r.titulo}
+                  style={{ animationDelay: `${300 + i * 450}ms` }}
+                  className="relative flex animate-in list-none gap-3 pb-3.5 duration-500 fill-mode-both fade-in slide-in-from-left-2"
                 >
-                  <Icono nombre="huella" size={16} />
-                  Presentar con Touch ID
-                </span>
-              </div>
-            </>
-          )}
-          {(fase === 'huella' || fase === 'aprobado') && (
-            <div className="flex flex-1 animate-in flex-col items-center justify-center gap-4 text-center duration-300 fade-in zoom-in-95">
-              <Huella aprobado={fase === 'aprobado'} />
-              <span>
-                <span className="block text-[17px] font-medium">
-                  {fase === 'aprobado' ? 'Aprobado' : 'Touch ID'}
-                </span>
-                <span className="block text-[15px] text-[var(--text-secondary)]">
-                  Para presentar el modelo 303 a la Agencia Tributaria
-                </span>
-              </span>
-            </div>
-          )}
-          {fase === 'exito' && (
-            <div className="flex flex-1 animate-in flex-col items-center justify-center text-center duration-500 fade-in slide-in-from-bottom-3">
-              <span className="grid size-14 place-items-center rounded-full bg-success-bg text-success-fg">
-                <Icono nombre="check" size={28} />
-              </span>
-              <span className="mt-4 font-heading text-[28px] leading-tight">
-                Trimestral presentada
-              </span>
-              <span className="mt-2 text-[15px] text-[var(--text-secondary)]">
-                Modelo 303 · 582,50 € a ingresar
-                <br />
-                Se carga en tu cuenta ···· 1332 el 20 de octubre
-              </span>
-            </div>
-          )}
-          {fase === 'resumen' && (
-            <div className="my-auto animate-in duration-500 fade-in">
-              <span className="flex items-baseline gap-3">
-                <span className="text-[40px] leading-none font-semibold text-brand tabular-nums">
-                  0
-                </span>
-                <span className="text-[17px] font-medium">datos tuyos han llegado a la IA</span>
-              </span>
-              <ol className="m-0 mt-5 p-0">
-                {resumen(modeloNan).map((r, i, todos) => (
-                  <li
-                    key={r.titulo}
-                    style={{ animationDelay: `${300 + i * 450}ms` }}
-                    className="relative flex animate-in list-none gap-3 pb-3.5 duration-500 fill-mode-both fade-in slide-in-from-left-2"
-                  >
-                    {i < todos.length - 1 && (
-                      <span className="absolute top-7 bottom-0 left-3 w-px bg-border" />
+                  {i < todos.length - 1 && (
+                    <span className="absolute top-7 bottom-0 left-3 w-px bg-border" />
+                  )}
+                  <span
+                    className={cn(
+                      'grid size-6 shrink-0 place-items-center rounded-full',
+                      i % 2 ? 'bg-brand-yellow/15 text-brand-yellow' : 'bg-brand/[0.08] text-brand',
                     )}
-                    <span
-                      className={cn(
-                        'grid size-6 shrink-0 place-items-center rounded-full',
-                        i % 2
-                          ? 'bg-brand-yellow/15 text-brand-yellow'
-                          : 'bg-brand/[0.08] text-brand',
-                      )}
-                    >
-                      <Icono nombre={r.icono} size={14} />
+                  >
+                    <Icono nombre={r.icono} size={14} />
+                  </span>
+                  <span className="pt-0.5">
+                    <span className="block text-[15px] leading-snug font-medium">{r.titulo}</span>
+                    <span className="block text-sm leading-snug text-[var(--text-secondary)]">
+                      {r.texto}
                     </span>
-                    <span className="pt-0.5">
-                      <span className="block text-[15px] leading-snug font-medium">{r.titulo}</span>
-                      <span className="block text-sm leading-snug text-[var(--text-secondary)]">
-                        {r.texto}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       )}
-      {/* El compositor: grande en el centro mientras escribes; al enviar, pequeño y abajo. */}
+      {/* El compositor, con la petición: los datos se marcan y se cifran antes de enviarla. */}
       <div
         className={cn(
-          'absolute inset-x-0 mx-auto animate-in overflow-hidden rounded-[28px] bg-background duration-700 fade-in slide-in-from-bottom-4 [transition:top_700ms_var(--ease-brand),width_700ms_var(--ease-brand),height_700ms_var(--ease-brand)]',
-          grande ? 'top-[124px] h-[152px] w-full' : 'top-[352px] h-12 w-[440px]',
-          fase === 'resumen' && 'opacity-0 [transition:opacity_300ms]',
+          'absolute inset-x-0 top-[124px] mx-auto h-[152px] w-full animate-in overflow-hidden rounded-[28px] bg-background transition-opacity duration-700 fade-in slide-in-from-bottom-4',
+          resumida && 'opacity-0 duration-300',
         )}
       >
-        {p <= orden('llega') && (
-          <div
+        <div className="px-5 pt-4 text-base leading-7">
+          {escrito}
+          {fase === 'escribe' && (
+            <span className="ml-px inline-block h-5 w-px translate-y-1 animate-pulse bg-foreground" />
+          )}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 px-5 pb-2.5 text-sm text-[var(--text-secondary)]">
+          {fase === 'cifra' && (
+            <span className="flex animate-in items-center gap-2 duration-300 fade-in">
+              <Icono nombre="escudo" size={16} className="text-brand" />3 datos ocultos antes de
+              enviar
+            </span>
+          )}
+          <span
             className={cn(
-              'absolute inset-x-0 top-0 h-[152px] transition-opacity duration-300',
-              !grande && 'opacity-0',
+              'ml-auto grid size-9 place-items-center rounded-full bg-primary text-primary-foreground transition-[scale,opacity] duration-200',
+              fase === 'envia' && 'scale-90',
+              letras === 0 && 'opacity-30',
             )}
           >
-            <div className="px-5 pt-4 text-base leading-7">
-              {escrito}
-              {fase === 'escribe' && cursor}
-            </div>
-            <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 px-5 pb-2.5 text-sm text-[var(--text-secondary)]">
-              {fase === 'cifra' && (
-                <span className="flex animate-in items-center gap-2 duration-300 fade-in">
-                  <Icono nombre="escudo" size={16} className="text-brand" />3 datos ocultos antes de
-                  enviar
-                </span>
-              )}
-              <span
-                className={cn(
-                  'ml-auto grid size-9 place-items-center rounded-full bg-primary text-primary-foreground transition-[scale,opacity] duration-200',
-                  fase === 'envia' && 'scale-90',
-                  letras === 0 && 'opacity-30',
-                )}
-              >
-                <Icono nombre="enviar" />
-              </span>
-            </div>
-          </div>
-        )}
-        {!grande && (
-          <div className="absolute inset-0 flex animate-in items-center gap-2 pr-2 pl-5 text-[15px] text-muted-foreground delay-300 duration-500 fill-mode-both fade-in">
-            Añade otra petición para cuando termine
-            <span className="ml-auto grid size-8 place-items-center rounded-full bg-primary text-primary-foreground opacity-30">
-              <Icono nombre="enviar" size={16} />
-            </span>
-          </div>
-        )}
+            <Icono nombre="enviar" />
+          </span>
+        </div>
       </div>
     </div>
   );

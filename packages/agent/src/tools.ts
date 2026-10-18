@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { setTimeout as dormir } from 'node:timers/promises';
 import { tool } from 'ai';
 import { z } from 'zod';
-import { officialLevel } from '@reforma-digital/government/domains';
+import { isOfficial } from '@reforma-digital/government/domains';
 import type { Detector, OrigenTexto } from './detector';
 import { FetchError, leerPagina } from './fetch';
 import type { Proveedor } from './models';
@@ -247,7 +247,7 @@ export async function protegerPagina(ctx: Contexto, texto: string) {
 }
 
 const formatoFuente = (f: Fuente, extracto: string) =>
-  `[${f.id}] ${f.titulo} — ${host(f.url)}${f.organismo ? ` (${f.organismo})` : ''}${f.nivel ? '' : ' (sin verificar)'}\n${extracto}`;
+  `[${f.id}] ${f.titulo} — ${host(f.url)}${f.organismo ? ` (${f.organismo})` : ''}${f.oficial ? '' : ' (sin verificar)'}\n${extracto}`;
 
 export function crearHerramientas(ctx: Contexto) {
   const signalDe = (o: { abortSignal?: AbortSignal }) =>
@@ -351,7 +351,7 @@ export function crearHerramientas(ctx: Contexto) {
         );
         if (costeUsd !== null) ctx.uso.costeUsd += costeUsd;
         const vistas = resultados.flatMap((r) => {
-          const f = ctx.fuentes.añadir(r.url, r.titulo, r.extracto, 'busqueda');
+          const f = ctx.fuentes.añadir(r.url, r.titulo, 'busqueda');
           return f ? [formatoFuente(f, r.extracto.slice(0, 1400))] : [];
         });
         ctx.evento({ tipo: 'fuentes', fuentes: ctx.fuentes.lista() });
@@ -379,13 +379,13 @@ export function crearHerramientas(ctx: Contexto) {
             !ctx.anfitrion.leerConNavegador ||
             !(e instanceof FetchError) ||
             !e.status ||
-            !officialLevel(destino)
+            !isOfficial(destino)
           )
             throw e;
           p = await ctx.anfitrion.leerConNavegador(destino, signalDe(opts));
-          if (!officialLevel(p.url)) return `${host(p.url)} no es una web oficial.`;
+          if (!isOfficial(p.url)) return `${host(p.url)} no es una web oficial.`;
         }
-        const f = ctx.fuentes.añadir(p.url, p.titulo, p.texto, 'pagina');
+        const f = ctx.fuentes.añadir(p.url, p.titulo, 'pagina');
         if (!f) return `${host(p.url)} no usa https.`;
         ctx.evento({ tipo: 'fuentes', fuentes: ctx.fuentes.lista() });
         const trozo = p.texto.slice(desde, desde + 12000);
@@ -536,8 +536,8 @@ export function crearHerramientas(ctx: Contexto) {
         ctx.privacidad.actualizar(todosLosDatos(ctx));
         // Una página oficial sin datos de la persona también sirve como fuente citable.
         let cabecera = '';
-        if (officialLevel(nav.url()) && !desde && !ctx.privacidad.contieneDatos(texto)) {
-          const f = ctx.fuentes.añadir(nav.url(), titulo, texto, 'pagina');
+        if (isOfficial(nav.url()) && !desde && !ctx.privacidad.contieneDatos(texto)) {
+          const f = ctx.fuentes.añadir(nav.url(), titulo, 'pagina');
           if (f) {
             cabecera = `[${f.id}] ${f.titulo} — ${host(f.url)} (fuente citable)\n`;
             ctx.evento({ tipo: 'fuentes', fuentes: ctx.fuentes.lista() });

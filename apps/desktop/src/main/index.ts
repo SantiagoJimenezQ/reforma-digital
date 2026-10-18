@@ -27,14 +27,19 @@ import {
   type Detector,
   type Perfil,
 } from '@reforma-digital/agent';
-import type { Ajustes, ApiRd, EstadoApp, EventoApp } from '../shared/api';
-import { officialLevel } from '@reforma-digital/government/domains';
+import {
+  ajustesEsquema,
+  type Ajustes,
+  type ApiRd,
+  type EstadoApp,
+  type EventoApp,
+} from '../shared/api';
 import { Almacen } from './almacen';
 import { esLectura } from './navegador';
-import { Tramites } from './tramites';
+import { SIN_CLAVE, Tramites } from './tramites';
 
 const RAIZ = import.meta.dirname;
-/** Fuera del ASAR: Chromium no carga extensiones ni ONNX Runtime lee modelos desde un archivo empaquetado. */
+/** Fuera del ASAR: ONNX Runtime no lee modelos desde un archivo empaquetado. */
 const DESEMPAQUETADO = RAIZ.replace(/app\.asar(?=[/\\]|$)/, 'app.asar.unpacked');
 const ORIGEN_APP = 'app://bundle';
 app.setName('Reforma Digital');
@@ -68,7 +73,6 @@ type Secretos = { ajustes: Ajustes };
 const AJUSTES_INICIALES: Ajustes = {
   modelo: 'openai/gpt-6-luna',
   touchIdEnConfirmaciones: true,
-  interfacesComunitarias: false,
   retencionCero: false,
   cerrarSesiones: false,
 };
@@ -79,8 +83,6 @@ let tramites: Tramites;
 let secretos: Secretos = { ajustes: AJUSTES_INICIALES };
 let perfil: Perfil = {};
 let detector: Promise<Detector> | undefined;
-const SIN_CLAVE =
-  'Esta compilación de la app no lleva la clave del asistente. Compílala con AI_GATEWAY_API_KEY.';
 /** Se carga una vez, del modelo que va dentro de la app; si falla, se reintenta en el siguiente turno. */
 const cargarDetector = () =>
   (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart')).catch((e: unknown) => {
@@ -148,18 +150,6 @@ function emitir(e: EventoApp) {
   ventana?.webContents.send('rd:evento', e);
 }
 
-const ajustesEsquema = z
-  .object({
-    modelo: z
-      .string()
-      .regex(/^[\w.-]+\/[\w.:-]+$/)
-      .max(100),
-    touchIdEnConfirmaciones: z.boolean(),
-    interfacesComunitarias: z.boolean(),
-    retencionCero: z.boolean(),
-    cerrarSesiones: z.boolean(),
-  })
-  .partial();
 const texto = z.string().trim().min(1).max(4000);
 const razonamiento = z.enum(['low', 'medium', 'high']);
 const id = z.string().uuid();
@@ -172,19 +162,15 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
   {
     estado: async () => estadoApp(),
     guardarAjustes: async (entrada) => {
-      const a = ajustesEsquema.safeParse(entrada);
+      const a = ajustesEsquema.partial().safeParse(entrada);
       if (!a.success) return { ok: false, error: 'Revisa los ajustes.' };
       secretos = { ajustes: { ...secretos.ajustes, ...a.data } };
       await almacen.escribir('secretos.bin', secretos);
-      if (a.data.interfacesComunitarias !== undefined) await tramites.aplicarExtension();
       emitir({ tipo: 'estado', estado: estadoApp() });
       return { ok: true };
     },
-    probarConexion: async (entrada) => {
-      const a = z
-        .object({ modelo: z.string().max(100), retencionCero: z.boolean().optional() })
-        .parse(entrada);
-      const cfg = configProveedor(a.modelo, a.retencionCero ?? secretos.ajustes.retencionCero);
+    probarConexion: async (modelo) => {
+      const cfg = configProveedor(ajustesEsquema.shape.modelo.parse(modelo), true);
       if (!cfg) return { ok: false, error: SIN_CLAVE };
       try {
         await probarConexion(cfg);
@@ -270,10 +256,7 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
     mostrarArchivo: async (ruta) => {
       const r = z.string().parse(ruta);
       // Solo archivos que el propio trámite ha descargado.
-      if (
-        tramites.lista().some((t) => tramites.registro(t.id)?.descargas.some((d) => d.ruta === r))
-      )
-        shell.showItemInFolder(r);
+      if (tramites.esDescarga(r)) shell.showItemInFolder(r);
     },
   };
 
@@ -433,8 +416,6 @@ app
       sesionesGuardadas: () => !secretos.ajustes.cerrarSesiones,
       verificarIdentidad: (motivo) => verificar(motivo, secretos.ajustes.touchIdEnConfirmaciones),
       detector: cargarDetector,
-      // Las interfaces comunitarias llegarán más adelante: de momento no se cargan.
-      extension: () => null,
       ventana: () => ventana,
       emitir,
       alCambiarLista: () => emitir({ tipo: 'estado', estado: estadoApp() }),

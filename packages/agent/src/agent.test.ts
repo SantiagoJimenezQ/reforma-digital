@@ -29,7 +29,7 @@ import {
   type TipoDato,
 } from './index';
 import { direccionPrivada, htmlATexto, leerPagina } from './fetch';
-import { officialLevel } from '@reforma-digital/government/domains';
+import { isOfficial } from '@reforma-digital/government/domains';
 
 const perfil = {
   nombre: 'María José',
@@ -85,27 +85,27 @@ describe('privacidad', () => {
     expect(p.resolver('{{email}}').faltan).toEqual(['email']);
   });
 
-  it('valida la letra del DNI y del NIE', () => {
+  it('valida la letra del DNI y del NIE y el control del IBAN', () => {
     expect(validarCampo('documento_numero', '12345678Z')).toBeNull();
     expect(validarCampo('documento_numero', '12345678A')).toMatch(/letra/);
     expect(validarCampo('documento_numero', 'X1234567L')).toBeNull();
+    expect(validarCampo('iban', 'ES91 2100 0418 4502 0005 1332')).toBeNull();
+    expect(validarCampo('iban', 'ES00 0000 0000 0000 0000 0000')).toMatch(/IBAN/);
   });
 });
 
 describe('fuentes', () => {
-  it('marca sin nivel las webs que no están en la lista de oficiales', () => {
+  it('marca como no oficiales las webs que no están en la lista', () => {
     const f = new Fuentes();
-    expect(f.añadir('http://www.ayto-villacanada.es/padron', 'Padrón', 'texto', 'busqueda')).toBe(
-      undefined,
+    expect(f.añadir('http://www.ayto-villacanada.es/padron', 'Padrón', 'busqueda')).toBe(undefined);
+    expect(f.añadir('https://www.ayto-villacanada.es/padron', 'Padrón', 'busqueda')?.oficial).toBe(
+      false,
     );
-    expect(
-      f.añadir('https://www.ayto-villacanada.es/padron', 'Padrón', 'texto', 'busqueda')?.nivel,
-    ).toBeUndefined();
-    expect(
-      f.añadir('https://sede.agenciatributaria.gob.es/x', 'AEAT', 'texto', 'busqueda')?.nivel,
-    ).toBe('estatal');
-    expect(officialLevel('https://evilgob.es/')).toBeUndefined();
-    expect(officialLevel('http://www.boe.es/')).toBeUndefined();
+    expect(f.añadir('https://sede.agenciatributaria.gob.es/x', 'AEAT', 'busqueda')?.oficial).toBe(
+      true,
+    );
+    expect(isOfficial('https://evilgob.es/')).toBe(false);
+    expect(isOfficial('http://www.boe.es/')).toBe(false);
   });
 });
 
@@ -154,6 +154,11 @@ describe('lectura de páginas', () => {
     ])
       expect(direccionPrivada(ip), ip).toBe(true);
     expect(direccionPrivada('8.8.8.8')).toBe(false);
+  });
+
+  it('no lee una IP privada escrita en la URL', async () => {
+    for (const url of ['https://127.0.0.1:9/', 'https://[::1]:9/', 'https://169.254.169.254/'])
+      await expect(leerPagina(url), url).rejects.toThrow(/red privada/);
   });
 
   it('rechaza lo que no es https sin conectar', async () => {
@@ -217,10 +222,9 @@ function modeloGuionado(pasos: ((prompt: Prompt) => Paso)[]) {
 }
 
 const proveedorDe = (model: MockLanguageModelV4): Proveedor => ({
-  tipo: 'openrouter',
+  tipo: 'nan',
   modelo: model,
-  rapido: model,
-  modeloBusquedaOpenRouter: () => model,
+  claveExa: '',
 });
 
 type Elemento = Partial<InfoElemento> & { tapado?: boolean };
