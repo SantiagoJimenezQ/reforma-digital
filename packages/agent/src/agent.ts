@@ -11,7 +11,7 @@ import { ErrorDeProteccion, type Detector } from './detector';
 import { guardaPrivacidad, type Proveedor } from './models';
 import { Privacidad, type Perfil } from './profile';
 import { contextoDelTurno, INSTRUCCIONES } from './prompt';
-import { coste, Fuentes, type Fuente } from './research';
+import { Fuentes, type Fuente } from './research';
 import {
   crearHerramientas,
   proteger,
@@ -396,20 +396,6 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
     }
   const costeInicial = estado.uso.costeUsd;
   const tokensIniciales = estado.uso.entrada + estado.uso.salida;
-  // Anthropic solo cachea con marcas explícitas: instrucciones y último mensaje de cada paso.
-  const modelo = proveedor.modelo;
-  const marcarCache = modelo.modelId.startsWith('anthropic/');
-  const cache = { anthropic: { cacheControl: { type: 'ephemeral' } } };
-  const conCache = (mensajes: ModelMessage[]) =>
-    marcarCache && mensajes.length
-      ? [
-          ...mensajes.slice(0, -1),
-          {
-            ...mensajes.at(-1)!,
-            providerOptions: { ...mensajes.at(-1)!.providerOptions, ...cache },
-          },
-        ]
-      : mensajes;
   // El modelo a veces termina ofreciendo hacer el trámite o pidiendo datos en el texto («Puedo
   // pedirte la cita; dime esto en el formulario:») sin llamar a preguntar, y la persona no ve
   // ningún formulario. Entonces tiene un paso más en el que solo puede llamar a preguntar.
@@ -431,11 +417,9 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
       )
         return { estado, fin: 'limite_coste' };
       const r = streamText({
-        model: modelo,
-        instructions: marcarCache
-          ? { role: 'system', content: INSTRUCCIONES, providerOptions: cache }
-          : INSTRUCCIONES,
-        messages: conCache(compactar(estado.mensajes)),
+        model: proveedor.modelo,
+        instructions: INSTRUCCIONES,
+        messages: compactar(estado.mensajes),
         tools: enElPaso,
         ...(forzarPregunta ? { toolChoice: { type: 'tool' as const, toolName: 'preguntar' } } : {}),
         abortSignal: signal,
@@ -451,21 +435,15 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
         }
         if (parte.type === 'error') throw parte.error;
       }
-      const [mensajes, uso, metadatos, fin] = await Promise.all([
-        r.responseMessages,
-        r.usage,
-        r.providerMetadata,
-        r.finishReason,
-      ]);
+      const [mensajes, uso, fin] = await Promise.all([r.responseMessages, r.usage, r.finishReason]);
       estado.mensajes.push(...mensajes);
       estado.mensajes = compactar(estado.mensajes);
       estado.uso.entrada += uso.inputTokens ?? 0;
       estado.uso.salida += uso.outputTokens ?? 0;
       estado.uso.cache += uso.inputTokenDetails?.cacheReadTokens ?? 0;
       estado.uso.pasos++;
-      const c = coste(metadatos);
-      if (c === null) estado.uso.costeDesconocido = true;
-      else estado.uso.costeUsd += c;
+      // Los proveedores no informan del coste del modelo: el límite cuenta los tokens.
+      estado.uso.costeDesconocido = true;
       sincronizar();
       o.evento({ tipo: 'uso', uso: { ...estado.uso } });
       await o.guardar?.(estado);

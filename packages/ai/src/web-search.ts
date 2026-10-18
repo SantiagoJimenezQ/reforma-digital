@@ -30,14 +30,11 @@ export async function retrieveWebEvidence(
   const evidence: Evidence[] = [];
   const seen = new Set<string>();
   for (const result of results) {
-    if (result.sourceType !== 'url') continue;
     const source = approvedSource(result.url);
-    const content = result.providerMetadata?.openrouter?.content;
-    // A generated summary is never substituted for the search engine's source excerpt.
+    const content = (result.highlights ?? []).join('\n\n');
     if (
       !source ||
       !compatibleJurisdiction(source.jurisdictionValue, understanding.jurisdiction) ||
-      typeof content !== 'string' ||
       content.trim().length < 8
     )
       continue;

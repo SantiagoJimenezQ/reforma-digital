@@ -1,5 +1,4 @@
 import {
-  createGateway,
   generateText,
   wrapLanguageModel,
   type LanguageModel,
@@ -8,12 +7,8 @@ import {
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { Privacidad } from './profile';
 
-/**
- * Quién hace las búsquedas: Exa directamente, Parallel a través de Vercel AI Gateway o el servidor
- * de Reforma Digital, que guarda la clave de Exa.
- */
-export type ConfigBusqueda =
-  { tipo: 'exa'; clave: string } | { tipo: 'gateway'; clave: string } | ServidorReforma;
+/** Quién hace las búsquedas: Exa directamente o el servidor de Reforma Digital, que guarda la clave de Exa. */
+export type ConfigBusqueda = { tipo: 'exa'; clave: string } | ServidorReforma;
 
 /**
  * El servidor de Reforma Digital (`apps/web`): guarda las claves del modelo y del buscador, y
@@ -24,14 +19,6 @@ export type ServidorReforma = { tipo: 'reforma'; url: string; instalacion: strin
 export const CABECERA_INSTALACION = 'x-rd-instalacion';
 
 export type ConfigProveedor =
-  | {
-      tipo: 'gateway';
-      clave: string;
-      /** Modelo del agente, con el identificador del proveedor («openai/gpt-6-luna»). */
-      modelo: string;
-      /** Solo proveedores que no guardan las peticiones (en Vercel exige el plan Pro). */
-      retencionCero?: boolean;
-    }
   | {
       tipo: 'nan';
       clave: string;
@@ -54,17 +41,7 @@ export type ConfigProveedor =
 /** Un modelo ya creado (no un identificador de texto). */
 export type Modelo = Exclude<LanguageModel, string>;
 
-type BusquedaGateway = {
-  tipo: 'gateway';
-  gateway: ReturnType<typeof createGateway>;
-  /** Modelo pequeño que solo ejecuta la búsqueda. */
-  rapido: Modelo;
-};
-export type Busqueda = { tipo: 'exa'; clave: string } | BusquedaGateway | ServidorReforma;
-
-export type Proveedor = { modelo: Modelo; busqueda: Busqueda | null };
-
-export const MODELO_BUSQUEDA = 'openai/gpt-6-luna';
+export type Proveedor = { modelo: Modelo; busqueda: ConfigBusqueda | null };
 
 /**
  * Última defensa antes de que una petición salga hacia el modelo: si algún valor del perfil ha
@@ -104,24 +81,6 @@ export function guardaPrivacidad(
   };
 }
 
-/**
- * Las peticiones solo van a proveedores que no entrenan con ellas y, con `retencionCero`, a los
- * que tampoco las guardan. Si ninguno cumple, el proveedor devuelve un error: no se relaja.
- */
-const sinEntrenamiento = (retencionCero = false): LanguageModelMiddleware => ({
-  transformParams: async ({ params }) => ({
-    ...params,
-    providerOptions: {
-      ...params.providerOptions,
-      gateway: {
-        ...params.providerOptions?.gateway,
-        disallowPromptTraining: true,
-        ...(retencionCero ? { zeroDataRetention: true } : {}),
-      },
-    },
-  }),
-});
-
 export function crearProveedor(
   cfg: ConfigProveedor,
   guarda?: LanguageModelMiddleware | LanguageModelMiddleware[],
@@ -131,11 +90,6 @@ export function crearProveedor(
     capas.length || extra.length
       ? wrapLanguageModel({ model, middleware: [...capas, ...extra] })
       : model;
-  const busquedaGateway = (clave: string, retencionCero?: boolean): BusquedaGateway => {
-    const gateway = createGateway({ apiKey: clave });
-    const rapido = envolver(gateway(MODELO_BUSQUEDA), [sinEntrenamiento(retencionCero)]);
-    return { tipo: 'gateway', gateway, rapido };
-  };
   const compatible = (
     name: string,
     baseURL: string,
@@ -149,11 +103,6 @@ export function crearProveedor(
       ...(apiKey ? { apiKey } : {}),
       ...(headers ? { headers } : {}),
     });
-  if (cfg.tipo === 'gateway') {
-    const busqueda = busquedaGateway(cfg.clave, cfg.retencionCero);
-    const modelo = busqueda.gateway(cfg.modelo);
-    return { modelo: envolver(modelo, [sinEntrenamiento(cfg.retencionCero)]), busqueda };
-  }
   // El modelo lo elige el servidor: el nombre que se le pasa no cuenta.
   if (cfg.tipo === 'reforma')
     return {
@@ -169,10 +118,9 @@ export function crearProveedor(
       modelo: envolver(compatible('nan', 'https://api.nan.builders/v1', cfg.clave)(cfg.modelo)),
       busqueda: { tipo: 'exa', clave: cfg.claveExa },
     };
-  const b = cfg.busqueda;
   return {
     modelo: envolver(compatible('propio', cfg.url, cfg.clave)(cfg.modelo)),
-    busqueda: !b ? null : b.tipo === 'gateway' ? busquedaGateway(b.clave) : b,
+    busqueda: cfg.busqueda,
   };
 }
 

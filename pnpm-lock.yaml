@@ -209,9 +209,9 @@ importers:
 
   packages/ai:
     dependencies:
-      '@openrouter/ai-sdk-provider':
-        specifier: ^3.1.0
-        version: 3.1.0(ai@7.0.124(zod@4.6.5))(zod@4.6.5)
+      '@ai-sdk/openai-compatible':
+        specifier: 3.0.62
+        version: 3.0.62(zod@4.6.5)
       '@reforma-digital/core':
         specifier: workspace:*
         version: link:../core
@@ -1658,16 +1658,6 @@ packages:
         integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==,
       }
     engines: { node: '>= 8' }
-
-  '@openrouter/ai-sdk-provider@3.1.0':
-    resolution:
-      {
-        integrity: sha512-BQy1TA9fKrh47s9ivsO6FY5QimN7GUF0i8Qon3pkxQclEgShso0dClpcWn8OIyPLEZZPFaFKgI8TW4S/O0p0Dw==,
-      }
-    engines: { node: '>=22' }
-    peerDependencies:
-      ai: ^7.0.0
-      zod: ^3.25.76 || ^4.1.8
 
   '@oxc-project/types@0.151.0':
     resolution:
@@ -8568,11 +8558,6 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.3
-
-  '@openrouter/ai-sdk-provider@3.1.0(ai@7.0.124(zod@4.6.5))(zod@4.6.5)':
-    dependencies:
-      ai: 7.0.124(zod@4.6.5)
-      zod: 4.6.5
 
   '@oxc-project/types@0.151.0': {}
 

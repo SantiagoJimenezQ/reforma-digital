@@ -1,7 +1,7 @@
 {
   "finalEvidenceCount": 8,
-  "generationModel": "openai/gpt-6-luna",
-  "judgeModel": "openai/gpt-6-luna",
+  "generationModel": "deepseek-v4-flash",
+  "judgeModel": "glm5.3-flash",
   "reasoningEffort": "high",
   "promptVersion": "evidence-v2"
 }

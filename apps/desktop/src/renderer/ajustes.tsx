@@ -178,8 +178,7 @@ function Proveedor() {
               Otro proveedor o un modelo en tu ordenador
             </span>
             <span className="block text-sm text-muted-foreground">
-              Cualquier servidor compatible con la API de OpenAI: OpenAI, OpenRouter, Ollama, LM
-              Studio…
+              Cualquier servidor compatible con la API de OpenAI: OpenAI, Ollama, LM Studio…
             </span>
           </span>
         </label>

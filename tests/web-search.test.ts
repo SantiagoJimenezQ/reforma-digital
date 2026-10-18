@@ -9,7 +9,7 @@ afterEach(() => {
 const classification = (query: string, region: string | null) =>
   Response.json({
     id: 'classification-test',
-    model: 'openai/gpt-6-luna',
+    model: 'deepseek-v4-flash',
     created: 0,
     choices: [
       {
@@ -18,76 +18,63 @@ const classification = (query: string, region: string | null) =>
         message: { role: 'assistant', content: JSON.stringify({ query, region }) },
       },
     ],
-    usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3, cost: 0.0001 },
+    usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3 },
   });
 
 describe('chat web retrieval', () => {
-  it('uses Luna high web search without embeddings or the document index', async () => {
-    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
+  it('searches official domains with Exa and keeps its excerpts as evidence', async () => {
+    vi.stubEnv('NAN_API_KEY', 'test-only-key');
+    vi.stubEnv('EXA_API_KEY', 'test-only-exa');
     vi.stubEnv('DATABASE_URL', '');
     const content = 'Puedes solicitar el informe de vida laboral en Importass.';
-    const citation = (url: string, excerpt = content) => ({
-      type: 'url_citation',
-      url_citation: { url, title: 'Vida laboral', content: excerpt, start_index: 0, end_index: 10 },
+    const result = (url: string, excerpt = content) => ({
+      url,
+      title: 'Vida laboral',
+      highlights: excerpt ? [excerpt] : [],
     });
     const fetch = vi.fn(async (_input, _init) =>
       Response.json({
-        id: 'test',
-        model: 'openai/gpt-6-luna',
-        created: 0,
-        choices: [
-          {
-            index: 0,
-            finish_reason: 'stop',
-            message: {
-              role: 'assistant',
-              content: 'A model summary that must not become evidence.',
-              annotations: [
-                citation('https://portal.seg-social.gob.es/vida-laboral'),
-                citation('https://portal.seg-social.gob.es/vida-laboral?utm_source=test'),
-                citation('https://example.com/vida-laboral'),
-                citation('https://portal.seg-social.gob.es/no-excerpt', ''),
-                citation('https://sede.madrid.es/local'),
-                citation('https://portal.seg-social.gob.es.evil.com/vida-laboral'),
-              ],
-            },
-          },
+        results: [
+          result('https://portal.seg-social.gob.es/vida-laboral'),
+          result('https://portal.seg-social.gob.es/vida-laboral?utm_source=test'),
+          result('https://example.com/vida-laboral'),
+          result('https://portal.seg-social.gob.es/no-excerpt', ''),
+          result('https://sede.madrid.es/local'),
+          result('https://portal.seg-social.gob.es.evil.com/vida-laboral'),
         ],
-        usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3, cost: 0.0001 },
+        costDollars: { total: 0.005 },
       }),
     );
     fetch.mockResolvedValueOnce(classification('Cómo obtener mi vida laboral', null));
     vi.stubGlobal('fetch', fetch);
-    const result = await search('Cómo obtener mi vida laboral', {
+    const found = await search('Cómo obtener mi vida laboral', {
       mode: 'live',
       retrievalOnly: true,
     });
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(String(fetch.mock.calls[0]![0])).toBe('https://openrouter.ai/api/v1/chat/completions');
-    const request = JSON.parse(String((fetch.mock.calls[1]![1] as RequestInit).body));
-    expect(request).toMatchObject({
-      model: 'openai/gpt-6-luna',
-      reasoning: { effort: 'high', exclude: true },
-      tools: [
-        { type: 'openrouter:web_search', parameters: { engine: 'parallel', max_results: 8 } },
-      ],
-      max_tool_calls: 3,
-    });
-    expect(request.tools[0].parameters.allowed_domains).toContain('portal.seg-social.gob.es');
-    expect(request.tools[0].parameters.allowed_domains).not.toContain('sede.madrid.es');
-    expect(result.evidence).toHaveLength(1);
-    expect(result.evidence[0]).toMatchObject({
+    expect(String(fetch.mock.calls[0]![0])).toBe('https://api.nan.builders/v1/chat/completions');
+    expect(String(fetch.mock.calls[1]![0])).toBe('https://api.exa.ai/search');
+    const init = fetch.mock.calls[1]![1] as RequestInit;
+    expect(new Headers(init.headers).get('x-api-key')).toBe('test-only-exa');
+    const request = JSON.parse(String(init.body));
+    expect(request).toMatchObject({ query: 'Cómo obtener mi vida laboral', numResults: 8 });
+    expect(request.includeDomains).toContain('portal.seg-social.gob.es');
+    expect(request.includeDomains).not.toContain('sede.madrid.es');
+    expect(found.evidence).toHaveLength(1);
+    expect(found.evidence[0]).toMatchObject({
       content,
       sourceId: 'seg-social',
       jurisdiction: 'ES',
     });
-    expect(result.understanding.region).toBeNull();
-    expect(result.tokens).toBe(6);
-    expect(result.costUsd).toBe(0.0002);
+    expect(found.understanding.region).toBeNull();
+    expect(found.tokens).toBe(3);
+    // NaN does not bill per token, so the total cost is unknown, not zero.
+    expect(found.costUsd).toBeNull();
   });
 
   it('does not search when the user must clarify the municipality', async () => {
-    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
+    vi.stubEnv('NAN_API_KEY', 'test-only-key');
+    vi.stubEnv('EXA_API_KEY', 'test-only-exa');
     const fetch = vi.fn().mockResolvedValue(classification('Cómo empadronarme', null));
     vi.stubGlobal('fetch', fetch);
     const result = await search('Cómo empadronarme', { mode: 'live' });
@@ -96,12 +83,13 @@ describe('chat web retrieval', () => {
   });
 
   it('usa la comunidad validada del modelo y conserva intacta una pregunta sin historial', async () => {
-    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
+    vi.stubEnv('NAN_API_KEY', 'test-only-key');
+    vi.stubEnv('EXA_API_KEY', 'test-only-exa');
     const query = 'Vengo de Madrid y necesito una ayuda en Aragón';
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(classification('Pregunta reformulada por el modelo', 'ES-AR'))
-      .mockResolvedValue(classification(query, null));
+      .mockResolvedValue(Response.json({ results: [] }));
     vi.stubGlobal('fetch', fetch);
     const result = await search(query, { mode: 'live', retrievalOnly: true });
     expect(result.query).toBe(query);
@@ -109,11 +97,12 @@ describe('chat web retrieval', () => {
     expect(result.understanding.jurisdiction).toBe('ES-AR');
     expect(result.understanding.region).toBe('ES-AR');
     const request = JSON.parse(String((fetch.mock.calls[1]![1] as RequestInit).body));
-    expect(request.tools[0].parameters.allowed_domains).not.toContain('sede.madrid.es');
+    expect(request.includeDomains).not.toContain('sede.madrid.es');
   });
 
   it('rechaza una comunidad fuera de la lista validada', async () => {
-    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
+    vi.stubEnv('NAN_API_KEY', 'test-only-key');
+    vi.stubEnv('EXA_API_KEY', 'test-only-exa');
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(classification('Una ayuda en Aragón', 'ES-XX')),

@@ -11,22 +11,14 @@ export function recordUsage(
   model: string,
   inputTokens: number,
   outputTokens: number,
-  metadata: unknown,
+  costUsd: number | null,
   started: number,
 ) {
-  const m = metadata as
-    | {
-        openrouter?: { usage?: { cost?: unknown } };
-        gateway?: { cost?: unknown };
-      }
-    | undefined;
-  const raw = m?.openrouter?.usage?.cost ?? m?.gateway?.cost;
-  const cost = typeof raw === 'string' || typeof raw === 'number' ? Number(raw) : NaN;
   usageContext.getStore()?.push({
     model,
     inputTokens,
     outputTokens,
-    costUsd: Number.isFinite(cost) ? cost : null,
+    costUsd,
     latencyMs: Math.round(performance.now() - started),
   });
 }

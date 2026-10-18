@@ -48,9 +48,9 @@ try {
   dataset.cases = dataset.cases.slice(0, limit);
   const mode = value('--mode', process.env.SEARCH_MODE === 'live' ? 'live' : 'preview');
   if (mode !== 'live' && mode !== 'preview') throw new Error('--mode debe ser live o preview');
-  if (mode === 'live' && !process.env.OPENROUTER_API_KEY)
+  if (mode === 'live' && !(process.env.NAN_API_KEY && process.env.EXA_API_KEY))
     throw new Error(
-      'Modo live requiere OPENROUTER_API_KEY. Usa --mode preview --retrieval-only para verificar el runner sin simular calidad de producción.',
+      'Modo live requiere NAN_API_KEY y EXA_API_KEY. Usa --mode preview --retrieval-only para verificar el runner sin simular calidad de producción.',
     );
   const configPath = value('--config', '');
   const config = configSchema.parse(

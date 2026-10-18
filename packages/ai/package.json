@@ -13,7 +13,7 @@
     "@reforma-digital/core": "workspace:*",
     "@reforma-digital/government": "workspace:*",
     "@reforma-digital/retrieval": "workspace:*",
-    "@openrouter/ai-sdk-provider": "^3.1.0",
+    "@ai-sdk/openai-compatible": "3.0.62",
     "ai": "^7.0.124",
     "zod": "^4.1.0"
   }
