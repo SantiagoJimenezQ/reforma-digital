@@ -33,3 +33,23 @@ jobs:
         with:
           name: reforma-digital-extension
           path: artifacts/*.zip
+  desktop:
+    # La app de escritorio compilada (Electron, detector local y capas de privacidad) con un
+    # proveedor simulado: tests/e2e/escritorio.spec.ts. En macOS, con el llavero de prueba.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @reforma-digital/desktop exec install-electron
+      - uses: actions/cache@v4
+        with:
+          path: packages/agent/.cache/rampart
+          key: detector-${{ hashFiles('packages/agent/scripts/detector.mjs') }}
+      - run: pnpm --filter @reforma-digital/agent detector
+      - run: pnpm --filter @reforma-digital/desktop build
+      - run: pnpm exec playwright test tests/e2e/escritorio.spec.ts
