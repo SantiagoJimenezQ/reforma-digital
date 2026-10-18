@@ -5,6 +5,8 @@ const metodos = [
   'estado',
   'guardarAjustes',
   'probarConexion',
+  'guardarProveedorPropio',
+  'modelosDelProveedor',
   'crearTramite',
   'ajustarTramite',
   'verTramite',

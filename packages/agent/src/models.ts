@@ -8,6 +8,9 @@ import {
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { Privacidad } from './profile';
 
+/** Quién hace las búsquedas: Exa directamente, o Parallel a través de Vercel AI Gateway. */
+export type ConfigBusqueda = { tipo: 'exa'; clave: string } | { tipo: 'gateway'; clave: string };
+
 export type ConfigProveedor =
   | {
       tipo: 'gateway';
@@ -23,25 +26,30 @@ export type ConfigProveedor =
       /** La clave de Exa, que hace las búsquedas. */
       claveExa: string;
       modelo: string;
+    }
+  | {
+      /** Un servidor compatible con la API de OpenAI que elige la persona: otro proveedor o un modelo en su ordenador. */
+      tipo: 'compatible';
+      /** Base de la API, p. ej. `https://api.openai.com/v1` o `http://localhost:11434/v1`. */
+      url: string;
+      clave?: string;
+      modelo: string;
+      /** Sin búsqueda, el asistente solo lee las páginas cuya dirección conoce. */
+      busqueda: ConfigBusqueda | null;
     };
 
 /** Un modelo ya creado (no un identificador de texto). */
 export type Modelo = Exclude<LanguageModel, string>;
 
-export type Proveedor =
-  | {
-      tipo: 'gateway';
-      modelo: Modelo;
-      /** Modelo pequeño para tareas auxiliares: ejecutar la búsqueda, verificar citas. */
-      rapido: Modelo;
-      gateway: ReturnType<typeof createGateway>;
-    }
-  | {
-      /** NaN Builders: modelos abiertos en GPU compartida (sin registro de peticiones, en la UE). */
-      tipo: 'nan';
-      modelo: Modelo;
-      claveExa: string;
-    };
+type BusquedaGateway = {
+  tipo: 'gateway';
+  gateway: ReturnType<typeof createGateway>;
+  /** Modelo pequeño que solo ejecuta la búsqueda. */
+  rapido: Modelo;
+};
+export type Busqueda = { tipo: 'exa'; clave: string } | BusquedaGateway;
+
+export type Proveedor = { modelo: Modelo; busqueda: Busqueda | null };
 
 export const MODELO_BUSQUEDA = 'openai/gpt-6-luna';
 
@@ -106,28 +114,31 @@ export function crearProveedor(
   guarda?: LanguageModelMiddleware | LanguageModelMiddleware[],
 ): Proveedor {
   const capas = [guarda ?? []].flat();
+  const envolver = (model: Modelo, extra: LanguageModelMiddleware[] = []) =>
+    capas.length || extra.length
+      ? wrapLanguageModel({ model, middleware: [...capas, ...extra] })
+      : model;
+  const busquedaGateway = (clave: string, retencionCero?: boolean): BusquedaGateway => {
+    const gateway = createGateway({ apiKey: clave });
+    const rapido = envolver(gateway(MODELO_BUSQUEDA), [sinEntrenamiento(retencionCero)]);
+    return { tipo: 'gateway', gateway, rapido };
+  };
+  const compatible = (name: string, baseURL: string, apiKey?: string) =>
+    createOpenAICompatible({ name, baseURL, includeUsage: true, ...(apiKey ? { apiKey } : {}) });
   if (cfg.tipo === 'gateway') {
-    const gateway = createGateway({ apiKey: cfg.clave });
-    const envolver = (model: Modelo) =>
-      wrapLanguageModel({ model, middleware: [...capas, sinEntrenamiento(cfg.retencionCero)] });
-    return {
-      tipo: 'gateway',
-      gateway,
-      modelo: envolver(gateway(cfg.modelo)),
-      rapido: envolver(gateway(MODELO_BUSQUEDA)),
-    };
+    const busqueda = busquedaGateway(cfg.clave, cfg.retencionCero);
+    const modelo = busqueda.gateway(cfg.modelo);
+    return { modelo: envolver(modelo, [sinEntrenamiento(cfg.retencionCero)]), busqueda };
   }
-  const nan = createOpenAICompatible({
-    name: 'nan',
-    baseURL: 'https://api.nan.builders/v1',
-    apiKey: cfg.clave,
-    includeUsage: true,
-  });
-  const modelo = nan(cfg.modelo);
+  if (cfg.tipo === 'nan')
+    return {
+      modelo: envolver(compatible('nan', 'https://api.nan.builders/v1', cfg.clave)(cfg.modelo)),
+      busqueda: { tipo: 'exa', clave: cfg.claveExa },
+    };
+  const b = cfg.busqueda;
   return {
-    tipo: 'nan',
-    modelo: capas.length ? wrapLanguageModel({ model: modelo, middleware: capas }) : modelo,
-    claveExa: cfg.claveExa,
+    modelo: envolver(compatible('propio', cfg.url, cfg.clave)(cfg.modelo)),
+    busqueda: !b ? null : b.tipo === 'exa' ? b : busquedaGateway(b.clave),
   };
 }
 

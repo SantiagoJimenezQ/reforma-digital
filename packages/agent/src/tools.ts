@@ -3,6 +3,7 @@ import { setTimeout as dormir } from 'node:timers/promises';
 import { tool } from 'ai';
 import { z } from 'zod';
 import { isOfficial } from '@reforma-digital/government/domains';
+import { provincias } from '@reforma-digital/government/provincias';
 import type { Detector, OrigenTexto } from './detector';
 import { FetchError, leerPagina } from './fetch';
 import type { Proveedor } from './models';
@@ -15,6 +16,7 @@ import {
   destinoDeTecla,
   pareceIrreversible,
   puntoElemento,
+  type Dialogo,
   type InfoElemento,
   type Navegador,
 } from './page';
@@ -30,13 +32,26 @@ import {
   validarCampo,
   type Perfil,
 } from './profile';
-import { buscarEnLaWeb, coste, type Fuente, type Fuentes } from './research';
+import { buscarEnElBoe, buscarEnLaWeb, coste, type Fuente, type Fuentes } from './research';
 
 const campoEntrada = z.object({
   clave: z.string().regex(/^[a-z0-9_]{2,40}$/),
   etiqueta: z.string().min(2).max(90),
-  tipo: z.enum(['texto', 'texto_largo', 'fecha', 'opcion', 'si_no', 'numero', 'email', 'telefono']),
-  opciones: z.array(z.string().max(80)).max(30).optional(),
+  tipo: z
+    .enum([
+      'texto',
+      'texto_largo',
+      'fecha',
+      'opcion',
+      'varias',
+      'si_no',
+      'numero',
+      'email',
+      'telefono',
+      'provincia',
+    ])
+    .describe('varias: se pueden marcar varias opciones; provincia: un desplegable con todas'),
+  opciones: z.array(z.string().max(80)).max(60).optional(),
   ayuda: z.string().max(200).optional(),
   obligatorio: z.boolean().optional(),
   /** El modelo no ve la respuesta, solo su marcador. Por defecto en datos que no son de contexto. */
@@ -52,6 +67,12 @@ const campoEntrada = z.object({
     .optional()
     .describe(
       'Si pides más de 4 datos, el paso del formulario en el que va, con un nombre corto («Tus datos», «La cita»); los del mismo paso, seguidos',
+    ),
+  solo_si: z
+    .object({ campo: z.string(), valor: z.string() })
+    .optional()
+    .describe(
+      'Solo se pregunta si otro campo (de tipo opcion, varias o si_no) tiene esta respuesta, p. ej. {campo: "tiene_hijos", valor: "Sí"}',
     ),
 });
 const formularioEntrada = z.object({
@@ -80,6 +101,18 @@ const confirmacionEntrada = z.object({
     .describe('Datos que se enviarán, con marcadores para los datos personales'),
   sitio: z.string().optional(),
 });
+const llamadaEntrada = z.object({
+  organismo: z.string().min(2).max(120),
+  telefono: z
+    .string()
+    .min(3)
+    .max(40)
+    .describe('El teléfono como lo da la web oficial que has leído (o su marcador, si lo ves así)'),
+  objetivo: z.string().min(5).max(200).describe('Qué tiene que conseguir con la llamada'),
+  preguntas: z.array(z.string().max(200)).min(1).max(8).describe('Qué preguntar, en orden'),
+  tener_a_mano: z.array(z.string().max(120)).max(8).optional(),
+  horario: z.string().max(120).optional().describe('El horario de atención, si la web lo da'),
+});
 const ayudaEntrada = z.object({
   motivo: z.enum(['iniciar_sesion', 'captcha', 'certificado', 'firma', 'pago', 'adjuntar', 'otro']),
   instrucciones: z.string().min(5).max(300).describe('Qué tiene que hacer, en una o dos frases'),
@@ -88,6 +121,7 @@ const ayudaEntrada = z.object({
 export type CampoFormulario = z.infer<typeof campoEntrada>;
 export type Formulario = z.infer<typeof formularioEntrada>;
 export type Ayuda = z.infer<typeof ayudaEntrada>;
+export type Llamada = z.infer<typeof llamadaEntrada>;
 export type Confirmacion = z.infer<typeof confirmacionEntrada> & {
   /** Acciones vinculantes ya hechas en este trámite: la persona las ve antes de aprobar otra. */
   previas?: string[];
@@ -101,6 +135,8 @@ export interface Anfitrion {
   preguntar(f: Formulario, signal: AbortSignal): Promise<Record<string, string> | null>;
   confirmar(c: Confirmacion, signal: AbortSignal): Promise<boolean>;
   pedirAyuda(a: Ayuda, signal: AbortSignal): Promise<{ hecho: boolean; nota?: string }>;
+  /** La persona llama por teléfono y apunta lo que le dicen. Sin él, el agente no puede pedírselo. */
+  pedirLlamada?(l: Llamada, signal: AbortSignal): Promise<{ hecho: boolean; notas?: string }>;
   navegador(): Promise<Navegador>;
   /**
    * Lee una página oficial con un navegador real y aparte (sin sesiones del trámite), para webs
@@ -177,6 +213,10 @@ const host = (url: string) => {
   }
 };
 
+/** Un texto para buscarlo en otro sin mayúsculas, tildes ni espacios de más. */
+const comparable = (t: string) =>
+  t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
 /** Perfil global y datos del trámite juntos, para resolver marcadores. */
 const todosLosDatos = (ctx: Contexto) => ({ ...ctx.anfitrion.perfil(), ...ctx.datosTramite });
 
@@ -189,11 +229,30 @@ export function proteger(ctx: Contexto, texto: string, origen: OrigenTexto) {
 const sinParametros = (url: string) =>
   url.replace(/[?#].*$/, (q) => (q.startsWith('?') ? '?…' : ''));
 
+/** Mientras la web espera respuesta a un diálogo propio, la página está bloqueada: solo se ve él. */
+const verDialogo = (d: Dialogo, aviso: string) =>
+  [
+    aviso,
+    `La web ha abierto un diálogo (${d.tipo}) y la página está bloqueada hasta que se responda. Su texto, de la web:`,
+    `«${d.mensaje}»`,
+    d.tipo === 'prompt'
+      ? `Pide escribir algo${d.porDefecto ? ` (propone «${d.porDefecto}»)` : ''}.`
+      : '',
+    'Respóndelo con responder_dialogo.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
 async function verPagina(ctx: Contexto, nav: Navegador, aviso = ''): Promise<string> {
+  const dialogo = nav.dialogo?.();
+  if (dialogo) return verDialogo(dialogo, aviso);
   let p;
   try {
     p = await instantanea(nav);
-  } catch {
+  } catch (e) {
+    const abierto = nav.dialogo?.();
+    if (abierto) return verDialogo(abierto, aviso);
+    if (e instanceof Error && e.name === 'AbortError') throw e;
     // La página estaba navegando: se espera a que cargue y se vuelve a leer una vez.
     await nav.esperar(1000);
     p = await instantanea(nav);
@@ -220,7 +279,9 @@ async function verPagina(ctx: Contexto, nav: Navegador, aviso = ''): Promise<str
   const texto = [
     aviso,
     ...descargas.map((d) => `⬇ Descargado «${d}»: ya está guardado en el trámite.`),
-    `Página: ${p.titulo} — ${sinParametros(p.url)}`,
+    `Página: ${sinParametros(p.url)}`,
+    // El título lo escribe la web: es un dato más, como su texto.
+    p.titulo ? `Título que pone la web: «${p.titulo}»` : '',
     ...avisos,
     '---',
     campos,
@@ -268,7 +329,11 @@ export function crearHerramientas(ctx: Contexto) {
     .describe('Número del elemento entre corchetes en la página');
   /** Un paso vinculante necesita un código aprobado para esta misma web. */
   type Permiso = { ok: true; codigo?: string; accion?: string } | { ok: false; error: string };
-  const codigoValido = (info: InfoElemento, codigo: string | undefined, url: string): Permiso => {
+  const codigoValido = (
+    info: Pick<InfoElemento, 'nombre' | 'rol' | 'paginaConfirmacion'>,
+    codigo: string | undefined,
+    url: string,
+  ): Permiso => {
     if (!pareceIrreversible(info) && !codigo) return { ok: true };
     const aprobada = codigo ? ctx.confirmaciones.get(codigo) : undefined;
     if (!codigo || !aprobada)
@@ -280,11 +345,20 @@ export function crearHerramientas(ctx: Contexto) {
       return { ok: false, error: `Ese código se aprobó para ${aprobada.host}, no para esta web.` };
     return { ok: true, codigo, accion: aprobada.accion };
   };
+  /**
+   * Diálogo de la web que abrió una acción ya aprobada con código (el «¿Seguro que quiere
+   * enviarla?» tras pulsar «Enviar»): aceptarlo no necesita otro código.
+   */
+  let dialogoAprobado: number | null = null;
   /** Se gasta el código y se apunta la acción solo cuando de verdad se ha ejecutado. */
   const gastar = (v: Permiso) => {
     if (!v.ok || !v.codigo || !v.accion) return;
     ctx.vinculantes.push({ accion: v.accion, fecha: new Date().toISOString() });
     ctx.confirmaciones.delete(v.codigo);
+  };
+  /** Tras una acción aprobada, el diálogo que haya abierto queda cubierto por esa aprobación. */
+  const cubrirDialogo = (v: Permiso, nav: Navegador) => {
+    if (v.ok && v.codigo) dialogoAprobado = nav.dialogo?.()?.id ?? null;
   };
   // El modelo puede pedir varias acciones a la vez: en la página se hacen de una en una, en orden.
   let cola: Promise<unknown> = Promise.resolve();
@@ -399,7 +473,7 @@ export function crearHerramientas(ctx: Contexto) {
 
     preguntar: tool({
       description:
-        'Pide datos a la persona con un formulario. Usa las claves de «Mis datos» (nombre, documento_numero, telefono…) cuando correspondan: se guardan para otros trámites. No pidas contraseñas, PIN ni códigos. Las respuestas te llegan como marcador {{clave}}, salvo las de si_no, opcion, numero y texto_largo con privado: false.',
+        'Pide datos a la persona con un formulario. Usa las claves de «Mis datos» (nombre, documento_numero, telefono…) cuando correspondan: se guardan para otros trámites. No pidas contraseñas, PIN ni códigos. Un campo con solo_si solo se pregunta según otra respuesta. Las respuestas te llegan como marcador {{clave}}, salvo las de si_no, opcion, varias, numero y texto_largo con privado: false (varias llegan separadas por «; »).',
       inputSchema: formularioEntrada,
       execute: async (f, opts) => {
         if (
@@ -412,9 +486,17 @@ export function crearHerramientas(ctx: Contexto) {
         const ocupada = f.campos.find((c) => DETECTADO.test(c.clave));
         if (ocupada)
           return `La clave ${ocupada.clave} es de un dato ya encontrado ({{${ocupada.clave}}}). Usa otra, p. ej. nombre_hijo.`;
+        const malCondicionado = f.campos.find((c) => {
+          const de = c.solo_si && f.campos.find((o) => o.clave === c.solo_si!.campo);
+          return c.solo_si && (!de || !['opcion', 'varias', 'si_no'].includes(de.tipo));
+        });
+        if (malCondicionado)
+          return `solo_si de ${malCondicionado.clave} tiene que apuntar a otro campo del formulario de tipo opcion, varias o si_no.`;
         const campos: CampoFormulario[] = f.campos.map((c) => {
           const perfil = campoPerfil(c.clave);
-          const tipo = perfil?.tipo === 'fecha' ? 'fecha' : c.tipo;
+          // La provincia es un desplegable con todas; la persona no tiene que escribirla.
+          const tipo =
+            perfil?.tipo === 'fecha' ? 'fecha' : c.tipo === 'provincia' ? 'opcion' : c.tipo;
           return {
             ...c,
             tipo,
@@ -427,9 +509,12 @@ export function crearHerramientas(ctx: Contexto) {
               !(
                 !perfil &&
                 c.privado === false &&
-                ['si_no', 'opcion', 'numero', 'texto_largo'].includes(tipo)
+                ['si_no', 'opcion', 'varias', 'numero', 'texto_largo'].includes(tipo)
               ),
-            opciones: c.opciones ?? perfil?.opciones?.slice(),
+            opciones:
+              c.tipo === 'provincia'
+                ? Object.values(provincias).sort((a, b) => a.localeCompare(b, 'es'))
+                : (c.opciones ?? perfil?.opciones?.slice()),
           };
         });
         const respuestas = await ctx.anfitrion.preguntar({ ...f, campos }, signalDe(opts));
@@ -568,6 +653,7 @@ export function crearHerramientas(ctx: Contexto) {
         await nav.clic(p.x, p.y);
         gastar(v);
         await nav.esperar();
+        cubrirDialogo(v, nav);
         return verPagina(ctx, nav, `Pulsado «${info.nombre}».`);
       }),
     }),
@@ -658,6 +744,7 @@ export function crearHerramientas(ctx: Contexto) {
         await nav.tecla(tecla);
         gastar(v);
         await nav.esperar();
+        cubrirDialogo(v, nav);
         return verPagina(ctx, nav);
       }),
     }),
@@ -673,13 +760,145 @@ export function crearHerramientas(ctx: Contexto) {
     }),
 
     esperar: tool({
-      description: 'Espera unos segundos a que la página termine de cargar o cambie.',
-      inputSchema: z.object({ segundos: z.number().min(1).max(15) }),
-      execute: enOrden(async ({ segundos }) => {
-        const nav = await navegador();
-        await dormir(segundos * 1000);
-        return verPagina(ctx, nav);
+      description:
+        'Espera a que la página cambie: unos segundos, o hasta que aparezca o desaparezca un texto (como mucho 60 s). Úsalo con las redirecciones de Cl@ve o las webs que tardan en cargar.',
+      inputSchema: z.object({
+        segundos: z
+          .number()
+          .min(1)
+          .max(60)
+          .optional()
+          .describe('Cuánto esperar como mucho (por defecto 5, o 30 si esperas un texto)'),
+        aparece: z
+          .string()
+          .min(2)
+          .max(200)
+          .optional()
+          .describe('Esperar hasta que la página muestre este texto'),
+        desaparece: z
+          .string()
+          .min(2)
+          .max(200)
+          .optional()
+          .describe('Esperar hasta que la página deje de mostrar este texto, p. ej. «Cargando»'),
       }),
+      execute: enOrden(async ({ segundos, aparece, desaparece }, o) => {
+        const nav = await navegador();
+        const buscado = aparece ?? desaparece;
+        const limite = (segundos ?? (buscado ? 30 : 5)) * 1000;
+        if (!buscado) {
+          await dormir(limite, undefined, o.abortSignal ? { signal: o.abortSignal } : {});
+          return verPagina(ctx, nav);
+        }
+        // Se busca el texto real: si el modelo escribe un marcador, el valor que se ve en la página.
+        const resuelto = resolver(buscado);
+        if ('error' in resuelto) return resuelto.error;
+        const objetivo = comparable(resuelto.texto);
+        const inicio = Date.now();
+        let cumplido = false;
+        while (!cumplido && Date.now() - inicio < limite && !nav.dialogo?.()) {
+          const t = await leerTextoPagina(nav, 0, 1_000_000).catch(() => null);
+          cumplido = t !== null && comparable(t.texto).includes(objetivo) === Boolean(aparece);
+          if (!cumplido)
+            await dormir(500, undefined, o.abortSignal ? { signal: o.abortSignal } : {});
+        }
+        const s = Math.round((Date.now() - inicio) / 1000);
+        return verPagina(
+          ctx,
+          nav,
+          cumplido
+            ? `${aparece ? 'Ha aparecido' : 'Ya no se ve'} «${buscado}» (${s} s).`
+            : `Tras ${s} s, ${aparece ? 'no ha aparecido' : 'sigue viéndose'} «${buscado}».`,
+        );
+      }),
+    }),
+
+    responder_dialogo: tool({
+      description:
+        'Responde al diálogo que ha abierto la web (alert, confirm o prompt). Aceptar uno que envía, confirma, paga o anula algo necesita el código de confirmar, salvo que lo haya abierto un botón que ya lo usó.',
+      inputSchema: z.object({
+        aceptar: z.boolean(),
+        texto: z
+          .string()
+          .max(500)
+          .optional()
+          .describe('En un prompt, lo que se escribe (admite marcadores)'),
+        confirmacion: z.string().optional(),
+      }),
+      execute: enOrden(async ({ aceptar, texto, confirmacion }) => {
+        const nav = await navegador();
+        const d = nav.dialogo?.();
+        if (!d || !nav.responderDialogo)
+          return verPagina(ctx, nav, 'No hay ningún diálogo abierto.');
+        let v: Permiso = { ok: true };
+        if (aceptar && d.tipo !== 'alert' && d.id !== dialogoAprobado) {
+          v = codigoValido(
+            { nombre: d.mensaje, rol: 'button', paginaConfirmacion: false },
+            confirmacion,
+            nav.url(),
+          );
+          if (!v.ok) return v.error;
+        }
+        const resuelto = texto ? resolver(texto) : { texto: undefined };
+        if ('error' in resuelto) return resuelto.error;
+        await nav.responderDialogo(aceptar, resuelto.texto);
+        gastar(v);
+        await nav.esperar();
+        cubrirDialogo(v, nav);
+        return verPagina(ctx, nav, aceptar ? 'Diálogo aceptado.' : 'Diálogo cancelado.');
+      }),
+    }),
+
+    llamar: tool({
+      description:
+        'Cuando el trámite solo se puede hacer o aclarar por teléfono: la persona llama con tu guía (qué conseguir, qué preguntar, qué tener a mano) y te cuenta lo que le han dicho. El teléfono tiene que salir de una web oficial que hayas leído.',
+      inputSchema: llamadaEntrada,
+      execute: async (l, opts) => {
+        if (!ctx.anfitrion.pedirLlamada)
+          return 'Aquí no se puede pedir una llamada: explica en el chat a qué teléfono llamar y qué preguntar.';
+        const r = await ctx.anfitrion.pedirLlamada(l, signalDe(opts));
+        const notas = r.notas?.trim() ? await proteger(ctx, r.notas, 'persona') : '';
+        if (!r.hecho)
+          return `La persona no ha llamado o no ha podido hablar con nadie.${notas ? ` Dice: ${notas}` : ''}`;
+        return `La persona ha llamado. ${notas ? `Lo que le han dicho, según sus notas: ${notas}` : 'No ha apuntado nada: pregúntale qué le han dicho si lo necesitas.'}`;
+      },
+    }),
+
+    buscar_ley: tool({
+      description:
+        'Busca normas estatales (leyes, reales decretos, órdenes) en la legislación consolidada del BOE por palabras de su título. Úsalo para comprobar qué dice la norma de un trámite (plazos, requisitos, quién puede hacerlo); para leer una, usa leer_pagina con su id.',
+      inputSchema: z.object({
+        palabras: z
+          .array(z.string().min(2).max(60))
+          .min(1)
+          .max(6)
+          .describe(
+            'Palabras o expresiones que tiene que llevar el título, p. ej. ["régimen local"] o ["extranjería", "reglamento"]',
+          ),
+        derogadas: z
+          .boolean()
+          .optional()
+          .describe('true para incluir también las normas que ya no están vigentes'),
+      }),
+      execute: async ({ palabras, derogadas }, opts) => {
+        const normas = await buscarEnElBoe(
+          palabras.map((p) => ctx.privacidad.limpiar(p, { usuario: true })),
+          !derogadas,
+          signalDe(opts),
+        );
+        if (!normas.length)
+          return 'El BOE no tiene ninguna norma con esas palabras en el título. Prueba con menos palabras o con otras.';
+        const vistas = normas.flatMap((n) => {
+          const f = ctx.fuentes.añadir(n.url, n.titulo, 'busqueda');
+          return f
+            ? [
+                `[${f.id}] ${n.titulo}${n.rango ? ` — ${n.rango}` : ''}${n.publicada ? `, publicada el ${n.publicada}` : ''}${n.vigente ? '' : ' (ya no está vigente)'}`,
+              ]
+            : [];
+        });
+        ctx.evento({ tipo: 'fuentes', fuentes: ctx.fuentes.lista() });
+        return vistas.join('\n');
+      },
     }),
   };
 }

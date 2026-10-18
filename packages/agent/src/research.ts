@@ -62,7 +62,7 @@ export function limpiarExtracto(texto: string): string {
 /**
  * Busca en toda la web, o solo en `dominios` si se dan: las webs de las administraciones son
  * demasiadas para una lista. La búsqueda la ejecuta Parallel en Vercel AI Gateway, a través de un
- * modelo pequeño que solo hace una llamada, o Exa directamente con NaN Builders.
+ * modelo pequeño que solo hace una llamada, o Exa directamente.
  */
 export async function buscarEnLaWeb(
   consulta: string,
@@ -71,13 +71,17 @@ export async function buscarEnLaWeb(
   signal?: AbortSignal,
 ): Promise<{ resultados: Resultado[]; costeUsd: number | null }> {
   const max = 8;
-  if (proveedor.tipo === 'nan')
-    return buscarConExa(consulta, dominios, proveedor.claveExa, max, signal);
+  const b = proveedor.busqueda;
+  if (!b)
+    throw new Error(
+      'La búsqueda no está disponible con el proveedor elegido en Ajustes. Lee con leer_pagina la web del organismo si la conoces.',
+    );
+  if (b.tipo === 'exa') return buscarConExa(consulta, dominios, b.clave, max, signal);
   const r = await generateText({
-    model: proveedor.rapido,
+    model: b.rapido,
     reasoning: 'none',
     tools: {
-      buscar: proveedor.gateway.tools.parallelSearch({
+      buscar: b.gateway.tools.parallelSearch({
         maxResults: max,
         mode: 'agentic',
         ...(dominios.length ? { sourcePolicy: { includeDomains: dominios } } : {}),
@@ -110,6 +114,69 @@ export async function buscarEnLaWeb(
     }
   }
   return { resultados, costeUsd: coste(r.providerMetadata) };
+}
+
+const respuestaBoe = z.object({
+  status: z.object({ code: z.string(), text: z.string().optional() }),
+  // Sin resultados, `data` llega como texto vacío.
+  data: z
+    .union([
+      z.array(
+        z.object({
+          identificador: z.string(),
+          titulo: z.string(),
+          rango: z.object({ texto: z.string() }).optional(),
+          fecha_publicacion: z.string().optional(),
+          vigencia_agotada: z.string().optional(),
+          url_html_consolidada: z.string().optional(),
+        }),
+      ),
+      z.literal(''),
+    ])
+    .nullish(),
+});
+
+/**
+ * Normas estatales de la legislación consolidada del BOE (API de datos abiertos, sin clave) que
+ * llevan en el título todas las palabras o expresiones dadas.
+ */
+export async function buscarEnElBoe(
+  palabras: string[],
+  soloVigentes: boolean,
+  signal?: AbortSignal,
+) {
+  // Cada una entre comillas, sin los signos de la sintaxis de búsqueda del BOE.
+  const terminos = palabras
+    .map((p) =>
+      p
+        .replace(/[^\p{L}\p{N}\s/.-]/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter(Boolean)
+    .map((p) => `"${p}"`);
+  if (!terminos.length) throw new Error('Escribe alguna palabra del título de la norma.');
+  const consulta = `titulo:(${terminos.join(' and ')})${soloVigentes ? ' and vigencia_agotada:N' : ''}`;
+  const res = await fetch(
+    `https://www.boe.es/datosabiertos/api/legislacion-consolidada?limit=10&query=${encodeURIComponent(JSON.stringify({ query: { query_string: { query: consulta } } }))}`,
+    {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.any([AbortSignal.timeout(20000), ...(signal ? [signal] : [])]),
+    },
+  );
+  if (!res.ok) throw new Error(`El BOE respondió con un error ${res.status}.`);
+  const r = respuestaBoe.parse(await res.json());
+  if (r.status.code !== '200')
+    throw new Error(`El BOE respondió: ${r.status.text ?? r.status.code}.`);
+  return (r.data || []).map((n) => ({
+    titulo: n.titulo,
+    rango: n.rango?.texto,
+    publicada: n.fecha_publicacion?.replace(/^(\d{4})(\d{2})(\d{2}).*$/, '$3/$2/$1'),
+    vigente: n.vigencia_agotada !== 'S',
+    url:
+      n.url_html_consolidada ??
+      `https://www.boe.es/buscar/act.php?id=${encodeURIComponent(n.identificador)}`,
+  }));
 }
 
 const respuestaExa = z.object({

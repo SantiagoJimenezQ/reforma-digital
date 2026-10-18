@@ -22,7 +22,18 @@ export interface Navegador {
   esperar(ms?: number): Promise<void>;
   /** Archivos descargados desde la última llamada (nombre con el que se han guardado). */
   descargas?(): string[];
+  /** El diálogo propio de la web (alert, confirm, prompt) que espera respuesta, si hay uno. */
+  dialogo?(): Dialogo | null;
+  responderDialogo?(aceptar: boolean, texto?: string): Promise<void>;
 }
+
+export type Dialogo = {
+  /** Distinto para cada diálogo que abre la web. */
+  id: number;
+  tipo: 'alert' | 'confirm' | 'prompt' | 'beforeunload';
+  mensaje: string;
+  porDefecto?: string;
+};
 
 export type Instantanea = {
   url: string;
@@ -71,6 +82,39 @@ const SCRIPT = String.raw`(function () {
     if (s.display === 'none' || s.visibility === 'hidden' || s.visibility === 'collapse') return false;
     if (s.display === 'contents') return true;
     return el.getClientRects().length > 0;
+  }
+  /** Medida de un recorte ("10px" o "50%") en píxeles, sobre el tamaño de la caja. */
+  function medida(v, total) { var n = parseFloat(v); return /%$/.test(v) ? (n / 100) * total : n; }
+  /**
+   * Lo que está en la página pero una persona no ve: transparente, recortado hasta no dejar nada a
+   * la vista, de 1 px con lo que sobra escondido o colocado fuera de la página. Es como se esconde
+   * el texto solo para lectores de pantalla, y como una web puede esconder órdenes para un asistente.
+   */
+  function oculto(el, s) {
+    if (!s || s.display === 'contents') return false;
+    if (Number(s.opacity) === 0) return true;
+    var r = el.getBoundingClientRect(), w = el.ownerDocument.defaultView;
+    if ((r.width <= 1 || r.height <= 1) && /hidden|clip/.test(s.overflowX + ' ' + s.overflowY)) return true;
+    if (r.right + w.scrollX < 0 || r.bottom + w.scrollY < 0) return true;
+    var clip = /^rect\((.*)\)$/.exec(s.clip || '');
+    if (clip && (s.position === 'absolute' || s.position === 'fixed')) {
+      // rect(arriba, derecha, abajo, izquierda), en coordenadas de la caja.
+      var c = clip[1].split(/[\s,]+/).map(parseFloat);
+      if (c.length === 4 && c.every(isFinite) && (c[1] - c[3] <= 1 || c[2] - c[0] <= 1)) return true;
+    }
+    var ins = /^inset\(([^)]*)\)/.exec(s.clipPath || '');
+    if (ins) {
+      // inset(arriba derecha abajo izquierda), con los valores que falten repetidos como en CSS.
+      var v = ins[1].split(/\s+round\s+/)[0].trim().split(/\s+/);
+      var arriba = v[0], derecha = v[1] || arriba, abajo = v[2] || arriba, izquierda = v[3] || derecha;
+      if (r.width - medida(izquierda, r.width) - medida(derecha, r.width) <= 1) return true;
+      if (r.height - medida(arriba, r.height) - medida(abajo, r.height) <= 1) return true;
+    }
+    return false;
+  }
+  /** Un control escondido cuya etiqueta sí se ve (las casillas con estilo propio) se usa pulsando la etiqueta. */
+  function etiquetaALaVista(el) {
+    return Array.prototype.some.call(el.labels || [], function (l) { var s = estilo(l); return visible(l, s) && !oculto(l, s); });
   }
   function rol(el) {
     var r = el.getAttribute('role');
@@ -182,6 +226,12 @@ const SCRIPT = String.raw`(function () {
       if (c && previa && !previa.c && t.indexOf('"' + previa.t + '"') >= 0) lineas.pop();
       lineas.push({ t: (aviso && !c ? '⚠ ' : '') + t, c: c });
     }
+    function controlesDentro(padre) {
+      for (var h = padre.firstElementChild; h; h = h.nextElementSibling) {
+        var rh = rol(h);
+        if (rh && CONTROLES[rh]) recorrer(h); else controlesDentro(h);
+      }
+    }
     function recorrer(nodo) {
       if (nodo.nodeType === 3) { linea += nodo.nodeValue; return; }
       if (nodo.nodeType !== 1) return;
@@ -189,6 +239,10 @@ const SCRIPT = String.raw`(function () {
       if (OMITIR[tag]) return;
       var s = estilo(el);
       if (!visible(el, s)) return;
+      if (oculto(el, s)) {
+        var r0 = rol(el);
+        if (!(r0 && CONTROLES[r0] && etiquetaALaVista(el))) return;
+      }
       if (tag === 'IFRAME' || tag === 'FRAME') {
         var doc = null;
         try { doc = el.contentDocument; } catch (e) { doc = null; }
@@ -196,8 +250,12 @@ const SCRIPT = String.raw`(function () {
         else { var host = ''; try { host = new URL(el.src).host; } catch (e) {} emitir('[marco de otra web' + (host ? ': ' + host : '') + ']', 1); }
         return;
       }
-      // La etiqueta de un control ya va en su nombre.
-      if (tag === 'LABEL' && el.control && rol(el.control)) return;
+      // La etiqueta de un control ya va en su nombre. Si lo envuelve, de ella solo cuentan los
+      // controles que lleva dentro: el suyo y, por ejemplo, el enlace a las condiciones.
+      if (tag === 'LABEL' && el.control && rol(el.control)) {
+        if (el.contains(el.control)) controlesDentro(el);
+        return;
+      }
       var r = rol(el);
       if (r && CONTROLES[r]) {
         if (tag === 'INPUT' && el.type === 'password') contrasenas++;
@@ -317,8 +375,23 @@ const SCRIPT = String.raw`(function () {
     el.dispatchEvent(new Event('change', { bubbles: true }));
     return { ok: true, elegida: limpio(o.text) };
   }
+  /** El texto que ve una persona, con un salto de línea entre bloques (como innerText, sin lo oculto). */
+  function textoVisible(nodo, partes) {
+    if (nodo.nodeType === 3) { partes.push(nodo.nodeValue); return; }
+    if (nodo.nodeType !== 1 || OMITIR[nodo.tagName]) return;
+    var s = estilo(nodo);
+    if (!visible(nodo, s) || oculto(nodo, s)) return;
+    var d = s ? s.display : 'block';
+    var bloque = d !== 'inline' && d !== 'inline-block' && d !== 'contents';
+    if (bloque || nodo.tagName === 'BR') partes.push('\n');
+    for (var c = nodo.firstChild; c; c = c.nextSibling) textoVisible(c, partes);
+    if (nodo.shadowRoot) for (var c2 = nodo.shadowRoot.firstChild; c2; c2 = c2.nextSibling) textoVisible(c2, partes);
+    if (bloque) partes.push('\n');
+  }
   function leerTexto(desde, max) {
-    var t = limpio((document.body && document.body.innerText || '').replace(/\n+/g, ' ¶ ')).replace(/ ¶ /g, '\n');
+    var partes = [];
+    if (document.body) textoVisible(document.body, partes);
+    var t = limpio(partes.join('').trim().replace(/\n+/g, ' ¶ ')).replace(/ ¶ /g, '\n');
     return { texto: t.slice(desde, desde + max), total: t.length, titulo: document.title };
   }
   Object.defineProperty(window, '__rd', { value: { instantanea: instantanea, punto: punto, info: info, destinoDeTecla: destinoDeTecla, enfocar: enfocar, elegir: elegir, leerTexto: leerTexto } });

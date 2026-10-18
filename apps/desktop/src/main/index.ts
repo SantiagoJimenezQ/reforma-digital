@@ -29,6 +29,7 @@ import {
 } from '@reforma-digital/agent';
 import {
   ajustesEsquema,
+  urlProveedor,
   type Ajustes,
   type ApiRd,
   type EstadoApp,
@@ -63,18 +64,49 @@ const NAN =
     ? { clave: process.env.CLAVE_NAN, claveExa: process.env.CLAVE_EXA, modelo: 'deepseek-v4-flash' }
     : null;
 
-/** El proveedor con el que habla el asistente, o `null` si la compilación no lleva claves. */
-function configProveedor(modelo: string, retencionCero: boolean): ConfigProveedor | null {
+/** El proveedor de esta compilación, o `null` si no lleva claves. */
+function proveedorApp(modelo: string, retencionCero: boolean): ConfigProveedor | null {
   if (NAN) return { tipo: 'nan', ...NAN };
   return CLAVE_GATEWAY ? { tipo: 'gateway', clave: CLAVE_GATEWAY, modelo, retencionCero } : null;
 }
 
-type Secretos = { ajustes: Ajustes };
+/** Otro proveedor elegido por la persona; busca con su clave de Exa o, si no tiene, con la de la app. */
+function proveedorPropio(
+  p: NonNullable<Ajustes['proveedorPropio']>,
+  claves: Claves,
+): ConfigProveedor {
+  const exa = claves.exa ?? NAN?.claveExa ?? process.env.CLAVE_EXA;
+  return {
+    tipo: 'compatible',
+    url: p.url,
+    modelo: p.modelo,
+    ...(claves.proveedor ? { clave: claves.proveedor } : {}),
+    busqueda: exa
+      ? { tipo: 'exa', clave: exa }
+      : CLAVE_GATEWAY
+        ? { tipo: 'gateway', clave: CLAVE_GATEWAY }
+        : null,
+  };
+}
+
+/** El proveedor con el que habla el asistente ahora, o `null` si no hay ninguno con clave. */
+function configProveedor(): ConfigProveedor | null {
+  const a = secretos.ajustes;
+  if (a.proveedor === 'propio' && a.proveedorPropio)
+    return proveedorPropio(a.proveedorPropio, secretos.claves ?? {});
+  return proveedorApp(a.modelo, a.retencionCero);
+}
+
+/** Las claves del otro proveedor: cifradas con lo demás y nunca enviadas a la interfaz. */
+type Claves = { proveedor?: string; exa?: string };
+type Secretos = { ajustes: Ajustes; claves?: Claves };
 const AJUSTES_INICIALES: Ajustes = {
   modelo: 'openai/gpt-6-luna',
   touchIdEnConfirmaciones: true,
   retencionCero: false,
   cerrarSesiones: false,
+  proveedor: 'app',
+  proveedorPropio: null,
 };
 
 let ventana: BrowserWindow | null = null;
@@ -137,6 +169,11 @@ function estadoApp(): EstadoApp {
     version: app.getVersion(),
     ajustes: secretos.ajustes,
     modeloNan: NAN?.modelo ?? null,
+    claveApp: Boolean(NAN || CLAVE_GATEWAY),
+    clavesPropias: {
+      proveedor: Boolean(secretos.claves?.proveedor),
+      exa: Boolean(secretos.claves?.exa),
+    },
     tramites: tramites.lista(),
     campos: camposPerfil,
     perfil: perfilVista(),
@@ -164,19 +201,75 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
     guardarAjustes: async (entrada) => {
       const a = ajustesEsquema.partial().safeParse(entrada);
       if (!a.success) return { ok: false, error: 'Revisa los ajustes.' };
-      secretos = { ajustes: { ...secretos.ajustes, ...a.data } };
+      const ajustes = { ...secretos.ajustes, ...a.data };
+      if (ajustes.proveedor === 'propio' && !ajustes.proveedorPropio)
+        return { ok: false, error: 'Configura antes el otro proveedor.' };
+      secretos = { ...secretos, ajustes };
       await almacen.escribir('secretos.bin', secretos);
       emitir({ tipo: 'estado', estado: estadoApp() });
       return { ok: true };
     },
     probarConexion: async (modelo) => {
-      const cfg = configProveedor(ajustesEsquema.shape.modelo.parse(modelo), true);
+      const cfg = proveedorApp(ajustesEsquema.shape.modelo.parse(modelo), true);
       if (!cfg) return { ok: false, error: SIN_CLAVE };
       try {
         await probarConexion(cfg);
         return { ok: true };
       } catch (e) {
         return { ok: false, error: mensajeDeError(e) };
+      }
+    },
+    guardarProveedorPropio: async (entrada) => {
+      const e = z
+        .object({
+          url: urlProveedor,
+          modelo: z.string().trim().min(1).max(200),
+          clave: z.string().trim().max(500).optional(),
+          claveExa: z.string().trim().max(200).optional(),
+        })
+        .safeParse(entrada);
+      if (!e.success)
+        return { ok: false, error: e.error.issues[0]?.message ?? 'Revisa los datos.' };
+      const { url, modelo, clave, claveExa } = e.data;
+      // Sin dar, se queda la que había; vacía, se borra.
+      const claves: Claves = { ...secretos.claves };
+      if (clave) claves.proveedor = clave;
+      else if (clave === '') delete claves.proveedor;
+      if (claveExa) claves.exa = claveExa;
+      else if (claveExa === '') delete claves.exa;
+      const propio = { url: url.replace(/\/+$/, ''), modelo };
+      try {
+        await probarConexion(proveedorPropio(propio, claves));
+      } catch (err) {
+        return { ok: false, error: `No responde: ${mensajeDeError(err)}` };
+      }
+      secretos = {
+        claves,
+        ajustes: { ...secretos.ajustes, proveedor: 'propio', proveedorPropio: propio },
+      };
+      await almacen.escribir('secretos.bin', secretos);
+      emitir({ tipo: 'estado', estado: estadoApp() });
+      return { ok: true };
+    },
+    modelosDelProveedor: async (entrada) => {
+      const e = z
+        .object({ url: urlProveedor, clave: z.string().trim().max(500).optional() })
+        .safeParse(entrada);
+      if (!e.success) return [];
+      const clave = e.data.clave ?? secretos.claves?.proveedor;
+      try {
+        const res = await net.fetch(`${e.data.url.replace(/\/+$/, '')}/models`, {
+          headers: clave ? { authorization: `Bearer ${clave}` } : {},
+          redirect: 'error',
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!res.ok) return [];
+        const r = z
+          .object({ data: z.array(z.object({ id: z.string().max(200) })).max(2000) })
+          .safeParse(await res.json());
+        return r.success ? r.data.data.map((m) => m.id).sort() : [];
+      } catch {
+        return [];
       }
     },
     crearTramite: async (t, r) => tramites.crear(texto.parse(t), razonamiento.parse(r)),
@@ -251,7 +344,8 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
     },
     abrirEnlace: async (u) => {
       const url = new URL(z.string().parse(u));
-      if (url.protocol === 'https:') await shell.openExternal(url.href);
+      // tel: abre la app de llamadas del sistema, para la llamada guiada.
+      if (url.protocol === 'https:' || url.protocol === 'tel:') await shell.openExternal(url.href);
     },
     mostrarArchivo: async (ruta) => {
       const r = z.string().parse(ruta);
@@ -368,12 +462,12 @@ app.on('select-client-certificate', (event, webContents, url, lista, responder) 
   if (!lista.length || (webContents && esLectura(webContents.session))) return responder();
   // Electron da «host:puerto», no una URL completa.
   const sitio = url.replace(/^[a-z]+:\/\//i, '').replace(/[/:].*$/, '');
+  // Sin lista de webs: la persona ve en qué web va a usarlo y decide.
   const opciones = {
     type: 'question' as const,
-    message: `${sitio} pide un certificado digital`,
-    detail:
-      'Elige con qué certificado quieres identificarte. El asistente no ve tu certificado ni su contraseña.',
-    buttons: [...lista.map((c) => c.subjectName || c.issuerName), 'Cancelar'],
+    message: `¿Te identificas en ${sitio} con tu certificado digital?`,
+    detail: `${sitio} recibirá los datos de tu certificado, como tu nombre y tu DNI o NIE. Hazlo solo si es la web donde quieres hacer el trámite. El asistente no ve tu certificado ni su contraseña.`,
+    buttons: [...lista.map((c) => `Usar ${c.subjectName || c.issuerName}`), 'No identificarme'],
     cancelId: lista.length,
   };
   const padre = (webContents && BrowserWindow.fromWebContents(webContents)) ?? ventana;
@@ -402,6 +496,8 @@ app
     almacen = await Almacen.abrir(path.join(app.getPath('userData'), 'datos'));
     secretos = (await almacen.leer<Secretos>('secretos.bin')) ?? { ajustes: AJUSTES_INICIALES };
     secretos.ajustes = { ...AJUSTES_INICIALES, ...secretos.ajustes };
+    if (secretos.ajustes.proveedor === 'propio' && !secretos.ajustes.proveedorPropio)
+      secretos.ajustes.proveedor = 'app';
     // Con «cerrar sesiones», las sesiones de las webs viven en memoria y se borran las que quedaran.
     if (secretos.ajustes.cerrarSesiones)
       await fs.rm(path.join(app.getPath('userData'), 'Partitions'), {
@@ -412,7 +508,7 @@ app
     tramites = new Tramites(almacen, {
       perfil: () => perfil,
       guardarPerfil: async (v) => guardarPerfil({ ...perfil, ...v }),
-      proveedor: () => configProveedor(secretos.ajustes.modelo, secretos.ajustes.retencionCero),
+      proveedor: configProveedor,
       sesionesGuardadas: () => !secretos.ajustes.cerrarSesiones,
       verificarIdentidad: (motivo) => verificar(motivo, secretos.ajustes.touchIdEnConfirmaciones),
       detector: cargarDetector,

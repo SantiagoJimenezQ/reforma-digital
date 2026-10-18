@@ -8,6 +8,14 @@ import {
 import { Input } from '@reforma-digital/design/ui/input';
 import { Textarea } from '@reforma-digital/design/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
+import { Checkbox } from '@reforma-digital/design/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@reforma-digital/design/ui/select';
 import { cn } from '@reforma-digital/design/lib/utils';
 import type { Ayuda, ItemConversacion } from '../shared/api';
 import { useEstado } from './estado';
@@ -116,6 +124,15 @@ type Campo = Extract<
   { tipo: 'formulario' }
 >['formulario']['campos'][number];
 
+/** Las respuestas de un campo de varias opciones van juntas, separadas así. */
+const SEPARADOR = '; ';
+const marcadas = (v = '') => v.split(SEPARADOR).filter(Boolean);
+/** Un campo con solo_si se pregunta solo si el otro campo tiene esa respuesta. */
+const seVe = (c: Campo, valores: Record<string, string>) =>
+  !c.solo_si || marcadas(valores[c.solo_si.campo]).includes(c.solo_si.valor);
+/** Con más opciones que estas, un desplegable en lugar de botones. */
+const MAX_BOTONES = 8;
+
 function Entrada({
   c,
   id,
@@ -137,7 +154,45 @@ function Entrada({
           <span className="font-normal text-muted-foreground">(opcional)</span>
         )}
       </label>
-      {c.tipo === 'si_no' || (c.tipo === 'opcion' && c.opciones?.length) ? (
+      {c.tipo === 'varias' && c.opciones?.length ? (
+        <div id={id} role="group" aria-label={c.etiqueta} className="grid gap-2 sm:grid-cols-2">
+          {c.opciones.map((o) => (
+            <label
+              key={o}
+              className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-border px-3 text-[15px] has-data-checked:border-foreground has-data-checked:font-medium"
+            >
+              <Checkbox
+                checked={marcadas(valor).includes(o)}
+                onCheckedChange={(si) =>
+                  fijar(
+                    (si ? [...marcadas(valor), o] : marcadas(valor).filter((x) => x !== o)).join(
+                      SEPARADOR,
+                    ),
+                  )
+                }
+              />
+              {o}
+            </label>
+          ))}
+        </div>
+      ) : c.tipo === 'opcion' && (c.opciones?.length ?? 0) > MAX_BOTONES ? (
+        <Select
+          value={valor || null}
+          items={c.opciones!.map((o) => ({ value: o, label: o }))}
+          onValueChange={(v) => fijar(String(v ?? ''))}
+        >
+          <SelectTrigger id={id} aria-label={c.etiqueta} className="h-11 w-full text-base">
+            <SelectValue placeholder="Elige una opción" />
+          </SelectTrigger>
+          <SelectContent>
+            {c.opciones!.map((o) => (
+              <SelectItem key={o} value={o}>
+                {o}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : c.tipo === 'si_no' || (c.tipo === 'opcion' && c.opciones?.length) ? (
         <RadioGroup
           id={id}
           aria-label={c.etiqueta}
@@ -219,13 +274,15 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
   }, [abierto, plegable, paso]);
   if (!f) return null;
   const pendiente = (c: Campo) => c.obligatorio !== false && !valores[c.clave]?.trim();
-  const faltan = f.campos.filter(pendiente);
+  // Los campos que dependen de otra respuesta entran y salen según lo que se va respondiendo.
+  const enJuego = f.campos.filter((c) => seVe(c, valores));
+  const faltan = enJuego.filter(pendiente);
   const fijar = (clave: string, v: string) => setValores((x) => ({ ...x, [clave]: v }));
   // Que quede claro quién lo hace: «Pedir la cita» → «Pedir la cita por mí».
   const accion = f.accion && (/por m[ií]/i.test(f.accion) ? f.accion : `${f.accion} por mí`);
-  const pasos = f.accion && f.campos.length > 4 ? enPasos(f.campos) : null;
-  const revisar = pasos !== null && paso === pasos.length;
-  const visibles = pasos ? (pasos[paso]?.campos ?? []) : f.campos;
+  const pasos = f.accion && f.campos.length > 4 ? enPasos(enJuego) : null;
+  const revisar = pasos !== null && paso >= pasos.length;
+  const visibles = pasos ? (pasos[paso]?.campos ?? []) : enJuego;
   const faltanAqui = revisar ? faltan : visibles.filter(pendiente);
   const ir = (n: number) => {
     setAtras(n < paso);
@@ -286,7 +343,7 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
           e.preventDefault();
           if (faltanAqui.length) return;
           if (pasos && !revisar) ir(paso + 1);
-          else responder(valores);
+          else responder(Object.fromEntries(enJuego.map((c) => [c.clave, valores[c.clave] ?? ''])));
         }}
       >
         {pasos ? (
@@ -320,7 +377,7 @@ function Formulario({ tramite, item }: { tramite: string; item: ItemPregunta }) 
                 </h4>
                 {revisar ? (
                   <dl className="m-0 grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-6 gap-y-2.5 text-[15px]">
-                    {f.campos.map((c) => (
+                    {enJuego.map((c) => (
                       <div key={c.clave} className="contents">
                         <dt className="text-muted-foreground">{c.etiqueta}</dt>
                         <dd className="m-0 break-words">{legible(c, valores[c.clave])}</dd>
@@ -482,6 +539,83 @@ function Ayuda({
   );
 }
 
+/** La llamada que no se puede evitar: a quién, qué conseguir y qué preguntar, y lo que le dicen. */
+function Llamada({ tramite, item }: { tramite: string; item: ItemPregunta }) {
+  const { enviando, responder } = useResponder(tramite, item);
+  const [notas, setNotas] = useState('');
+  const idNotas = useId();
+  if (item.pregunta.tipo !== 'llamada') return null;
+  const l = item.pregunta.llamada;
+  const lista = (titulo: string, items: string[], numerada: boolean) => {
+    const Lista = numerada ? 'ol' : 'ul';
+    return (
+      <div>
+        <h4 className="m-0 mb-1.5 text-[15px] font-medium">{titulo}</h4>
+        <Lista className={cn('m-0 space-y-1 pl-5', numerada ? 'list-decimal' : 'list-disc')}>
+          {items.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </Lista>
+      </div>
+    );
+  };
+  return (
+    <Tarjeta
+      icono={<Icono nombre="telefono" />}
+      titulo={`Llama a ${l.organismo}`}
+      descripcion={l.objetivo}
+    >
+      <div className="space-y-5 px-5 pb-5 text-[15px] leading-relaxed">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="font-heading text-[28px] leading-tight tabular-nums select-all">
+            {l.telefono}
+          </span>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => void window.rd.abrirEnlace(`tel:${l.telefono.replace(/[^\d+]/g, '')}`)}
+          >
+            <Icono nombre="telefono" size={16} />
+            Llamar
+          </Button>
+          {l.horario && <span className="w-full text-muted-foreground">Horario: {l.horario}</span>}
+        </div>
+        {lista('Qué preguntar', l.preguntas, true)}
+        {l.tener_a_mano?.length ? lista('Ten a mano', l.tener_a_mano, false) : null}
+        <div>
+          <label htmlFor={idNotas} className="mb-1.5 block font-medium">
+            Qué te han dicho
+          </label>
+          <Textarea
+            id={idNotas}
+            maxLength={2000}
+            value={notas}
+            placeholder="Fechas, documentos, números de referencia…"
+            onChange={(e) => setNotas(e.target.value)}
+          />
+          <p className="mt-1.5 mb-0 text-sm text-muted-foreground">
+            El asistente lo lee para seguir con el trámite. Los datos personales que escribas le
+            llegan ocultos.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="sunset"
+            size="lg"
+            disabled={enviando}
+            onClick={() => responder({ notas })}
+          >
+            Ya he llamado
+          </Button>
+          <Button variant="ghost" size="lg" disabled={enviando} onClick={() => responder(false)}>
+            No he podido llamar
+          </Button>
+        </div>
+      </div>
+    </Tarjeta>
+  );
+}
+
 export function Pregunta({
   tramite,
   item,
@@ -497,7 +631,9 @@ export function Pregunta({
         ? item.pregunta.formulario.titulo
         : item.pregunta.tipo === 'confirmacion'
           ? item.pregunta.confirmacion.accion
-          : item.pregunta.ayuda.instrucciones;
+          : item.pregunta.tipo === 'llamada'
+            ? `Llamar a ${item.pregunta.llamada.organismo}`
+            : item.pregunta.ayuda.instrucciones;
     return (
       <p className="my-3 flex items-center gap-2 text-sm text-muted-foreground">
         <Icono
@@ -514,5 +650,6 @@ export function Pregunta({
   }
   if (item.pregunta.tipo === 'formulario') return <Formulario tramite={tramite} item={item} />;
   if (item.pregunta.tipo === 'confirmacion') return <Confirmacion tramite={tramite} item={item} />;
+  if (item.pregunta.tipo === 'llamada') return <Llamada tramite={tramite} item={item} />;
   return <Ayuda tramite={tramite} item={item} verNavegador={verNavegador} />;
 }

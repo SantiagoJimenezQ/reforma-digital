@@ -58,6 +58,7 @@ const HERRAMIENTAS_DE_PAGINA = new Set([
   'tecla',
   'volver',
   'esperar',
+  'responder_dialogo',
   'pedir_ayuda',
 ]);
 
@@ -65,7 +66,7 @@ const HERRAMIENTAS_DE_PAGINA = new Set([
  * Herramientas que esperan a la persona. No se ejecutan dentro del paso: su llamada se guarda
  * antes, así que, si se cierra la app mientras espera, el turno se retoma con la misma pregunta.
  */
-const DE_LA_PERSONA = new Set(['preguntar', 'confirmar', 'pedir_ayuda']);
+const DE_LA_PERSONA = new Set(['preguntar', 'confirmar', 'pedir_ayuda', 'llamar']);
 
 /** Llamadas de la última respuesta del modelo que aún no tienen resultado: esperan a la persona. */
 export function pendientes(mensajes: ModelMessage[]): ToolCallPart[] {
@@ -160,6 +161,13 @@ export function compactar(mensajes: ModelMessage[]): ModelMessage[] {
  * repetirla tras un cambio en la página (un aviso cerrado, un dato corregido) sí está permitido.
  * Si el detector falla, `cortar` para el turno: lo que no se ha podido proteger no sale.
  */
+/**
+ * Caracteres que no se ven: de formato (ancho cero, control de dirección, las «etiquetas» Unicode)
+ * y selectores de variante. Una web puede esconder en ellos instrucciones o partir un DNI para que
+ * no se reconozca, así que no llegan al modelo.
+ */
+export const sinInvisibles = (t: string) => t.replace(/[\p{Cf}\p{Variation_Selector}]/gu, '');
+
 function supervisar(tools: ToolSet, ctx: Contexto, cortar: (e: Error) => void): ToolSet {
   const historial: { clave: string; resultado: unknown }[] = [];
   return Object.fromEntries(
@@ -192,12 +200,13 @@ function supervisar(tools: ToolSet, ctx: Contexto, cortar: (e: Error) => void): 
             // Ningún resultado vuelve al modelo con un valor del perfil, venga de donde venga, y lo
             // que sale de la página del trámite pasa además por el detector.
             ctx.privacidad.actualizar({ ...ctx.anfitrion.perfil(), ...ctx.datosTramite });
+            const texto = typeof r === 'string' ? sinInvisibles(r) : r;
             const resultado =
-              typeof r !== 'string'
-                ? r
+              typeof texto !== 'string'
+                ? texto
                 : CON_DATOS.has(nombre)
-                  ? await protegerPagina(ctx, r)
-                  : ctx.privacidad.limpiar(r);
+                  ? await protegerPagina(ctx, texto)
+                  : ctx.privacidad.limpiar(texto);
             historial.push({
               clave,
               resultado: typeof resultado === 'string' ? resultado : JSON.stringify(resultado),
@@ -253,6 +262,14 @@ export function resumir(nombre: string, input: unknown): string {
       return `Pidiendo tu permiso: ${String(i.accion)}`;
     case 'pedir_ayuda':
       return 'Esperando a que lo hagas tú en el navegador';
+    case 'llamar':
+      return 'Esperando a que llames';
+    case 'buscar_ley':
+      return 'Buscando la norma en el BOE';
+    case 'responder_dialogo':
+      return 'Respondiendo a un aviso de la web';
+    case 'esperar':
+      return 'Esperando a la página';
     case 'mis_datos':
       return 'Consultando Mis datos';
     case 'pulsar':

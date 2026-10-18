@@ -3,11 +3,35 @@
  * que valida el proceso principal (la interfaz solo importa tipos, así que zod no entra en ella).
  */
 import { z } from 'zod';
-import type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente } from '@reforma-digital/agent';
+import type {
+  Ayuda,
+  CampoPerfil,
+  Confirmacion,
+  Formulario,
+  Fuente,
+  Llamada,
+} from '@reforma-digital/agent';
 
-export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente };
+export type { Ayuda, CampoPerfil, Confirmacion, Formulario, Fuente, Llamada };
 
 export type Razonamiento = 'low' | 'medium' | 'high';
+
+/**
+ * Servidor de otro proveedor: https o, para un modelo que corre en el propio ordenador (Ollama,
+ * LM Studio), http en esta máquina.
+ */
+export const urlProveedor = z
+  .string()
+  .trim()
+  .max(300)
+  .refine((u) => {
+    const url = URL.parse(u);
+    if (!url || url.username || url.password) return false;
+    return (
+      url.protocol === 'https:' ||
+      (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))
+    );
+  }, 'Usa una dirección https, o http solo en este ordenador (localhost).');
 
 export const ajustesEsquema = z.object({
   modelo: z
@@ -20,13 +44,20 @@ export const ajustesEsquema = z.object({
   retencionCero: z.boolean(),
   /** Borrar las sesiones de las webs (cookies, inicios de sesión) al cerrar la app. */
   cerrarSesiones: z.boolean(),
+  /** El proveedor de IA: el de esta compilación de la app (por defecto) o uno que elige la persona. */
+  proveedor: z.enum(['app', 'propio']),
+  /** El otro proveedor: un servidor compatible con la API de OpenAI y su modelo. Sus claves van aparte. */
+  proveedorPropio: z
+    .object({ url: urlProveedor, modelo: z.string().trim().min(1).max(200) })
+    .nullable(),
 });
 export type Ajustes = z.infer<typeof ajustesEsquema>;
 
 export type Pregunta =
   | { tipo: 'formulario'; formulario: Formulario }
   | { tipo: 'confirmacion'; confirmacion: Confirmacion }
-  | { tipo: 'ayuda'; ayuda: Ayuda };
+  | { tipo: 'ayuda'; ayuda: Ayuda }
+  | { tipo: 'llamada'; llamada: Llamada };
 
 export type ItemConversacion =
   | {
@@ -113,6 +144,10 @@ export type EstadoApp = {
   desarrollo: boolean;
   /** Avisos que salen de Mis datos, p. ej. un DNI a punto de caducar. */
   recordatorios: { texto: string; sugerencia: string }[];
+  /** Si esta compilación lleva la clave de su propio proveedor de IA. */
+  claveApp: boolean;
+  /** Qué claves del otro proveedor hay guardadas (nunca su valor). */
+  clavesPropias: { proveedor: boolean; exa: boolean };
 };
 
 export type Rect = { x: number; y: number; width: number; height: number };
@@ -129,6 +164,18 @@ export type ApiRd = {
   guardarAjustes(a: Partial<Ajustes>): Promise<{ ok: true } | { ok: false; error: string }>;
   /** Prueba el modelo con retención cero, que es lo que más proveedores puede descartar. */
   probarConexion(modelo: string): Promise<{ ok: boolean; error?: string }>;
+  /**
+   * Prueba el otro proveedor y, si responde, lo guarda y lo usa. Una clave sin dar se queda como
+   * estaba; vacía, se borra.
+   */
+  guardarProveedorPropio(p: {
+    url: string;
+    modelo: string;
+    clave?: string;
+    claveExa?: string;
+  }): Promise<{ ok: true } | { ok: false; error: string }>;
+  /** Los modelos que ofrece un servidor compatible con OpenAI, si los lista. */
+  modelosDelProveedor(p: { url: string; clave?: string }): Promise<string[]>;
   crearTramite(texto: string, razonamiento: Razonamiento): Promise<string>;
   /** Fija el trámite arriba de la lista o cambia cuánto piensa el asistente en él. */
   ajustarTramite(

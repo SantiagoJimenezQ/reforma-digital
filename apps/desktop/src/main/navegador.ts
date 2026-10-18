@@ -11,7 +11,8 @@ import {
   type BrowserWindow,
   type Session,
 } from 'electron';
-import { llamar, type Navegador } from '@reforma-digital/agent';
+import { z } from 'zod';
+import { llamar, type Dialogo, type Navegador } from '@reforma-digital/agent';
 import { direccionPrivada } from '@reforma-digital/agent/fetch';
 import { isOfficial } from '@reforma-digital/government/domains';
 import type { Descarga, Rect } from '../shared/api';
@@ -148,10 +149,23 @@ async function abrirAutoFirma(ventana: BrowserWindow | null, url: string) {
  * El navegador de un trámite: una vista dentro de la ventana, con su propia sesión en memoria
  * (no se mezcla con la de otros trámites y no deja nada en disco).
  */
+/** Lo que avisa Chromium cuando la web abre un diálogo: el texto lo escribe la web. */
+const dialogoCdp = z.object({
+  type: z.enum(['alert', 'confirm', 'prompt', 'beforeunload']),
+  message: z.string(),
+  defaultPrompt: z.string().optional(),
+});
+
 export class NavegadorTramite implements Navegador {
   readonly view: WebContentsView;
   private nuevas: string[] = [];
   private enVentana: BrowserWindow | null = null;
+  private abierto: Dialogo | null = null;
+  private dialogos = 0;
+  /** Quien espera un resultado de la página: un diálogo abierto lo bloquea, así que se le avisa. */
+  private alAbrirDialogo = new Set<() => void>();
+  /** El protocolo de depuración, para ver y responder los diálogos de la web, está listo. */
+  private listo: Promise<void>;
 
   constructor(
     tramite: string,
@@ -200,6 +214,48 @@ export class NavegadorTramite implements Navegador {
       if (EN_VISTA.test(e.url)) return;
       e.preventDefault();
       void abrirAutoFirma(this.opciones.ventana(), e.url);
+    });
+    this.listo = this.vigilarDialogos().catch((e: unknown) => console.error(e));
+  }
+
+  /**
+   * Electron no avisa de los alert, confirm y prompt de la web: los muestra en un cuadro que el
+   * asistente no ve y que bloquea la página. El protocolo de depuración sí los cuenta y permite
+   * responderlos; la persona también puede contestarlos en su cuadro.
+   */
+  private async vigilarDialogos() {
+    const wc = this.view.webContents;
+    // Hasta que la vista ha cargado algo no admite el protocolo.
+    await wc.loadURL('about:blank');
+    wc.debugger.attach('1.3');
+    wc.debugger.on('message', (_e, metodo: string, params: unknown) => {
+      if (metodo === 'Page.javascriptDialogOpening') {
+        const d = dialogoCdp.safeParse(params);
+        if (!d.success) return;
+        this.abierto = {
+          id: ++this.dialogos,
+          tipo: d.data.type,
+          mensaje: d.data.message,
+          ...(d.data.defaultPrompt ? { porDefecto: d.data.defaultPrompt } : {}),
+        };
+        for (const avisar of this.alAbrirDialogo) avisar();
+        this.opciones.alCambiar();
+      } else if (metodo === 'Page.javascriptDialogClosed') {
+        this.abierto = null;
+        this.opciones.alCambiar();
+      }
+    });
+    await wc.debugger.sendCommand('Page.enable');
+  }
+
+  dialogo() {
+    return this.abierto;
+  }
+
+  async responderDialogo(aceptar: boolean, texto?: string) {
+    await this.view.webContents.debugger.sendCommand('Page.handleJavaScriptDialog', {
+      accept: aceptar,
+      ...(texto === undefined ? {} : { promptText: texto }),
     });
   }
 
@@ -264,6 +320,7 @@ export class NavegadorTramite implements Navegador {
   url = () => this.webContents.getURL();
 
   async abrir(url: string) {
+    await this.listo;
     this.asegurarEnVentana();
     await aTiempo(
       this.webContents.loadURL(url).catch((e: Error) => {
@@ -282,10 +339,22 @@ export class NavegadorTramite implements Navegador {
   }
 
   evaluar<T>(expresion: string): Promise<T> {
+    if (this.abierto) return Promise.reject(new Error('La web tiene un diálogo abierto.'));
+    // Si la web abre un diálogo mientras tanto, la página no responderá hasta que se conteste.
+    let avisar = () => {};
+    const dialogo = new Promise<never>((_, rechazar) => {
+      avisar = () => rechazar(new Error('La web ha abierto un diálogo.'));
+      this.alAbrirDialogo.add(avisar);
+    });
     return aTiempo(
-      this.webContents.executeJavaScriptInIsolatedWorld(MUNDO, [{ code: expresion }]) as Promise<T>,
+      Promise.race([
+        this.webContents.executeJavaScriptInIsolatedWorld(MUNDO, [
+          { code: expresion },
+        ]) as Promise<T>,
+        dialogo,
+      ]),
       20000,
-    );
+    ).finally(() => this.alAbrirDialogo.delete(avisar));
   }
 
   async clic(x: number, y: number) {

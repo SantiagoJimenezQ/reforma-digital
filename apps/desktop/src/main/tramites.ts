@@ -60,6 +60,7 @@ const RESULTADOS: Record<Pregunta['tipo'], [string, string]> = {
   formulario: ['Respondido', 'Sin responder'],
   confirmacion: ['Aprobado', 'No aprobado'],
   ayuda: ['Hecho', 'No has podido'],
+  llamada: ['Has llamado', 'No has llamado'],
 };
 
 /** Al cerrar la app, lo que espera a la persona sigue pendiente: se retoma al volver a abrirla. */
@@ -78,7 +79,7 @@ type Espera = {
 };
 
 export const SIN_CLAVE =
-  'Esta compilación de la app no lleva la clave del asistente. Compílala con AI_GATEWAY_API_KEY o con NAN_API_KEY y EXA_API_KEY.';
+  'Esta compilación de la app no lleva la clave del asistente. Elige otro proveedor en Ajustes, o compílala con AI_GATEWAY_API_KEY (o con NAN_API_KEY y EXA_API_KEY).';
 
 const archivo = (id: string) => `tramite-${id}.bin`;
 const ahora = () => new Date().toISOString();
@@ -441,7 +442,9 @@ export class Tramites {
         ? p.formulario.titulo
         : p.tipo === 'confirmacion'
           ? `Pide tu permiso: ${p.confirmacion.accion}`
-          : p.ayuda.instrucciones,
+          : p.tipo === 'llamada'
+            ? `Te pide que llames a ${p.llamada.organismo}`
+            : p.ayuda.instrucciones,
     );
   }
 
@@ -537,6 +540,13 @@ export class Tramites {
       pedirAyuda: async (ayuda, signal) => ({
         hecho: (await esperar({ tipo: 'ayuda', ayuda }, signal)) === true,
       }),
+      // Si ha llamado, la tarjeta devuelve sus notas; si no ha podido, `false`.
+      pedirLlamada: async (llamada, signal) => {
+        const v = await esperar({ tipo: 'llamada', llamada }, signal);
+        return v && typeof v === 'object'
+          ? { hecho: true, ...(v.notas ? { notas: v.notas } : {}) }
+          : { hecho: false };
+      },
       navegador: async () => this.navegador(r.id),
       leerConNavegador,
     };

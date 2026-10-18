@@ -22,6 +22,7 @@ const DE_NAVEGADOR = new Set([
   'marcar',
   'tecla',
   'volver',
+  'responder_dialogo',
   'pedir_ayuda',
 ]);
 
@@ -33,7 +34,7 @@ type Bloque =
   | { tipo: 'actividad'; clave: string; items: ItemActividad[] };
 
 // Estas acciones ya se ven como su tarjeta: no cuentan entre las acciones del asistente.
-const CON_TARJETA = new Set(['preguntar', 'confirmar', 'pedir_ayuda']);
+const CON_TARJETA = new Set(['preguntar', 'confirmar', 'pedir_ayuda', 'llamar']);
 
 /** Las acciones seguidas del asistente se muestran juntas, como una lista de pasos desplegable. */
 function agrupar(items: ItemConversacion[]): Bloque[] {

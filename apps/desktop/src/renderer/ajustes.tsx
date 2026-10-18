@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
+import { Input } from '@reforma-digital/design/ui/input';
 import { RadioGroup, RadioGroupItem } from '@reforma-digital/design/ui/radio-group';
 import { Checkbox } from '@reforma-digital/design/ui/checkbox';
 import { cn } from '@reforma-digital/design/lib/utils';
@@ -64,6 +65,185 @@ function Modelo() {
           </label>
         ))}
       </RadioGroup>
+    </fieldset>
+  );
+}
+
+/** Otro proveedor compatible con OpenAI: se prueba antes de guardarlo y sus claves no vuelven a la interfaz. */
+function FormularioProveedor({ alGuardar }: { alGuardar: () => void }) {
+  const { app } = useEstado();
+  const actual = app?.ajustes.proveedorPropio;
+  const [url, setUrl] = useState(actual?.url ?? '');
+  const [modelo, setModelo] = useState(actual?.modelo ?? '');
+  const [clave, setClave] = useState('');
+  const [claveExa, setClaveExa] = useState('');
+  const [modelos, setModelos] = useState<string[]>([]);
+  const [estado, setEstado] = useState<{ probando: boolean; error?: string }>({ probando: false });
+  const id = useId();
+  if (!app) return null;
+  const buscarModelos = () => {
+    if (url.trim())
+      void window.rd.modelosDelProveedor({ url, ...(clave ? { clave } : {}) }).then(setModelos);
+  };
+  const guardar = async (e: FormEvent) => {
+    e.preventDefault();
+    setEstado({ probando: true });
+    const r = await window.rd.guardarProveedorPropio({
+      url,
+      modelo,
+      ...(clave ? { clave } : {}),
+      ...(claveExa ? { claveExa } : {}),
+    });
+    if (!r.ok) return setEstado({ probando: false, error: r.error });
+    setEstado({ probando: false });
+    setClave('');
+    setClaveExa('');
+    alGuardar();
+  };
+  const etiqueta = 'mb-1.5 block text-sm font-medium';
+  const ayuda = 'mt-1.5 mb-0 text-sm leading-relaxed text-muted-foreground';
+  return (
+    <form onSubmit={(e) => void guardar(e)} className="mt-4 space-y-4 rounded-2xl bg-muted p-4">
+      <div>
+        <label htmlFor={`${id}-url`} className={etiqueta}>
+          Dirección de la API
+        </label>
+        <Input
+          id={`${id}-url`}
+          required
+          className="h-11 bg-background text-base"
+          placeholder="https://api.openai.com/v1"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onBlur={buscarModelos}
+        />
+        <p className={ayuda}>
+          Para un modelo en tu ordenador, por ejemplo http://localhost:11434/v1 (Ollama).
+        </p>
+      </div>
+      <div>
+        <label htmlFor={`${id}-clave`} className={etiqueta}>
+          Clave
+        </label>
+        <Input
+          id={`${id}-clave`}
+          type="password"
+          autoComplete="off"
+          className="h-11 bg-background text-base"
+          placeholder={
+            app.clavesPropias.proveedor
+              ? 'Guardada. Escribe otra para cambiarla'
+              : 'Si el servidor la pide'
+          }
+          value={clave}
+          onChange={(e) => setClave(e.target.value)}
+          onBlur={buscarModelos}
+        />
+      </div>
+      <div>
+        <label htmlFor={`${id}-modelo`} className={etiqueta}>
+          Modelo
+        </label>
+        <Input
+          id={`${id}-modelo`}
+          required
+          list={`${id}-modelos`}
+          autoComplete="off"
+          className="h-11 bg-background text-base"
+          placeholder="gpt-6-luna"
+          value={modelo}
+          onChange={(e) => setModelo(e.target.value)}
+        />
+        <datalist id={`${id}-modelos`}>
+          {modelos.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
+      </div>
+      <div>
+        <label htmlFor={`${id}-exa`} className={etiqueta}>
+          Clave de Exa <span className="font-normal text-muted-foreground">(opcional)</span>
+        </label>
+        <Input
+          id={`${id}-exa`}
+          type="password"
+          autoComplete="off"
+          className="h-11 bg-background text-base"
+          placeholder={app.clavesPropias.exa ? 'Guardada. Escribe otra para cambiarla' : ''}
+          value={claveExa}
+          onChange={(e) => setClaveExa(e.target.value)}
+        />
+        <p className={ayuda}>
+          Para buscar en la web.{' '}
+          {app.claveApp
+            ? 'Sin ella, el asistente busca con la búsqueda de la app.'
+            : 'Sin ella, el asistente no puede buscar: solo lee las webs cuya dirección conoce.'}
+        </p>
+      </div>
+      <p className={ayuda}>
+        Las condiciones de ese proveedor deciden si guarda tus peticiones o entrena con ellas. Tus
+        datos personales siguen sin llegarle: van como marcadores.
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" size="lg" disabled={estado.probando}>
+          {estado.probando ? 'Probando…' : 'Probar y usar'}
+        </Button>
+        {estado.error && (
+          <p role="alert" className="m-0 text-sm text-destructive">
+            {estado.error}
+          </p>
+        )}
+      </div>
+    </form>
+  );
+}
+
+/** Por defecto, el proveedor de la app; la persona puede elegir otro o un modelo en su ordenador. */
+function Proveedor() {
+  const { app } = useEstado();
+  const [editando, setEditando] = useState(false);
+  if (!app) return null;
+  const a = app.ajustes;
+  const propio = a.proveedor === 'propio' || editando;
+  return (
+    <fieldset className="m-0 mb-6 border-0 p-0">
+      <legend className="mb-3 text-[15px] font-medium">Proveedor de IA</legend>
+      <RadioGroup
+        value={propio ? 'propio' : 'app'}
+        onValueChange={(v) => {
+          if (v === 'app') {
+            setEditando(false);
+            void window.rd.guardarAjustes({ proveedor: 'app' });
+          } else if (a.proveedorPropio) void window.rd.guardarAjustes({ proveedor: 'propio' });
+          else setEditando(true);
+        }}
+        className="grid gap-2"
+      >
+        <label className={opcion}>
+          <RadioGroupItem value="app" className="mt-0.5" />
+          <span>
+            <span className="block text-[15px] font-medium">El de Reforma Digital</span>
+            <span className="block text-sm text-muted-foreground">
+              {app.claveApp
+                ? 'Recomendado: el que usamos en nuestras evaluaciones, sin configurar nada.'
+                : 'Esta versión de la app no lleva su clave: elige otro proveedor.'}
+            </span>
+          </span>
+        </label>
+        <label className={opcion}>
+          <RadioGroupItem value="propio" className="mt-0.5" />
+          <span>
+            <span className="block text-[15px] font-medium">
+              Otro proveedor o un modelo en tu ordenador
+            </span>
+            <span className="block text-sm text-muted-foreground">
+              Cualquier servidor compatible con la API de OpenAI: OpenAI, OpenRouter, Ollama, LM
+              Studio…
+            </span>
+          </span>
+        </label>
+      </RadioGroup>
+      {propio && <FormularioProveedor alGuardar={() => setEditando(false)} />}
     </fieldset>
   );
 }
@@ -191,8 +371,9 @@ export function Ajustes({ privacidad }: { privacidad: boolean }) {
           </Opcion>
         </section>
         <section className="mb-3 rounded-[24px] bg-background p-6">
-          <Modelo />
-          {!app.modeloNan && (
+          <Proveedor />
+          {a.proveedor === 'app' && <Modelo />}
+          {a.proveedor === 'app' && !app.modeloNan && (
             <div className="mt-6">
               <RetencionCero />
             </div>
