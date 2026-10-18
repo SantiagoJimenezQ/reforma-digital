@@ -1,7 +1,7 @@
 /* Ajustes de la ventana de macOS: zonas para arrastrar la ventana. */
-/* Geist es la letra del sistema de diseño; en la web la sirve Next y aquí va dentro de la app. */
+/* La app usa Inter, que va dentro de la app. */
 :root {
-  --font-geist: 'Geist Variable';
+  --font-brand-text: 'Inter Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 html,
 body,

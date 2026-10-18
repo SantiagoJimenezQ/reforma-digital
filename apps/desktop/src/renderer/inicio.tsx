@@ -91,7 +91,7 @@ export function Compositor({
     }
   };
   return (
-    <div className="rounded-[28px] bg-background shadow-[var(--shadow-soft)] focus-within:ring-1 focus-within:ring-foreground/20">
+    <div className="rounded-[28px] bg-background focus-within:ring-1 focus-within:ring-foreground/20">
       <label className="sr-only" htmlFor="compositor">
         Mensaje para el asistente
       </label>

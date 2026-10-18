@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@fontsource-variable/geist';
+import '@fontsource-variable/inter';
 import '@reforma-digital/design/desktop.css';
 import './app.css';
 import { App } from './app';
