@@ -101,17 +101,21 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
   const entradilla = 'mx-auto mt-4 mb-8 max-w-[56ch] text-[17px] leading-relaxed';
   return (
     <div className="flex h-full flex-col bg-muted">
-      <div className="arrastrar flex h-[52px] shrink-0 items-center justify-end px-4">
-        {!ultimo && (
-          <Button
-            variant="ghost"
-            size="lg"
-            className="text-[15px] font-normal text-muted-foreground hover:bg-foreground/[0.06]"
-            onClick={alTerminar}
-          >
-            Saltar
-          </Button>
-        )}
+      <div className="arrastrar flex h-[52px] shrink-0 items-center justify-center">
+        <ol aria-label="Pasos" className="m-0 flex gap-2 p-0">
+          {PASOS.map((p, i) => (
+            <li
+              key={p}
+              aria-current={i === paso ? 'step' : undefined}
+              className={cn(
+                'h-1.5 list-none rounded-full transition-[width,background-color]',
+                i === paso ? 'w-6 bg-foreground' : 'w-1.5 bg-foreground/20',
+              )}
+            >
+              <span className="sr-only">{p}</span>
+            </li>
+          ))}
+        </ol>
       </div>
       <div className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-10">
         <div className="my-auto w-full max-w-[820px] py-8 text-center">
@@ -238,44 +242,29 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
           )}
         </div>
       </div>
-      <div className="flex shrink-0 items-center justify-between px-10 pt-2 pb-8">
-        <div className="w-28">
+      <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center px-10 pt-2 pb-8">
+        <div>
           {paso > 0 && (
             <Button
               variant="ghost"
-              size="lg"
-              className="px-3.5 text-[15px] hover:bg-foreground/[0.06]"
+              size="icon-lg"
+              aria-label="Atrás"
+              title="Atrás"
+              className="rounded-full hover:bg-foreground/[0.06]"
               onClick={() => setPaso(paso - 1)}
             >
-              <Icono nombre="atras" size={16} />
-              Atrás
+              <Icono nombre="atras" />
             </Button>
           )}
         </div>
-        <ol aria-label="Pasos" className="m-0 flex gap-2 p-0">
-          {PASOS.map((p, i) => (
-            <li
-              key={p}
-              aria-current={i === paso ? 'step' : undefined}
-              className={cn(
-                'h-1.5 list-none rounded-full transition-[width,background-color]',
-                i === paso ? 'w-6 bg-foreground' : 'w-1.5 bg-foreground/20',
-              )}
-            >
-              <span className="sr-only">{p}</span>
-            </li>
-          ))}
-        </ol>
-        <div className="flex w-28 justify-end">
-          <Button
-            variant={ultimo ? 'sunset' : 'default'}
-            size="lg"
-            className="rounded-full px-4 text-[15px]"
-            onClick={() => (ultimo ? alTerminar() : setPaso(paso + 1))}
-          >
-            {ultimo ? 'Empezar' : 'Continuar'}
-          </Button>
-        </div>
+        <Button
+          variant={ultimo ? 'sunset' : 'default'}
+          size="lg"
+          className="min-w-40 rounded-full px-4 text-[15px]"
+          onClick={() => (ultimo ? alTerminar() : setPaso(paso + 1))}
+        >
+          {ultimo ? 'Empezar' : 'Continuar'}
+        </Button>
       </div>
     </div>
   );
