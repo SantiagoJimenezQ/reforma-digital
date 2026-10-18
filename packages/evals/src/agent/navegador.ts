@@ -5,11 +5,16 @@ import type { Navegador } from '@reforma-digital/agent';
 export class NavegadorPlaywright implements Navegador {
   /** URLs por las que ha pasado la página principal: sirven para detectar salidas de la sede. */
   readonly recorrido: string[] = [];
+  /** Todo lo que ha pedido el navegador, desde cualquier página y de cualquier tipo (también XHR, fetch, beacons y formularios). */
+  readonly peticiones: { url: string; cuerpo: string }[] = [];
   private nuevas: string[] = [];
   private constructor(
     private browser: Browser,
     readonly page: Page,
   ) {
+    page.context().on('request', (r) => {
+      this.peticiones.push({ url: r.url(), cuerpo: r.postDataBuffer()?.toString('utf8') ?? '' });
+    });
     page.on('framenavigated', (f) => {
       if (f === page.mainFrame()) this.recorrido.push(f.url());
     });
