@@ -1,6 +1,6 @@
 # Datos parlamentarios
 
-Recolector Python adaptado de [Escaño Abierto](https://github.com/jorgegarcelan/escano-abierto), revisión `ba240791820b423503f69bb88406b51a25487083`, licencia MIT incluida en `LICENSE`. Conserva los parsers, las fuentes, la verificación de citas, las estadísticas, las encuestas y las proyecciones. Se sustituyen el generador HTML, Gemini/Anthropic y los commits diarios por Next.js, Helmcode, Postgres y Vercel Blob.
+Recolector Python adaptado de [Escaño Abierto](https://github.com/jorgegarcelan/escano-abierto), revisión `ba240791820b423503f69bb88406b51a25487083`, licencia MIT incluida en `LICENSE`. Conserva los parsers, las fuentes, la verificación de citas, las estadísticas, las encuestas y las proyecciones. Se sustituyen el generador HTML, Gemini/Anthropic y los commits diarios por Next.js, NaN, Postgres y Vercel Blob.
 
 ## Dónde vive cada cosa
 
@@ -13,11 +13,11 @@ Recolector Python adaptado de [Escaño Abierto](https://github.com/jorgegarcelan
 
 ## Configuración real
 
-Crea un almacén **privado** en Vercel Blob, vincúlalo al proyecto web y añade `BLOB_READ_WRITE_TOKEN` tanto a Vercel como a GitHub Secrets. Añade `CONGRESS_DATABASE_URL` y `HELMCODE_API_KEY` a GitHub Secrets. En la web configura `DATABASE_URL`. Las claves se configuran en los paneles o archivos `.env` ignorados, nunca en Git ni en el chat.
+Crea un almacén **privado** en Vercel Blob, vincúlalo al proyecto web y añade `BLOB_READ_WRITE_TOKEN` tanto a Vercel como a GitHub Secrets. Añade `CONGRESS_DATABASE_URL` y `NAN_API_KEY` a GitHub Secrets. En la web configura `DATABASE_URL`. Las claves se configuran en los paneles o archivos `.env` ignorados, nunca en Git ni en el chat.
 
-El modelo inicial es `deepseek-v4-flash`, cubierto por los planes de Helmcode según su [catálogo](https://helmcode.com/docs/models). Se elige por su capacidad con documentos largos; no se ha medido su calidad en estos textos todavía. `HELMCODE_MODEL` permite comparar otro modelo cubierto. No hay fallback a modelos de pago por token. La salida JSON se valida y las citas se comprueban contra el Diario. Se guardan proveedor, modelo, versión del prompt y hash de entrada junto al análisis.
+El modelo inicial es `deepseek-v4-flash`, cubierto por los planes de NaN según su [documentación](https://nan.builders/docs). Se elige por su capacidad con documentos largos; no se ha medido su calidad en estos textos todavía. `NAN_MODEL` permite comparar otro modelo cubierto. No hay fallback a modelos de pago por token. La salida JSON se valida y las citas se comprueban contra el Diario. Se guardan proveedor, modelo, versión del prompt y hash de entrada junto al análisis.
 
-Las primeras ejecuciones usan los análisis importados. `reanalyze` pide nuevos análisis a Helmcode, hasta `--limit`, y reutiliza el trabajo guardado al relanzarlo. El build usa primero el modelo nuevo y, si falta, la caché importada. Una publicación puede contener ambos; la UI lo explica. Un análisis nuevo no debe interpretarse como una corrección verificada del anterior.
+Las primeras ejecuciones usan los análisis importados. `reanalyze` pide nuevos análisis a NaN, hasta `--limit`, y reutiliza el trabajo guardado al relanzarlo. El build usa primero el modelo nuevo y, si falta, la caché importada. Una publicación puede contener ambos; la UI lo explica. Un análisis nuevo no debe interpretarse como una corrección verificada del anterior.
 
 ## Importación inicial
 
@@ -87,4 +87,4 @@ pnpm --filter @reforma-digital/web typecheck
 pnpm lint
 ```
 
-Una prueba local no verifica las credenciales reales de Blob ni la calidad de Helmcode. Esas comprobaciones requieren los servicios configurados; tampoco demuestran que todas las fuentes oficiales continúen teniendo el mismo HTML.
+Una prueba local no verifica las credenciales reales de Blob ni la calidad de NaN. Esas comprobaciones requieren los servicios configurados; tampoco demuestran que todas las fuentes oficiales continúen teniendo el mismo HTML.

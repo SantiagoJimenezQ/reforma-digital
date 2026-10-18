@@ -65,7 +65,8 @@ def _guardar(nombre: str, datos: dict) -> None:
 
 
 def _pedir(mensaje: str, esquema: dict, max_tokens: int) -> dict:
-    return analisis.ClienteHelmcode().generar(SISTEMA, mensaje, esquema, max_tokens)
+    # Unificar y situar etiquetas no necesita razonamiento: sin él, la salida es solo el JSON.
+    return analisis.ClienteNan().generar(SISTEMA, mensaje, esquema, max_tokens, razonamiento="none")
 
 
 def clave_etiqueta(t: str) -> str:
@@ -255,8 +256,8 @@ def sintetizar_propuestas(ivs: list[dict], canon: dict, minimo: int = 6, maximo:
 
 
 def ejecutar(solo: str | None = None) -> None:
-    if not os.environ.get("HELMCODE_API_KEY"):
-        raise SystemExit("Hace falta HELMCODE_API_KEY.")
+    if not os.environ.get("NAN_API_KEY"):
+        raise SystemExit("Hace falta NAN_API_KEY.")
     ivs = recoger()
     print(f"· {len(ivs)} intervenciones analizadas", flush=True)
     canon = _leer("temas")

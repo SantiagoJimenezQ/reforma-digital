@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { buttonVariants } from '@reforma-digital/design/ui/button';
 import { InfoPage } from '../components/brand/info-page';
+export const metadata: Metadata = { title: 'Página no encontrada · Reforma Digital' };
 export default function NotFound() {
   return (
     <InfoPage narrow>

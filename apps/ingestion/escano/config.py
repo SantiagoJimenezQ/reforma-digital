@@ -29,7 +29,7 @@ URL_VOTACIONES_DIA = (
 URL_DS = BASE + "/public_oficiales/L{leg}/CONG/DS/{serie}/DSCD-{leg}-{serie}-{num}.PDF"
 
 # El identificador del modelo y la revisión del prompt forman parte de la caché.
-MODELO = os.environ.get("HELMCODE_MODEL", "deepseek-v4-flash")
+MODELO = os.environ.get("NAN_MODEL", "deepseek-v4-flash")
 MODELO_IMPORTADO = "gemini-3.8-flash"
 USER_AGENT = "escano-abierto/0.1"  # el cortafuegos del Congreso rechaza agentes con URL
 

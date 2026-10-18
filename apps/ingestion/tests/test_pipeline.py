@@ -28,10 +28,10 @@ def test_runner_uses_writer_connection(monkeypatch, writer_url):
         run.main()
 
 
-def test_helmcode_retries_and_validates(monkeypatch):
-    monkeypatch.setenv("HELMCODE_API_KEY", "synthetic-test-token")
+def test_nan_retries_and_validates(monkeypatch):
+    monkeypatch.setenv("NAN_API_KEY", "synthetic-test-token")
     monkeypatch.setattr(analisis.time, "sleep", lambda _: None)
-    client = analisis.ClienteHelmcode()
+    client = analisis.ClienteNan()
     bodies = []
 
     class Reply:
@@ -44,7 +44,7 @@ def test_helmcode_retries_and_validates(monkeypatch):
 
     replies = iter([Busy(), Reply()])
     def post(url, **kwargs):
-        assert url == "https://api.helmcode.com/v1/chat/completions"
+        assert url == "https://api.nan.builders/v1/chat/completions"
         bodies.append(kwargs["json"])
         return next(replies)
     monkeypatch.setattr(client.sesion, "post", post)
@@ -53,7 +53,8 @@ def test_helmcode_retries_and_validates(monkeypatch):
     assert result["value"] == 2
     assert result["_provenance"]["served_model"] == "synthetic-model-revision"
     assert len(bodies) == 2
-    assert bodies[0]["response_format"]["json_schema"]["schema"] == schema
+    assert bodies[0]["response_format"] == {"type": "json_object"}
+    assert json.dumps(schema) in bodies[0]["messages"][0]["content"]
     assert bodies[0]["reasoning_effort"] == "low"
     assert "synthetic-test-token" not in json.dumps(bodies)
 
@@ -103,10 +104,10 @@ def test_nonliteral_quotes_are_rejected():
 
 
 def test_inference_budget_is_a_hard_limit(monkeypatch):
-    monkeypatch.setenv("HELMCODE_API_KEY", "synthetic-test-token")
+    monkeypatch.setenv("NAN_API_KEY", "synthetic-test-token")
     monkeypatch.setattr(analisis, "LIMITE_LLAMADAS", 1)
     monkeypatch.setattr(analisis, "INTENTOS", 1)
-    client = analisis.ClienteHelmcode()
+    client = analisis.ClienteNan()
     monkeypatch.setattr(client.sesion,"post",lambda *args,**kwargs: pytest.fail("No debe llamar a la API"))
     with pytest.raises(analisis.PresupuestoAgotado):
         client.generar("Neutral","Texto sintético",{"type":"object"},800)
@@ -117,3 +118,50 @@ def test_explore_keeps_quotes_without_game_restrictions():
     sessions = [{"id": "demo", "fecha": "2026-10-13"}]
     interventions = [{"cita": quote, "g": "MIXTO", "orador": "Orador sintético", "s": "demo"}]
     assert explora.citas(sessions, interventions) == [[quote, "Orador sintético", "MIXTO", "demo", "2026-10-13"]]
+
+
+def test_session_summary_waits_for_new_analyses(monkeypatch, tmp_path):
+    from escano import construir, votaciones
+    sessions = tmp_path / "sesiones"
+    sessions.mkdir()
+    text = "Texto sintético de una intervención suficientemente larga. " * 10
+    session = {"id": "PL-999", "fecha": "2026-10-13", "serie": "PL", "organo": "Pleno", "intervenciones": [
+        {"orden": i, "orador": f"Orador sintético {i}", "grupo": "PP", "item": "ASUNTO", "seccion": "S", "exp": None,
+         "texto": f"{i}. {text}"} for i in range(2)]}
+    (sessions / "PL-999.json").write_text(json.dumps(session))
+    monkeypatch.setattr(run, "DATOS", tmp_path)
+    monkeypatch.setattr(analisis, "ANALISIS", tmp_path / "analisis")
+    monkeypatch.setattr(votaciones, "leer_todas", lambda: [])
+    calls = []
+
+    def llamar(cliente, mensaje, herramienta, max_tokens):
+        calls.append((herramienta["name"], mensaje.count("Orador sintético")))
+        if herramienta["name"] == "registrar_sesion":
+            return {"titular": "t", "resumen": "r", "titulos": ["x"], "momentos": []}
+        return {"resumen": "Resumen sintético", "en_una_frase": "f", "tono": "técnico", "intensidad": 1,
+                "temas": ["vivienda"], "cita": "", "posicion": "no aplica", "responde": "no aplica"}
+
+    monkeypatch.setattr(analisis, "_llamar", llamar)
+    run.reanalyze(10, None)
+    # El resumen se pide una sola vez y con las dos intervenciones recién analizadas.
+    assert calls == [("registrar_analisis", 1), ("registrar_analisis", 1), ("registrar_sesion", 2)]
+    assert construir.analisis_de_sesion(session, [], con_ia=False)[2]["titular"] == "t"
+    calls.clear()
+    run.reanalyze(10, None)
+    assert calls == []
+
+
+def test_normalization_disables_reasoning(monkeypatch):
+    import requests
+    from escano import normalizar
+    monkeypatch.setenv("NAN_API_KEY", "synthetic-test-token")
+    bodies = []
+
+    class Reply:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"finish_reason": "stop", "message": {"content": '{"etiquetas": []}'}}]}
+
+    monkeypatch.setattr(requests.Session, "post", lambda self, url, **kwargs: bodies.append(kwargs["json"]) or Reply())
+    normalizar._pedir("Etiquetas sintéticas", {"type": "object"}, 100)
+    assert bodies[0]["reasoning_effort"] == "none"

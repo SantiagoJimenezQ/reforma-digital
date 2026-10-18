@@ -199,15 +199,17 @@ def reanalyze(limit: int, since: date | None) -> int:
         for session in sorted(sessions, key=lambda s: (s["fecha"] or "", s["id"]), reverse=True):
             if not session["fecha"] or (since and session["fecha"] < since.isoformat()):
                 continue
-            analisis.RECOGER = []
-            construir.analisis_de_sesion(session, votes_by_day.get(session["fecha"], []), con_ia=True)
-            requests = analisis.RECOGER
-            analisis.RECOGER = None
-            for request in requests:
-                if done >= limit:
-                    return done
-                analisis._pedir(request, None)
-                done += 1
+            # Primero las intervenciones; el resumen de la jornada se recoge después, con sus análisis en la caché.
+            for _ in range(2):
+                analisis.RECOGER = []
+                construir.analisis_de_sesion(session, votes_by_day.get(session["fecha"], []), con_ia=True)
+                requests = [r for r in analisis.RECOGER if r["tipo"] == "intervencion"] or analisis.RECOGER
+                analisis.RECOGER = None
+                for request in requests:
+                    if done >= limit:
+                        return done
+                    analisis._pedir(request, None)
+                    done += 1
     finally:
         analisis.RECOGER = None
         analisis.USAR_IMPORTADOS = True
@@ -232,7 +234,7 @@ def main() -> None:
     parser.add_argument("command", choices=["bootstrap", "update", "polls", "reanalyze", "rebuild", "geography", "elections", "promises", "reparse"])
     parser.add_argument("--source", type=Path, help="copia local del commit fijado, solo bootstrap")
     parser.add_argument("--local", action="store_true", help="importación de desarrollo sin Blob; requiere --source")
-    parser.add_argument("--limit", type=int, default=100, help="máximo de llamadas a Helmcode")
+    parser.add_argument("--limit", type=int, default=100, help="máximo de llamadas a NaN")
     parser.add_argument("--since", type=date.fromisoformat)
     args = parser.parse_args()
     if args.limit < 1 or args.limit > 5000:
@@ -262,7 +264,7 @@ def main() -> None:
             from escano import cli, construir
             if args.command == "update":
                 cli.actualizar(date.today() - timedelta(days=10), date.today(), con_ia=False)
-                if os.environ.get("HELMCODE_API_KEY"):
+                if os.environ.get("NAN_API_KEY"):
                     analyze_and_normalize(args.limit, date.today() - timedelta(days=10))
                 construir.construir(con_ia=False)
             elif args.command == "polls":
