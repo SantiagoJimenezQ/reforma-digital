@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
+import { Shimmer } from '@reforma-digital/design/chat';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { useEstado } from './estado';
 import { Icono, Marca, type NombreIcono } from './icono';
@@ -55,71 +56,193 @@ const GARANTIAS: { icono: NombreIcono; texto: string }[] = [
   { icono: 'web', texto: 'Un navegador aparte para cada trámite' },
 ];
 
-const dato = 'rounded-md bg-brand/[0.1] px-1 text-brand';
-const marcador = 'rounded-md bg-brand-yellow/[0.25] px-1 font-mono text-sm';
+/** La petición de ejemplo, con datos inventados; `m` es el marcador que le llega a la IA. */
+const PETICION: { t: string; m?: string }[] = [
+  { t: 'Soy ' },
+  { t: 'Lucía Martín', m: '{{nombre}}' },
+  { t: ', autónoma, con DNI ' },
+  { t: '12345678Z', m: '{{documento_numero}}' },
+  { t: '. Preséntame la trimestral del IVA y domicilia el pago en ' },
+  { t: 'ES91 2100 0418 4502 0005 1332', m: '{{iban}}' },
+  { t: '.' },
+];
+const LETRAS = PETICION.reduce((n, p) => n + p.t.length, 0);
+const POR_LETRA = 26;
 
-/** Un dato inventado de camino a la web: lo que escribes, lo que recibe la IA y lo que se escribe. */
-function Recorrido({ modeloNan }: { modeloNan: boolean }) {
-  const etapas = [
-    {
-      donde: 'Escribes en tu Mac',
-      como: 'Un modelo de privacidad, sin conexión, encuentra tus datos y los cambia por marcadores.',
-      muestra: (
-        <p className="m-0">
-          Soy <span className={dato}>Lucía Martín</span> y mi DNI es{' '}
-          <span className={dato}>12345678Z</span>. Quiero renovarlo.
-        </p>
-      ),
-    },
-    {
-      donde: 'Le llega a la IA',
-      como: modeloNan
-        ? 'Sabe que hay un dato, no cuál es. Modelos abiertos en la UE que no guardan nada.'
-        : 'Sabe que hay un dato, no cuál es. Si el modelo de privacidad falla, no se envía nada.',
-      muestra: (
-        <p className="m-0">
-          Soy <span className={marcador}>{'{{nombre}}'}</span> y mi DNI es{' '}
-          <span className={marcador}>{'{{documento_numero}}'}</span>. Quiero renovarlo.
-        </p>
-      ),
-    },
-    {
-      donde: 'Se escribe en la web',
-      como: 'La app pone el dato real solo en la web del trámite, y nada se envía sin tu permiso.',
-      muestra: (
-        <>
-          <span className="block text-sm text-muted-foreground">Número de DNI</span>
-          <span className="mt-1.5 flex h-10 items-center justify-between rounded-xl border border-border bg-background px-3">
-            12345678Z
-            <Icono nombre="candado" size={16} className="text-muted-foreground" />
-          </span>
-        </>
-      ),
-    },
-  ];
+/** Cada fase y cuánto dura, en milisegundos. Al acabar vuelve a empezar. */
+const FASES = [
+  ['aparece', 700],
+  ['escribe', LETRAS * POR_LETRA + 600],
+  ['envia', 450],
+  ['detecta', 1300],
+  ['oculta', 1400],
+  ['llega', 1500],
+  ['trabaja', 2200],
+  ['listo', 1500],
+  ['borra', 3600],
+  ['sale', 600],
+] as const;
+type Fase = (typeof FASES)[number][0];
+const orden = (f: Fase) => FASES.findIndex(([n]) => n === f);
+const marcador = 'rounded-md bg-brand-yellow/25 px-1 font-mono text-sm';
+
+const quieto = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Lo que pasa con una petición: se escribe, se ocultan los datos, la IA la hace y el servidor no la guarda. */
+function Viaje({ modeloNan }: { modeloNan: boolean }) {
+  // Sin movimiento, se queda en el momento que mejor lo explica.
+  const [fase, setFase] = useState<Fase>(() => (quieto() ? 'listo' : 'aparece'));
+  const [letras, setLetras] = useState(() => (quieto() ? LETRAS : 0));
+  const p = orden(fase);
+  useEffect(() => {
+    if (quieto()) return;
+    const t = setTimeout(() => {
+      const siguiente = FASES[(p + 1) % FASES.length]![0];
+      if (siguiente === 'aparece') setLetras(0);
+      setFase(siguiente);
+    }, FASES[p]![1]);
+    return () => clearTimeout(t);
+  }, [p]);
+  useEffect(() => {
+    if (fase !== 'escribe') return;
+    const t = setInterval(() => setLetras((n) => Math.min(n + 1, LETRAS)), POR_LETRA);
+    return () => clearInterval(t);
+  }, [fase]);
+  const enCompositor = p < orden('llega');
+  let quedan = letras;
+  const escrito = PETICION.map((parte, i) => {
+    const visible = parte.t.slice(0, Math.max(0, quedan));
+    quedan -= parte.t.length;
+    if (!visible) return null;
+    if (!parte.m) return <span key={i}>{visible}</span>;
+    if (p >= orden('oculta'))
+      return (
+        <span
+          key={`${i}m`}
+          className={cn(marcador, 'animate-in duration-500 fade-in blur-in-sm zoom-in-90')}
+        >
+          {parte.m}
+        </span>
+      );
+    return (
+      <span
+        key={i}
+        className={cn(
+          'rounded-md px-0.5 transition-colors duration-300',
+          p >= orden('detecta') && 'bg-brand/10 text-brand',
+        )}
+      >
+        {visible}
+      </span>
+    );
+  });
+  const aviso =
+    fase === 'detecta' ? (
+      <Shimmer>Buscando tus datos en tu Mac, sin conexión…</Shimmer>
+    ) : fase === 'oculta' ? (
+      <>
+        <Icono nombre="escudo" size={16} className="text-brand" />3 datos ocultos antes de enviar
+      </>
+    ) : null;
   return (
-    <ol className="m-0 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch rounded-[24px] bg-background p-3 text-left">
-      {etapas.map((e, i) => (
-        <li key={e.donde} className="contents">
-          {i > 0 && (
-            <span aria-hidden="true" className="mt-[100px] self-start px-1 text-muted-foreground">
-              <Icono nombre="siguiente" size={16} />
-            </span>
+    <div
+      aria-hidden="true"
+      className={cn(
+        'mx-auto max-w-[640px] text-left transition-opacity duration-500 motion-reduce:[&_*]:animate-none',
+        fase === 'sale' && 'opacity-0',
+      )}
+    >
+      {/* Lo que le llega a la IA, encima del compositor. */}
+      <div className="flex h-[164px] flex-col justify-end">
+        {p >= orden('llega') && (
+          <div className="relative animate-in rounded-[24px] bg-background p-5 duration-700 fade-in slide-in-from-bottom-6">
+            <div
+              className={cn(
+                'transition-[opacity,filter] duration-700',
+                fase === 'borra' && 'opacity-0 blur-sm',
+              )}
+            >
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icono nombre="web" size={16} />
+                {modeloNan ? 'Le llega a la IA, en la Unión Europea' : 'Le llega a la IA'}
+              </span>
+              <p className="mt-3 mb-0 text-[15px] leading-relaxed">
+                {PETICION.map((parte, i) =>
+                  parte.m ? (
+                    <span key={i} className={marcador}>
+                      {parte.m}
+                    </span>
+                  ) : (
+                    parte.t
+                  ),
+                )}
+              </p>
+              <span className="mt-3 flex h-6 items-center text-sm">
+                {p <= orden('trabaja') ? (
+                  <Shimmer>Preparando el modelo 303…</Shimmer>
+                ) : (
+                  <span className="flex animate-in items-center gap-2 text-[var(--text-secondary)] duration-500 fade-in">
+                    <Icono nombre="check" size={16} className="text-brand" />
+                    Modelo 303 listo para que lo revises
+                  </span>
+                )}
+              </span>
+            </div>
+            {fase === 'borra' && (
+              <span className="absolute inset-0 flex animate-in flex-col items-center justify-center gap-2 text-center delay-300 duration-700 fill-mode-both fade-in zoom-in-95">
+                <span className="grid size-10 place-items-center rounded-xl bg-brand/[0.08] text-brand">
+                  <Icono nombre="papelera" />
+                </span>
+                <span className="text-[17px] font-medium">
+                  {modeloNan ? 'Borrado del servidor' : 'Hecho, sin ver tus datos'}
+                </span>
+                <span className="text-sm text-[var(--text-secondary)]">
+                  {modeloNan
+                    ? 'Retención cero: no se guarda ni se usa para entrenar.'
+                    : 'Tu conversación se queda cifrada en tu Mac.'}
+                </span>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="mt-3 animate-in rounded-[28px] bg-background duration-700 fade-in slide-in-from-bottom-4">
+        <div className="min-h-[88px] px-5 pt-4 text-base leading-7">
+          {enCompositor ? (
+            <>
+              {escrito}
+              {fase === 'escribe' && (
+                <span className="ml-px inline-block h-5 w-px translate-y-1 animate-pulse bg-foreground" />
+              )}
+            </>
+          ) : (
+            <span className="text-muted-foreground">Añade otra petición para cuando termine</span>
           )}
-          <span className="flex flex-col p-4">
-            <span className="text-sm text-muted-foreground">
-              {i + 1}. {e.donde}
-            </span>
-            <span className="mt-3 flex h-32 flex-col justify-center rounded-2xl bg-muted p-4 text-[15px] leading-relaxed">
-              {e.muestra}
-            </span>
-            <span className="mt-3 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              {e.como}
-            </span>
+        </div>
+        <div className="flex items-center px-2.5 pt-1 pb-2.5">
+          <span className="flex h-8 items-center gap-1 px-2.5 text-sm text-muted-foreground">
+            Equilibrado
+            <Icono nombre="abajo" size={14} />
           </span>
-        </li>
-      ))}
-    </ol>
+          <span
+            className={cn(
+              'ml-auto grid size-9 place-items-center rounded-full bg-primary text-primary-foreground transition-[scale,opacity] duration-200',
+              fase === 'envia' && 'scale-90',
+              (!enCompositor || letras === 0) && 'opacity-30',
+            )}
+          >
+            <Icono nombre="enviar" />
+          </span>
+        </div>
+      </div>
+      <p className="mt-3 mb-0 flex h-6 items-center justify-center gap-2 text-sm text-[var(--text-secondary)]">
+        {aviso && (
+          <span key={fase} className="flex animate-in items-center gap-2 duration-300 fade-in">
+            {aviso}
+          </span>
+        )}
+      </p>
+    </div>
   );
 }
 
@@ -247,10 +370,9 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
                 Tu seguridad, primero
               </h1>
               <p className={cn(entradilla, 'text-[var(--text-secondary)]')}>
-                La IA solo ejecuta lo que le pides: busca, explica y rellena las webs. Así viaja un
-                dato tuyo:
+                Así viaja una petición con tus datos.
               </p>
-              <Recorrido modeloNan={Boolean(app?.modeloNan)} />
+              <Viaje modeloNan={Boolean(app?.modeloNan)} />
               <ul className="m-0 mt-6 grid grid-cols-4 gap-6 p-0 text-left">
                 {GARANTIAS.map((g) => (
                   <li key={g.texto} className="flex list-none gap-2.5 text-[15px] leading-snug">
