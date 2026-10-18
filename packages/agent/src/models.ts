@@ -86,10 +86,8 @@ export function crearProveedor(
   guarda?: LanguageModelMiddleware | LanguageModelMiddleware[],
 ): Proveedor {
   const capas = [guarda ?? []].flat();
-  const envolver = (model: Modelo, extra: LanguageModelMiddleware[] = []) =>
-    capas.length || extra.length
-      ? wrapLanguageModel({ model, middleware: [...capas, ...extra] })
-      : model;
+  const envolver = (model: Modelo) =>
+    capas.length ? wrapLanguageModel({ model, middleware: capas }) : model;
   const compatible = (
     name: string,
     baseURL: string,
