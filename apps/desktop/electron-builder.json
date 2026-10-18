@@ -11,7 +11,7 @@
   "electronLanguages": ["es", "en"],
   "mac": {
     "category": "public.app-category.productivity",
-    "icon": "build/icon.png",
+    "icon": "build/icon.icon",
     "identity": "-",
     "hardenedRuntime": false,
     "extendInfo": {

@@ -49,15 +49,15 @@ El bucle del agente hace un paso del modelo cada vez (Vercel AI SDK 7): guarda e
 
 Archivos de la app:
 
-| Ruta                    | Qué hay                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `src/main/index.ts`     | Ventana, protocolo `app://`, menú, IPC validado con zod, Touch ID, certificados, ajustes y perfil.           |
-| `src/main/almacen.ts`   | Archivos cifrados con AES-256-GCM; la clave la protege el llavero (`safeStorage`).                           |
-| `src/main/tramites.ts`  | Turnos del agente, preguntas pendientes, notificaciones e insignia del Dock.                                 |
-| `src/main/navegador.ts` | Navegador de cada trámite (`WebContentsView`, una sesión por trámite), descargas, AutoFirma y lector oculto. |
-| `src/preload`           | `window.rd`, el único puente entre la interfaz y el proceso principal.                                       |
-| `src/renderer`          | Interfaz React con `@reforma-digital/design` (Sol).                                                          |
-| `build/icon.svg`        | Icono; `icon.png` se genera con `qlmanage -t -s 1024 -o build build/icon.svg` y se renombra.                 |
+| Ruta                    | Qué hay                                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `src/main/index.ts`     | Ventana, protocolo `app://`, menú, IPC validado con zod, Touch ID, certificados, ajustes y perfil.                        |
+| `src/main/almacen.ts`   | Archivos cifrados con AES-256-GCM; la clave la protege el llavero (`safeStorage`).                                        |
+| `src/main/tramites.ts`  | Turnos del agente, preguntas pendientes, notificaciones e insignia del Dock.                                              |
+| `src/main/navegador.ts` | Navegador de cada trámite (`WebContentsView`, una sesión por trámite), descargas, AutoFirma y lector oculto.              |
+| `src/preload`           | `window.rd`, el único puente entre la interfaz y el proceso principal.                                                    |
+| `src/renderer`          | Interfaz React con `@reforma-digital/design` (Sol).                                                                       |
+| `build/icon.icon`       | Icono de Icon Composer, con fondo blanco y, en modo oscuro, negro. Se edita con Icon Composer y empaquetar pide Xcode 26. |
 
 Los datos de la app están en `~/Library/Application Support/Reforma Digital/datos`, cifrados. Los documentos que descargan los trámites van a `~/Downloads/Reforma Digital/<trámite>/`.
 
