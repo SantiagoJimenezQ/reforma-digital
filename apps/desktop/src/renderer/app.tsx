@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { Ajustes } from './ajustes';
+import { Bienvenida } from './bienvenida';
 import { MisDatos } from './datos';
 import { useEstado } from './estado';
 import { hace } from './formato';
@@ -181,6 +182,7 @@ function Barra({ vista, ir }: { vista: Vista; ir: (v: Vista) => void }) {
 export function App() {
   const { app } = useEstado();
   const [vista, ir] = useState<Vista>({ tipo: 'inicio' });
+  const [bienvenida, setBienvenida] = useState(() => !localStorage.getItem('bienvenida'));
   useEffect(
     () =>
       window.rd.on((e) => {
@@ -189,6 +191,15 @@ export function App() {
     [],
   );
   if (!app) return null;
+  if (bienvenida)
+    return (
+      <Bienvenida
+        alTerminar={() => {
+          localStorage.setItem('bienvenida', '1');
+          setBienvenida(false);
+        }}
+      />
+    );
   return (
     <div className="flex h-full bg-muted">
       <Barra vista={vista} ir={ir} />
