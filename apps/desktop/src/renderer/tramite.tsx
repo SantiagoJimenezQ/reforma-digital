@@ -1,12 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
-import { Notice, Response, Thinking } from '@reforma-digital/design/chat';
+import { Notice, Response, Shimmer } from '@reforma-digital/design/chat';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@reforma-digital/design/ui/collapsible';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { officialLevel } from '@reforma-digital/government/domains';
-import type { ItemConversacion, TramiteVista } from '../shared/api';
+import type { FuenteVista, ItemConversacion, TramiteVista } from '../shared/api';
 import { cargarTramite, useEstado } from './estado';
-import { host } from './formato';
-import { FuentesRespuesta } from './fuentes';
+import { duracion, host } from './formato';
+import { Favicon, FuentesRespuesta, origen, sitio } from './fuentes';
 import { Icono } from './icono';
 import { Compositor } from './inicio';
 import { Pregunta } from './preguntas';
@@ -21,97 +26,220 @@ const DE_NAVEGADOR = new Set([
   'pedir_ayuda',
 ]);
 
+type ItemActividad = Extract<ItemConversacion, { tipo: 'actividad' }>;
+
+/** `clave`: el elemento al que sigue, para que el «Pensando» previo y sus acciones sean el mismo. */
 type Bloque =
   | { tipo: 'item'; item: ItemConversacion }
-  | { tipo: 'actividad'; items: Extract<ItemConversacion, { tipo: 'actividad' }>[] };
+  | { tipo: 'actividad'; clave: string; items: ItemActividad[] };
 
 // Estas acciones ya se ven como su tarjeta: no cuentan entre las acciones del asistente.
 const CON_TARJETA = new Set(['preguntar', 'confirmar', 'pedir_ayuda']);
 
-/** Las acciones seguidas del asistente se muestran juntas, como un paso desplegable. */
+/** Las acciones seguidas del asistente se muestran juntas, como una lista de pasos desplegable. */
 function agrupar(items: ItemConversacion[]): Bloque[] {
   const bloques: Bloque[] = [];
+  let previo = 'inicio';
   for (const item of items) {
     const ultimo = bloques.at(-1);
     if (item.tipo === 'actividad' && CON_TARJETA.has(item.herramienta)) continue;
     if (item.tipo === 'actividad' && ultimo?.tipo === 'actividad') ultimo.items.push(item);
-    else if (item.tipo === 'actividad') bloques.push({ tipo: 'actividad', items: [item] });
-    else bloques.push({ tipo: 'item', item });
+    else if (item.tipo === 'actividad')
+      bloques.push({ tipo: 'actividad', clave: previo, items: [item] });
+    else {
+      bloques.push({ tipo: 'item', item });
+      previo = item.id;
+    }
   }
   return bloques;
 }
 
-/** Mientras trabaja: qué está haciendo, con el brillo de «pendiente» y el paso concreto debajo. */
-const FASES: Record<string, string> = {
-  buscar: 'Buscando trámites',
-  leer_pagina: 'Leyendo fuentes oficiales',
-  leer_texto: 'Leyendo la página',
-  mis_datos: 'Revisando tus datos',
-  ver: 'Trabajando en la sede',
-  esperar: 'Trabajando en la sede',
+/** Varias acciones seguidas de la misma herramienta son un paso: «Escribiendo en 3 campos». */
+const VARIAS: Record<string, (n: number) => string> = {
+  leer_pagina: (n) => `Leyendo ${n} páginas`,
+  escribir: (n) => `Escribiendo en ${n} campos`,
+  elegir: (n) => `Eligiendo ${n} opciones`,
+  marcar: (n) => `Marcando ${n} casillas`,
 };
-const fase = (herramienta: string) =>
-  FASES[herramienta] ?? (DE_NAVEGADOR.has(herramienta) ? 'Trabajando en la sede' : 'Pensando');
 
+function pasos(items: ItemActividad[]) {
+  const grupos: ItemActividad[][] = [];
+  for (const i of items) {
+    const g = grupos.at(-1);
+    if (g && g[0]!.herramienta === i.herramienta) g.push(i);
+    else grupos.push([i]);
+  }
+  return grupos;
+}
+
+/** Vuelve a pintar cada segundo mientras `activo`. */
+function useSegundero(activo: boolean) {
+  const [, setTic] = useState(0);
+  useEffect(() => {
+    if (!activo) return;
+    const t = setInterval(() => setTic((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [activo]);
+}
+
+/** De quién es la web; en la ficha va solo el título, porque el icono ya dice de quién es. */
+const deQuien = (f: FuenteVista) => f.organismo?.split(' · ')[0] ?? sitio(f.url);
+
+const entra = '[animation:chat-stage-change_280ms_var(--ease-brand)_both]';
+
+/** Un paso: un punto en la línea (la búsqueda, una lupa con las webs que encontró). */
+function Paso({
+  items,
+  fuentes,
+  abrir,
+  conLinea,
+}: {
+  items: ItemActividad[];
+  fuentes: FuenteVista[];
+  abrir: (url: string) => void;
+  conLinea: boolean;
+}) {
+  const herramienta = items[0]!.herramienta;
+  const activo = items.some((i) => i.estado === 'inicio');
+  const errores = items.filter((i) => i.estado === 'error').length;
+  const busqueda = herramienta === 'buscar';
+  const encontradas = busqueda
+    ? fuentes.filter((f) => items.some((i) => i.fuentes?.includes(f.id)))
+    : [];
+  const varias = items.length > 1 ? VARIAS[herramienta] : undefined;
+  const texto = busqueda
+    ? activo
+      ? 'Buscando'
+      : 'Ha buscado'
+    : varias
+      ? varias(items.length)
+      : items.at(-1)!.resumen;
+  return (
+    <li className={cn('relative grid grid-cols-[18px_1fr] gap-x-3 pb-2.5', entra)}>
+      {conLinea && (
+        <span
+          aria-hidden
+          className="absolute top-[22px] -bottom-1 left-[8.5px] w-px bg-foreground/10"
+        />
+      )}
+      <span className="flex h-6 items-center justify-center text-muted-foreground">
+        {busqueda ? (
+          <Icono nombre="buscar" size={16} />
+        ) : (
+          <span
+            className={cn(
+              'size-1.5 rounded-full',
+              activo ? 'bg-foreground' : errores ? 'bg-brand' : 'bg-foreground/25',
+            )}
+          />
+        )}
+      </span>
+      <div className="min-w-0 leading-6">
+        {activo ? (
+          <Shimmer>{texto}</Shimmer>
+        ) : (
+          <span className="text-muted-foreground">{texto}</span>
+        )}
+        {!activo && errores > 0 && <span className="text-muted-foreground"> · sin éxito</span>}
+        {encontradas.length > 0 && (
+          <div className="mt-2 mb-1 flex flex-wrap items-center gap-2">
+            {encontradas.slice(0, 4).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                title={`${deQuien(f)} – ${f.titulo}`}
+                onClick={() => abrir(f.url)}
+                className={cn(
+                  'inline-flex h-8 max-w-[15rem] items-center gap-2 rounded-lg bg-foreground/[0.05] px-2.5 text-sm text-foreground hover:bg-foreground/[0.08]',
+                  entra,
+                )}
+              >
+                <Favicon web={origen(f.url)} className="size-4 rounded-[4px]" />
+                <span className="truncate">{f.titulo || deQuien(f)}</span>
+              </button>
+            ))}
+            {encontradas.length > 4 && (
+              <span className="px-1 text-sm text-muted-foreground">
+                +{encontradas.length - 4} más
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </li>
+  );
+}
+
+/**
+ * Lo que hace el asistente entre sus respuestas: «Pensando» con el tiempo que lleva y, debajo, sus
+ * pasos en una línea. Al terminar queda como «Ha trabajado 8 s», desplegable.
+ */
 function Actividad({
   items,
   enCurso,
+  fuentes,
+  abrir,
 }: {
-  items: Extract<ItemConversacion, { tipo: 'actividad' }>[];
+  items: ItemActividad[];
   enCurso: boolean;
+  fuentes: FuenteVista[];
+  abrir: (url: string) => void;
 }) {
-  const [abierta, setAbierta] = useState(false);
-  const errores = items.filter((i) => i.estado === 'error').length;
-  // El paso concreto solo si dice algo más que la fase («Leyendo seg-social.es»). Cuando ya ha
-  // terminado todo lo que hacía, lo que queda es el modelo pensando el siguiente paso.
-  const enMarcha = items.findLast((i) => i.estado === 'inicio');
-  if (enCurso)
-    return enMarcha ? (
-      <Thinking
-        label={fase(enMarcha.herramienta)}
-        {...(enMarcha.herramienta === 'buscar' ? {} : { stage: enMarcha.resumen })}
-      />
-    ) : (
-      <Thinking label="Pensando" />
+  const [abierta, setAbierta] = useState(enCurso);
+  useSegundero(enCurso && items.length > 0);
+  if (!items.length)
+    return (
+      <div role="status" className="my-4 py-1 text-[15px]">
+        <Shimmer>Pensando</Shimmer>
+      </div>
     );
+  const desde = Date.parse(items[0]!.desde ?? '');
+  const hasta = enCurso
+    ? Date.now()
+    : Math.max(...items.map((i) => Date.parse(i.hasta ?? '') || 0));
+  const tiempo = desde && hasta >= desde ? duracion(hasta - desde) : '';
+  const grupos = pasos(items);
   return (
-    <div className="my-3">
-      <button
-        type="button"
-        aria-expanded={abierta}
-        onClick={() => setAbierta(!abierta)}
-        className="flex items-center gap-2 rounded-lg py-1 text-left text-sm text-muted-foreground hover:text-foreground"
-      >
+    <Collapsible open={abierta} onOpenChange={setAbierta} className="my-4">
+      <CollapsibleTrigger className="flex items-center gap-1.5 rounded-lg py-1 text-[15px] text-muted-foreground hover:text-foreground">
         <Icono
-          nombre={abierta ? 'atras' : 'siguiente'}
+          nombre="abajo"
           size={16}
-          className={abierta ? '-rotate-90' : ''}
+          className={cn('transition-transform duration-200', !abierta && '-rotate-90')}
         />
-        <span>{`${items.length} ${items.length === 1 ? 'acción' : 'acciones'} del asistente`}</span>
-        {errores > 0 && <span>· {errores} sin éxito</span>}
-      </button>
-      {abierta && (
-        <ol className="mt-1 mb-0 ml-2 space-y-1 border-l border-border pl-4 text-sm text-[var(--text-secondary)]">
-          {items.map((i) => (
-            <li key={i.id} className="flex items-start gap-2">
-              <Icono
-                nombre={
-                  i.estado === 'error' ? 'cerrar' : i.estado === 'fin' ? 'check' : 'siguiente'
-                }
-                size={16}
-                className="mt-0.5 shrink-0"
-              />
-              <span>
-                {i.resumen}
-                {i.detalle && (
-                  <span className="text-muted-foreground"> · {i.detalle.slice(0, 160)}</span>
-                )}
-              </span>
-            </li>
+        {enCurso ? (
+          <>
+            <Shimmer>Pensando</Shimmer>
+            <span className="ml-1 text-foreground/35 tabular-nums">{tiempo}</span>
+          </>
+        ) : (
+          `Ha trabajado ${tiempo}`.trim()
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-300 ease-(--ease-brand) data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0 motion-reduce:transition-none">
+        <ol className="m-0 mt-2 list-none p-0 text-[15px]">
+          {grupos.map((g, n) => (
+            <Paso
+              key={g[0]!.id}
+              items={g}
+              fuentes={fuentes}
+              abrir={abrir}
+              conLinea={!enCurso || n < grupos.length - 1}
+            />
           ))}
+          {!enCurso && (
+            <li className={cn('grid grid-cols-[18px_1fr] gap-x-3', entra)}>
+              <span className="flex h-6 items-center justify-center">
+                <span className="grid size-4 place-items-center rounded-full bg-foreground text-background">
+                  <Icono nombre="check" size={10} />
+                </span>
+              </span>
+              <span className="leading-6">Listo</span>
+            </li>
+          )}
         </ol>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -129,6 +257,13 @@ function Conversacion({
   const trabajando = vista.ejecucion === 'trabajando';
   const bloques = agrupar(vista.conversacion);
   const ultimo = vista.conversacion.at(-1);
+  // Mientras piensa sin haber hecho nada todavía: el mismo bloque que mostrará sus acciones.
+  if (
+    trabajando &&
+    ultimo?.tipo !== 'actividad' &&
+    !(ultimo?.tipo === 'pregunta' && ultimo.estado === 'pendiente')
+  )
+    bloques.push({ tipo: 'actividad', clave: ultimo?.id ?? 'inicio', items: [] });
   const total = vista.conversacion.reduce(
     (n, i) => n + (i.tipo === 'asistente' ? i.texto.length : 1),
     0,
@@ -151,9 +286,11 @@ function Conversacion({
           if (b.tipo === 'actividad')
             return (
               <Actividad
-                key={b.items[0]!.id}
+                key={`actividad-${b.clave}`}
                 items={b.items}
                 enCurso={trabajando && n === bloques.length - 1}
+                fuentes={vista.fuentes}
+                abrir={abrirFuente}
               />
             );
           const i = b.item;
@@ -225,11 +362,6 @@ function Conversacion({
             </div>
           );
         })}
-        {trabajando &&
-          ultimo?.tipo !== 'actividad' &&
-          !(ultimo?.tipo === 'pregunta' && ultimo.estado === 'pendiente') && (
-            <Thinking label="Pensando" />
-          )}
         <div ref={fin} />
       </div>
     </div>

@@ -67,6 +67,8 @@ const RESULTADOS: Record<Pregunta['tipo'], [string, string]> = {
 /** Al cerrar la app, lo que espera a la persona sigue pendiente: se retoma al volver a abrirla. */
 const CIERRE = new Error('La app se cierra');
 
+type ItemActividad = Extract<ItemConversacion, { tipo: 'actividad' }>;
+
 type Espera = {
   tramite: string;
   resolver: (respuesta: Record<string, string> | boolean | null) => void;
@@ -437,23 +439,27 @@ export class Tramites {
       ultima.fuentes = [...new Set([...(ultima.fuentes ?? []), ...usadas])];
       desde = ahora();
     };
+    // Desde cuándo trabaja el asistente en lo que sigue: el inicio del turno, el final de su último
+    // texto o la respuesta de la persona. Es lo que tarda cada tanda de acciones.
+    let trabajaDesde = ahora();
+    const esperar = async (pregunta: Pregunta, signal: AbortSignal) => {
+      marcarFuentes();
+      const v = await this.preguntar(r, pregunta, signal);
+      trabajaDesde = ahora();
+      return v;
+    };
     const anfitrion: Anfitrion = {
       perfil: () => this.entorno.perfil(),
       guardarPerfil: (v) => this.entorno.guardarPerfil(v),
       preguntar: async (formulario, signal) => {
-        marcarFuentes();
-        const v = await this.preguntar(r, { tipo: 'formulario', formulario }, signal);
+        const v = await esperar({ tipo: 'formulario', formulario }, signal);
         return v && typeof v === 'object' ? v : null;
       },
-      confirmar: async (confirmacion, signal) => {
-        marcarFuentes();
-        return (await this.preguntar(r, { tipo: 'confirmacion', confirmacion }, signal)) === true;
-      },
-      pedirAyuda: async (ayuda, signal) => {
-        marcarFuentes();
-        const v = await this.preguntar(r, { tipo: 'ayuda', ayuda }, signal);
-        return { hecho: v === true };
-      },
+      confirmar: async (confirmacion, signal) =>
+        (await esperar({ tipo: 'confirmacion', confirmacion }, signal)) === true,
+      pedirAyuda: async (ayuda, signal) => ({
+        hecho: (await esperar({ tipo: 'ayuda', ayuda }, signal)) === true,
+      }),
       navegador: async () => this.navegador(r.id),
       leerConNavegador,
     };
@@ -465,24 +471,37 @@ export class Tramites {
           r.conversacion.push(actual);
         }
         actual.texto += e.delta;
+        trabajaDesde = ahora();
       } else if (e.tipo === 'actividad') {
         actual = null;
-        const previo = r.conversacion.find((i) => i.tipo === 'actividad' && i.id === e.id);
-        const item: ItemConversacion = {
+        const previo = r.conversacion.find(
+          (i): i is ItemActividad => i.tipo === 'actividad' && i.id === e.id,
+        );
+        const item: ItemActividad = {
           tipo: 'actividad',
           id: e.id,
           herramienta: e.herramienta,
           resumen: e.resumen,
           estado: e.estado,
           ...(e.detalle ? { detalle: e.detalle } : {}),
+          desde: previo?.desde ?? trabajaDesde,
+          ...(e.estado === 'inicio' ? {} : { hasta: ahora() }),
         };
         if (previo) Object.assign(previo, item);
         else r.conversacion.push(item);
       } else if (e.tipo === 'protegidos') {
         const usuario = r.conversacion.findLast((i) => i.tipo === 'usuario');
         if (usuario) usuario.protegidos = e.cantidad;
-      } else if (e.tipo === 'fuentes') r.estado.fuentes = e.fuentes;
-      else if (e.tipo === 'uso') r.estado.uso = e.uso;
+      } else if (e.tipo === 'fuentes') {
+        // Las webs nuevas cuelgan de la acción que las ha encontrado.
+        const nuevas = e.fuentes.filter((f) => !r.estado.fuentes.some((p) => p.id === f.id));
+        const accion = r.conversacion.findLast(
+          (i): i is ItemActividad => i.tipo === 'actividad' && i.estado === 'inicio',
+        );
+        if (accion && nuevas.length)
+          accion.fuentes = [...(accion.fuentes ?? []), ...nuevas.map((f) => f.id)];
+        r.estado.fuentes = e.fuentes;
+      } else if (e.tipo === 'uso') r.estado.uso = e.uso;
       this.cambio(r.id);
     };
     const escritos = this.escritos.get(r.id) ?? new Map<string, string>();

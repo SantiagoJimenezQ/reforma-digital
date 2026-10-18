@@ -19,3 +19,10 @@ export const hace = (iso: string, ahora = Date.now()) => {
   const meses = Math.floor(min / (60 * 24 * 30));
   return meses === 1 ? '1 mes' : `${meses} meses`;
 };
+
+/** Lo que ha durado algo, corto: «8 s», «1 min 5 s». */
+export const duracion = (ms: number) => {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return `${s} s`;
+  return s % 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s / 60} min`;
+};

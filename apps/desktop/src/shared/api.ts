@@ -41,6 +41,11 @@ export type ItemConversacion =
       resumen: string;
       estado: 'inicio' | 'fin' | 'error';
       detalle?: string;
+      /** Desde cuándo trabajaba el asistente en lo que llevó a esta acción, y cuándo terminó (ISO). */
+      desde?: string;
+      hasta?: string;
+      /** Las webs que encontró. */
+      fuentes?: string[];
     }
   | {
       tipo: 'pregunta';

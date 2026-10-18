@@ -214,16 +214,24 @@ export function QuestionDetail({ icon, children }: { icon: ReactNode; children: 
 }
 
 /** Activity indicator: the shimmer says work is pending; the stage crossfades when it changes. */
+/** Texto gris con un brillo que lo recorre: algo está en marcha. */
+export function Shimmer({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span
+      className={cn(
+        'chat-shimmer [width:fit-content] [color:transparent] [background-image:linear-gradient(_90deg,_transparent_calc(50%_-_28px),_var(--foreground),_transparent_calc(50%_+_28px)_),_linear-gradient(var(--muted-foreground),_var(--muted-foreground))] [background-size:250%_100%,_auto] [background-repeat:no-repeat] [background-clip:text] [-webkit-background-clip:text] [animation:chat-shimmer_1.6s_linear_infinite] [@media(prefers-reduced-motion:_reduce)]:[animation:none] [@media(prefers-reduced-motion:_reduce)]:[background:none] [@media(prefers-reduced-motion:_reduce)]:[color:var(--text-secondary)]',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Thinking({ label, stage }: { label: string; stage?: string }) {
   return (
     <div className={'chat-thinking grid [gap:2px] min-h-6 [margin:0_0_24px]'} role="status">
-      <span
-        className={
-          'chat-shimmer [width:fit-content] font-medium [color:transparent] [background-image:linear-gradient(_90deg,_transparent_calc(50%_-_28px),_var(--foreground),_transparent_calc(50%_+_28px)_),_linear-gradient(var(--muted-foreground),_var(--muted-foreground))] [background-size:250%_100%,_auto] [background-repeat:no-repeat] [background-clip:text] [-webkit-background-clip:text] [animation:chat-shimmer_1.6s_linear_infinite] [@media(prefers-reduced-motion:_reduce)]:[animation:none] [@media(prefers-reduced-motion:_reduce)]:[background:none] [@media(prefers-reduced-motion:_reduce)]:[color:var(--text-secondary)]'
-        }
-      >
-        {label}
-      </span>
+      <Shimmer className="font-medium">{label}</Shimmer>
       {stage && (
         <span
           key={stage}

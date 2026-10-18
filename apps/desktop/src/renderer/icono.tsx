@@ -4,6 +4,7 @@ import type { ComponentType } from 'react';
 import {
   IconCalendarOutline18,
   IconCheckOutline18,
+  IconChevronDownOutline18,
   IconChevronLeftOutline18,
   IconChevronRightOutline18,
   IconCircleInfoOutline18,
@@ -15,6 +16,7 @@ import {
   IconHandOutline18,
   IconLinkOutline18,
   IconLockOutline18,
+  IconMagnifierOutline18,
   IconPlusOutline18,
   IconRefresh2Outline18,
   IconShieldCheckOutline18,
@@ -53,6 +55,7 @@ function FlechaArriba({ size, className }: { size?: number; className?: string }
 const iconos = {
   calendario: IconCalendarOutline18,
   check: IconCheckOutline18,
+  abajo: IconChevronDownOutline18,
   atras: IconChevronLeftOutline18,
   siguiente: IconChevronRightOutline18,
   info: IconCircleInfoOutline18,
@@ -64,6 +67,7 @@ const iconos = {
   mano: IconHandOutline18,
   enlace: IconLinkOutline18,
   candado: IconLockOutline18,
+  buscar: IconMagnifierOutline18,
   mas: IconPlusOutline18,
   recargar: IconRefresh2Outline18,
   escudo: IconShieldCheckOutline18,
