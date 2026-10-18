@@ -47,45 +47,80 @@ const COMPARACION: { que: string; general: string; nuestro: string }[] = [
   },
 ];
 
-function seguridad(modeloNan: boolean): { icono: NombreIcono; titulo: string; texto: string }[] {
-  return [
+/** Lo que no cabe en el recorrido del dato. */
+const GARANTIAS: { icono: NombreIcono; texto: string }[] = [
+  { icono: 'candado', texto: 'Todo cifrado en tu Mac, con tu llavero' },
+  { icono: 'huella', texto: 'Nada se envía ni se paga sin Touch ID' },
+  { icono: 'mano', texto: 'Contraseñas, CAPTCHA y firmas: tú' },
+  { icono: 'web', texto: 'Un navegador aparte para cada trámite' },
+];
+
+const dato = 'rounded-md bg-brand/[0.1] px-1 text-brand';
+const marcador = 'rounded-md bg-brand-yellow/[0.25] px-1 font-mono text-sm';
+
+/** Un dato inventado de camino a la web: lo que escribes, lo que recibe la IA y lo que se escribe. */
+function Recorrido({ modeloNan }: { modeloNan: boolean }) {
+  const etapas = [
     {
-      icono: 'ver',
-      titulo: 'La IA no ve tus datos',
-      texto:
-        'Un modelo de privacidad que se ejecuta en tu Mac, sin conexión, cambia nombres, DNI, direcciones, teléfonos y correos por marcadores. Si falla, no se envía nada.',
+      donde: 'Escribes en tu Mac',
+      como: 'Un modelo de privacidad, sin conexión, encuentra tus datos y los cambia por marcadores.',
+      muestra: (
+        <p className="m-0">
+          Soy <span className={dato}>Lucía Martín</span> y mi DNI es{' '}
+          <span className={dato}>12345678Z</span>. Quiero renovarlo.
+        </p>
+      ),
     },
     {
-      icono: 'candado',
-      titulo: 'Todo cifrado en tu Mac',
-      texto: 'Tus datos, conversaciones y trámites, con una clave protegida por tu llavero.',
+      donde: 'Le llega a la IA',
+      como: modeloNan
+        ? 'Sabe que hay un dato, no cuál es. Modelos abiertos en la UE que no guardan nada.'
+        : 'Sabe que hay un dato, no cuál es. Si el modelo de privacidad falla, no se envía nada.',
+      muestra: (
+        <p className="m-0">
+          Soy <span className={marcador}>{'{{nombre}}'}</span> y mi DNI es{' '}
+          <span className={marcador}>{'{{documento_numero}}'}</span>. Quiero renovarlo.
+        </p>
+      ),
     },
     {
-      icono: 'huella',
-      titulo: 'Tú das el permiso',
-      texto: 'Nada se envía, reserva, paga ni firma sin tu aprobación con Touch ID.',
+      donde: 'Se escribe en la web',
+      como: 'La app pone el dato real solo en la web del trámite, y nada se envía sin tu permiso.',
+      muestra: (
+        <>
+          <span className="block text-sm text-muted-foreground">Número de DNI</span>
+          <span className="mt-1.5 flex h-10 items-center justify-between rounded-xl border border-border bg-background px-3">
+            12345678Z
+            <Icono nombre="candado" size={16} className="text-muted-foreground" />
+          </span>
+        </>
+      ),
     },
-    {
-      icono: 'mano',
-      titulo: 'Lo delicado lo haces tú',
-      texto: 'Contraseñas, CAPTCHA, certificados, firmas y pagos. El asistente no los toca.',
-    },
-    {
-      icono: 'web',
-      titulo: 'Un navegador por trámite',
-      texto: 'Cada trámite abre sus webs aparte, separado de tu navegador y de los demás trámites.',
-    },
-    ...(modeloNan
-      ? [
-          {
-            icono: 'escudo' as const,
-            titulo: 'IA en la Unión Europea',
-            texto:
-              'Modelos abiertos alojados en la UE, con retención cero: no guardan tus peticiones ni entrenan con ellas.',
-          },
-        ]
-      : []),
   ];
+  return (
+    <ol className="m-0 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch rounded-[24px] bg-background p-3 text-left">
+      {etapas.map((e, i) => (
+        <li key={e.donde} className="contents">
+          {i > 0 && (
+            <span aria-hidden="true" className="mt-[100px] self-start px-1 text-muted-foreground">
+              <Icono nombre="siguiente" size={16} />
+            </span>
+          )}
+          <span className="flex flex-col p-4">
+            <span className="text-sm text-muted-foreground">
+              {i + 1}. {e.donde}
+            </span>
+            <span className="mt-3 flex h-32 flex-col justify-center rounded-2xl bg-muted p-4 text-[15px] leading-relaxed">
+              {e.muestra}
+            </span>
+            <span className="mt-3 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+              {e.como}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 const PASOS = ['Bienvenida', 'Por qué', 'Seguridad'];
@@ -212,24 +247,15 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
                 Tu seguridad, primero
               </h1>
               <p className={cn(entradilla, 'text-[var(--text-secondary)]')}>
-                La IA solo ejecuta lo que le pides: busca, explica y rellena las webs. No lee tus
-                datos ni los guarda.
+                La IA solo ejecuta lo que le pides: busca, explica y rellena las webs. Así viaja un
+                dato tuyo:
               </p>
-              <ul className="m-0 grid grid-cols-2 gap-3 p-0 text-left">
-                {seguridad(Boolean(app?.modeloNan)).map((s) => (
-                  <li
-                    key={s.titulo}
-                    className="flex list-none gap-4 rounded-[24px] bg-background p-6"
-                  >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/[0.08] text-brand">
-                      <Icono nombre={s.icono} />
-                    </span>
-                    <span>
-                      <span className="block text-[17px] font-medium">{s.titulo}</span>
-                      <span className="mt-1 block text-[15px] leading-relaxed text-[var(--text-secondary)]">
-                        {s.texto}
-                      </span>
-                    </span>
+              <Recorrido modeloNan={Boolean(app?.modeloNan)} />
+              <ul className="m-0 mt-6 grid grid-cols-4 gap-6 p-0 text-left">
+                {GARANTIAS.map((g) => (
+                  <li key={g.texto} className="flex list-none gap-2.5 text-[15px] leading-snug">
+                    <Icono nombre={g.icono} className="mt-px shrink-0 text-brand" />
+                    {g.texto}
                   </li>
                 ))}
               </ul>
