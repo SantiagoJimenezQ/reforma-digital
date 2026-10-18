@@ -178,6 +178,7 @@ function estadoApp(): EstadoApp {
     campos: camposPerfil,
     perfil: perfilVista(),
     touchId: touchId(),
+    plataforma: process.platform,
     desarrollo: !app.isPackaged,
     recordatorios: recordatorios(),
   };
@@ -367,8 +368,16 @@ function crearVentana() {
     minWidth: 1040,
     minHeight: 660,
     show: false,
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 18, y: 20 },
+    // En macOS, los semáforos dentro de la ventana. En Windows y Linux, sus botones arriba a la
+    // derecha sobre el lienzo (la cabecera les deja hueco con .hueco-botones) y sin barra de menú:
+    // los atajos del menú siguen funcionando.
+    ...(process.platform === 'darwin'
+      ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 18, y: 20 } }
+      : {
+          titleBarStyle: 'hidden' as const,
+          titleBarOverlay: { color: '#f5f5f5', symbolColor: '#0a0a0a', height: 52 },
+          autoHideMenuBar: true,
+        }),
     backgroundColor: '#f5f5f5',
     webPreferences: {
       preload: path.join(RAIZ, 'preload.cjs'),
@@ -540,7 +549,7 @@ app
     const r = await dialog.showMessageBox({
       type: 'error',
       message: 'Reforma Digital no ha podido abrir tus datos',
-      detail: `${e instanceof Error ? e.message : String(e)}\n\nSi macOS te ha pedido acceso al llavero y lo has denegado, sal y vuelve a abrir la app. Si el problema sigue, puedes borrar lo que la app guarda en este Mac (datos, trámites, ajustes y sesiones de las webs) y empezar de cero.`,
+      detail: `${e instanceof Error ? e.message : String(e)}\n\nSi el sistema te ha pedido acceso al llavero y lo has denegado, sal y vuelve a abrir la app. Si el problema sigue, puedes borrar lo que la app guarda en este ordenador (datos, trámites, ajustes y sesiones de las webs) y empezar de cero.`,
       buttons: ['Salir', 'Borrar todo y reiniciar'],
       defaultId: 0,
       cancelId: 0,

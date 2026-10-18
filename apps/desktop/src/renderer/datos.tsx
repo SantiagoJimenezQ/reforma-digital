@@ -48,7 +48,7 @@ export function MisDatos({ verPrivacidad }: { verPrivacidad: () => void }) {
       <div className="mx-auto max-w-[820px] px-10 pb-16">
         <Cabecera
           titulo="Mis datos"
-          entradilla="El asistente los usa para rellenar los formularios oficiales sin preguntarte cada vez. Se guardan cifrados en este Mac, con una clave protegida por tu llavero."
+          entradilla="El asistente los usa para rellenar los formularios oficiales sin preguntarte cada vez. Se guardan cifrados en este ordenador, con una clave protegida por el sistema."
         />
         <div className="mb-6 flex items-center gap-4 rounded-[24px] bg-background p-5">
           <Icono nombre="candado" className="shrink-0 text-muted-foreground" />

@@ -481,7 +481,7 @@ export class Tramites {
             app.getPath('downloads'),
             'Reforma Digital',
             sinMarcadores(r.estado.titulo || id)
-              .replace(/[/\\:]/g, '-')
+              .replace(/[/\\:*?"<>|]/g, '-')
               .slice(0, 60),
           ),
         alCambiar: () => this.cambio(id),

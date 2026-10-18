@@ -251,10 +251,11 @@ El Congreso (`/congreso`) es una sección pública de Reforma Digital y usa Sol 
 - La cabecera de Reforma Digital lleva «El Congreso» como un enlace más, marcado como actual dentro de la sección. Desde 1100 px, las vistas van en una columna a la izquierda de 232 px, agrupadas y todas a la vista, con la actual sobre `--superficie`; se queda pegada al bajar y una ficha mantiene marcada la vista de la que sale. Por debajo de 1100 px, las vistas están en una barra con desplegables bajo la cabecera.
 - Los colores de un hemiciclo o de un resultado son datos (sí, no, abstención). Detrás no va el sol ni otro fondo de color.
 
-## 9. App de Mac
+## 9. App de escritorio
 
-La app de Mac (`apps/desktop`) usa los mismos tokens y primitivas, con la composición de un cliente de chat de escritorio.
+La app de escritorio (`apps/desktop`) usa los mismos tokens y primitivas, con la composición de un cliente de chat de escritorio.
 
+- **Ventana.** Sin barra de título: la franja de 52 px de arriba sirve para arrastrar. En macOS lleva los semáforos a la izquierda, sobre la barra lateral; en Windows y Linux, los botones de la ventana a la derecha, del color del lienzo, y la cabecera de esa esquina les deja hueco (`.hueco-botones`). En Windows y Linux no hay barra de menú, pero sus atajos funcionan (Ctrl+N, Ctrl+,).
 - **Letra.** Inter en lugar de la Geist de la web (§8.1), empaquetada dentro de la app con `@fontsource-variable/inter`; los titulares siguen en la serif.
 - **Lienzo gris, superficies blancas, sin sombras.** Toda la ventana es `--muted`; lo que se lee o se rellena va en blanco: el mensaje de la persona, el compositor, las tarjetas de preguntas, el navegador del trámite y las secciones de «Mis datos» y «Ajustes» (radio 24). Nada lleva sombra, tampoco los desplegables: `desktop.css` vacía los tokens `--shadow-*`.
 - **Barra lateral de 260 px**, un poco más oscura que el lienzo (`foreground` al 2,5 %). Arriba, «Nuevo trámite» y «Mis datos»; después, los fijados y los trámites en filas de 36 px con el título en una línea y, a la derecha, cuánto hace del último cambio («5 min», «12 d») o un icono con su explicación al pasar: un «!» en un círculo amarillo si el asistente ofrece hacerlo por la persona, un «!» blanco en un círculo rojo si espera otra respuesta, un punto gris que late si trabaja y un check azul si ha terminado y la persona aún no lo ha abierto. Al pasar por una fila aparece la chincheta para fijarla. Abajo, la marca y «Ajustes». Las filas se oscurecen al pasar (4 %) y la activa queda marcada (7 %).

@@ -1,19 +1,21 @@
-# Reforma Digital para Mac
+# Reforma Digital para escritorio
 
-Asistente de trámites para macOS. La persona cuenta qué necesita; el asistente lo investiga en webs oficiales, se lo explica mostrando debajo las webs que ha consultado y, si ella quiere, lo hace en la sede electrónica con un navegador dentro de la app mientras lo ve. Las contraseñas, CAPTCHA, certificados, firmas y pagos los hace la persona.
+Asistente de trámites para macOS, Windows y Linux. La persona cuenta qué necesita; el asistente lo investiga en webs oficiales, se lo explica mostrando debajo las webs que ha consultado y, si ella quiere, lo hace en la sede electrónica con un navegador dentro de la app mientras lo ve. Las contraseñas, CAPTCHA, certificados, firmas y pagos los hace la persona.
 
 Es un proyecto independiente, sin vinculación con la Administración. Está en desarrollo: no se ha validado ningún trámite completo en una web oficial real (ver [Limitaciones](#limitaciones)).
 
 ## Puesta en marcha
 
-Requiere macOS en Apple silicon, Node 22.18+ y pnpm 11.
+Requiere Node 22.18+ y pnpm 11 en macOS, Windows 10/11 o Linux x64.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm --filter @reforma-digital/desktop exec install-electron   # una vez: descarga Electron
 pnpm --filter @reforma-digital/desktop dev                     # compila y abre la app
-pnpm --filter @reforma-digital/desktop package                 # .app en apps/desktop/dist/mac-arm64
+pnpm --filter @reforma-digital/desktop package                 # la app, sin instalador, en apps/desktop/dist
 ```
+
+`package` empaqueta para el sistema y la arquitectura en los que se ejecuta (`dist/mac-arm64`, `dist/win-unpacked`, `dist/linux-unpacked`…). Hay que hacerlo en cada sistema: el detector usa ONNX Runtime, que es nativo, y la app solo lleva el binario del sistema en el que se compila. Después, `pnpm --filter @reforma-digital/desktop exec electron-builder --config electron-builder.json` crea los instaladores de ese sistema: `.dmg` para Apple silicon e Intel, instalador `.exe` (NSIS) o `.deb` y `.AppImage`. En macOS, empaquetar pide Xcode 26 por el icono de Icon Composer.
 
 `dev` y `package` descargan antes, una sola vez, el modelo del detector de datos personales (15 MB, versión fija y huella SHA-256 comprobada) en `packages/agent/.cache/rampart`; la app lo lleva dentro. Sin él, la app no envía nada al asistente.
 
@@ -23,7 +25,7 @@ La app no pide ninguna clave: llama al asistente con la de **Vercel AI Gateway**
 
 **Temporal: NaN Builders y Exa.** Si al compilar también están `NAN_API_KEY` y `EXA_API_KEY`, la app usa en su lugar `deepseek-v4-flash`, un modelo abierto de [NaN Builders](https://nan.builders) (sin registro de peticiones, en la UE), y busca con [Exa](https://exa.ai). Ajustes muestra el modelo fijo en lugar de la lista de Vercel.
 
-**Las claves quedan dentro del `.app` y cualquiera que lo tenga puede sacarlas.** Sirve para compilaciones propias. Para repartir la app hace falta otra cosa: una clave aparte con presupuesto limitado en Vercel o, mejor, un servidor intermedio que guarde la clave y limite el uso. Sin clave, la app avisa al enviar un mensaje y no hace nada más.
+**Las claves quedan dentro de la app y cualquiera que la tenga puede sacarlas.** Sirve para compilaciones propias. Para repartir la app hace falta otra cosa: una clave aparte con presupuesto limitado en Vercel o, mejor, un servidor intermedio que guarde la clave y limite el uso. Sin clave, la app avisa al enviar un mensaje y no hace nada más.
 
 ## Cómo está hecha
 
@@ -43,7 +45,7 @@ flowchart LR
 | [`packages/agent`](../../packages/agent)                                         | El agente, sin Electron: herramientas, instrucciones, bucle con límites, privacidad, lectura segura de webs oficiales y el script que lee y maneja páginas. Lo usan la app y las evaluaciones.                                |
 | [`packages/government/src/domains.ts`](../../packages/government/src/domains.ts) | Sufijos de dominio de las administraciones (208, adaptados de SpainAssist con licencia MIT). Marcan qué webs son oficiales; las demás salen como «sin verificar». No convierten una página en fuente registrada del buscador. |
 | [`packages/evals/src/agent`](../../packages/evals/src/agent)                     | Evaluaciones del agente: sede ficticia, navegador Playwright, persona simulada, escenarios y métricas.                                                                                                                        |
-| [`apps/desktop`](.)                                                              | La app: ventana, almacén cifrado, navegador por trámite, Touch ID, notificaciones, certificados del llavero, AutoFirma e interfaz.                                                                                            |
+| [`apps/desktop`](.)                                                              | La app: ventana, almacén cifrado, navegador por trámite, Touch ID, notificaciones, certificados del sistema, AutoFirma e interfaz.                                                                                            |
 
 El bucle del agente hace un paso del modelo cada vez (Vercel AI SDK 7): guarda el progreso tras cada paso, comprueba el límite de pasos y de gasto, corta acciones repetidas y compacta el contexto (solo la última página del navegador va completa). Las acciones sobre la página se ejecutan de una en una aunque el modelo pida varias a la vez. Con modelos de Anthropic marca la caché del prompt (en las evaluaciones redujo el coste de Claude Haiku de 0,39 $ a 0,07 $ en ocho escenarios).
 
@@ -58,20 +60,21 @@ Archivos de la app:
 | `src/preload`           | `window.rd`, el único puente entre la interfaz y el proceso principal.                                                    |
 | `src/renderer`          | Interfaz React con `@reforma-digital/design` (Sol).                                                                       |
 | `build/icon.icon`       | Icono de Icon Composer, con fondo blanco y, en modo oscuro, negro. Se edita con Icon Composer y empaquetar pide Xcode 26. |
+| `build/icon.png`        | Icono de Windows y Linux: el mismo logo sobre blanco, de 1024 px.                                                         |
 
-Los datos de la app están en `~/Library/Application Support/Reforma Digital/datos`, cifrados. Los documentos que descargan los trámites van a `~/Downloads/Reforma Digital/<trámite>/`.
+Los datos de la app están cifrados en `~/Library/Application Support/Reforma Digital/datos` (macOS), `%APPDATA%\Reforma Digital\datos` (Windows) o `~/.config/Reforma Digital/datos` (Linux). Los documentos que descargan los trámites van a `Reforma Digital/<trámite>/`, dentro de la carpeta de descargas.
 
 ### Garantías que no dependen del prompt
 
 Se comprueban en el código de las herramientas y tienen pruebas en [`agent.test.ts`](../../packages/agent/src/agent.test.ts):
 
-- **Datos personales ocultos.** El modelo no recibe los identificadores de «Mis datos» ni los que un detector local (reglas y [Rampart](https://github.com/nationaldesignstudio/rampart), que funciona en el Mac) encuentra en lo que escribe la persona y en las páginas: nombres, documentos, direcciones, teléfonos, correos y fechas de nacimiento, también de otras personas. Le llegan como marcadores (`{{documento_numero}}`, `{{nombre_1}}`). De los campos de un formulario solo ve lo que ha escrito él. La app sustituye el marcador por el valor al escribir en una web y en su propia interfaz. Ve los datos de contexto (municipio, provincia, nacionalidad, edad…) porque los necesita para investigar. Antes de cada petición, una última capa vuelve a buscar los valores guardados y cualquier DNI, NIE o IBAN válido. Si el detector falla, no se envía nada. Detalles, límites y comprobaciones en el [protocolo de seguridad](security-protocol.md).
+- **Datos personales ocultos.** El modelo no recibe los identificadores de «Mis datos» ni los que un detector local (reglas y [Rampart](https://github.com/nationaldesignstudio/rampart), que funciona en el ordenador) encuentra en lo que escribe la persona y en las páginas: nombres, documentos, direcciones, teléfonos, correos y fechas de nacimiento, también de otras personas. Le llegan como marcadores (`{{documento_numero}}`, `{{nombre_1}}`). De los campos de un formulario solo ve lo que ha escrito él. La app sustituye el marcador por el valor al escribir en una web y en su propia interfaz. Ve los datos de contexto (municipio, provincia, nacionalidad, edad…) porque los necesita para investigar. Antes de cada petición, una última capa vuelve a buscar los valores guardados y cualquier DNI, NIE o IBAN válido. Si el detector falla, no se envía nada. Detalles, límites y comprobaciones en el [protocolo de seguridad](security-protocol.md).
 - **Nada vinculante sin permiso.** Los botones que envían, confirman, reservan, pagan o firman necesitan un código de un solo uso que solo da `confirmar` cuando la persona lo aprueba (con Touch ID si está activado). El código vale solo en la web donde se pidió y se gasta al pulsar. Intro y Espacio sobre un botón vinculante o en un formulario que se enviaría también lo necesitan. Si en el trámite ya se hizo un envío, la confirmación lo recuerda para no repetirlo.
 - **Webs sin lista cerrada.** El asistente busca, lee y abre cualquier web https sin pedir permiso, y escribe los datos de la persona donde lo necesite el trámite. Marca como «sin verificar» los resultados cuyo dominio no está en la lista de webs oficiales (`packages/government/src/domains.ts`); las instrucciones le piden basar requisitos, plazos y costes solo en webs de una administración. Nunca escribe en campos de contraseña.
 - **Lectura segura.** `leer_pagina` solo usa HTTPS, comprueba cada redirección y conecta con la IP que ha comprobado; rechaza también las IPs de la red local escritas en la dirección (no puede llegar a la red local).
 - **Fuentes a la vista.** En los pasos de cada búsqueda, la app muestra las webs que encontró el asistente, con su icono; se abren en el navegador del trámite. La lista sale de lo que leyó, no de lo que dice el modelo. Lo que no hay es una comprobación de que cada dato de la respuesta salga de esas webs (ver [Limitaciones](#limitaciones)).
 
-Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, guardada para no tener que volver a entrar (en Ajustes se puede pedir que se cierren al cerrar la app); las peticiones solo van a proveedores de IA que no entrenan con ellas (con retención cero opcional); el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones ni abre páginas de la red local (router, `localhost`…); los certificados se eligen del llavero de macOS; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y el `.app` desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
+Además: todos los datos de la app se guardan cifrados; cada trámite tiene su propia sesión de navegador, guardada para no tener que volver a entrar (en Ajustes se puede pedir que se cierren al cerrar la app); las peticiones solo van a proveedores de IA que no entrenan con ellas (con retención cero opcional); el navegador del trámite no concede permisos de cámara, ubicación ni notificaciones ni abre páginas de la red local (router, `localhost`…); los certificados se eligen de los instalados en el sistema; las ventanas nuevas se abren en el mismo navegador; los enlaces `afirma://` abren la AutoFirma instalada tras pedir permiso y el resto de esquemas se ignoran; y la app empaquetada desactiva los fusibles `runAsNode`, `NODE_OPTIONS` e inspector y valida la integridad del ASAR.
 
 ### Herramientas del agente
 
@@ -112,7 +115,7 @@ Las evaluaciones guiaron cambios concretos: una sede que se presentaba «de prue
 
 [SpainAssist](https://github.com/MeLlamoPablo/SpainAssist) (MIT) es el punto de partida. Esta app toma su idea (un agente local que investiga y hace trámites) y cambia el diseño donde las auditorías del código encontraron riesgos:
 
-| SpainAssist                                                                                | Reforma Digital para Mac                                                                                                                            |
+| SpainAssist                                                                                | Reforma Digital                                                                                                                                     |
 | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | La investigación devuelve texto sin fuentes.                                               | Cada respuesta muestra las webs consultadas y marca las que no están en la lista de webs oficiales.                                                 |
 | El modelo recibe los datos personales; los límites contra exfiltración están en el prompt. | El modelo ve marcadores, también para los datos que detecta un modelo local; contraseñas, confirmaciones y la red local se comprueban en el código. |
@@ -124,7 +127,7 @@ Las evaluaciones guiaron cambios concretos: una sede que se presentaba «de prue
 | Un proceso por agente, sidecar en Go y fusible `runAsNode` activo.                         | Un solo proceso, certificados del llavero y fusibles cerrados. `.app` de 327 MB.                                                                    |
 | Sin notificaciones ni límites de gasto.                                                    | Notificaciones, insignia del Dock, límite de pasos y de gasto, y el gasto en IA a la vista.                                                         |
 
-Lo que SpainAssist tiene y esta app no: firma propia sin AutoFirma, DNIe con el móvil, escaneo de documentos, mapas de oficinas, llamadas, bonos de crédito, Windows y Linux. Algunas se han dejado fuera a propósito: la firma, los certificados y el DNIe siguen en los controles oficiales y AutoFirma, como pide este repositorio.
+Lo que SpainAssist tiene y esta app no: firma propia sin AutoFirma, DNIe con el móvil, escaneo de documentos, mapas de oficinas, llamadas y bonos de crédito. Algunas se han dejado fuera a propósito: la firma, los certificados y el DNIe siguen en los controles oficiales y AutoFirma, como pide este repositorio.
 
 ## Limitaciones
 
@@ -132,8 +135,12 @@ Lo que SpainAssist tiene y esta app no: firma propia sin AutoFirma, DNIe con el 
 - **Las respuestas no se verifican.** Muestran las fuentes consultadas y las instrucciones piden no decir nada que no esté en ellas, pero nada lo comprueba: el modelo puede equivocarse en un requisito, un importe o un plazo. Antes, una tarjeta citaba y verificaba cada dato; se quitó para simplificar la app.
 - **Los iconos de las fuentes vienen de Google.** Al mostrarlas, Google recibe el origen de cada web (`https://sede.policia.gob.es`), sin ruta ni referer: sabe qué webs se han consultado, no la pregunta ni los datos.
 - **La protección de datos reduce el riesgo, no lo elimina.** El modelo sigue viendo el contexto y la información del trámite que no identifica (fechas de cita, importes, estados), y el detector puede pasar por alto un nombre suelto. Ver [lo que todavía puede llegar al modelo](security-protocol.md#lo-que-todavía-puede-llegar-al-modelo).
-- **Touch ID es una comprobación de la interfaz**, no protege criptográficamente la clave de datos.
+- **Touch ID es una comprobación de la interfaz**, no protege criptográficamente la clave de datos. Solo existe en Mac: en Windows y Linux, las confirmaciones se aprueban sin él.
 - **Sin firma de Apple ni notarización.** El `.app` está firmado ad hoc; en otro Mac, Gatekeeper lo bloqueará hasta abrirlo con clic derecho → Abrir.
+- **Sin firma en Windows.** SmartScreen avisa de que el instalador es de un editor desconocido («Más información» → «Ejecutar de todas formas»). Las notificaciones necesitan la app instalada, no la carpeta de `package`. ONNX Runtime necesita el Visual C++ Redistributable de Microsoft, que casi todos los equipos ya tienen.
+- **Linux necesita un llavero.** Sin GNOME Keyring o KWallet, la app no arranca: no tendría con qué proteger la clave de datos. En Ubuntu 24.04 o posterior, mejor el `.deb`, que instala el perfil de AppArmor que necesita Electron; el `.AppImage` puede no abrirse.
+- **Mac con Intel sin detector.** ONNX Runtime 1.30 ya no publica el binario para Intel, así que la app arranca pero no envía nada al asistente. Hace falta otro motor para el detector (por ejemplo, ONNX Runtime en WebAssembly).
+- **Sin probar en Windows ni Linux.** Se han empaquetado desde un Mac para comprobar la configuración (con el ONNX Runtime de macOS, así que no funcionan), pero la app no se ha abierto en esos sistemas.
 - **La clave del asistente va dentro de la app.** Ver [Puesta en marcha](#puesta-en-marcha).
 - **Webs que bloquean a los programas.** Algunas (interior.gob.es) rechazan las peticiones que no vienen de un navegador; la app las lee con una vista oculta de Chromium. En las evaluaciones, sin esa vista, el agente usa los extractos de la búsqueda.
 - **Interfaces comunitarias.** Aparecen en Ajustes como «Próximamente»: la app todavía no carga la extensión.

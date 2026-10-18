@@ -128,7 +128,9 @@ function Barra({ vista, ir }: { vista: Vista; ir: (v: Vista) => void }) {
         >
           <Icono nombre="mas" />
           Nuevo trámite
-          <kbd className="ml-auto font-sans text-sm font-normal text-muted-foreground">⌘N</kbd>
+          <kbd className="ml-auto font-sans text-sm font-normal text-muted-foreground">
+            {app?.plataforma === 'darwin' ? '⌘N' : 'Ctrl+N'}
+          </kbd>
         </button>
         <button
           type="button"

@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Reforma Digital para Mac: asistente de tr\u00e1mites con fuentes oficiales verificadas",
+  "description": "Reforma Digital: asistente de tr\u00e1mites con fuentes oficiales verificadas",
   "author": "Reforma Digital",
+  "homepage": "https://github.com/samuelcorsan/reforma-digital",
   "license": "MIT",
   "main": "out/main.js",
+  "desktopName": "reforma-digital.desktop",
   "scripts": {
     "build": "node --env-file-if-exists=../../.env scripts/build.mjs",
     "dev": "node ../../packages/agent/scripts/detector.mjs && node --env-file-if-exists=../../.env scripts/build.mjs && electron .",
-    "package": "node ../../packages/agent/scripts/detector.mjs && node --env-file-if-exists=../../.env scripts/build.mjs && electron-builder --mac --dir --config electron-builder.json",
+    "package": "node ../../packages/agent/scripts/detector.mjs && node --env-file-if-exists=../../.env scripts/build.mjs && electron-builder --dir --config electron-builder.json",
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
