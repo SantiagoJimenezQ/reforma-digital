@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
-import { Shimmer } from '@reforma-digital/design/chat';
 import { cn } from '@reforma-digital/design/lib/utils';
 import { useEstado } from './estado';
 import { Icono, Marca, type NombreIcono } from './icono';
@@ -66,7 +65,7 @@ const CAMPOS = [
 const LETRAS = PETICION.reduce((n, p) => n + p.t.length, 0);
 const CIFRAS = CAMPOS.reduce((n, c) => n + c.valor.length, 0);
 const POR_LETRA = 26;
-const POR_CIFRA = 60;
+const POR_CIFRA = 110;
 
 /** Cada fase y cuánto dura, en milisegundos. Al acabar vuelve a empezar. */
 const FASES = [
@@ -75,12 +74,13 @@ const FASES = [
   ['envia', 400],
   ['detecta', 1000],
   ['cifra', 1500],
-  ['llega', 1000],
-  ['rellena', CIFRAS * POR_CIFRA + 500],
-  ['pulsa', 450],
-  ['huella', 1600],
+  ['llega', 1700],
+  ['rellena', CIFRAS * POR_CIFRA + 1200],
+  ['pulsa', 600],
+  ['huella', 2000],
   ['aprobado', 700],
-  ['exito', 3600],
+  ['exito', 3000],
+  ['resumen', 7500],
   ['sale', 600],
 ] as const;
 type Fase = (typeof FASES)[number][0];
@@ -165,6 +165,37 @@ function Huella({ aprobado }: { aprobado: boolean }) {
   );
 }
 
+/** El final: qué ha pasado con tus datos en cada paso. */
+const resumen = (modeloNan: boolean): { icono: NombreIcono; titulo: string; texto: string }[] => [
+  {
+    icono: 'persona',
+    titulo: 'Escribiste tu nombre, tu DNI y tu IBAN',
+    texto: 'En tu Mac, donde se guardan cifrados con tu llavero.',
+  },
+  {
+    icono: 'escudo',
+    titulo: 'Se ocultaron antes de salir del Mac',
+    texto: 'Un modelo de privacidad, sin conexión, los cambió por marcadores.',
+  },
+  {
+    icono: 'buscar',
+    titulo: 'La IA preparó el 303 solo con marcadores',
+    texto: modeloNan
+      ? 'Modelos en la UE con retención cero: no guardan la petición.'
+      : 'Sabe que hay un dato, no cuál es.',
+  },
+  {
+    icono: 'huella',
+    titulo: 'Tú lo aprobaste con Touch ID',
+    texto: 'Sin tu permiso no se envía, ni se paga, nada.',
+  },
+  {
+    icono: 'web',
+    titulo: 'Tus datos reales, solo en la web de la Agencia Tributaria',
+    texto: 'La app los escribió allí desde tu Mac.',
+  },
+];
+
 /** Lo que pasa con una petición: se ocultan los datos, la IA pide lo que falta y tú lo apruebas. */
 function Viaje({ modeloNan }: { modeloNan: boolean }) {
   // Cada vuelta monta la escena de nuevo, desde el principio.
@@ -174,7 +205,7 @@ function Viaje({ modeloNan }: { modeloNan: boolean }) {
 
 function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => void }) {
   // Sin movimiento, se queda en el momento que mejor lo explica.
-  const [fase, setFase] = useState<Fase>(() => (quieto() ? 'exito' : 'aparece'));
+  const [fase, setFase] = useState<Fase>(() => (quieto() ? 'resumen' : 'aparece'));
   const [letras, setLetras] = useState(() => (quieto() ? LETRAS : 0));
   const [cifras, setCifras] = useState(() => (quieto() ? CIFRAS : 0));
   const p = orden(fase);
@@ -237,7 +268,14 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
     >
       {/* La tarjeta del asistente: pide lo que falta, se aprueba con Touch ID y confirma. */}
       {!grande && (
-        <div className="absolute inset-x-0 top-0 flex h-[328px] animate-in flex-col rounded-[24px] bg-background p-6 delay-300 duration-700 fill-mode-both fade-in slide-in-from-bottom-6">
+        <div
+          // Entra cuando el compositor ya ha bajado.
+          style={{ animationDelay: '700ms' }}
+          className={cn(
+            'absolute inset-x-0 top-0 flex animate-in flex-col rounded-[24px] bg-background p-6 transition-[height] duration-700 fill-mode-both fade-in slide-in-from-bottom-6',
+            fase === 'resumen' ? 'h-[400px]' : 'h-[328px]',
+          )}
+        >
           {p < orden('huella') && (
             <>
               <div className="flex items-start gap-3">
@@ -295,7 +333,7 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
               </span>
             </div>
           )}
-          {p >= orden('exito') && (
+          {fase === 'exito' && (
             <div className="flex flex-1 animate-in flex-col items-center justify-center text-center duration-500 fade-in slide-in-from-bottom-3">
               <span className="grid size-14 place-items-center rounded-full bg-success-bg text-success-fg">
                 <Icono nombre="check" size={28} />
@@ -308,12 +346,38 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
                 <br />
                 Se carga en tu cuenta ···· 1332 el 20 de octubre
               </span>
-              <span className="mt-4 flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-sm text-[var(--text-secondary)]">
-                <Icono nombre="papelera" size={14} />
-                {modeloNan
-                  ? 'La IA no ha guardado nada: retención cero'
-                  : 'La IA solo ha visto marcadores'}
+            </div>
+          )}
+          {fase === 'resumen' && (
+            <div className="my-auto animate-in duration-500 fade-in">
+              <span className="flex items-baseline gap-3">
+                <span className="text-[40px] leading-none font-semibold text-brand tabular-nums">
+                  0
+                </span>
+                <span className="text-[17px] font-medium">datos tuyos han llegado a la IA</span>
               </span>
+              <ol className="m-0 mt-5 p-0">
+                {resumen(modeloNan).map((r, i, todos) => (
+                  <li
+                    key={r.titulo}
+                    style={{ animationDelay: `${300 + i * 450}ms` }}
+                    className="relative flex animate-in list-none gap-3 pb-3.5 duration-500 fill-mode-both fade-in slide-in-from-left-2"
+                  >
+                    {i < todos.length - 1 && (
+                      <span className="absolute top-7 bottom-0 left-3 w-px bg-border" />
+                    )}
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand/[0.08] text-brand">
+                      <Icono nombre={r.icono} size={14} />
+                    </span>
+                    <span className="pt-0.5">
+                      <span className="block text-[15px] leading-snug font-medium">{r.titulo}</span>
+                      <span className="block text-sm leading-snug text-[var(--text-secondary)]">
+                        {r.texto}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
             </div>
           )}
         </div>
@@ -323,6 +387,7 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
         className={cn(
           'absolute inset-x-0 mx-auto animate-in overflow-hidden rounded-[28px] bg-background duration-700 fade-in slide-in-from-bottom-4 [transition:top_700ms_var(--ease-brand),width_700ms_var(--ease-brand),height_700ms_var(--ease-brand)]',
           grande ? 'top-[124px] h-[152px] w-full' : 'top-[352px] h-12 w-[440px]',
+          fase === 'resumen' && 'opacity-0 [transition:opacity_300ms]',
         )}
       >
         {p <= orden('llega') && (
@@ -337,7 +402,6 @@ function Escena({ modeloNan, alAcabar }: { modeloNan: boolean; alAcabar: () => v
               {fase === 'escribe' && cursor}
             </div>
             <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 px-5 pb-2.5 text-sm text-[var(--text-secondary)]">
-              {fase === 'detecta' && <Shimmer>Buscando tus datos en tu Mac, sin conexión…</Shimmer>}
               {fase === 'cifra' && (
                 <span className="flex animate-in items-center gap-2 duration-300 fade-in">
                   <Icono nombre="escudo" size={16} className="text-brand" />3 datos ocultos antes de
