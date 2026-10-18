@@ -53,7 +53,7 @@ flowchart LR
 | [`packages/evals/src/agent`](../../packages/evals/src/agent)                     | Evaluaciones del agente: sede ficticia, navegador Playwright, persona simulada, escenarios y métricas.                                                                                                                        |
 | [`apps/desktop`](.)                                                              | La app: ventana, almacén cifrado, navegador por trámite, Touch ID, notificaciones, certificados del sistema, AutoFirma e interfaz.                                                                                            |
 
-El bucle del agente hace un paso del modelo cada vez (Vercel AI SDK 7): guarda el progreso tras cada paso, comprueba el límite de pasos y de gasto, corta acciones repetidas y compacta el contexto (solo la última página del navegador va completa). Las acciones sobre la página se ejecutan de una en una aunque el modelo pida varias a la vez. Con modelos de Anthropic marca la caché del prompt (en las evaluaciones redujo el coste de Claude Haiku de 0,39 $ a 0,07 $ en ocho escenarios).
+El bucle del agente hace un paso del modelo cada vez (Vercel AI SDK 7): guarda el progreso tras cada paso, comprueba el límite de pasos y de gasto, corta acciones repetidas y compacta el contexto (solo la última página del navegador va completa). Las acciones sobre la página se ejecutan de una en una aunque el modelo pida varias a la vez.
 
 Archivos de la app:
 
@@ -98,13 +98,12 @@ Además: todos los datos de la app se guardan cifrados; cada trámite tiene su p
 ## Evaluaciones
 
 ```sh
-AI_GATEWAY_API_KEY=… pnpm eval:agent --suite ejecucion      # escenarios en la sede ficticia
-AI_GATEWAY_API_KEY=… pnpm eval:agent --suite investigacion  # casos del dataset del buscador
-pnpm eval:agent --suite todo --modelo openai/gpt-6-luna --comparar artifacts/runs/<informe>.json
-NAN_API_KEY=… EXA_API_KEY=… pnpm eval:agent --proveedor nan --modelo deepseek-v4-flash --juez deepseek-v4-flash
+pnpm eval:agent --suite ejecucion      # escenarios en la sede ficticia
+pnpm eval:agent --suite investigacion  # casos del dataset del buscador
+pnpm eval:agent --suite todo --comparar artifacts/runs/<informe>.json
 ```
 
-Usan modelos reales (con coste) y guardan el informe y las transcripciones en `artifacts/runs/`. Las transcripciones contienen marcadores, no datos personales.
+Necesitan `NAN_API_KEY` y `EXA_API_KEY`. El agente usa `deepseek-v4-flash`, como el servidor de Reforma Digital, y el juez `glm5.3-flash`, de otra familia para que no se califique a sí mismo (`--modelo` y `--juez` los cambian). Usan modelos reales y guardan el informe y las transcripciones en `artifacts/runs/`. Las transcripciones contienen marcadores, no datos personales.
 
 Sin coste, en `pnpm test:e2e`: `tests/e2e/agente-guionado.spec.ts` recorre el arnés con un modelo guionado (cada inyección llega o se filtra, una exfiltración codificada se detecta, una cita limpia da cero, los diálogos se responden) y `tests/e2e/escritorio.spec.ts` abre la app compilada con un proveedor simulado, escribe un DNI en el chat y comprueba que no le llega y que el trámite queda cifrado en disco. Este último necesita Electron y el modelo del detector; en CI corre en macOS.
 

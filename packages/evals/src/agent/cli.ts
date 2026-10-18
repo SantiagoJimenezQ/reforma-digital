@@ -9,29 +9,21 @@ const { values: v } = parseArgs({
   strict: true,
   options: {
     suite: { type: 'string', default: 'ejecucion' },
-    modelo: { type: 'string', default: 'openai/gpt-6-luna' },
-    proveedor: {
-      type: 'string',
-      default: process.env.AI_GATEWAY_API_KEY ? 'gateway' : 'nan',
-    },
+    modelo: { type: 'string', default: 'deepseek-v4-flash' },
     razonamiento: { type: 'string' },
     solo: { type: 'string', default: '' },
     concurrencia: { type: 'string', default: '2' },
-    juez: { type: 'string', default: 'openai/gpt-6-luna' },
+    // Otro modelo que el del agente, para que no se califique a sí mismo.
+    juez: { type: 'string', default: 'glm5.3-flash' },
     comparar: { type: 'string' },
   },
 });
-const tipo = z.enum(['gateway', 'nan']).parse(v.proveedor);
-const variable = tipo === 'gateway' ? 'AI_GATEWAY_API_KEY' : 'NAN_API_KEY';
-const clave = process.env[variable];
-if (!clave) throw new Error(`Falta ${variable}: las evaluaciones del agente usan un modelo real.`);
-let proveedor: ConfigProveedor = { tipo: 'gateway', clave, modelo: v.modelo };
-if (tipo === 'nan') {
-  // Con NaN Builders, las búsquedas las hace Exa.
-  const claveExa = process.env.EXA_API_KEY;
-  if (!claveExa) throw new Error('Falta EXA_API_KEY: con NaN Builders busca Exa.');
-  proveedor = { tipo, clave, claveExa, modelo: v.modelo };
-}
+const clave = process.env.NAN_API_KEY;
+if (!clave) throw new Error('Falta NAN_API_KEY: las evaluaciones del agente usan un modelo real.');
+// Con NaN Builders, las búsquedas las hace Exa.
+const claveExa = process.env.EXA_API_KEY;
+if (!claveExa) throw new Error('Falta EXA_API_KEY: con NaN Builders busca Exa.');
+const proveedor: ConfigProveedor = { tipo: 'nan', clave, claveExa, modelo: v.modelo };
 const suite = z.enum(['ejecucion', 'investigacion', 'todo']).parse(v.suite);
 const cfg: Config = {
   proveedor,

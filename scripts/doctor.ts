@@ -8,7 +8,7 @@ try {
   });
   if (!result.evidence.length) throw new Error('Web Search no devolvió fragmentos oficiales');
   console.log(
-    `OpenRouter Web Search: ${result.evidence.length} fuentes oficiales; ${result.config.generationModel}; reasoning=${result.config.reasoningEffort}`,
+    `Exa: ${result.evidence.length} fuentes oficiales; ${result.config.generationModel}; reasoning=${result.config.reasoningEffort}`,
   );
   if (process.env.DATABASE_URL) {
     await connection()`SELECT 1`;

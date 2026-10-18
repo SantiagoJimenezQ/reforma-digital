@@ -104,8 +104,8 @@ export type VerifiedClaim = {
 export const configSchema = z.object({
   finalEvidenceCount: z.number().int().min(1).max(12).default(8),
   reasoningEffort: z.enum(['none', 'minimal', 'low', 'medium', 'high', 'xhigh']).default('high'),
-  generationModel: z.string().default('openai/gpt-6-luna'),
-  judgeModel: z.string().default('openai/gpt-6-luna'),
+  generationModel: z.string().default('deepseek-v4-flash'),
+  judgeModel: z.string().default('glm5.3-flash'),
   promptVersion: z.enum(['evidence-v1', 'evidence-v2']).default('evidence-v2'),
 });
 export type SearchConfig = z.infer<typeof configSchema>;

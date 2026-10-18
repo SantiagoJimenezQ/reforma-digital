@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defaultConfig } from '../packages/core/src/index';
-import { languageModel, streamElements } from '../packages/ai/src/models';
+import { generateElements, structured } from '../packages/ai/src/models';
 import { segmentSchema } from '../packages/ai/src/stream-answer';
 import { recordUsage, usageContext, usageSummary } from '../packages/ai/src/usage';
 type JsonSchema = {
@@ -27,15 +27,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
-describe('OpenRouter transport', () => {
-  it('sends GPT-6 Luna with high reasoning to OpenRouter', async () => {
-    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
+const segment = { kind: 'step', text: 'Pide cita.', figure: null, citations: [] };
+describe('NaN Builders transport', () => {
+  it('sends the default model with high reasoning and a strict JSON schema to NaN', async () => {
+    vi.stubEnv('NAN_API_KEY', 'test-only-key');
     let request: Record<string, unknown> = {};
     let url = '';
+    let auth = '';
     vi.stubGlobal(
       'fetch',
       vi.fn(async (input, init) => {
         url = String(input);
+        auth = new Headers(init.headers).get('authorization') ?? '';
         request = JSON.parse(init.body);
         return Response.json({
           id: 'test',
@@ -44,31 +47,28 @@ describe('OpenRouter transport', () => {
           choices: [
             {
               index: 0,
-              message: { role: 'assistant', content: 'ok' },
+              message: { role: 'assistant', content: JSON.stringify(segment) },
               finish_reason: 'stop',
             },
           ],
-          usage: {
-            prompt_tokens: 2,
-            completion_tokens: 1,
-            total_tokens: 3,
-            cost: 0.0001,
-          },
+          usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3 },
         });
       }),
     );
-    await languageModel(defaultConfig.generationModel).doGenerate({
-      prompt: [{ role: 'user', content: [{ type: 'text', text: 'test' }] }],
-      maxOutputTokens: 20,
-    });
-    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
-    expect(request.model).toBe('openai/gpt-6-luna');
-    expect(request.reasoning).toEqual({ effort: 'high', exclude: true });
-    expect(request.provider).toEqual({ require_parameters: true });
+    const r = await structured(segmentSchema, 'test', {}, defaultConfig.generationModel);
+    expect(r.object).toEqual(segment);
+    expect(url).toBe('https://api.nan.builders/v1/chat/completions');
+    expect(auth).toBe('Bearer test-only-key');
+    expect(request.model).toBe('deepseek-v4-flash');
+    expect(request.reasoning_effort).toBe('high');
+    expect(request.response_format).toMatchObject({ type: 'json_schema' });
   });
-  it('sends an answer block schema that OpenAI strict structured outputs accept', async () => {
-    vi.stubEnv('OPENROUTER_API_KEY', 'test-only-key');
-    let request: { response_format?: { json_schema?: { schema?: JsonSchema } } } = {};
+  it('asks for answer blocks without streaming and with a schema strict outputs accept', async () => {
+    vi.stubEnv('NAN_API_KEY', 'test-only-key');
+    let request: {
+      stream?: boolean;
+      response_format?: { json_schema?: { schema?: JsonSchema } };
+    } = {};
     vi.stubGlobal(
       'fetch',
       vi.fn(async (_input, init) => {
@@ -76,7 +76,7 @@ describe('OpenRouter transport', () => {
         return Response.json({ error: { message: 'stop', code: 400 } }, { status: 400 });
       }),
     );
-    await streamElements(
+    await generateElements(
       segmentSchema,
       'test',
       {},
@@ -85,23 +85,20 @@ describe('OpenRouter transport', () => {
         for await (const _ of items);
       },
     ).catch(() => {});
+    // NaN rejects a JSON schema on streamed requests.
+    expect(request.stream).toBeFalsy();
     const schema = request.response_format?.json_schema?.schema;
     expect(schema).toBeDefined();
     expect(looseObjects(schema!)).toEqual([]);
   });
 });
-describe('OpenRouter accounting', () => {
-  it('records the real OpenRouter cost and never turns unknown cost into zero', () => {
+describe('usage accounting', () => {
+  it('adds known costs and never turns an unknown cost into zero', () => {
     usageContext.run([], () => {
-      recordUsage(
-        'openai/gpt-6-luna',
-        100,
-        50,
-        { openrouter: { usage: { cost: 0.003 } } },
-        performance.now(),
-      );
-      expect(usageSummary()).toMatchObject({ tokens: 150, costUsd: 0.003 });
-      recordUsage('openai/gpt-6-luna', 2, 1, {}, performance.now());
+      recordUsage('exa', 0, 0, 0.003, performance.now());
+      recordUsage('deepseek-v4-flash', 100, 50, 0.001, performance.now());
+      expect(usageSummary()).toMatchObject({ tokens: 150, costUsd: 0.004 });
+      recordUsage('deepseek-v4-flash', 2, 1, null, performance.now());
       expect(usageSummary().costUsd).toBeNull();
     });
   });

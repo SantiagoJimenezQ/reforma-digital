@@ -1,4 +1,3 @@
-import { generateText } from 'ai';
 import { z } from 'zod';
 import { approvedSource, canonicalize } from '@reforma-digital/government';
 import { isOfficial } from '@reforma-digital/government/domains';
@@ -61,8 +60,8 @@ export function limpiarExtracto(texto: string): string {
 
 /**
  * Busca en toda la web, o solo en `dominios` si se dan: las webs de las administraciones son
- * demasiadas para una lista. La búsqueda la ejecuta Parallel en Vercel AI Gateway, a través de un
- * modelo pequeño que solo hace una llamada, o Exa directamente.
+ * demasiadas para una lista. La búsqueda la ejecuta Exa, directamente o en el servidor de Reforma
+ * Digital.
  */
 export async function buscarEnLaWeb(
   consulta: string,
@@ -77,44 +76,7 @@ export async function buscarEnLaWeb(
       'La búsqueda no está disponible con el proveedor elegido en Ajustes. Lee con leer_pagina la web del organismo si la conoces.',
     );
   if (b.tipo === 'exa') return buscarConExa(consulta, dominios, b.clave, max, signal);
-  if (b.tipo === 'reforma') return buscarEnElServidor(consulta, dominios, b, signal);
-  const r = await generateText({
-    model: b.rapido,
-    reasoning: 'none',
-    tools: {
-      buscar: b.gateway.tools.parallelSearch({
-        maxResults: max,
-        mode: 'agentic',
-        ...(dominios.length ? { sourcePolicy: { includeDomains: dominios } } : {}),
-        excerpts: { maxCharsPerResult: 2500 },
-      }),
-    },
-    toolChoice: { type: 'tool', toolName: 'buscar' },
-    providerOptions: { openai: { maxToolCalls: 1 } },
-    instructions:
-      'Llama una sola vez a la herramienta de búsqueda con la consulta tal cual y no escribas nada más.',
-    prompt: consulta,
-    maxOutputTokens: 300,
-    ...(signal ? { abortSignal: signal } : {}),
-  });
-  const resultados: Resultado[] = [];
-  for (const tr of r.toolResults) {
-    const out: unknown = tr.output;
-    if (!out || typeof out !== 'object' || !('results' in out) || !Array.isArray(out.results))
-      continue;
-    for (const x of out.results as { url?: unknown; title?: unknown; excerpts?: unknown }[]) {
-      if (typeof x.url !== 'string') continue;
-      const extractos = Array.isArray(x.excerpts)
-        ? x.excerpts.filter((e) => typeof e === 'string')
-        : [];
-      resultados.push({
-        url: x.url,
-        titulo: typeof x.title === 'string' ? x.title : '',
-        extracto: limpiarExtracto(extractos.join('\n\n')),
-      });
-    }
-  }
-  return { resultados, costeUsd: coste(r.providerMetadata) };
+  return buscarEnElServidor(consulta, dominios, b, signal);
 }
 
 const respuestaBoe = z.object({
@@ -246,11 +208,4 @@ export async function buscarConExa(
     })),
     costeUsd: r.costDollars?.total ?? null,
   };
-}
-
-export function coste(metadata: unknown): number | null {
-  if (!metadata || typeof metadata !== 'object') return null;
-  const raw = (metadata as { gateway?: { cost?: unknown } }).gateway?.cost;
-  const n = typeof raw === 'string' || typeof raw === 'number' ? Number(raw) : NaN;
-  return Number.isFinite(n) ? n : null;
 }

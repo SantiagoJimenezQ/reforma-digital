@@ -4,11 +4,11 @@ El pipeline de búsqueda (`packages/ai`) busca información de trámites españo
 
 ## Puesta en marcha
 
-Requiere Node 22+, pnpm 11 y, para el modo real, `OPENROUTER_API_KEY`.
+Requiere Node 22+, pnpm 11 y, para el modo real, `NAN_API_KEY` y `EXA_API_KEY`.
 
 ```sh
 pnpm install --frozen-lockfile
-cp .env.example .env  # Configura OPENROUTER_API_KEY; el .env no se sube al repositorio.
+cp .env.example .env  # Configura NAN_API_KEY y EXA_API_KEY; el .env no se sube al repositorio.
 pnpm eval --mode preview --retrieval-only --limit 5
 ```
 
@@ -25,11 +25,11 @@ Las instalaciones existentes aplican una migración que retira las tablas del an
 
 ## Modelos y fuentes
 
-Toda la IA utiliza OpenRouter mediante Vercel AI SDK. El modelo por defecto es `openai/gpt-6-luna`, con razonamiento `high`, para búsqueda, generación, verificación de citas y evaluadores.
+Los modelos son de [NaN Builders](https://nan.builders), con Vercel AI SDK, y la búsqueda web es de Exa. `deepseek-v4-flash`, con razonamiento `high`, clasifica, genera y verifica las citas; los evaluadores usan `glm5.3-flash`, de otra familia, para que el modelo no se califique a sí mismo. NaN solo impone el esquema JSON en peticiones sin streaming, así que la respuesta llega entera y después se verifica bloque a bloque.
 
 1. Resolver referencias a preguntas anteriores con el modelo y clasificar la comunidad o ciudad autónoma del trámite mediante una salida estructurada. El código se valida contra las 19 zonas del mapa; `null` significa ámbito estatal, ubicación insuficiente o varias comunidades sin un destino claro. La comunidad identificada prevalece sobre las menciones del texto; un municipio reconocido solo se conserva si pertenece a ella. Comprender el trámite y el año solicitado y pedir contexto cuando sea imprescindible.
-2. Buscar mediante `openrouter:web_search` con el motor Parallel. La búsqueda se limita a los dominios oficiales registrados y al ámbito compatible.
-3. Convertir los fragmentos originales de las citas web en hasta ocho evidencias. Descartar dominios no autorizados, duplicados, ámbitos incompatibles y resultados sin fragmento original. No usar el resumen generado como evidencia.
+2. Buscar en Exa, limitado a los dominios oficiales registrados y al ámbito compatible.
+3. Convertir los fragmentos de las páginas que devuelve Exa en hasta ocho evidencias. Descartar dominios no autorizados, duplicados, ámbitos incompatibles y resultados sin fragmento.
 4. Generar afirmaciones estructuradas con referencias a esas evidencias. El servidor resuelve los enlaces y el texto citado.
 5. Comprobar formato, dominio, jurisdicción y respaldo de cada afirmación antes de publicarla. Si falta evidencia, abstenerse o indicar que la respuesta es parcial.
 
@@ -39,11 +39,12 @@ La clasificación territorial comparte la llamada que resuelve el contexto y tam
 
 ## Credenciales
 
-- `OPENROUTER_API_KEY`: búsqueda web y llamadas de modelos.
+- `NAN_API_KEY`: llamadas de modelos.
+- `EXA_API_KEY`: búsqueda web.
 - `DATABASE_URL`: almacenamiento opcional en PostgreSQL.
 - `APP_ORIGIN`: origen público de la web (URLs canónicas y sitemap).
 
-Los costes proceden de los metadatos reales de OpenRouter; un coste desconocido se muestra como N/A.
+NaN no cobra por token: el coste de los modelos es desconocido y se muestra como N/A. El de Exa sale de su respuesta.
 
 ## Evaluación
 
@@ -55,7 +56,7 @@ pnpm eval --mode live --dataset regressions --judges
 pnpm eval --mode live --dataset golden --judges --save-baseline
 ```
 
-Las evaluaciones reales requieren OpenRouter, sin depender de un índice ni de PostgreSQL. Los informes se guardan en `artifacts/runs/` y, si se configura la base, también en PostgreSQL. Incluyen modelo, configuración, versión y hash del dataset, código, fuentes autorizadas, latencias, tokens y costes. Los resultados de búsqueda web pueden cambiar entre ejecuciones.
+Las evaluaciones reales requieren NaN Builders y Exa, sin depender de un índice ni de PostgreSQL. Los informes se guardan en `artifacts/runs/` y, si se configura la base, también en PostgreSQL. Incluyen modelo, configuración, versión y hash del dataset, código, fuentes autorizadas, latencias, tokens y costes. Los resultados de búsqueda web pueden cambiar entre ejecuciones.
 
 `--retrieval-only` ejecuta la búsqueda sin generar respuestas ni llamar a los evaluadores de respuestas. Las métricas de documentos requieren referencias revisadas que correspondan a las fuentes web actuales; los datasets pendientes no certifican calidad. El baseline del sistema anterior se ha retirado y debe generarse y revisarse uno nuevo antes de habilitar la puerta de calidad real.
 
