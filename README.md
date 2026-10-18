@@ -81,14 +81,14 @@ CAPTCHA, audio, contraseñas, certificados, firmas y archivos se mantienen como 
 
 ## En este repositorio
 
-| Directorio                           | Qué contiene                                                                            |
-| ------------------------------------ | --------------------------------------------------------------------------------------- |
-| [`apps/web`](apps/web)               | Web pública, El Congreso y su API con Next.js.                                          |
-| [`apps/extension`](apps/extension)   | Extensión de Chrome Manifest V3 y popup.                                                |
-| [`apps/desktop`](apps/desktop)       | App de escritorio con el asistente de trámites. Ver [su README](apps/desktop/README.md).    |
-| [`apps/playground`](apps/playground) | Laboratorio local para trabajar con datos ficticios.                                    |
-| [`sites`](sites)                     | Adaptaciones por portal, con configuración, pantallas, fixtures y pruebas.              |
-| [`packages`](packages)               | Conexiones al DOM, componentes React, diseño, registro, runtime y pipeline de búsqueda. |
+| Directorio                           | Qué contiene                                                                             |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| [`apps/web`](apps/web)               | Web pública, El Congreso y su API con Next.js.                                           |
+| [`apps/extension`](apps/extension)   | Extensión de Chrome Manifest V3 y popup.                                                 |
+| [`apps/desktop`](apps/desktop)       | App de escritorio con el asistente de trámites. Ver [su README](apps/desktop/README.md). |
+| [`apps/playground`](apps/playground) | Laboratorio local para trabajar con datos ficticios.                                     |
+| [`sites`](sites)                     | Adaptaciones por portal, con configuración, pantallas, fixtures y pruebas.               |
+| [`packages`](packages)               | Conexiones al DOM, componentes React, diseño, registro, runtime y pipeline de búsqueda.  |
 
 ```mermaid
 flowchart LR
