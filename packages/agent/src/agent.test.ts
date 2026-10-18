@@ -881,6 +881,28 @@ describe('formularios', () => {
     }
   });
 
+  it('lo que la persona escribe mientras trabaja entra antes del siguiente paso', async () => {
+    // Llega mientras el asistente mira Mis datos.
+    let pasos = 0;
+    const { model, prompts } = modeloGuionado([
+      () => ({ llamadas: [{ herramienta: 'mis_datos', entrada: {} }] }),
+      () => ({ texto: 'Vale, en Plasencia.' }),
+    ]);
+    const r = await ejecutarTurno({
+      proveedor: () => proveedorDe(model),
+      anfitrion: anfitrion(navegadorFalso('https://sede.policia.gob.es').nav),
+      estado: estadoInicial('Cita'),
+      texto: 'Pide mi cita',
+      entrantes: () => (pasos++ === 1 ? ['Mejor en Plasencia'] : []),
+      evento: () => {},
+      signal: new AbortController().signal,
+      detector: detectorDePrueba,
+    });
+    expect(r.fin).toBe('respondido');
+    expect(prompts[1]!.at(-1)).toMatchObject({ role: 'user' });
+    expect(JSON.stringify(prompts[1]!.at(-1))).toContain('Mejor en Plasencia');
+  });
+
   it('si se corta mientras espera a la persona, un turno sin texto vuelve a hacer la misma pregunta', async () => {
     const { nav } = navegadorFalso('https://sede.policia.gob.es');
     const control = new AbortController();

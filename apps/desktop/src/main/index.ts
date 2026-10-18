@@ -138,6 +138,7 @@ function estadoApp(): EstadoApp {
     campos: camposPerfil,
     perfil: perfilVista(),
     touchId: touchId(),
+    desarrollo: !app.isPackaged,
     recordatorios: recordatorios(),
   };
 }
@@ -199,6 +200,9 @@ const metodos: { [K in Exclude<keyof ApiRd, 'on'>]: (...args: unknown[]) => Retu
       ),
     verTramite: async (t) => tramites.vista(id.parse(t)),
     enviar: async (t, m) => tramites.enviar(id.parse(t), texto.parse(m)),
+    quitarDeCola: async (t, m) => tramites.quitarDeCola(id.parse(t), id.parse(m)),
+    redirigir: async (t, m) => tramites.redirigir(id.parse(t), id.parse(m)),
+    volver: async (t, m) => tramites.volver(id.parse(t), id.parse(m)),
     detener: async (t) => tramites.detener(id.parse(t)),
     borrarTramite: async (t) => {
       await tramites.borrar(id.parse(t));

@@ -279,6 +279,11 @@ export type OpcionesTurno = {
    * para que en el turno siguiente siga viendo sus propios valores en los campos.
    */
   escritos?: Map<string, string>;
+  /**
+   * Lo que la persona escribe mientras trabaja para redirigirlo: entra antes del siguiente paso.
+   * Si responde sin otro paso, lo que quede lo manda quien lleva el turno.
+   */
+  entrantes?: () => string[];
   /** Se llama tras cada paso para guardar el progreso. */
   guardar?: (estado: EstadoAgente) => void | Promise<void>;
   signal: AbortSignal;
@@ -389,6 +394,11 @@ export async function ejecutarTurno(o: OpcionesTurno): Promise<ResultadoTurno> {
   try {
     for (let paso = 0; ; paso++) {
       await atenderPendientes();
+      for (const t of o.entrantes?.() ?? []) {
+        const mensaje = await proteger(ctx, t, 'persona');
+        o.evento({ tipo: 'protegidos', cantidad: Privacidad.marcadores(mensaje).length });
+        estado.mensajes.push({ role: 'user', content: mensaje });
+      }
       if (paso >= limites.pasos) return { estado, fin: 'limite_pasos' };
       // Si el proveedor no informa del coste, se para por tokens (unos 2 millones en un turno).
       const tokens = estado.uso.entrada + estado.uso.salida - tokensIniciales;

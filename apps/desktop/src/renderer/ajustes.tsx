@@ -43,7 +43,6 @@ function Modelo() {
             Con ZDR (retención cero de datos): el proveedor no guarda tus peticiones ni entrena con
             ellas.
           </li>
-          <li>Las búsquedas en la web las hace Exa, sin tus datos personales.</li>
         </ul>
       </div>
     );
@@ -190,10 +189,12 @@ export function Ajustes() {
               <RetencionCero />
             </div>
           )}
-          <p className="mt-4 mb-0 text-sm text-muted-foreground">
-            Gasto en IA de todos tus trámites:{' '}
-            {dolares(app.tramites.reduce((n, t) => n + t.costeUsd, 0))}
-          </p>
+          {app.desarrollo && (
+            <p className="mt-4 mb-0 text-sm text-muted-foreground">
+              Gasto en IA de todos tus trámites:{' '}
+              {dolares(app.tramites.reduce((n, t) => n + t.costeUsd, 0))}
+            </p>
+          )}
         </section>
         <section className="mb-3 rounded-[24px] bg-background p-6">
           <h2 className="mt-0 mb-3 text-[15px] font-medium">Privacidad</h2>

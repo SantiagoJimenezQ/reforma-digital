@@ -250,14 +250,18 @@ function Conversacion({
   vista,
   verNavegador,
   abrirFuente,
+  alVolver,
 }: {
   vista: TramiteVista;
   verNavegador: () => void;
   abrirFuente: (url: string) => void;
+  /** Tras volver a antes de un mensaje, su texto vuelve al compositor. */
+  alVolver: (texto: string) => void;
 }) {
   const fin = useRef<HTMLDivElement>(null);
   const caja = useRef<HTMLDivElement>(null);
   const trabajando = vista.ejecucion === 'trabajando';
+  const primero = vista.conversacion.find((i) => i.tipo === 'usuario');
   const bloques = agrupar(vista.conversacion);
   const ultimo = vista.conversacion.at(-1);
   // Mientras piensa sin haber hecho nada todavía: el mismo bloque que mostrará sus acciones.
@@ -297,20 +301,55 @@ function Conversacion({
               />
             );
           const i = b.item;
+          // Volver a antes de un mensaje: no en el primero, que dejaría el trámite vacío.
+          const volver =
+            i.tipo === 'usuario' &&
+            i !== primero &&
+            i.mensajes !== undefined &&
+            vista.ejecucion === 'inactivo';
           if (i.tipo === 'usuario')
             return (
-              <div key={i.id} className="my-6">
+              <div key={i.id} className="group my-6">
                 <p className="m-0 rounded-[20px] bg-background px-5 py-3.5 text-base leading-relaxed whitespace-pre-wrap">
                   {i.texto}
                 </p>
-                {i.protegidos > 0 && (
-                  <p
-                    className="mt-2 mb-0 ml-1 flex items-center gap-1.5 text-sm text-muted-foreground"
-                    title="Se enviaron al asistente como marcadores: no ha visto los valores."
-                  >
-                    <Icono nombre="candado" size={16} />
-                    {i.protegidos === 1 ? '1 dato protegido' : `${i.protegidos} datos protegidos`}
-                  </p>
+                {(i.redirigido || i.protegidos > 0 || volver) && (
+                  <div className="mt-1.5 ml-1 flex min-h-7 items-center gap-4 text-sm text-muted-foreground">
+                    {i.redirigido && (
+                      <span className="flex items-center gap-1.5">
+                        <Icono nombre="redirigir" size={16} />
+                        Lo mandaste para redirigir al asistente
+                      </span>
+                    )}
+                    {i.protegidos > 0 && (
+                      <span
+                        className="flex items-center gap-1.5"
+                        title="Se enviaron al asistente como marcadores: no ha visto los valores."
+                      >
+                        <Icono nombre="candado" size={16} />
+                        {i.protegidos === 1
+                          ? '1 dato protegido'
+                          : `${i.protegidos} datos protegidos`}
+                      </span>
+                    )}
+                    {volver && (
+                      <button
+                        type="button"
+                        className="ml-auto flex items-center gap-1.5 rounded-lg px-2 py-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-foreground/[0.06] hover:text-foreground"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              '¿Volver a antes de este mensaje? Se borran él y todo lo que vino después. Las webs que abrió el asistente no se deshacen.',
+                            )
+                          )
+                            void window.rd.volver(vista.id, i.id).then(() => alVolver(i.texto));
+                        }}
+                      >
+                        <Icono nombre="deshacer" size={16} />
+                        Volver a antes de este mensaje
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );
@@ -362,6 +401,46 @@ function Conversacion({
         <div ref={fin} />
       </div>
     </div>
+  );
+}
+
+/**
+ * Lo que la persona ha escrito mientras el asistente trabaja: sale cuando termine, o ya con
+ * «Redirigir», que lo mete en lo que está haciendo.
+ */
+function Cola({ vista }: { vista: TramiteVista }) {
+  if (!vista.cola.length) return null;
+  return (
+    <ul
+      aria-label="Para cuando termine"
+      className="m-0 mx-4 -mb-4 list-none rounded-t-[22px] border border-b-0 border-border bg-background/60 p-0 px-3 pt-1.5 pb-5"
+    >
+      {vista.cola.map((m) => (
+        <li key={m.id} className="flex items-center gap-3 py-1 pl-1 text-[15px]">
+          <Icono nombre="reloj" size={16} className="shrink-0 text-muted-foreground" />
+          <span className="min-w-0 flex-1 truncate">{m.texto}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            title="Mandarlo ya: el asistente lo tiene en cuenta en su siguiente paso"
+            onClick={() => void window.rd.redirigir(vista.id, m.id)}
+          >
+            <Icono nombre="redirigir" size={16} />
+            Redirigir
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground"
+            aria-label="Quitar de la cola"
+            onClick={() => void window.rd.quitarDeCola(vista.id, m.id)}
+          >
+            <Icono nombre="papelera" size={16} />
+          </Button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -455,6 +534,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
   const { tramites } = useEstado();
   const vista = tramites[id];
   const [verNavegador, setVerNavegador] = useState(false);
+  const [borrador, setBorrador] = useState<{ texto: string }>();
   useEffect(() => {
     if (!vista) void cargarTramite(id);
   }, [id, vista]);
@@ -521,17 +601,20 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
           vista={vista}
           verNavegador={() => setVerNavegador(true)}
           abrirFuente={abrirFuente}
+          alVolver={(texto) => setBorrador({ texto })}
         />
         {/* La conversación se funde con el lienzo justo encima del compositor. */}
         <div className="relative mx-auto w-full max-w-[720px] px-8 pt-2 pb-6 before:pointer-events-none before:absolute before:inset-x-0 before:-top-8 before:h-8 before:bg-linear-to-b before:from-transparent before:to-muted">
+          <Cola vista={vista} />
           <Compositor
             placeholder={
               trabajando
-                ? 'El asistente está trabajando…'
+                ? 'Añade otra petición para cuando termine'
                 : ocupado
-                  ? 'Responde a la pregunta del asistente'
+                  ? 'Responde a la tarjeta o añade otra petición'
                   : 'Escribe al asistente'
             }
+            borrador={borrador}
             ocupado={ocupado}
             alEnviar={(t) => window.rd.enviar(vista.id, t)}
             alDetener={() => void window.rd.detener(vista.id)}

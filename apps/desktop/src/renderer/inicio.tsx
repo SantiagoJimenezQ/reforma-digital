@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
 import {
   Select,
@@ -66,6 +66,7 @@ export function Compositor({
   alDetener,
   razonamiento,
   alRazonar,
+  borrador,
   autoFocus = false,
 }: {
   placeholder: string;
@@ -74,14 +75,21 @@ export function Compositor({
   alDetener?: () => void;
   razonamiento: Razonamiento;
   alRazonar: (v: Razonamiento) => void;
+  /** Un texto que poner en el campo, p. ej. el de un mensaje al volver a antes de él. */
+  borrador?: { texto: string } | undefined;
   autoFocus?: boolean;
 }) {
   const [texto, setTexto] = useState('');
   const [enviando, setEnviando] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!borrador) return;
+    setTexto(borrador.texto);
+    ref.current?.focus();
+  }, [borrador]);
   const enviar = async () => {
     const t = texto.trim();
-    if (!t || ocupado || enviando) return;
+    if (!t || enviando) return;
     setEnviando(true);
     try {
       await alEnviar(t);
@@ -116,7 +124,8 @@ export function Compositor({
       />
       <div className="flex items-center gap-1 px-2.5 pt-1 pb-2.5">
         <Razonar valor={razonamiento} alCambiar={alRazonar} />
-        {ocupado && alDetener ? (
+        {/* Mientras trabaja, con texto se manda a la cola y sin texto se puede detener. */}
+        {ocupado && alDetener && !texto.trim() ? (
           <Button
             variant="outline"
             size="icon-lg"
@@ -132,7 +141,7 @@ export function Compositor({
             size="icon-lg"
             className="ml-auto rounded-full"
             aria-label="Enviar"
-            disabled={!texto.trim() || ocupado || enviando}
+            disabled={!texto.trim() || enviando}
             onClick={() => void enviar()}
           >
             <Icono nombre="enviar" />

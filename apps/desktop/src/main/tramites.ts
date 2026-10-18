@@ -101,6 +101,10 @@ export class Tramites {
   /** Última escritura de cada trámite: se encadenan para que una antigua no pise a otra nueva. */
   private escrituras = new Map<string, Promise<void>>();
   private temporizador: NodeJS.Timeout | null = null;
+  /** Lo que la persona escribe mientras el asistente trabaja: sale al terminar, de uno en uno. */
+  private colas = new Map<string, { id: string; texto: string }[]>();
+  /** Lo que manda para redirigirlo: entra en el turno antes del siguiente paso. */
+  private redirecciones = new Map<string, string[]>();
 
   constructor(
     private almacen: Almacen,
@@ -185,6 +189,7 @@ export class Tramites {
       // El texto de las páginas se queda en el proceso principal: la interfaz no lo necesita.
       fuentes: r.estado.fuentes.map(({ texto: _texto, ...f }) => f),
       conversacion: textos(r.conversacion, mostrar(r)),
+      cola: this.colas.get(id) ?? [],
       uso: r.estado.uso,
       descargas: r.descargas,
       navegador: nav
@@ -244,13 +249,23 @@ export class Tramites {
   async enviar(id: string, texto: string) {
     const r = this.registros.get(id);
     if (!r) throw new Error('Trámite no encontrado');
-    if (this.ejecuciones.has(id)) throw new Error('El asistente sigue trabajando en este trámite');
+    if (this.ejecuciones.has(id)) {
+      this.colas.set(id, [...(this.colas.get(id) ?? []), { id: randomUUID(), texto }]);
+      this.cambio(id);
+      return;
+    }
     const config = this.entorno.proveedor();
     // Si escribe en vez de responder a una tarjeta que no se pudo retomar, se queda sin respuesta.
     for (const i of r.conversacion)
       if (i.tipo === 'pregunta' && i.estado === 'pendiente')
         Object.assign(i, { estado: 'cancelada', resultado: 'Sin responder' });
-    r.conversacion.push({ tipo: 'usuario', id: randomUUID(), texto, protegidos: 0 });
+    r.conversacion.push({
+      tipo: 'usuario',
+      id: randomUUID(),
+      texto,
+      protegidos: 0,
+      mensajes: r.estado.mensajes.length,
+    });
     if (!config) {
       r.conversacion.push({
         tipo: 'aviso',
@@ -285,7 +300,53 @@ export class Tramites {
       .finally(() => {
         this.ejecuciones.delete(id);
         this.cambio(id);
+        // Lo que quedó por mandar sale ahora, salvo si la persona lo ha detenido o se cierra la app:
+        // entonces las redirecciones vuelven a la cola.
+        const redirigidos = this.redirecciones.get(id) ?? [];
+        this.redirecciones.delete(id);
+        const cola = this.colas.get(id) ?? [];
+        if (control.signal.aborted)
+          return void cola.unshift(...redirigidos.map((t) => ({ id: randomUUID(), texto: t })));
+        const siguiente = redirigidos.length ? redirigidos.join('\n\n') : cola.shift()?.texto;
+        if (siguiente && this.registros.has(id))
+          this.enviar(id, siguiente).catch((e: unknown) => console.error(e));
       });
+  }
+
+  quitarDeCola(id: string, mensaje: string) {
+    this.colas.set(
+      id,
+      (this.colas.get(id) ?? []).filter((m) => m.id !== mensaje),
+    );
+    this.cambio(id);
+  }
+
+  /**
+   * Manda ya un mensaje de la cola: entra en el turno antes del siguiente paso del asistente. Si
+   * estaba esperando una respuesta, la tarjeta se queda sin ella para que pueda seguir.
+   */
+  async redirigir(id: string, mensaje: string) {
+    const m = this.colas.get(id)?.find((x) => x.id === mensaje);
+    if (!m) return;
+    this.quitarDeCola(id, mensaje);
+    if (!this.ejecuciones.has(id)) return this.enviar(id, m.texto);
+    this.redirecciones.set(id, [...(this.redirecciones.get(id) ?? []), m.texto]);
+    for (const [pregunta, e] of this.esperas)
+      if (e.tramite === id) await this.responder(id, pregunta, null);
+  }
+
+  /** Vuelve a antes de un mensaje de la persona: se borran él y lo que vino después. */
+  async volver(id: string, mensaje: string) {
+    const r = this.registros.get(id);
+    if (!r || this.ejecuciones.has(id)) return;
+    const i = r.conversacion.findIndex((x) => x.id === mensaje);
+    const item = r.conversacion[i];
+    if (item?.tipo !== 'usuario' || item.mensajes === undefined) return;
+    if (!r.conversacion.slice(0, i).some((x) => x.tipo === 'usuario')) return;
+    r.conversacion = r.conversacion.slice(0, i);
+    r.estado.mensajes = r.estado.mensajes.slice(0, item.mensajes);
+    await this.guardar(r);
+    this.cambio(id);
   }
 
   private preguntar(r: Registro, pregunta: Pregunta, signal: AbortSignal) {
@@ -529,6 +590,20 @@ export class Tramites {
       proveedor: (guarda) => crearProveedor(config, guarda),
       detector,
       escritos,
+      entrantes: () => {
+        const textos = this.redirecciones.get(r.id) ?? [];
+        this.redirecciones.delete(r.id);
+        for (const t of textos)
+          r.conversacion.push({
+            tipo: 'usuario',
+            id: randomUUID(),
+            texto: t,
+            protegidos: 0,
+            redirigido: true,
+          });
+        if (textos.length) actual = null;
+        return textos;
+      },
       anfitrion,
       estado: r.estado,
       ...(texto === undefined ? {} : { texto }),
@@ -574,6 +649,8 @@ export class Tramites {
   async borrar(id: string) {
     // Primero sale del registro: desde aquí ninguna escritura nueva lo vuelve a guardar.
     this.registros.delete(id);
+    this.colas.delete(id);
+    this.redirecciones.delete(id);
     this.detener(id);
     const nav = this.navegadores.get(id);
     this.navegadores.delete(id);

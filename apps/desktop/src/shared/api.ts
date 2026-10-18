@@ -30,7 +30,16 @@ export type Pregunta =
   | { tipo: 'ayuda'; ayuda: Ayuda };
 
 export type ItemConversacion =
-  | { tipo: 'usuario'; id: string; texto: string; protegidos: number }
+  | {
+      tipo: 'usuario';
+      id: string;
+      texto: string;
+      protegidos: number;
+      /** Lo mandó mientras el asistente trabajaba, para redirigirlo. */
+      redirigido?: boolean;
+      /** Cuántos mensajes tenía el asistente antes de este: para volver atrás. */
+      mensajes?: number;
+    }
   | { tipo: 'asistente'; id: string; texto: string }
   | {
       tipo: 'actividad';
@@ -88,6 +97,8 @@ export type FuenteVista = Omit<Fuente, 'texto'>;
 export type TramiteVista = ResumenTramite & {
   fuentes: FuenteVista[];
   conversacion: ItemConversacion[];
+  /** Lo escrito mientras trabaja, que sale cuando termine. */
+  cola: { id: string; texto: string }[];
   uso: Uso;
   descargas: Descarga[];
   navegador: { url: string; puedeVolver: boolean } | null;
@@ -104,6 +115,8 @@ export type EstadoApp = {
   campos: readonly CampoPerfil[];
   perfil: DatoPerfil[];
   touchId: boolean;
+  /** La app sin empaquetar: muestra datos para desarrollar, como el gasto. */
+  desarrollo: boolean;
   /** Avisos que salen de Mis datos, p. ej. un DNI a punto de caducar. */
   recordatorios: { texto: string; sugerencia: string }[];
 };
@@ -131,7 +144,11 @@ export type ApiRd = {
     cambios: { fijado?: boolean; razonamiento?: Razonamiento },
   ): Promise<void>;
   verTramite(id: string): Promise<TramiteVista | null>;
+  /** Si el asistente trabaja, el mensaje espera en la cola. */
   enviar(id: string, texto: string): Promise<void>;
+  quitarDeCola(id: string, mensaje: string): Promise<void>;
+  redirigir(id: string, mensaje: string): Promise<void>;
+  volver(id: string, mensaje: string): Promise<void>;
   detener(id: string): Promise<void>;
   borrarTramite(id: string): Promise<void>;
   responder(

@@ -2,6 +2,8 @@
 // aria-label del control que los contiene da el nombre.
 import type { ComponentType } from 'react';
 import {
+  IconAlarmClockOutline18,
+  IconArrowDottedRotateAnticlockwiseOutline18,
   IconCalendarOutline18,
   IconCheckOutline18,
   IconChevronDownOutline18,
@@ -53,6 +55,21 @@ function FlechaArriba({ size, className }: { size?: number; className?: string }
     </svg>
   );
 }
+/** ↳: lo que se manda para redirigir al asistente. */
+function Redirigir({ size, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" className={className} aria-hidden="true">
+      <path
+        d="M4 3.5v5.25a2.5 2.5 0 0 0 2.5 2.5H14.5M11 7.75l3.5 3.5-3.5 3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 const iconos = {
   calendario: IconCalendarOutline18,
@@ -82,6 +99,9 @@ const iconos = {
   ver: IconEyeOpenOutline18,
   detener: Detener,
   enviar: FlechaArriba,
+  redirigir: Redirigir,
+  reloj: IconAlarmClockOutline18,
+  deshacer: IconArrowDottedRotateAnticlockwiseOutline18,
 } satisfies Record<string, Svg>;
 
 export type NombreIcono = keyof typeof iconos;
