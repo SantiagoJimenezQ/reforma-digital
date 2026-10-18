@@ -586,7 +586,7 @@ export function JumpButton({
     <Button
       type="button"
       className={
-        "chat-jump absolute -top-8 [left:calc(50%_-_22px)] grid [place-items:center] [&[data-visible='false']]:pointer-events-none"
+        "chat-jump absolute -top-8 [left:calc(50%_-_22px)] grid [place-items:center] [&[data-visible='false']]:opacity-0 [&[data-visible='false']]:pointer-events-none"
       }
       data-visible={visible}
       tabIndex={visible ? 0 : -1}
