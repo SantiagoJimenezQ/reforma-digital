@@ -9,7 +9,7 @@ import {
 } from '@reforma-digital/design/ui/select';
 import type { Razonamiento } from '../shared/api';
 import { useEstado } from './estado';
-import { Icono, type NombreIcono } from './icono';
+import { Icono } from './icono';
 
 /** Cada sugerencia pone en el compositor una petición con [huecos] que rellena la persona. */
 const SUGERENCIAS = [
@@ -173,24 +173,6 @@ export function Compositor({
   );
 }
 
-const PROMESAS: { icono: NombreIcono; titulo: string; texto: string }[] = [
-  {
-    icono: 'escudo',
-    titulo: 'Fuentes oficiales',
-    texto: 'Investiga en webs de la Administración y te enseña cuáles ha consultado.',
-  },
-  {
-    icono: 'huella',
-    titulo: 'Tú das el permiso',
-    texto: 'Nada se envía, reserva, paga ni firma sin tu aprobación.',
-  },
-  {
-    icono: 'candado',
-    titulo: 'Tus datos, en tu Mac',
-    texto: 'Se guardan cifrados. La IA no ve tu nombre, tu DNI ni tu dirección.',
-  },
-];
-
 export function Inicio({ abrir }: { abrir: (id: string) => void }) {
   const { app } = useEstado();
   const [razonamiento, setRazonamiento] = useState<Razonamiento>('medium');
@@ -256,19 +238,6 @@ export function Inicio({ abrir }: { abrir: (id: string) => void }) {
             ))}
           </div>
         </div>
-        <ul className="m-0 grid w-full max-w-[760px] grid-cols-3 gap-8 p-0 pb-10">
-          {PROMESAS.map((p) => (
-            <li key={p.titulo} className="flex list-none gap-3">
-              <Icono nombre={p.icono} className="mt-0.5 shrink-0 text-brand" />
-              <span>
-                <span className="block text-[15px] font-medium">{p.titulo}</span>
-                <span className="block text-sm leading-relaxed text-muted-foreground">
-                  {p.texto}
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );
