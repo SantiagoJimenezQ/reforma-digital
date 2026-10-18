@@ -2,7 +2,7 @@ import { simulateReadableStream } from 'ai';
 import { MockLanguageModelV4 } from 'ai/test';
 import { datosPorReglas, type Detector } from '@reforma-digital/agent';
 
-/** Las reglas del detector de la app, sin el modelo de Rampart (que no está en CI). */
+/** Las reglas del detector de la app, sin el modelo de Rampart Edge (que no está en CI). */
 export const detectorDeReglas: Detector = async (t) => datosPorReglas(t);
 
 type Prompt = Parameters<MockLanguageModelV4['doStream']>[0]['prompt'];

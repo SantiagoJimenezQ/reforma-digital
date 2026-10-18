@@ -11,10 +11,10 @@ import { designPostcss } from '@reforma-digital/design/postcss';
 const raiz = path.resolve(import.meta.dirname, '..');
 const repo = path.resolve(raiz, '../..');
 const out = path.join(raiz, 'out');
-// ONNX Runtime es nativo: va aparte, en out/node_modules, con solo el binario de este sistema.
+// ONNX Runtime (en WebAssembly) va aparte, en out/node_modules: carga su .wasm junto a su código.
 const externos = [
   'electron',
-  'onnxruntime-node',
+  'onnxruntime-web',
   'onnxruntime-common',
   ...builtinModules,
   ...builtinModules.map((m) => `node:${m}`),
@@ -32,7 +32,6 @@ const node = (entrada, archivo, formato) =>
       'process.env.RD_SERVIDOR': JSON.stringify(process.env.RD_SERVIDOR ?? ''),
     },
     ssr: { noExternal: true },
-    resolve: { alias: { sharp: path.join(raiz, 'src/main/sin-imagenes.ts') } },
     build: {
       ssr: path.join(raiz, entrada),
       outDir: out,
@@ -65,40 +64,30 @@ await build({
   },
 });
 // El detector de datos personales: el modelo (pnpm --filter @reforma-digital/agent detector lo
-// descarga y comprueba su huella) y ONNX Runtime, el mismo que usa transformers.js.
-const modelo = path.join(repo, 'packages/agent/.cache/rampart');
-if (existsSync(modelo)) await cp(modelo, path.join(out, 'modelos/rampart'), { recursive: true });
+// descarga y comprueba su huella) y ONNX Runtime en WebAssembly, el mismo en todos los sistemas.
+const modelo = path.join(repo, 'packages/agent/.cache/rampart-edge');
+if (existsSync(modelo))
+  await cp(modelo, path.join(out, 'modelos/rampart-edge'), { recursive: true });
 else
   console.warn(
     'Falta el modelo del detector: sin él, la app no enviará nada al asistente. Descárgalo con pnpm --filter @reforma-digital/agent detector.',
   );
-const transformers = createRequire(path.join(repo, 'packages/agent/package.json')).resolve(
-  '@huggingface/transformers',
-);
-const ortNode = path.dirname(createRequire(transformers).resolve('onnxruntime-node/package.json'));
+const desdeAgente = createRequire(path.join(repo, 'packages/agent/package.json'));
+const ortWeb = path.resolve(path.dirname(desdeAgente.resolve('onnxruntime-web')), '..');
 const ortCommon = path.resolve(
-  createRequire(ortNode + '/').resolve('onnxruntime-common'),
-  '../../..',
+  path.dirname(createRequire(path.join(ortWeb, 'package.json')).resolve('onnxruntime-common')),
+  '../..',
 );
-const binario = `bin/napi-v6/${process.platform}/${process.arch}`;
-// El binding y la librería que carga (en macOS hay otra copia igual con la versión completa en el
-// nombre). En Windows, DirectML y los dx*.dll solo se cargan si se pide la GPU; el detector usa CPU.
-const libreria = {
-  darwin: 'libonnxruntime.1.dylib',
-  linux: 'libonnxruntime.so.1',
-  win32: 'onnxruntime.dll',
-}[process.platform];
-const archivos = ['package.json', 'dist'];
-if (existsSync(path.join(ortNode, binario)))
-  archivos.push(`${binario}/onnxruntime_binding.node`, `${binario}/${libreria}`);
-else
-  console.warn(
-    `ONNX Runtime no trae binarios para ${process.platform}-${process.arch} (los Mac con Intel, por ejemplo): sin el detector, la app no enviará nada al asistente.`,
-  );
-for (const f of archivos) {
-  const destino = path.join(out, 'node_modules/onnxruntime-node', f);
+// Solo lo que usa en Node: su entrada, el cargador de WebAssembly y el .wasm (sin hilos ni GPU).
+for (const f of [
+  'package.json',
+  'dist/ort.node.min.mjs',
+  'dist/ort-wasm-simd-threaded.mjs',
+  'dist/ort-wasm-simd-threaded.wasm',
+]) {
+  const destino = path.join(out, 'node_modules/onnxruntime-web', f);
   await mkdir(path.dirname(destino), { recursive: true });
-  await cp(path.join(ortNode, f), destino, { recursive: true });
+  await cp(path.join(ortWeb, f), destino);
 }
 await cp(ortCommon, path.join(out, 'node_modules/onnxruntime-common'), { recursive: true });
 console.log('App compilada en', path.relative(process.cwd(), out));

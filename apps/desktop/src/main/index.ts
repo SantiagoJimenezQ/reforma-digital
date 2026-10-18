@@ -116,10 +116,12 @@ let perfil: Perfil = {};
 let detector: Promise<Detector> | undefined;
 /** Se carga una vez, del modelo que va dentro de la app; si falla, se reintenta en el siguiente turno. */
 const cargarDetector = () =>
-  (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart')).catch((e: unknown) => {
-    detector = undefined;
-    throw e;
-  }));
+  (detector ??= crearDetector(path.join(DESEMPAQUETADO, 'modelos/rampart-edge')).catch(
+    (e: unknown) => {
+      detector = undefined;
+      throw e;
+    },
+  ));
 
 const touchId = () => process.platform === 'darwin' && systemPreferences.canPromptTouchID();
 async function verificar(motivo: string, exigir: boolean) {

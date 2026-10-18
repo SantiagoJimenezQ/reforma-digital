@@ -19,7 +19,7 @@ const electronInstalado = existsSync(path.join(raiz, 'node_modules/electron/dist
 const preparada =
   electronInstalado &&
   existsSync(path.join(raiz, 'out/main.js')) &&
-  existsSync(path.join(raiz, 'out/modelos/rampart'));
+  existsSync(path.join(raiz, 'out/modelos/rampart-edge'));
 
 // En el trabajo de CI que la prepara (RD_ESCRITORIO=1), que falte algo es un fallo, no un salto.
 test.skip(

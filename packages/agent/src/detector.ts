@@ -1,22 +1,11 @@
-import path from 'node:path';
-import {
-  applyPolicy,
-  detectHeuristics,
-  detectNer,
-  loadNerClassifier,
-  premask,
-  projectMaskedSpan,
-  type PiiLabel,
-  type Span,
-  type TokenClassifier,
-} from '@nationaldesignstudio/rampart';
 import { GENERICAS, type TIPOS_DATO } from './profile';
+import { cargarRampartEdge, type SpanEdge, type TipoEdge } from './rampart-edge';
 
 /**
  * Detector local de datos personales para lo que no está en «Mis datos»: el nombre del hijo que
  * escribe la persona, los datos que muestra una sede tras iniciar sesión… Une reglas para los
- * documentos, cuentas, contactos, direcciones y fechas de nacimiento españoles con Rampart
- * (CC BY 4.0, National Design Studio), un modelo de 15 MB que reconoce nombres y direcciones.
+ * documentos, cuentas, contactos, direcciones y fechas de nacimiento españoles con Rampart Edge
+ * (CC0, National Design Studio), un modelo de 1,45 MB que reconoce nombres y direcciones.
  * Corre en este ordenador: lo que analiza no sale de él.
  */
 export type TipoDato = keyof typeof TIPOS_DATO;
@@ -28,42 +17,56 @@ export type Detector = (texto: string, origen: OrigenTexto) => Promise<DatoDetec
 /** El detector no ha podido analizar un texto: el turno se para sin enviar nada al modelo. */
 export class ErrorDeProteccion extends Error {}
 
-const TIPOS: Partial<Record<PiiLabel, TipoDato>> = {
-  GIVEN_NAME: 'nombre',
-  SURNAME: 'apellido',
-  STREET_NAME: 'direccion',
-  GOVERNMENT_ID: 'documento',
-  TAX_ID: 'documento',
-  PASSPORT: 'documento',
-  DRIVERS_LICENSE: 'documento',
-  SSN: 'documento',
-  BANK_ACCOUNT: 'cuenta',
-  ROUTING_NUMBER: 'cuenta',
-  CREDIT_CARD: 'cuenta',
-  PHONE: 'telefono',
-  EMAIL: 'correo',
-  IP_ADDRESS: 'dato',
+/**
+ * Lo que marca el modelo, como dato del detector. Los teléfonos y los correos no: las reglas los
+ * reconocen mejor (con el plan de numeración; el modelo también marcaría los teléfonos de atención
+ * de las administraciones).
+ */
+const TIPOS: Partial<Record<TipoEdge, TipoDato>> = {
+  NAME: 'nombre',
+  ADDRESS: 'direccion',
+  GOV_ID: 'documento',
+  FINANCIAL: 'cuenta',
+  DOB_KEYED: 'fecha',
+  URL_HANDLE: 'dato',
+  OTHER_ID: 'referencia',
 };
-/** Se quedan en el texto: el municipio y la provincia sirven para investigar y los enlaces para navegar. */
-const SE_QUEDAN: PiiLabel[] = ['CITY', 'STATE', 'ZIP_CODE', 'URL'];
-const NOMBRES = new Set<PiiLabel>(['GIVEN_NAME', 'SURNAME']);
 const LETRA = /[\p{L}\p{N}]/u;
 
 /**
  * Lo que el modelo marca y no suele ser un dato, medido con frases de personas y de sedes:
- * un trozo de palabra («cie» en «Hacienda»), un número suelto («Modelo 030»: los portales los
- * encuentran las reglas), un «nombre» en minúsculas («hijo») o de una palabra con poca confianza
- * («Getafe», «Alta»). En las páginas, además, las calles (son las de las oficinas), lo que tiene
- * poca confianza y una palabra seguida de minúscula: los verbos de las sedes («Elija la oficina»).
+ * un trozo de palabra, un «nombre» en minúsculas («hijo») o de una palabra con poca confianza
+ * («Getafe», «Alta»). En las páginas, además, las direcciones (son las de las oficinas), lo que tiene
+ * poca confianza y una palabra seguida de minúscula o de coma: los verbos y saludos de las sedes
+ * («Elija la oficina», «Bienvenida, …»).
  */
-function fiable(s: Span, texto: string, origen: OrigenTexto) {
-  if (LETRA.test(texto[s.start - 1] ?? '') || LETRA.test(texto[s.end] ?? '')) return false;
-  if (origen === 'pagina' && (s.label === 'STREET_NAME' || s.score < 0.6)) return false;
-  if (!NOMBRES.has(s.label)) return true;
-  const valor = texto.slice(s.start, s.end);
+function fiable(s: SpanEdge, texto: string, origen: OrigenTexto) {
+  if (LETRA.test(texto[s.inicio - 1] ?? '') || LETRA.test(texto[s.fin] ?? '')) return false;
+  if (origen === 'pagina' && (s.tipo === 'ADDRESS' || s.prob < 0.6)) return false;
+  if (s.tipo !== 'NAME') return true;
+  const valor = texto.slice(s.inicio, s.fin);
   const suelto = !/\s/.test(valor.trim());
-  if (!/\p{Lu}/u.test(valor) || (suelto && s.score < 0.6)) return false;
-  return !(origen === 'pagina' && suelto && /^ \p{Ll}/u.test(texto.slice(s.end, s.end + 2)));
+  if (!/\p{Lu}/u.test(valor) || (suelto && s.prob < 0.6)) return false;
+  return !(origen === 'pagina' && suelto && /^(?: \p{Ll}|,)/u.test(texto.slice(s.fin, s.fin + 2)));
+}
+
+/**
+ * Un nombre propio va en mayúscula: el modelo a veces se lleva las palabras de al lado («Elija la
+ * oficina»). Se queda de la primera a la última palabra en mayúscula (con los «de la» de en medio);
+ * sin ninguna, no es un nombre.
+ */
+function enMayuscula(s: SpanEdge, texto: string): SpanEdge | null {
+  if (s.tipo !== 'NAME') return s;
+  const palabras = [...texto.slice(s.inicio, s.fin).matchAll(/\S+/g)].filter((m) =>
+    /^\p{Lu}/u.test(m[0]),
+  );
+  const [primera, ultima] = [palabras[0], palabras.at(-1)];
+  if (!primera || !ultima) return null;
+  return {
+    ...s,
+    inicio: s.inicio + primera.index,
+    fin: s.inicio + ultima.index + ultima[0].length,
+  };
 }
 
 const VIA =
@@ -195,30 +198,15 @@ export function unir(datos: DatoDetectado[]): DatoDetectado[] {
  * modelo no está o no se puede cargar: sin detector, la app no envía nada al asistente.
  */
 export async function crearDetector(carpeta: string): Promise<Detector> {
-  const { env } = await import('@huggingface/transformers');
-  env.allowRemoteModels = false;
-  env.localModelPath = path.dirname(carpeta);
-  const agrupado = await loadNerClassifier({ model: path.basename(carpeta), device: 'cpu' });
-  // transformers.js 4 devuelve los grupos sin su posición, y Rampart (hecho para la versión 3) los
-  // une aunque estén lejos: «Iker Arrieta y para mi madre Carmen». Se le dan las piezas sueltas,
-  // con su B-/I-, y las agrupa él.
-  const clasificador: TokenClassifier = Object.assign((t: string) => agrupado(t), {
-    countTokens: agrupado.countTokens,
-    tokenize: agrupado.tokenize,
-  });
+  const clasificar = await cargarRampartEdge(carpeta);
   return async (texto, origen) => {
     try {
-      const reglas = detectHeuristics(texto);
-      const mapa = premask(texto, reglas);
-      const modelo = (await detectNer(mapa.masked, clasificador)).flatMap((s) => {
-        const p = projectMaskedSpan(s, texto, mapa);
-        return p && fiable(p, texto, origen) ? [p] : [];
+      const modelo = (await clasificar(texto)).flatMap((visto): DatoDetectado[] => {
+        const s = enMayuscula(visto, texto);
+        const tipo = s && fiable(s, texto, origen) && TIPOS[s.tipo];
+        return s && tipo ? [{ inicio: s.inicio, fin: s.fin, tipo }] : [];
       });
-      const rampart = applyPolicy([...reglas, ...modelo], new Set(SE_QUEDAN)).flatMap((s) => {
-        const tipo = TIPOS[s.label];
-        return tipo ? [{ inicio: s.start, fin: s.end, tipo }] : [];
-      });
-      return unir([...rampart, ...datosPorReglas(texto)]);
+      return unir([...modelo, ...datosPorReglas(texto)]);
     } catch (e) {
       throw new ErrorDeProteccion(
         `No se han podido proteger los datos personales: ${e instanceof Error ? e.message : String(e)}`,

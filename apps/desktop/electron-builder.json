@@ -10,7 +10,7 @@
   "npmRebuild": false,
   "electronLanguages": ["es", "en"],
   "mac": {
-    "target": [{ "target": "dmg", "arch": ["arm64"] }],
+    "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "category": "public.app-category.productivity",
     "icon": "build/icon.icon",
@@ -48,5 +48,5 @@
     "onlyLoadAppFromAsar": true,
     "grantFileProtocolExtraPrivileges": false
   },
-  "asarUnpack": ["out/modelos/**", "out/node_modules/onnxruntime-node/bin/**"]
+  "asarUnpack": ["out/modelos/**", "out/node_modules/onnxruntime-web/dist/*.wasm"]
 }

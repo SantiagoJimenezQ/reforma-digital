@@ -1,25 +1,24 @@
-// Descarga el modelo del detector de datos personales (Rampart, CC BY 4.0) en .cache/rampart.
+// Descarga el modelo del detector de datos personales (Rampart Edge, CC0) en .cache/rampart-edge.
 // Versión fija y huella SHA-256 de cada archivo: si algo no coincide, no se guarda.
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const REVISION = 'b1993e4e68b082835b80ffc65acc03325ea2e501';
+const REVISION = '69a99a3f0d3cbdb8db11f2ac97899f654be109bf';
 const ARCHIVOS = {
-  'config.json': '003b84bbcd489f5e782fe5cad8f3249c3653ec880089abb1ccc398a0d895e3e6',
-  'tokenizer.json': '98ade711428b42a1b5343c403a73344535e92de8e19359cdb567ef34da210259',
-  'tokenizer_config.json': '0088a6f8bcdd4014184fb068b83ebb12896a9db2bb269a71f73de83fef24bceb',
-  'onnx/model_q4.onnx': '9f27d24949b0581701071ea5ef522d77ccd3f50c525cc91eac4d265b0fc2afe5',
-  LICENSE: '57fec6ca5de5e18ced1a10b36c87c0988fdc170f03f73e8ae2f20f5de42a884e',
+  'config.json': '01e20d1a4acb7af422d9182c8d3ff2d506c6cd6b0ca26bead3697f5e380ae00a',
+  'vocab.txt': 'ee0684683c7fb15744d0136e671cd7def76ae4d4ddafb72ced864e94c8d32c9a',
+  'onnx/model_q4.onnx': '73fce00c229d8318d7e1f8decccc5ad2dbf7aa45a872364b54d632c38a9eb16c',
+  LICENSE: 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
 };
-const destino = path.resolve(import.meta.dirname, '../.cache/rampart');
+const destino = path.resolve(import.meta.dirname, '../.cache/rampart-edge');
 const huella = (datos) => createHash('sha256').update(datos).digest('hex');
 
 for (const [archivo, sha] of Object.entries(ARCHIVOS)) {
   const ruta = path.join(destino, archivo);
   const previo = await readFile(ruta).catch(() => null);
   if (previo && huella(previo) === sha) continue;
-  const url = `https://huggingface.co/nationaldesignstudio/rampart/resolve/${REVISION}/${archivo}`;
+  const url = `https://huggingface.co/nationaldesignstudio/rampart-edge/resolve/${REVISION}/${archivo}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`No se ha podido descargar ${archivo}: HTTP ${res.status}`);
   const datos = Buffer.from(await res.arrayBuffer());
