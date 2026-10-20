@@ -44,7 +44,7 @@ export function Footer() {
             href={links.contributing}
             data-slot="button"
             data-variant="sunset"
-            className={cn(buttonVariants({ variant: 'sunset' }))}
+            className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
           >
             <Icon name="contacto" /> Cuéntanos dónde te atascaste
           </a>
@@ -52,7 +52,7 @@ export function Footer() {
             href={links.repo}
             data-slot="button"
             data-variant="outline"
-            className={cn(buttonVariants({ variant: 'outline' }))}
+            className={cn(buttonVariants({ variant: 'outline', size: 'xl' }))}
           >
             Ver el código en GitHub <Icon name="externo" size={16} />
           </a>

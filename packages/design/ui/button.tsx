@@ -9,9 +9,9 @@ const buttonVariants = cva(
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/80',
         // El sol se dibuja en al menos 134 px para que en botones cortos siga siendo una franja.
-        // Entra despacio y sale rápido apagándose en lineal, sin pasar por tonos pardos.
+        // Entra despacio y al salir se pone: baja primero y se apaga después, sin cortes.
         sunset:
-          'relative isolate overflow-hidden bg-primary text-primary-foreground before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:bg-(image:--brand-sun) before:bg-size-[max(100%,134px)_100%] before:bg-position-[50%_0] before:bg-no-repeat before:opacity-0 before:translate-y-[55%] before:[transition:opacity_200ms_linear,translate_200ms_ease] hover:before:opacity-100 hover:before:translate-y-0 hover:before:[transition:opacity_280ms_var(--ease-brand),translate_420ms_var(--ease-brand)] motion-reduce:before:translate-y-0',
+          'relative isolate overflow-hidden bg-primary text-primary-foreground before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:bg-(image:--brand-sun) before:bg-size-[max(100%,134px)_100%] before:bg-position-[50%_0] before:bg-no-repeat before:opacity-0 before:translate-y-[55%] before:[transition:opacity_400ms_ease-in_160ms,translate_560ms_cubic-bezier(0.45,0,0.55,1)] hover:before:opacity-100 hover:before:translate-y-0 hover:before:[transition:opacity_280ms_var(--ease-brand),translate_420ms_var(--ease-brand)] motion-reduce:before:translate-y-0',
         outline:
           'border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
         secondary:
@@ -28,6 +28,9 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: 'h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        // Acciones principales de la web y las que las acompañan: 16 px.
+        // El icono se come 2 px de su lado para quedar ópticamente centrado.
+        xl: 'h-11 gap-2.5 px-5 text-base [&>svg]:-mx-0.5',
         icon: 'size-8',
         'icon-xs':
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

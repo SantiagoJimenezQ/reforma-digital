@@ -91,7 +91,7 @@ export function CongressNav() {
       </nav>
       <nav
         className={
-          'cg-lateral [&_a]:w-full [&_a]:justify-start hidden [@media(min-width:_1100px)]:block [@media(min-width:_1100px)]:sticky [@media(min-width:_1100px)]:top-4 [@media(min-width:_1100px)]:[max-height:calc(100dvh_-_32px)] [@media(min-width:_1100px)]:overflow-y-auto [@media(min-width:_1100px)]:[&_ul]:m-0 [@media(min-width:_1100px)]:[&_ul]:p-0 [@media(min-width:_1100px)]:[&_ul]:list-none [@media(min-width:_1100px)]:[&_h2]:[margin:16px_0_4px] [@media(min-width:_1100px)]:[&_h2]:px-3 [@media(min-width:_1100px)]:[&_h2]:[font-size:11px] [@media(min-width:_1100px)]:[&_h2]:[color:var(--muted-foreground)]'
+          'cg-lateral [&_a]:w-full [&_a]:justify-start hidden [@media(min-width:_1100px)]:block [@media(min-width:_1100px)]:sticky [@media(min-width:_1100px)]:top-24 [@media(min-width:_1100px)]:[max-height:calc(100dvh_-_112px)] [@media(min-width:_1100px)]:overflow-y-auto [@media(min-width:_1100px)]:[&_ul]:m-0 [@media(min-width:_1100px)]:[&_ul]:p-0 [@media(min-width:_1100px)]:[&_ul]:list-none [@media(min-width:_1100px)]:[&_h2]:[margin:16px_0_4px] [@media(min-width:_1100px)]:[&_h2]:px-3 [@media(min-width:_1100px)]:[&_h2]:[font-size:11px] [@media(min-width:_1100px)]:[&_h2]:[color:var(--muted-foreground)]'
         }
         aria-label="Secciones del Congreso"
       >

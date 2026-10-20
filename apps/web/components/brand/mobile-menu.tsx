@@ -17,7 +17,7 @@ export function MobileMenu({ links }: { links: readonly MenuLink[] }) {
       <Button
         variant="outline"
         size="icon"
-        className="hidden max-[800px]:inline-flex"
+        className="hidden size-11 max-[800px]:inline-flex"
         aria-label="Abrir el menú"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
@@ -35,7 +35,13 @@ export function MobileMenu({ links }: { links: readonly MenuLink[] }) {
             <Link href="/" aria-label="Reforma Digital, portada de la iniciativa" onClick={close}>
               <Logo size={36} />
             </Link>
-            <Button variant="sunset" size="icon" aria-label="Cerrar el menú" onClick={close}>
+            <Button
+              variant="sunset"
+              size="icon"
+              className="size-11"
+              aria-label="Cerrar el menú"
+              onClick={close}
+            >
               <span className="rotate-45">
                 <Icon name="mas" size={18} />
               </span>

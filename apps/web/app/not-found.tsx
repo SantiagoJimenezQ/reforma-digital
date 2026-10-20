@@ -23,7 +23,7 @@ export default function NotFound() {
         No encontramos esta página. Vuelve a la portada para conocer los proyectos.
       </p>
       <Link
-        className={cn(buttonVariants({ variant: 'sunset' }))}
+        className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
         data-slot="button"
         data-variant="sunset"
         href="/"

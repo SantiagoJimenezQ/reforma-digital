@@ -93,7 +93,7 @@ export function Information({ section, title }: { section: string; title: string
                 href="/api/congreso"
                 data-slot="button"
                 data-variant="sunset"
-                className={cn(buttonVariants({ variant: 'sunset' }))}
+                className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
               >
                 Consultar la API
               </a>
@@ -101,7 +101,7 @@ export function Information({ section, title }: { section: string; title: string
                 href="/api/congreso/descarga"
                 data-slot="button"
                 data-variant="outline"
-                className={cn(buttonVariants({ variant: 'outline' }))}
+                className={cn(buttonVariants({ variant: 'outline', size: 'xl' }))}
               >
                 Descargar el histórico
               </a>
@@ -111,7 +111,7 @@ export function Information({ section, title }: { section: string; title: string
                 rel="noopener noreferrer"
                 data-slot="button"
                 data-variant="ghost"
-                className={cn(buttonVariants({ variant: 'ghost' }))}
+                className={cn(buttonVariants({ variant: 'ghost', size: 'xl' }))}
               >
                 Código de origen <Icon name="externo" size={16} />
                 <span

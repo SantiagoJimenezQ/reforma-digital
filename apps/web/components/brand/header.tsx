@@ -4,9 +4,32 @@ import { buttonVariants } from '@reforma-digital/design/ui/button';
 import Link from 'next/link';
 import { Icon } from './icon';
 import { Logo } from './logo';
+import { LogoLink } from './logo-link';
 import { MobileMenu } from './mobile-menu';
 
-export function Header({ current, className }: { current?: string; className?: string }) {
+// Pastillas de cristal sin barra detrás. Sin borde, el canto lo marca solo el tono y es igual en
+// todas; el hover oscurece con una sombra interior (que sí se anima) y la zona de clic
+// crece hasta 40 px sin cambiar la pieza.
+const pieza = cn(
+  buttonVariants({ variant: 'secondary' }),
+  'relative h-8.5 border-0 px-3 bg-secondary/60 backdrop-blur-xl backdrop-saturate-150 hover:bg-secondary/60 hover:backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-secondary',
+  'shadow-[inset_0_0_0_40px_rgb(0_0_0/0)] hover:shadow-[inset_0_0_0_40px_rgb(0_0_0/0.06)] aria-[current=page]:shadow-[inset_0_0_0_40px_rgb(0_0_0/0.06)]',
+  'transition-[box-shadow,scale] duration-150 ease-out active:scale-[0.96] active:not-aria-[haspopup]:translate-y-0 motion-reduce:transition-none',
+  'focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-foreground',
+  'before:absolute before:inset-x-0 before:-inset-y-[3px]',
+);
+const participar = cn(pieza, 'border border-border bg-background pr-2.5 hover:bg-background');
+
+// Al bajar los primeros 40 px, --pliegue va de 0 a 1 (animación ligada al scroll, sin JS): el
+// texto «Reforma Digital» se pliega y la R, sin encoger (36 px), queda centrada en un icono blanco
+// de 56 × 56 px con el borde de «Participar». El icono baja 11 px para que su borde superior
+// quede a la altura del de los botones del menú, y se alinea con la columna. El fondo y el borde
+// van en una capa que solo cambia de opacidad. -my-1 evita que la cabecera crezca.
+// Sin `animation-timeline`, la animación dura 0 s y se queda en 1: la R en su icono.
+const logo =
+  'relative isolate mr-auto -my-1 -ml-[14.5px] flex h-14 items-center rounded-[14px] px-[14.5px] outline-none [translate:calc(14.5px*var(--pliegue))_calc(11px*var(--pliegue))] before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:border before:border-border before:bg-background before:[opacity:var(--pliegue)] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-foreground [&_.marca]:[gap:calc(0.5em*(1-var(--pliegue)))] [&_.marca-texto]:[overflow-x:clip] [&_.marca-texto]:[max-width:calc(6em*(1-var(--pliegue)))] [&_.marca-texto]:[opacity:calc(1-var(--pliegue))]';
+
+export function Header({ current }: { current?: string }) {
   const links = [
     { href: '/escritorio', text: 'App', current: current === '/escritorio' },
     { href: '/congreso', text: 'El Congreso', current: current === '/congreso' },
@@ -16,15 +39,10 @@ export function Header({ current, className }: { current?: string; className?: s
   ];
 
   return (
-    <header
-      className={cn(
-        'in-nav flex items-center gap-4 min-h-20 [padding:16px_max(var(--page-gutter),_calc((100%_-_var(--container-content))_/_2_+_var(--page-gutter)))] [&_>_a]:flex [&_>_a]:items-center [&_>_a]:[margin-right:auto] [&_nav]:flex [&_nav]:items-center [&_nav]:gap-1 [&_.in-menu-boton]:hidden [@media(max-width:_800px)]:[&_nav]:hidden [@media(max-width:_800px)]:[&_.in-menu-boton]:inline-flex [view-transition-name:sol-cabecera]',
-        className,
-      )}
-    >
-      <Link href="/" aria-label="Reforma Digital, portada de la iniciativa">
+    <header className="in-nav pointer-events-none sticky top-0 z-40 flex items-center gap-4 min-h-20 [padding:16px_max(var(--page-gutter),_calc((100%_-_var(--container-content))_/_2_+_var(--page-gutter)))] [&_>_*]:pointer-events-auto [&_nav]:flex [&_nav]:items-center [&_nav]:gap-1 [@media(max-width:_800px)]:[&_nav]:hidden [animation-name:cabecera-pliegue] [animation-fill-mode:both] [animation-timing-function:linear] [animation-timeline:scroll()] [animation-range:0_40px] motion-reduce:[animation-timing-function:steps(1,end)]">
+      <LogoLink className={logo}>
         <Logo size={36} />
-      </Link>
+      </LogoLink>
       <nav aria-label="Navegación principal">
         {links.map((link) => (
           <Link
@@ -33,17 +51,12 @@ export function Header({ current, className }: { current?: string; className?: s
             aria-current={link.current ? 'page' : undefined}
             data-slot="button"
             data-variant="secondary"
-            className={cn(buttonVariants({ variant: 'secondary' }))}
+            className={pieza}
           >
             {link.text}
           </Link>
         ))}
-        <Link
-          href="/#participar"
-          data-slot="button"
-          data-variant="outline"
-          className={cn(buttonVariants({ variant: 'outline', className: 'text-foreground' }))}
-        >
+        <Link href="/#participar" data-slot="button" data-variant="outline" className={participar}>
           Participar <Icon name="derecha" size={16} />
         </Link>
       </nav>

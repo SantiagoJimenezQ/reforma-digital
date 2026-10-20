@@ -297,6 +297,20 @@
   }
 }
 
+/* Cabecera de la web: pliega el logotipo al bajar (ver header.tsx). Fuera de @theme porque la
+   usan propiedades sueltas (`animation-name`) que Tailwind no reconoce como uso. */
+@keyframes cabecera-pliegue {
+  to {
+    --pliegue: 1;
+  }
+}
+
+@property --pliegue {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 :root,
 :host {
   --bg-ink: 20 20 20;

@@ -429,7 +429,7 @@ export async function ElectionsHome() {
                   href={electionsHref(id)}
                   data-slot="button"
                   data-variant={i ? 'outline' : 'sunset'}
-                  className={cn(buttonVariants({ variant: i ? 'outline' : 'sunset', size: 'lg' }))}
+                  className={cn(buttonVariants({ variant: i ? 'outline' : 'sunset', size: 'xl' }))}
                 >
                   {electionPages[id].title} <Icon name="derecha" size={16} />
                 </Link>

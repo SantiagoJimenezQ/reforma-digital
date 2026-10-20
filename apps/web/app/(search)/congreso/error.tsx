@@ -12,7 +12,7 @@ export default function ErrorPage({ retry }: { retry: () => void }) {
     >
       <h1>El Congreso no está disponible ahora</h1>
       <p>No hemos podido cargar los datos. Puedes volver a intentarlo.</p>
-      <Button onClick={retry} variant="sunset">
+      <Button onClick={retry} variant="sunset" size="xl">
         Reintentar
       </Button>
     </main>

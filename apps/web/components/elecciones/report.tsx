@@ -125,7 +125,7 @@ export function Explore({ links }: { links: { href: string; text: string }[] }) 
           href={link.href}
           data-slot="button"
           data-variant="outline"
-          className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
+          className={cn(buttonVariants({ variant: 'outline', size: 'xl' }))}
         >
           {link.text} <Icon name="derecha" size={16} />
         </Link>

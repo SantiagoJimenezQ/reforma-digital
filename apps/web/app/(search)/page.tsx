@@ -61,7 +61,7 @@ export default function HomePage() {
   return (
     <div className="iniciativa">
       <JsonLd graph={graph} />
-      <Header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md" />
+      <Header />
       <main id="main" tabIndex={-1}>
         <section
           className={
@@ -98,9 +98,9 @@ export default function HomePage() {
               className={cn(
                 buttonVariants({
                   variant: 'secondary',
-                  size: 'lg',
+                  size: 'xl',
                   className:
-                    'in-hero-enlace absolute bottom-6 w-fit rounded-full px-5 [inset-inline:0] [margin-inline:auto] [--ring:var(--foreground)]',
+                    'in-hero-enlace absolute bottom-6 w-fit rounded-full [inset-inline:0] [margin-inline:auto] [--ring:var(--foreground)]',
                 }),
               )}
             >
@@ -225,7 +225,7 @@ export default function HomePage() {
                       pasos y rellena el formulario contigo. Tus datos personales no llegan a la IA.
                     </p>
                     <Link
-                      className={cn(buttonVariants({ variant: 'sunset' }))}
+                      className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
                       data-slot="button"
                       data-variant="sunset"
                       href="/escritorio"
@@ -271,7 +271,7 @@ export default function HomePage() {
                         href={links.install}
                         data-slot="button"
                         data-variant="sunset"
-                        className={cn(buttonVariants({ variant: 'sunset' }))}
+                        className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
                       >
                         Descargar la extensión <Icon name="descargar" size={16} />
                       </a>
@@ -310,7 +310,7 @@ export default function HomePage() {
                       Congreso y datos electorales con enlaces a las fuentes oficiales.
                     </p>
                     <Link
-                      className={cn(buttonVariants({ variant: 'sunset' }))}
+                      className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
                       data-slot="button"
                       data-variant="sunset"
                       href={congressBase}

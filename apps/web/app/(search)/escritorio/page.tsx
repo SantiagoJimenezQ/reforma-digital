@@ -102,7 +102,7 @@ export default function DesktopPage() {
               href="#descargar"
               data-slot="button"
               data-variant="sunset"
-              className={cn(buttonVariants({ variant: 'sunset', size: 'lg' }))}
+              className={cn(buttonVariants({ variant: 'sunset', size: 'xl' }))}
             >
               Ver cuándo sale <Icon name="abajo" size={16} />
             </a>
