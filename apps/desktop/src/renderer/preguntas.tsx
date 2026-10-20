@@ -452,7 +452,8 @@ function Formulario({
         titulo="El asistente puede hacerlo por ti"
         descripcion={f.titulo}
         accesorio={
-          <div className="ml-auto flex gap-2">
+          // En un chat estrecho, la acción baja a otra línea en vez de salirse de la tarjeta.
+          <div className="ml-auto flex flex-wrap-reverse justify-end gap-2">
             {!abierto && (
               <Button variant="ghost" size="lg" disabled={enviando} onClick={() => responder(null)}>
                 Ahora no
