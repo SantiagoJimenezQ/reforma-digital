@@ -62,11 +62,7 @@ export function Footer() {
             'pie-legal grid [grid-template-columns:1fr_auto] items-center [gap:8px_32px] pt-6 [border-top:1px_solid_rgba(34,_34,_34,_0.18)] [font-size:15px] [&_ul]:flex [&_ul]:flex-wrap [&_ul]:[justify-content:flex-end] [&_ul]:[gap:0_4px] [&_ul]:[margin:0_calc(-1_*_8px)] [&_ul]:p-0 [&_ul]:list-none [&_a]:inline-flex [&_a]:items-center [&_a]:min-h-11 [&_a]:px-2 [&_a]:[border-radius:12px] [&_a]:[color:var(--foreground)] [&_a]:[text-decoration-line:underline] [&_a]:[text-decoration-color:rgba(34,_34,_34,_0.35)] [&_a]:[text-decoration-thickness:from-font] [&_a]:[text-underline-offset:0.25em] [@media(hover:_hover)_and_(pointer:_fine)]:[&_a:hover]:[text-decoration-color:currentColor] [@media(max-width:_720px)]:[grid-template-columns:minmax(0,_1fr)] [@media(max-width:_720px)]:[&_ul]:justify-start'
           }
         >
-          <span
-            className={
-              'pie-marca inline-flex items-center gap-3 [font-size:19px] marca inline-flex items-center [gap:0.5em] [font-family:var(--font-brand-logo)] font-bold [line-height:0.92] [letter-spacing:-0.01em]'
-            }
-          >
+          <span role="img" aria-label="Reforma Digital" className={'pie-marca inline-flex'}>
             <Logo />
           </span>
           <nav aria-label="Secciones">

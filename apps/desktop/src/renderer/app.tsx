@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@reforma-digital/design/ui/button';
 import { cn } from '@reforma-digital/design/lib/utils';
+import { Logotipo } from '@reforma-digital/design/ui/logotipo';
 import { Ajustes } from './ajustes';
 import { Bienvenida } from './bienvenida';
 import { MisDatos } from './datos';
@@ -159,9 +160,9 @@ function Barra({ vista, ir }: { vista: Vista; ir: (v: Vista) => void }) {
         </ul>
       </div>
       <div className="flex h-14 shrink-0 items-center gap-2.5 border-t border-border px-4">
-        <Marca size={18} />
-        <span className="font-[family-name:var(--font-brand-logo)] text-[15px]">
-          Reforma Digital
+        <span role="img" aria-label="Reforma Digital" className="flex items-end gap-[4.5px]">
+          <Marca size={18} />
+          <Logotipo size={18} lineas={1} />
         </span>
         <Button
           variant="ghost"

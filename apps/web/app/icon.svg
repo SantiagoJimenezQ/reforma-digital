@@ -4,7 +4,7 @@
     .d { fill: #a50e0e }
     @media (prefers-color-scheme: dark) {
       .r { fill: #fff }
-      .d { fill: #df1717 }
+      .d { fill: #fff; fill-opacity: .15 }
     }
   </style>
   <path class="r" d="M48 0H96V48H48V96H96V144H48V192H0V48H48Z"/>

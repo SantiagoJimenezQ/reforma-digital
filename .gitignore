@@ -19,7 +19,7 @@ artifacts/runs/
 artifacts/feedback/
 artifacts/crawl/
 
-# FFF Tool Serif Text y Ufficio son de pago y sus licencias prohíben publicarlas (DESIGN.md §8.1).
+# FFF Tool Serif Text es de pago y su licencia prohíbe publicarla (DESIGN.md §8.1).
 apps/web/components/sol/fuentes/
 
 # App de escritorio (apps/desktop): compilación y paquetes.

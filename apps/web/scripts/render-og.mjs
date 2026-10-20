@@ -58,7 +58,7 @@ const pages = [
   },
 ];
 
-// Logo principal: R blanca y doblez #A50E0E sobre cuadrado rojo. `r` es el alto de la R en px;
+// Logo principal: R blanca sobre cuadrado rojo, con el doblez en negro al 15 % (DESIGN.md §8.2). `r` es el alto de la R en px;
 // en los tamaños de favicon es múltiplo de 4 para que cada módulo caiga en píxeles enteros.
 const icons = [
   { file: 'public/icon-512.png', size: 512, r: 300 },
@@ -78,7 +78,7 @@ const icon = ({ size, r, radius = 0 }) => {
     <rect width="${size}" height="${size}" rx="${radius}" fill="#df1717" />
     <svg x="${Math.round((size - w) / 2)}" y="${(size - r) / 2}" width="${w}" height="${r}" viewBox="0 0 144 192" shape-rendering="${size <= 48 ? 'crispEdges' : 'auto'}">
       <path fill="#fff" d="M48 0H96V48H48V96H96V144H48V192H0V48H48Z" />
-      <path fill="#a50e0e" d="M0 48L48 0V48Z" />
+      <path fill="#000" fill-opacity="0.15" d="M0 48L48 0V48Z" />
       <rect x="96" y="48" width="48" height="48" fill="#fff" />
       <rect x="96" y="144" width="48" height="48" fill="#fff" />
     </svg>
