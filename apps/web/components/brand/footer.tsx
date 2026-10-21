@@ -7,6 +7,7 @@ import { congressBase } from '../../lib/congreso/routes';
 import { electionsBase } from '../../lib/elecciones/pages';
 import { Icon } from './icon';
 import { Logo } from './logo';
+import { LogoPuzle } from './logo-puzle';
 
 const secciones = [
   ['La iniciativa', '/#iniciativa'],
@@ -60,7 +61,7 @@ export function Footer() {
           }
         >
           <span role="img" aria-label="Reforma Digital" className={'pie-marca inline-flex'}>
-            <Logo />
+            <Logo size={48} mark={<LogoPuzle size={48} />} />
           </span>
           <nav aria-label="Secciones">
             <ul>
