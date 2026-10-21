@@ -198,7 +198,7 @@ Las primitivas viven en `packages/design/ui`, los bloques del chat en `packages/
 
 ### 8.2 Color y superficies
 
-- Marca roja `--rojo`, tinta `--tinta`, fondo blanco, superficie neutra `--superficie` y bordes `--linea`. Rojo, naranja y amarillo se combinan en `--atardecer` para el hero y las ilustraciones; el pie invierte ese recorrido con texto en tinta. El naranja no se usa como texto ni color de acción aislado.
+- Marca roja `--rojo`, tinta `--tinta`, fondo blanco, superficie neutra `--superficie` y bordes `--linea`. Rojo, naranja y amarillo se combinan en `--atardecer` para el hero y las ilustraciones; el pie invierte ese recorrido con texto en tinta. El naranja no se usa como texto ni color de acción aislado. El logo lleva el doblez a la vista siempre que se pueda: R roja con doblez `--brand-dark` en la cabecera, el menú móvil y el pie; negro o blanco planos solo para imprimir a una tinta.
 - Texto blanco sobre rojo; tinta sobre amarillo y naranja. El color no sustituye la etiqueta de un estado. La guía registra los pares de contraste medidos.
 - Acciones principales en tinta, con el degradado de Sol al pasar el ratón; al pulsar, todos los controles se encogen a 0,96. El foco usa `--foco`; los controles desactivados, `--apagado` y `--apagado-texto`, sin reducir la opacidad de todo el control. Errores y estados conservan texto e icono.
 - Los botones nunca se subrayan; el subrayado queda para los enlaces de texto. Punto abierto: en la extensión, `LinkButton` (§3) es un `<button>` subrayado; Sol no lo cubre y queda sin decidir si se alinea.
