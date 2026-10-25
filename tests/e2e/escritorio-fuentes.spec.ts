@@ -169,25 +169,29 @@ test('muestra todas las fuentes desde la actividad, sin botón bajo la respuesta
     await expect(panel).toHaveCSS('width', '520px');
     await expect(panel.getByRole('listitem')).toHaveCount(6);
     await expect(
+      panel.getByRole('region', { name: 'Páginas leídas · 1', exact: true }).getByRole('listitem'),
+    ).toHaveCount(1);
+    await expect(
       panel
-        .getByRole('region', { name: 'Resultados encontrados · 6', exact: true })
+        .getByRole('region', { name: 'Resultados encontrados · 5', exact: true })
         .getByRole('listitem'),
-    ).toHaveCount(6);
+    ).toHaveCount(5);
     await expect(panel.getByText('Sin verificar', { exact: true })).toHaveCount(5);
     await expect.poll(navegadorVisible).toBe(false);
     await expect(panel).toHaveCSS('opacity', '1');
     await ventana.screenshot({ path: info.outputPath('fuentes-busqueda.png') });
     const buscar = panel.getByRole('searchbox', { name: 'Buscar fuentes por título o web' });
     await expect(panel.getByText('Esta búsqueda · 6 fuentes', { exact: true })).toBeVisible();
-    await panel.getByRole('button', { name: 'Leídas 0', exact: true }).focus();
+    await panel.getByRole('button', { name: 'Leídas 1', exact: true }).focus();
     await ventana.keyboard.press('Space');
-    await expect(panel.getByRole('button', { name: 'Leídas 0', exact: true })).toHaveAttribute(
+    await expect(panel.getByRole('button', { name: 'Leídas 1', exact: true })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await expect(panel.getByRole('listitem')).toHaveCount(0);
-    await panel.getByRole('button', { name: 'Encontradas 6', exact: true }).click();
-    await expect(panel.getByRole('listitem')).toHaveCount(6);
+    await expect(panel.getByRole('listitem')).toHaveCount(1);
+    await expect(panel.getByRole('listitem')).toContainText('Fuente de prueba 1');
+    await panel.getByRole('button', { name: 'Encontradas 5', exact: true }).click();
+    await expect(panel.getByRole('listitem')).toHaveCount(5);
     await buscar.fill('INFORMACION PUBLICA');
     await expect(panel.getByRole('listitem')).toHaveCount(1);
     await expect(panel.getByRole('listitem')).toContainText('Fuente de prueba 6');
@@ -195,14 +199,14 @@ test('muestra todas las fuentes desde la actividad, sin botón bajo la respuesta
     await expect(buscar).toBeFocused();
     await buscar.fill('EXAMPLE.COM');
     await expect(panel.getByRole('listitem')).toHaveCount(5);
-    await panel.getByRole('button', { name: 'Leídas 0', exact: true }).click();
+    await panel.getByRole('button', { name: 'Leídas 1', exact: true }).click();
     await expect(panel.getByRole('listitem')).toHaveCount(0);
     await expect(panel.getByText('No hay fuentes que coincidan.', { exact: true })).toBeVisible();
     await panel.getByRole('button', { name: 'Ver todas las fuentes', exact: true }).click();
     await expect(panel.getByRole('listitem')).toHaveCount(6);
     await expect(buscar).toHaveValue('');
     // Cerrar con una búsqueda y un filtro activos no los arrastra a la siguiente apertura.
-    await panel.getByRole('button', { name: 'Encontradas 6', exact: true }).click();
+    await panel.getByRole('button', { name: 'Encontradas 5', exact: true }).click();
     await buscar.fill('Fuente de prueba 6');
     await ventana.keyboard.press('Escape');
     await expect(panel).not.toBeVisible();
@@ -262,6 +266,7 @@ test('muestra todas las fuentes desde la actividad, sin botón bajo la respuesta
     await ventana.getByRole('button', { name: 'Ver las 6 fuentes', exact: true }).click();
     panel = ventana.getByRole('dialog', { name: 'Fuentes' });
     await expect(panel.getByRole('listitem')).toHaveCount(6);
+    await expect(panel.getByRole('button', { name: 'Leídas 1', exact: true })).toBeVisible();
     await expect(panel).toHaveCSS('transition-property', 'none');
     await ventana.screenshot({ path: info.outputPath('fuentes-compacto.png') });
     await panel.getByRole('button', { name: 'Cerrar fuentes' }).click();
@@ -284,9 +289,9 @@ test('muestra todas las fuentes desde la actividad, sin botón bajo la respuesta
     await expect(panel.getByRole('listitem')).toHaveCount(6);
     await expect(
       panel
-        .getByRole('region', { name: 'Resultados encontrados · 6', exact: true })
+        .getByRole('region', { name: 'Resultados encontrados · 5', exact: true })
         .getByRole('listitem'),
-    ).toHaveCount(6);
+    ).toHaveCount(5);
     await ventana.screenshot({ path: info.outputPath('fuentes-tarjeta-pendiente.png') });
     await panel.getByRole('button', { name: 'Cerrar fuentes' }).click();
     await app.close();

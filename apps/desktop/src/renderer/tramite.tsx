@@ -165,7 +165,7 @@ function Paso({
             {encontradas.length > 4 && (
               <SheetTrigger
                 render={<Button variant="outline" className="min-h-11 cursor-pointer" />}
-                onClick={() => verFuentes(encontradas.map((f) => ({ ...f, origen: 'busqueda' })))}
+                onClick={() => verFuentes(encontradas)}
               >
                 Ver las {encontradas.length} fuentes
                 <Icono nombre="siguiente" />
