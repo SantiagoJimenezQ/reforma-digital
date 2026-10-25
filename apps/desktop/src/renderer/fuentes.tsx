@@ -19,7 +19,6 @@ import { host } from './formato';
 import { Icono } from './icono';
 
 type PropsFuentes = {
-  contexto: string;
   fuentes: Fuente[];
   abrir: (url: string) => void;
 };
@@ -28,7 +27,7 @@ const normalizar = (texto: string) =>
   texto.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('es').trim();
 
 // Dentro del portal: los filtros se reinician al cerrar y volver a abrir el panel.
-function ContenidoFuentes({ contexto, fuentes, abrir }: PropsFuentes) {
+function ContenidoFuentes({ fuentes, abrir }: PropsFuentes) {
   const id = useId();
   const buscador = useRef<HTMLInputElement>(null);
   const [consulta, setConsulta] = useState('');
@@ -64,7 +63,7 @@ function ContenidoFuentes({ contexto, fuentes, abrir }: PropsFuentes) {
           Fuentes
         </SheetTitle>
         <SheetDescription>
-          {contexto} · {fuentes.length} {fuentes.length === 1 ? 'fuente' : 'fuentes'}
+          Esta búsqueda · {fuentes.length} {fuentes.length === 1 ? 'fuente' : 'fuentes'}
         </SheetDescription>
       </SheetHeader>
       <SheetClose

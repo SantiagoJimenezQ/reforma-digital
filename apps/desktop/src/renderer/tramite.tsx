@@ -28,7 +28,7 @@ const DE_NAVEGADOR = new Set([
 ]);
 
 type ItemActividad = Extract<ItemConversacion, { tipo: 'actividad' }>;
-type VerFuentes = (fuentes: Fuente[], titulo: string) => void;
+type VerFuentes = (fuentes: Fuente[]) => void;
 
 /** `clave`: el elemento al que sigue, para que el «Pensando» previo y sus acciones sean el mismo. */
 type Bloque =
@@ -165,12 +165,7 @@ function Paso({
             {encontradas.length > 4 && (
               <SheetTrigger
                 render={<Button variant="outline" className="min-h-11 cursor-pointer" />}
-                onClick={() =>
-                  verFuentes(
-                    encontradas.map((f) => ({ ...f, origen: 'busqueda' })),
-                    'Esta búsqueda',
-                  )
-                }
+                onClick={() => verFuentes(encontradas.map((f) => ({ ...f, origen: 'busqueda' })))}
               >
                 Ver las {encontradas.length} fuentes
                 <Icono nombre="siguiente" />
@@ -390,15 +385,6 @@ function Conversacion({
                 >
                   {i.texto}
                 </Response>
-                {Boolean(i.fuentes?.length) && (
-                  <SheetTrigger
-                    render={<Button variant="ghost" className="mt-2 min-h-11" />}
-                    onClick={() => verFuentes(i.fuentes ?? [], 'Esta respuesta')}
-                  >
-                    <Icono nombre="libro" />
-                    Fuentes · {i.fuentes?.length}
-                  </SheetTrigger>
-                )}
               </div>
             );
           if (i.tipo === 'pregunta')
@@ -561,12 +547,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
   const vista = tramites[id];
   const [verNavegador, setVerNavegador] = useState(false);
   const [fuentesVisibles, setFuentesVisibles] = useState(false);
-  const [seleccionFuentes, setSeleccionFuentes] = useState<{ fuentes: Fuente[]; contexto: string }>(
-    {
-      fuentes: [],
-      contexto: 'Esta respuesta',
-    },
-  );
+  const [seleccionFuentes, setSeleccionFuentes] = useState<Fuente[]>([]);
   const [borrador, setBorrador] = useState<{ texto: string }>();
   useEffect(() => {
     if (!vista) void cargarTramite(id);
@@ -648,7 +629,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
             vista={vista}
             verNavegador={() => setVerNavegador(true)}
             abrirFuente={abrirFuente}
-            verFuentes={(fuentes, contexto) => setSeleccionFuentes({ fuentes, contexto })}
+            verFuentes={setSeleccionFuentes}
             alVolver={(texto) => setBorrador({ texto })}
           />
           {/* La conversación se funde con el lienzo justo encima del compositor. */}
@@ -696,7 +677,7 @@ export function Tramite({ id, alBorrar }: { id: string; alBorrar: () => void }) 
           </aside>
         )}
       </div>
-      <PanelFuentes {...seleccionFuentes} abrir={abrirFuente} />
+      <PanelFuentes fuentes={seleccionFuentes} abrir={abrirFuente} />
     </Sheet>
   );
 }

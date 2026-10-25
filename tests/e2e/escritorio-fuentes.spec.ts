@@ -20,7 +20,7 @@ const fuentes = Array.from({ length: 6 }, (_, n) => ({
   extracto: 'Información sintética para comprobar la lista de fuentes.',
 }));
 
-test('muestra todas las fuentes por búsqueda y por turno, también al revisitar y reabrir', async ({}, info) => {
+test('muestra todas las fuentes desde la actividad, sin botón bajo la respuesta', async ({}, info) => {
   test.setTimeout(120_000);
   const servidor = createServer((req, res) => {
     if (req.url?.startsWith('/api/escritorio/icono')) {
@@ -65,7 +65,7 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
       if (!usuario.includes('Sin buscar')) {
         if (!ultima) {
           llamar('busqueda', 'buscar', {
-            consulta: usuario.includes('Revisa') || esperar ? 'revisita' : 'fuentes',
+            consulta: usuario.includes('Revisa') ? 'revisita' : 'fuentes',
           });
           if (!usuario.includes('Revisa') && !esperar)
             llamar('busqueda-repetida', 'buscar', { consulta: 'fuentes repetidas' });
@@ -140,8 +140,10 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
     await ventana.getByRole('button', { name: 'Empezar', exact: true }).click();
     await ventana.getByPlaceholder(/quiero pedir cita/).fill('Investiga las fuentes de prueba');
     await ventana.getByRole('button', { name: 'Enviar', exact: true }).click();
-    const turno = ventana.getByRole('button', { name: 'Fuentes · 6', exact: true });
-    await expect(turno).toBeVisible({ timeout: 60_000 });
+    await expect(ventana.getByText('Respuesta de prueba terminada.', { exact: true })).toBeVisible({
+      timeout: 60_000,
+    });
+    await expect(ventana.getByRole('button', { name: /^Fuentes ·/ })).toHaveCount(0);
     expect(ventana.url()).toBe('app://bundle/index.html');
     await expect(ventana).toHaveTitle('Reforma Digital');
     const navegadorVisible = () =>
@@ -156,58 +158,6 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
       });
     await expect.poll(navegadorVisible).toBe(true);
 
-    await turno.click();
-    let panel = ventana.getByRole('dialog', { name: 'Fuentes' });
-    await expect(panel).toHaveCSS('width', '520px');
-    await expect(panel.getByRole('listitem')).toHaveCount(6);
-    await expect(
-      panel.getByRole('heading', { name: 'Páginas leídas · 1', exact: true }),
-    ).toBeVisible();
-    await expect(
-      panel
-        .getByRole('region', { name: 'Resultados encontrados · 5', exact: true })
-        .getByRole('listitem'),
-    ).toHaveCount(5);
-    await expect(panel.getByText('Sin verificar', { exact: true })).toHaveCount(5);
-    await expect.poll(navegadorVisible).toBe(false);
-    await expect(panel).toHaveCSS('opacity', '1');
-    await ventana.screenshot({ path: info.outputPath('fuentes-turno.png') });
-    const buscar = panel.getByRole('searchbox', { name: 'Buscar fuentes por título o web' });
-    await expect(panel.getByText('Esta respuesta · 6 fuentes', { exact: true })).toBeVisible();
-    await panel.getByRole('button', { name: 'Leídas 1', exact: true }).focus();
-    await ventana.keyboard.press('Space');
-    await expect(panel.getByRole('button', { name: 'Leídas 1', exact: true })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await expect(panel.getByRole('listitem')).toHaveCount(1);
-    await panel.getByRole('button', { name: 'Encontradas 5', exact: true }).click();
-    await expect(panel.getByRole('listitem')).toHaveCount(5);
-    await buscar.fill('INFORMACION PUBLICA');
-    await expect(panel.getByRole('listitem')).toHaveCount(1);
-    await expect(panel.getByRole('listitem')).toContainText('Fuente de prueba 6');
-    await panel.getByRole('button', { name: 'Limpiar búsqueda', exact: true }).click();
-    await expect(buscar).toBeFocused();
-    await buscar.fill('EXAMPLE.COM');
-    await expect(panel.getByRole('listitem')).toHaveCount(5);
-    await panel.getByRole('button', { name: 'Leídas 1', exact: true }).click();
-    await expect(panel.getByRole('listitem')).toHaveCount(0);
-    await expect(panel.getByText('No hay fuentes que coincidan.', { exact: true })).toBeVisible();
-    await panel.getByRole('button', { name: 'Ver todas las fuentes', exact: true }).click();
-    await expect(panel.getByRole('listitem')).toHaveCount(6);
-    await expect(buscar).toHaveValue('');
-    // Cerrar con una búsqueda y un filtro activos no los arrastra a la siguiente apertura.
-    await panel.getByRole('button', { name: 'Encontradas 5', exact: true }).click();
-    await buscar.fill('Fuente de prueba 6');
-    await ventana.keyboard.press('Escape');
-    await expect(panel).not.toBeVisible();
-    await expect(turno).toBeFocused();
-    await expect.poll(navegadorVisible).toBe(true);
-    await turno.click();
-    await expect(panel.getByRole('listitem')).toHaveCount(6);
-    await expect(buscar).toHaveValue('');
-    await ventana.keyboard.press('Escape');
-
     await ventana.getByRole('button', { name: /Ha trabajado/ }).click();
     const mas = ventana.getByRole('button', { name: 'Ver las 6 fuentes', exact: true });
     await ventana.screenshot({
@@ -215,14 +165,52 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
       animations: 'disabled',
     });
     await mas.click();
-    panel = ventana.getByRole('dialog', { name: 'Fuentes' });
-    await expect(panel.getByText('Esta búsqueda · 6 fuentes', { exact: true })).toBeVisible();
+    let panel = ventana.getByRole('dialog', { name: 'Fuentes' });
+    await expect(panel).toHaveCSS('width', '520px');
     await expect(panel.getByRole('listitem')).toHaveCount(6);
     await expect(
       panel
         .getByRole('region', { name: 'Resultados encontrados · 6', exact: true })
         .getByRole('listitem'),
     ).toHaveCount(6);
+    await expect(panel.getByText('Sin verificar', { exact: true })).toHaveCount(5);
+    await expect.poll(navegadorVisible).toBe(false);
+    await expect(panel).toHaveCSS('opacity', '1');
+    await ventana.screenshot({ path: info.outputPath('fuentes-busqueda.png') });
+    const buscar = panel.getByRole('searchbox', { name: 'Buscar fuentes por título o web' });
+    await expect(panel.getByText('Esta búsqueda · 6 fuentes', { exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: 'Leídas 0', exact: true }).focus();
+    await ventana.keyboard.press('Space');
+    await expect(panel.getByRole('button', { name: 'Leídas 0', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(panel.getByRole('listitem')).toHaveCount(0);
+    await panel.getByRole('button', { name: 'Encontradas 6', exact: true }).click();
+    await expect(panel.getByRole('listitem')).toHaveCount(6);
+    await buscar.fill('INFORMACION PUBLICA');
+    await expect(panel.getByRole('listitem')).toHaveCount(1);
+    await expect(panel.getByRole('listitem')).toContainText('Fuente de prueba 6');
+    await panel.getByRole('button', { name: 'Limpiar búsqueda', exact: true }).click();
+    await expect(buscar).toBeFocused();
+    await buscar.fill('EXAMPLE.COM');
+    await expect(panel.getByRole('listitem')).toHaveCount(5);
+    await panel.getByRole('button', { name: 'Leídas 0', exact: true }).click();
+    await expect(panel.getByRole('listitem')).toHaveCount(0);
+    await expect(panel.getByText('No hay fuentes que coincidan.', { exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: 'Ver todas las fuentes', exact: true }).click();
+    await expect(panel.getByRole('listitem')).toHaveCount(6);
+    await expect(buscar).toHaveValue('');
+    // Cerrar con una búsqueda y un filtro activos no los arrastra a la siguiente apertura.
+    await panel.getByRole('button', { name: 'Encontradas 6', exact: true }).click();
+    await buscar.fill('Fuente de prueba 6');
+    await ventana.keyboard.press('Escape');
+    await expect(panel).not.toBeVisible();
+    await expect(mas).toBeFocused();
+    await expect.poll(navegadorVisible).toBe(true);
+    await mas.click();
+    await expect(panel.getByRole('listitem')).toHaveCount(6);
+    await expect(buscar).toHaveValue('');
     await panel.getByRole('button', { name: /^Fuente de prueba 6/ }).click();
     await expect(panel).not.toBeVisible();
     await expect(mas).toBeFocused();
@@ -237,22 +225,19 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
       .getByRole('textbox', { name: 'Mensaje para el asistente' })
       .fill('Revisa las fuentes de prueba');
     await ventana.getByRole('button', { name: 'Enviar', exact: true }).click();
-    const revisita = ventana.getByRole('button', { name: 'Fuentes · 1', exact: true });
-    await expect(revisita).toBeVisible();
-    await revisita.click();
-    panel = ventana.getByRole('dialog', { name: 'Fuentes' });
-    await expect(panel.getByRole('listitem')).toHaveCount(1);
+    await expect(ventana.getByText('Respuesta de prueba terminada.', { exact: true })).toHaveCount(
+      2,
+    );
+    await ventana
+      .getByRole('button', { name: /Ha trabajado/ })
+      .last()
+      .click();
     await expect(
-      panel
-        .getByRole('region', { name: 'Resultados encontrados · 1', exact: true })
-        .getByRole('listitem'),
-    ).toHaveCount(1);
-    await ventana.keyboard.press('Escape');
-    await turno.click();
-    await expect(
-      panel.getByRole('heading', { name: 'Páginas leídas · 1', exact: true }),
-    ).toBeVisible();
-    await ventana.keyboard.press('Escape');
+      ventana.getByRole('button', { name: 'Fuente de prueba 1', exact: true }),
+    ).toHaveCount(2);
+    // La búsqueda nueva no sustituye las fuentes de la actividad anterior.
+    await expect(mas).toHaveCount(1);
+    await expect(ventana.getByRole('button', { name: /^Fuentes ·/ })).toHaveCount(0);
 
     await ventana
       .getByRole('textbox', { name: 'Mensaje para el asistente' })
@@ -261,7 +246,7 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
     await expect(ventana.getByText('Respuesta de prueba terminada.', { exact: true })).toHaveCount(
       3,
     );
-    await expect(ventana.getByRole('button', { name: /^Fuentes ·/ })).toHaveCount(2);
+    await expect(ventana.getByRole('button', { name: /^Fuentes ·/ })).toHaveCount(0);
     expect(errores).toEqual([]);
 
     await app.close();
@@ -270,12 +255,13 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
     await ventana.getByRole('button', { name: /^Investiga las fuentes de prueba/ }).click();
     await ventana.emulateMedia({ reducedMotion: 'reduce' });
     await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setSize(960, 720));
-    await ventana.getByRole('button', { name: 'Fuentes · 6', exact: true }).click();
+    await ventana
+      .getByRole('button', { name: /Ha trabajado/ })
+      .first()
+      .click();
+    await ventana.getByRole('button', { name: 'Ver las 6 fuentes', exact: true }).click();
     panel = ventana.getByRole('dialog', { name: 'Fuentes' });
     await expect(panel.getByRole('listitem')).toHaveCount(6);
-    await expect(
-      panel.getByRole('heading', { name: 'Páginas leídas · 1', exact: true }),
-    ).toBeVisible();
     await expect(panel).toHaveCSS('transition-property', 'none');
     await ventana.screenshot({ path: info.outputPath('fuentes-compacto.png') });
     await panel.getByRole('button', { name: 'Cerrar fuentes' }).click();
@@ -288,16 +274,19 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
     await expect(
       ventana.getByRole('button', { name: 'Pedir la cita por mí', exact: true }),
     ).toBeVisible();
-    const pendientes = ventana.getByRole('button', { name: 'Fuentes · 1', exact: true });
-    await expect(pendientes).toHaveCount(2);
-    await pendientes.last().click();
+    await expect(ventana.getByRole('button', { name: /^Fuentes ·/ })).toHaveCount(0);
+    await ventana
+      .getByRole('button', { name: /Ha trabajado/ })
+      .last()
+      .click();
+    await ventana.getByRole('button', { name: 'Ver las 6 fuentes', exact: true }).last().click();
     panel = ventana.getByRole('dialog', { name: 'Fuentes' });
-    await expect(panel.getByRole('listitem')).toHaveCount(1);
+    await expect(panel.getByRole('listitem')).toHaveCount(6);
     await expect(
       panel
-        .getByRole('region', { name: 'Resultados encontrados · 1', exact: true })
+        .getByRole('region', { name: 'Resultados encontrados · 6', exact: true })
         .getByRole('listitem'),
-    ).toHaveCount(1);
+    ).toHaveCount(6);
     await ventana.screenshot({ path: info.outputPath('fuentes-tarjeta-pendiente.png') });
     await panel.getByRole('button', { name: 'Cerrar fuentes' }).click();
     await app.close();
@@ -307,13 +296,17 @@ test('muestra todas las fuentes por búsqueda y por turno, también al revisitar
     await expect(
       ventana.getByRole('button', { name: 'Pedir la cita por mí', exact: true }),
     ).toBeVisible();
-    await expect(ventana.getByRole('button', { name: 'Fuentes · 1', exact: true })).toHaveCount(2);
+    await expect(ventana.getByRole('button', { name: /^Fuentes ·/ })).toHaveCount(0);
     await ventana.getByRole('button', { name: 'Detener al asistente', exact: true }).click();
     await expect(ventana.getByText('Has detenido al asistente.', { exact: true })).toBeVisible();
-    await ventana.getByRole('button', { name: 'Fuentes · 1', exact: true }).last().click();
+    await ventana
+      .getByRole('button', { name: /Ha trabajado/ })
+      .last()
+      .click();
+    await ventana.getByRole('button', { name: 'Ver las 6 fuentes', exact: true }).click();
     await expect(
       ventana.getByRole('dialog', { name: 'Fuentes' }).getByRole('listitem'),
-    ).toHaveCount(1);
+    ).toHaveCount(6);
   } finally {
     await app.close();
     await new Promise<void>((r) => servidor.close(() => r()));

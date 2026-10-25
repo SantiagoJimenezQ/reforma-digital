@@ -69,13 +69,7 @@ export type ItemConversacion =
       /** Cuántos mensajes tenía el asistente antes de este: para volver atrás. */
       mensajes?: number;
     }
-  | {
-      tipo: 'asistente';
-      id: string;
-      texto: string;
-      /** Fuentes del turno que la interfaz muestra al terminar o esperar a la persona. */
-      fuentes?: Fuente[];
-    }
+  | { tipo: 'asistente'; id: string; texto: string }
   | {
       tipo: 'actividad';
       id: string;
@@ -88,8 +82,6 @@ export type ItemConversacion =
       hasta?: string;
       /** Las webs consultadas por esta acción, incluidas las revisitadas. */
       fuentes?: string[];
-      /** Su estado al consultarlas: las lecturas posteriores no cambian el historial. */
-      consultadas?: Fuente[];
     }
   | {
       tipo: 'pregunta';

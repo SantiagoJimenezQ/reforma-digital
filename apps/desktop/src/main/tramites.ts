@@ -28,7 +28,6 @@ import type {
 } from '../shared/api';
 import type { Almacen } from './almacen';
 import { leerConNavegador, NavegadorTramite, particion } from './navegador';
-import { conFuentesDelTurno } from '../shared/fuentes';
 
 type Registro = {
   id: string;
@@ -196,14 +195,10 @@ export class Tramites {
     const r = this.registros.get(id);
     if (!r) return null;
     const nav = this.navegadores.get(id);
-    const resumen = this.resumen(r);
     return {
-      ...resumen,
+      ...this.resumen(r),
       fuentes: r.estado.fuentes,
-      conversacion: textos(
-        conFuentesDelTurno(r.conversacion, r.estado.fuentes, resumen.ejecucion === 'trabajando'),
-        mostrar(r),
-      ),
+      conversacion: textos(r.conversacion, mostrar(r)),
       cola: this.colas.get(id) ?? [],
       navegador: nav
         ? {
@@ -593,15 +588,10 @@ export class Tramites {
         const accion = r.conversacion.find(
           (i): i is ItemActividad => i.tipo === 'actividad' && i.id === `${turno}:${e.actividad}`,
         );
-        if (accion) {
+        if (accion)
           accion.fuentes = [
             ...new Set([...(accion.fuentes ?? []), ...e.consultadas.map((f) => f.id)]),
           ];
-          accion.consultadas = [
-            ...(accion.consultadas ?? []),
-            ...e.consultadas.map((f) => ({ ...f })),
-          ];
-        }
         r.estado.fuentes = e.fuentes;
       } else if (e.tipo === 'uso') r.estado.uso = e.uso;
       this.cambio(r.id);
